@@ -1,18 +1,25 @@
 # AGENTS.md
 
-# LawDesk Development Constitution
+## Related Documents
+
+Refer to the following project governance documents:
+
+- CLAUDE.md — AI Coding Rules
+- CONTRIBUTING.md — Development Workflow
+- CHANGELOG.md — Project History
+
+AGENTS.md is the highest-level project constitution.
+
+# LawDesk Development Constitution (V1)
 
 Project:
 LawDesk — AI Native Lawyer Operating System
 
 Version:
-1.0.0
+V1.0
 
 Status:
-Production
-
-Last Updated:
-2026-07-01
+Active
 
 ---
 
@@ -130,29 +137,6 @@ New Domain Models require architectural review.
 
 ---
 
-# 5.1 Domain Ownership
-
-Each business object owns its own lifecycle.
-
-Business objects should not directly own or mutate other business objects.
-
-All coordination happens through Matter_Workspace.
-
-Matter_Workspace is responsible for aggregating:
-
-- Matter
-- Client
-- Material
-- Evidence
-- Document
-- Timeline
-- Task
-- Research
-- Knowledge
-- AI_Work_Record
-
----
-
 # 6. Aggregate Root Rule
 
 Matter_Workspace is the Aggregate Root.
@@ -265,20 +249,6 @@ Never implement undocumented architecture.
 
 ---
 
-# 11.1 Documentation Priority
-
-When documents conflict, follow this priority:
-
-1. AGENTS.md
-2. docs/07_Development
-3. docs/03_Data_Model
-4. docs/02_Workflow
-5. Source Code
-
-Documentation is the single source of truth.
-
----
-
 # 12. Naming Rules
 
 Folders:
@@ -299,70 +269,292 @@ Examples:
 
 matter_workspace.md
 
+ai_work_record.md
+
+table_relation.md
+
+---
+
+# 13. Markdown Rules
+
+Use:
+
+Heading hierarchy
+
+Tables
+
+Lists
+
+Short paragraphs
+
+Avoid:
+
+HTML
+
+Inline styles
+
+Random formatting
+
+Documentation must remain readable.
+
+---
+
+# 14. Database Rules
+
+Database:
+
+PostgreSQL
+
+Primary Key:
+
+UUID
+
+Table:
+
+snake_case
+
+Columns:
+
+snake_case
+
+Timestamp:
+
+created_at
+
+updated_at
+
+Soft delete preferred.
+
+---
+
+# 15. API Rules
+
+REST first.
+
+GraphQL reserved for future.
+
+JSON only.
+
+Never expose database schema directly.
+
+---
+
+# 16. UI Rules
+
+Workspace First.
+
+No unnecessary pages.
+
+No dashboard overload.
+
+Everything should reduce lawyer cognitive load.
+
+---
+
+# 17. AI Runtime Rules
+
+AI should observe business state.
+
+AI should not become business state.
+
+Business Objects store truth.
+
+AI generates suggestions.
+
+---
+
+# 18. File Rules
+
+Raw files belong to Material.
+
+Business Objects store metadata.
+
+Never use file system as business database.
+
 ---
 
 # 19. Coding Rules
 
-Coding must be pragmatic and consistent.
+Readable code first.
 
-Keep modules focused, maintainable, and aligned with existing architecture.
+Avoid premature optimization.
 
----
+Prefer composition.
 
-# 19.1 AI Coding Rules
+Avoid global state.
 
-AI Agents must:
-
-- extend existing modules before creating new ones
-- follow existing naming conventions
-- keep implementations simple
-- avoid unnecessary abstractions
-- avoid unrelated refactoring
-- never introduce new architecture without approval
+No magic values.
 
 ---
 
 # 20. Git Rules
 
-Git commits should be clear, atomic, and traceable.
+Small commits.
 
-Use branches for features and fixes.
+Meaningful commit messages.
+
+Do not mix refactoring and features.
+
+Example:
+
+Add Timeline aggregate
+
+Fix Research relation
+
+Update Document workflow
 
 ---
 
-# 20.1 Commit Rules
+# 21. Agent Behavior
 
-Each commit should have:
+Before editing:
 
-- one feature
-- one responsibility
-- one clear purpose
+Read AGENTS.md
 
-Do not mix:
+Read related documentation
 
-- refactor
-- bug fix
-- feature
-- documentation
+Understand Workflow
+
+Understand Domain Model
+
+Then edit.
+
+Never guess architecture.
+
+---
+
+# 22. Forbidden Actions
+
+Never:
+
+Rename Domain Models
+
+Change Workflow IDs
+
+Delete documentation
+
+Overwrite confirmed lawyer data
+
+Bypass lawyer confirmation
+
+Implement undocumented architecture
 
 ---
 
 # 23. Architecture Freeze
 
-Architecture decisions must be stable and reviewed before implementation.
+Current architecture is considered stable.
+
+Future development should extend existing architecture instead of redesigning it.
+
+Major architectural changes require explicit approval.
 
 ---
 
-# 23.1 Architecture Decision Rule
+# 24. Development Order
 
-When uncertain:
+Follow this sequence:
 
-- do not invent
-- do not guess
-- stop implementation
-- ask for clarification
+Documentation
 
-If architecture is unclear, implementation must pause.
+↓
+
+Domain Model
+
+↓
+
+Database
+
+↓
+
+Workflow Engine
+
+↓
+
+API
+
+↓
+
+AI Runtime
+
+↓
+
+Frontend
+
+↓
+
+Testing
+
+↓
+
+Deployment
+
+Do not reverse the order.
+
+---
+
+# 25. Definition of Done
+
+A feature is complete only if:
+
+Documentation updated
+
+Domain Model updated
+
+Workflow updated
+
+Database updated
+
+API updated
+
+UI updated
+
+Tests passed
+
+Reviewed
+
+---
+
+# 26. Long-term Vision
+
+LawDesk should become:
+
+The operating system for independent lawyers.
+
+AI should work continuously.
+
+Lawyers should focus on legal judgment rather than repetitive work.
+
+The system should become more valuable with every case handled.
+
+LawDesk learns.
+
+LawDesk assists.
+
+LawDesk never replaces the lawyer.
+
+---
+
+# Agent Responsibility
+
+When modifying any governance document
+(AGENTS.md, CLAUDE.md, CONTRIBUTING.md, CHANGELOG.md, README.md),
+
+the AI agent should:
+
+- preserve existing content unless explicitly instructed otherwise
+- maintain cross references between governance documents
+- keep document styles and formatting consistent
+- avoid duplicated rules across governance documents
+- update related governance documents when necessary
+- never silently change project principles or architecture
+- never remove existing rules without explicit approval
+- prefer extending documentation instead of replacing it
+- keep governance documents synchronized
+- report all governance document changes in the final summary
+
+If multiple governance documents become inconsistent,
+the AI agent should identify the inconsistency and request clarification before making architectural changes.
 
 ---
 
