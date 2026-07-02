@@ -325,6 +325,13 @@ Version 1.0
 - Architecture
 - Workflow
 - Domain Model
+ 
+Terminology clarification:
+
+- Domain Model = 业务领域对象模型（Business Entity Model）。
+- Data Model = 数据库 / Schema 层的数据结构设计，仅在 Database 或 Schema 语境下使用。
+
+LawDesk V1 默认使用 Domain Model 表示 Matter、Client、Evidence、Document、Task 等业务对象。
 
 Version 1.1
 

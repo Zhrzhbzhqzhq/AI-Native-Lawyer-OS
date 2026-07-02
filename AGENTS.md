@@ -247,6 +247,41 @@ Update documentation before implementation.
 
 Never implement undocumented architecture.
 
+Documentation Style Guide
+
+- Terminology Convention
+  1. 专有术语第一次出现时采用：
+     中文（English）
+     例如：
+     - 生命周期事件（Lifecycle Events）
+     - 业务状态来源（Source of Truth）
+     - 工作流（Workflow）
+     - 案件（Matter）
+  2. 同一文档后续再次出现时，可直接使用英文术语。
+  3. 已在整个 LawDesk 中固定命名的对象保持英文：
+     - Matter
+     - Workflow
+     - Today
+     - Timeline
+     - Workspace
+     - AI Runtime
+     - Dashboard
+     - Overview
+     不得混用多个英文名称。
+
+- Freeze Conclusion Template
+  所有已冻结（Frozen）规范文档统一采用以下结尾：
+
+  该文档定义 LawDesk V1 <Module> 官方规范。
+
+  本规范自 V1 起正式冻结。
+
+  Database、API、Workflow、AI Runtime、Frontend 及后续 V1 功能开发必须遵守本规范。
+
+  任何业务规则修改必须进入 V2。
+
+  其中 <Module> 根据实际模块自动替换。
+
 ---
 
 # 12. Naming Rules

@@ -10,7 +10,7 @@ Business Workflow
 
 ↓
 
-03_Data_Model
+03_Domain_Model
 
 Domain Model
 
@@ -42,7 +42,7 @@ Development Documentation
 
 1. Product Principle
 2. Workflow
-3. Data Model
+3. Domain Model
 4. UI/UX
 5. AI
 6. Architecture
