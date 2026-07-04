@@ -618,9 +618,41 @@ export async function matterRoutes(app: FastifyInstance) {
         missing: 0,
       }
 
-      const evidence_list = await prisma.evidence.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' }, take: 20, select: { evidence_id: true, title: true, evidence_type: true, status: true, relevance: true, updated_at: true } }).catch(() => [])
+      const evidence_list = await prisma.evidence.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' }, take: 20, select: { evidence_id: true, title: true, evidence_type: true, status: true, relevance: true, description: true, material_id: true, updated_at: true } }).catch(() => [])
       // ensure `source` field exists for frontend compatibility
       const evidence_list_mapped = (Array.isArray(evidence_list) ? evidence_list : []).map((e:any) => ({ ...e, source: (e as any).source ?? 'unknown' }))
+
+      // selected_evidence: if list non-empty, pick first and enrich with related material, placeholders
+      let selected_evidence: any = null
+      if (evidence_list_mapped.length > 0) {
+        const first = evidence_list_mapped[0]
+        // fetch related material title if available
+        let related_material = null
+        if (first.material_id) {
+          try {
+            const mat = await prisma.material.findUnique({ where: { material_id: first.material_id }, select: { material_id: true, title: true } }).catch(() => null)
+            if (mat) related_material = { material_id: mat.material_id, title: mat.title }
+          } catch (e) {
+            related_material = null
+          }
+        }
+
+        selected_evidence = {
+          evidence_id: first.evidence_id,
+          title: first.title,
+          evidence_type: first.evidence_type,
+          status: first.status,
+          relevance: first.relevance,
+          description: first.description ?? '',
+          source: first.source ?? 'unknown',
+          updated_at: first.updated_at ? (first.updated_at instanceof Date ? first.updated_at.toISOString() : String(first.updated_at)) : null,
+          related_material,
+          related_documents: [],
+          related_timeline: [],
+          lawyer_notes: { status: 'read_only', message: 'Lawyer notes coming soon' },
+          ai_summary: { status: 'placeholder', message: 'AI evidence summary coming soon' },
+        }
+      }
 
       // build navigation (read-only counts)
       const types = ['electronic','physical','recording','photo','video','contract','transfer','chat','witness','other']
@@ -653,7 +685,7 @@ export async function matterRoutes(app: FastifyInstance) {
         summary,
         evidence_list: evidence_list_mapped,
         navigation: { by_type, by_status, by_strength },
-        selected_evidence: null,
+        selected_evidence,
         ai_analysis: { status: 'placeholder', message: 'AI evidence analysis coming soon' },
         missing_evidence: [],
       })

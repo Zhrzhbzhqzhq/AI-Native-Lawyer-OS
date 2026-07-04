@@ -108,7 +108,67 @@ export default function EvidenceWorkspacePage() {
         <div>
           <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
             <h3 style={{ marginTop: 0 }}>Evidence Detail</h3>
-            <div style={{ color: '#666' }}>Select an evidence item to view details</div>
+            {data.selected_evidence ? (
+              <div>
+                <h2 style={{ margin: '6px 0' }}>{data.selected_evidence.title}</h2>
+                <div style={{ color: '#666', fontSize: 13 }}>ID: {data.selected_evidence.evidence_id}</div>
+                <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                  <div style={{ fontSize: 13 }}>Type: {data.selected_evidence.evidence_type}</div>
+                  <div style={{ fontSize: 13 }}>Status: {data.selected_evidence.status}</div>
+                  <div style={{ fontSize: 13 }}>Relevance: {data.selected_evidence.relevance}</div>
+                </div>
+                <div style={{ fontSize: 13, color: '#666', marginTop: 6 }}>Source: {data.selected_evidence.source}</div>
+                <div style={{ fontSize: 13, color: '#666' }}>Updated: {data.selected_evidence.updated_at ?? 'N/A'}</div>
+
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontWeight: 700 }}>Description</div>
+                  <div style={{ color: '#333' }}>{data.selected_evidence.description || 'No description'}</div>
+                </div>
+
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontWeight: 700 }}>Related Material</div>
+                  {data.selected_evidence.related_material ? (
+                    <div style={{ color: '#333' }}>{data.selected_evidence.related_material.title} · {data.selected_evidence.related_material.material_id}</div>
+                  ) : (
+                    <div style={{ color: '#666' }}>No related material</div>
+                  )}
+                </div>
+
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontWeight: 700 }}>AI Summary</div>
+                  <div style={{ color: '#666' }}>{data.selected_evidence.ai_summary?.message || 'AI evidence summary coming soon'}</div>
+                </div>
+
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontWeight: 700 }}>Related Documents</div>
+                  {Array.isArray(data.selected_evidence.related_documents) && data.selected_evidence.related_documents.length === 0 ? (
+                    <div style={{ color: '#666' }}>No related documents</div>
+                  ) : (
+                    (data.selected_evidence.related_documents || []).map((d:any, idx:number) => (
+                      <div key={idx} style={{ padding: 6 }}>{d.title || d.document_id}</div>
+                    ))
+                  )}
+                </div>
+
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontWeight: 700 }}>Timeline</div>
+                  {Array.isArray(data.selected_evidence.related_timeline) && data.selected_evidence.related_timeline.length === 0 ? (
+                    <div style={{ color: '#666' }}>No related timeline events</div>
+                  ) : (
+                    (data.selected_evidence.related_timeline || []).map((t:any, idx:number) => (
+                      <div key={idx} style={{ padding: 6 }}>{t.event_type || t.timeline_id}</div>
+                    ))
+                  )}
+                </div>
+
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontWeight: 700 }}>Lawyer Notes</div>
+                  <div style={{ color: '#666' }}>{data.selected_evidence.lawyer_notes?.message || 'Lawyer notes coming soon'}</div>
+                </div>
+              </div>
+            ) : (
+              <div style={{ color: '#666' }}>Select an evidence item to view details</div>
+            )}
           </div>
 
           <div style={{ marginTop: 12, background: '#fff', padding: 12, borderRadius: 8 }}>
