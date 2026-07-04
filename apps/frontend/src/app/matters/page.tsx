@@ -32,7 +32,12 @@ export default function MattersPage() {
     try {
       const res = await fetch(API('/matters'))
       const data = await res.json()
-      setMatters(data || [])
+      // Normalize response: accept either an array or an object { matters: [...] }
+      let list: any[] = []
+      if (Array.isArray(data)) list = data
+      else if (data && Array.isArray((data as any).matters)) list = (data as any).matters
+      else list = []
+      setMatters(list)
     } catch (e) {
       console.error(e)
     } finally {
