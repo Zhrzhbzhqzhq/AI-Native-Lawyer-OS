@@ -15,3 +15,19 @@ export type RuntimeStateItem = {
   code: RuntimeStateCode
   value: number | boolean
 }
+
+export const RuntimeDecisionCode = {
+  COLLECT_EVIDENCE: 'COLLECT_EVIDENCE',
+  REVIEW_EVIDENCE: 'REVIEW_EVIDENCE',
+  RESEARCH_LAW: 'RESEARCH_LAW',
+  REVIEW_DOCUMENT: 'REVIEW_DOCUMENT',
+  MONITOR_MATTER: 'MONITOR_MATTER',
+  NO_ACTION: 'NO_ACTION',
+} as const
+
+export type RuntimeDecisionCode = typeof RuntimeDecisionCode[keyof typeof RuntimeDecisionCode]
+
+export type RuntimeDecision = {
+  code: RuntimeDecisionCode
+  source: RuntimeStateCode[]
+}

@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@lawdesk/database';
 import ContextBuilder from './contextBuilder';
 import analyzeRuntimeState from './runtimeAnalyzer'
+import decideFromRuntimeState from './runtimeDecisionEngine'
 import MatterStateEngine from './matterStateEngine';
 
 export class MatterSnapshotRuntime {
@@ -90,12 +91,14 @@ export class MatterSnapshotRuntime {
     }
 
     const runtime_state = analyzeRuntimeState(snapshot_facts)
+    const runtime_decision = decideFromRuntimeState(runtime_state)
 
     return {
       matter,
       workflow,
       tasks,
       runtime_state,
+      runtime_decision,
       documents,
       evidence,
       research,
