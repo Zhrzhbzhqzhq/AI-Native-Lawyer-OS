@@ -87,6 +87,22 @@ export async function intakeRoutes(app: FastifyInstance) {
       }
     }
   })
+
+  app.post('/intake/evidence-draft', async (request, reply) => {
+    const payload = (request.body || {}) as {
+      matter_id?: string
+      materials?: Array<{ material_id: string; title?: string; material_type?: string; source?: string }>
+    }
+
+    const matter_id = payload.matter_id ? String(payload.matter_id) : ''
+    if (!matter_id) return reply.code(400).send({ error: 'matter_id required' })
+
+    const materials = Array.isArray(payload.materials) ? payload.materials : []
+    if (materials.length === 0) return reply.code(400).send({ error: 'materials required' })
+
+    const drafts = runtime.generateEvidenceDrafts({ matter_id, materials })
+    return reply.code(200).send(drafts)
+  })
 }
 
 export default intakeRoutes

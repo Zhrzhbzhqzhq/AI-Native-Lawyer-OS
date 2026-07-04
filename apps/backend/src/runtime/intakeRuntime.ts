@@ -71,6 +71,44 @@ export class IntakeRuntime {
       },
     }
   }
+
+  generateEvidenceDrafts(input: { matter_id: string; materials: Array<{ material_id: string; title?: string; material_type?: string; source?: string }>}): {
+    status: 'evidence_draft_ready'
+    matter_id: string
+    evidence_drafts: Array<{
+      draft_id: string
+      material_id: string
+      title: string
+      evidence_type: string
+      proof_purpose: string
+      confidence: number
+      source: 'client' | 'opponent' | 'court' | 'third_party'
+      suggested_action: 'confirm_as_evidence'
+    }>
+  } {
+    const drafts = input.materials.map((m, idx) => ({
+      draft_id: `ed-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}-${idx}`,
+      material_id: m.material_id,
+      title: m.title || 'untitled',
+      evidence_type: m.material_type || 'document',
+      proof_purpose: 'Support claim',
+      confidence: 0.8,
+      source: ((): any => {
+        const s = String(m.source || '')
+        if (s === 'client') return 'client'
+        if (s === 'opponent') return 'opponent'
+        if (s === 'court') return 'court'
+        return 'third_party'
+      })(),
+      suggested_action: 'confirm_as_evidence' as const,
+    }))
+
+    return {
+      status: 'evidence_draft_ready',
+      matter_id: input.matter_id,
+      evidence_drafts: drafts,
+    }
+  }
 }
 
 export default IntakeRuntime

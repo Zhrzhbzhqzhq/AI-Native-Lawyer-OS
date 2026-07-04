@@ -161,6 +161,57 @@ describe('Unified Intake API', () => {
     expect(afterTimeline[0].count).toBe(beforeTimeline[0].count)
   })
 
+  it('evidence-draft returns drafts and does not create formal evidence', async () => {
+    const markerMatterId = `mock-intake-${Date.now()}-draft`
+
+    // create matter fixture
+    await prisma.matter.create({ data: { matter_id: markerMatterId, title: 'Draft Matter', description: '', matter_type: 'test', status: 'active' } })
+
+    const beforeEvidence = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM evidence WHERE matter_id = ${markerMatterId}
+    `
+    const beforeDocument = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM documents WHERE matter_id = ${markerMatterId}
+    `
+    const beforeKnowledge = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM knowledge WHERE matter_id = ${markerMatterId}
+    `
+    const beforeTimeline = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM timelines WHERE matter_id = ${markerMatterId}
+    `
+
+    const materials = [{ material_id: `mat-${Date.now()}`, title: 'file.pdf', material_type: 'document', source: 'client' }]
+
+    const res = await fetch(`${BASE}/intake/evidence-draft`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ matter_id: markerMatterId, materials }),
+    })
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.status).toBe('evidence_draft_ready')
+    expect(Array.isArray(body.evidence_drafts)).toBe(true)
+    expect(body.evidence_drafts[0].material_id).toBe(materials[0].material_id)
+
+    const afterEvidence = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM evidence WHERE matter_id = ${markerMatterId}
+    `
+    const afterDocument = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM documents WHERE matter_id = ${markerMatterId}
+    `
+    const afterKnowledge = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM knowledge WHERE matter_id = ${markerMatterId}
+    `
+    const afterTimeline = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM timelines WHERE matter_id = ${markerMatterId}
+    `
+
+    expect(afterEvidence[0].count).toBe(beforeEvidence[0].count)
+    expect(afterDocument[0].count).toBe(beforeDocument[0].count)
+    expect(afterKnowledge[0].count).toBe(beforeKnowledge[0].count)
+    expect(afterTimeline[0].count).toBe(beforeTimeline[0].count)
+  })
+
   it('confirm-material returns 400 when matter_id missing', async () => {
     const res = await fetch(`${BASE}/intake/confirm-material`, {
       method: 'POST',

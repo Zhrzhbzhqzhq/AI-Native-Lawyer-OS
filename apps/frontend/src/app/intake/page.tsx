@@ -328,6 +328,30 @@ export default function IntakePage() {
                     </div>
                   </div>
                 )}
+                <div style={{ marginTop: 12 }}>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!confirmResult || !Array.isArray(confirmResult.created_materials)) return
+                      const mats = confirmResult.created_materials.map((m: any) => ({ material_id: m.material_id, title: m.title, material_type: m.material_type, source: m.source }))
+                      try {
+                        const res = await fetch(`${API}/intake/evidence-draft`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ matter_id: matterId, materials: mats }),
+                        })
+                        if (!res.ok) throw new Error('draft failed')
+                        const body = await res.json()
+                        alert(`Drafts: ${Array.isArray(body.evidence_drafts) ? body.evidence_drafts.length : 0}`)
+                      } catch (e) {
+                        alert(String(e))
+                      }
+                    }}
+                    style={{ marginTop: 6, padding: '8px 12px', borderRadius: 8, background: '#f97316', color: '#fff', border: 'none' }}
+                  >
+                    生成证据草稿
+                  </button>
+                </div>
               </div>
             )}
           </div>
