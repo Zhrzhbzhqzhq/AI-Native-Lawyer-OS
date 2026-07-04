@@ -95,7 +95,12 @@ describe('Evidence Workspace Read-only', () => {
     expect(se.lawyer_notes).toBeTruthy()
     expect(se.lawyer_notes.status).toBe('read_only')
     expect(se.ai_summary).toBeTruthy()
-    expect(se.ai_summary.status).toBe('placeholder')
+    expect(se.ai_summary.status).toBe('rule_based')
+    expect(typeof se.ai_summary.score).toBe('number')
+    expect(typeof se.ai_summary.completeness).toBe('string')
+    expect(Array.isArray(se.ai_summary.strengths)).toBe(true)
+    expect(Array.isArray(se.ai_summary.risks)).toBe(true)
+    expect(Array.isArray(se.ai_summary.recommendations)).toBe(true)
     expect(body.ai_analysis).toBeTruthy()
     expect(Array.isArray(body.missing_evidence)).toBe(true)
 

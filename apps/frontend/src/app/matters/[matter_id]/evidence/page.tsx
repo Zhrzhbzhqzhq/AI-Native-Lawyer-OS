@@ -173,7 +173,42 @@ export default function EvidenceWorkspacePage() {
 
           <div style={{ marginTop: 12, background: '#fff', padding: 12, borderRadius: 8 }}>
             <h3 style={{ marginTop: 0 }}>AI Analysis</h3>
-            <div style={{ color: '#666' }}>{data.ai_analysis?.message ?? 'AI evidence analysis coming soon'}</div>
+            {/* Render new rule-based ai_summary when available on selected_evidence, otherwise fallback */}
+            {data.selected_evidence && data.selected_evidence.ai_summary && data.selected_evidence.ai_summary.status === 'rule_based' ? (
+              <div>
+                <div style={{ fontWeight: 700 }}>Score: {data.selected_evidence.ai_summary.score}</div>
+                <div style={{ color: '#666' }}>Completeness: {data.selected_evidence.ai_summary.completeness}</div>
+
+                <div style={{ marginTop: 8 }}>
+                  <div style={{ fontWeight: 700 }}>Strengths</div>
+                  {Array.isArray(data.selected_evidence.ai_summary.strengths) && data.selected_evidence.ai_summary.strengths.length > 0 ? (
+                    data.selected_evidence.ai_summary.strengths.map((s:any, idx:number) => <div key={idx}>{s}</div>)
+                  ) : (
+                    <div style={{ color: '#666' }}>No strengths</div>
+                  )}
+                </div>
+
+                <div style={{ marginTop: 8 }}>
+                  <div style={{ fontWeight: 700 }}>Risks</div>
+                  {Array.isArray(data.selected_evidence.ai_summary.risks) && data.selected_evidence.ai_summary.risks.length > 0 ? (
+                    data.selected_evidence.ai_summary.risks.map((r:any, idx:number) => <div key={idx} style={{ color: '#b91c1c' }}>{r}</div>)
+                  ) : (
+                    <div style={{ color: '#666' }}>No risks</div>
+                  )}
+                </div>
+
+                <div style={{ marginTop: 8 }}>
+                  <div style={{ fontWeight: 700 }}>Recommendations</div>
+                  {Array.isArray(data.selected_evidence.ai_summary.recommendations) && data.selected_evidence.ai_summary.recommendations.length > 0 ? (
+                    data.selected_evidence.ai_summary.recommendations.map((r:any, idx:number) => <div key={idx}>{r}</div>)
+                  ) : (
+                    <div style={{ color: '#666' }}>No recommendations</div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div style={{ color: '#666' }}>{data.ai_analysis?.message ?? 'AI evidence analysis coming soon'}</div>
+            )}
           </div>
 
           <div style={{ marginTop: 12, background: '#fff', padding: 12, borderRadius: 8 }}>

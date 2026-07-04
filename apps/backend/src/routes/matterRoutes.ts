@@ -650,7 +650,56 @@ export async function matterRoutes(app: FastifyInstance) {
           related_documents: [],
           related_timeline: [],
           lawyer_notes: { status: 'read_only', message: 'Lawyer notes coming soon' },
-          ai_summary: { status: 'placeholder', message: 'AI evidence summary coming soon' },
+          ai_summary: (function computeAiSummary(ev:any, rm:any) {
+            // Rule-based analysis (read-only, deterministic)
+            let score = 50
+            const strengths: string[] = []
+            const risks: string[] = []
+            const recommendations: string[] = []
+
+            const desc = (ev.description || '').trim()
+            const rel = (ev.relevance || '').trim()
+
+            if (desc.length > 0) {
+              score += 20
+              strengths.push('Evidence description provided.')
+            } else {
+              risks.push('Description missing.')
+              recommendations.push('Add a description to clarify the evidence.')
+            }
+
+            if (rm) {
+              score += 20
+              strengths.push('Related material linked.')
+            } else {
+              risks.push('No related material.')
+              recommendations.push('Link the related material if available.')
+            }
+
+            if (rel.length > 0) {
+              score += 10
+              if (rel.toLowerCase() === 'high') strengths.push('High relevance.')
+              else strengths.push('Relevance provided.')
+            } else {
+              risks.push('Relevance not assessed.')
+              recommendations.push('Set the relevance level for this evidence.')
+            }
+
+            if (score > 100) score = 100
+
+            let completeness = 'low'
+            if (score >= 80) completeness = 'high'
+            else if (score >= 60) completeness = 'medium'
+
+            return {
+              status: 'rule_based',
+              score: Number(score),
+              completeness,
+              strengths,
+              risks,
+              recommendations,
+            }
+          })(first, related_material),
         }
       }
 
