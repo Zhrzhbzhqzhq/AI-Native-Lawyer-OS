@@ -582,4 +582,114 @@ describe('Unified Intake API', () => {
     const r3 = await fetch(`${BASE}/intake/confirm-document-update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: 'x', document_update_suggestions: bad }) })
     expect(r3.status).toBe(400)
   })
+
+  it('idempotency prevents duplicate creations for confirm-material', async () => {
+    const markerMatterId = `mock-intake-${Date.now()}-idem-mat`
+    await prisma.matter.create({ data: { matter_id: markerMatterId, title: 'Idem Mat Matter', description: '', matter_type: 'test', status: 'active' } })
+
+    const beforeMaterials = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM materials WHERE matter_id = ${markerMatterId}
+    `
+
+    const idem = `idem-${Date.now()}`
+
+    const res1 = await fetch(`${BASE}/intake/confirm-material`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: markerMatterId, source: 'client', files: [{ name: 'x.pdf', mime_type: 'application/pdf' }], analysis: { summary: 's' }, idempotency_key: idem }) })
+    expect(res1.status).toBe(200)
+    const b1 = await res1.json()
+    expect(Array.isArray(b1.created_materials)).toBe(true)
+
+    const res2 = await fetch(`${BASE}/intake/confirm-material`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: markerMatterId, source: 'client', files: [{ name: 'x.pdf', mime_type: 'application/pdf' }], analysis: { summary: 's' }, idempotency_key: idem }) })
+    expect(res2.status).toBe(200)
+    const b2 = await res2.json()
+    expect(b2.status).toBe(b1.status)
+
+    const afterMaterials = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM materials WHERE matter_id = ${markerMatterId}
+    `
+    expect(Number(afterMaterials[0].count - beforeMaterials[0].count)).toBe(1)
+  })
+
+  it('idempotency prevents duplicate creations for confirm-evidence', async () => {
+    const markerMatterId = `mock-intake-${Date.now()}-idem-ev`
+    await prisma.matter.create({ data: { matter_id: markerMatterId, title: 'Idem EV Matter', description: '', matter_type: 'test', status: 'active' } })
+    const material = await prisma.material.create({ data: { material_id: `mat-${Date.now()}`, matter_id: markerMatterId, title: 'file.pdf', material_type: 'document', source: 'client', storage_uri: '', status: 'active' } })
+
+    const beforeEvidence = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM evidence WHERE matter_id = ${markerMatterId}
+    `
+
+    const drafts = [{ draft_id: 'd1', material_id: material.material_id, title: material.title, evidence_type: material.material_type, proof_purpose: 'p', source: 'client' }]
+    const idem = `idem-ev-${Date.now()}`
+
+    const r1 = await fetch(`${BASE}/intake/confirm-evidence`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: markerMatterId, evidence_drafts: drafts, idempotency_key: idem }) })
+    expect(r1.status).toBe(200)
+    const j1 = await r1.json()
+    expect(Array.isArray(j1.created_evidence)).toBe(true)
+
+    const r2 = await fetch(`${BASE}/intake/confirm-evidence`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: markerMatterId, evidence_drafts: drafts, idempotency_key: idem }) })
+    expect(r2.status).toBe(200)
+    const j2 = await r2.json()
+    expect(j2.status).toBe(j1.status)
+
+    const afterEvidence = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM evidence WHERE matter_id = ${markerMatterId}
+    `
+    expect(Number(afterEvidence[0].count - beforeEvidence[0].count)).toBe(1)
+  })
+
+  it('idempotency prevents duplicate creations for confirm-challenge-document', async () => {
+    const markerMatterId = `mock-intake-${Date.now()}-idem-chdoc`
+    await prisma.matter.create({ data: { matter_id: markerMatterId, title: 'Idem ChDoc Matter', description: '', matter_type: 'test', status: 'active' } })
+
+    const beforeDocuments = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM documents WHERE matter_id = ${markerMatterId}
+    `
+
+    const drafts = [{ draft_id: 'd1', evidence_draft_id: 'ed1', title: 't', challenge_points: {}, suggested_opinion: 's', requires_lawyer_confirmation: true }]
+    const idem = `idem-ch-${Date.now()}`
+
+    const res1 = await fetch(`${BASE}/intake/confirm-challenge-document`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: markerMatterId, challenge_opinion_drafts: drafts, idempotency_key: idem }) })
+    expect(res1.status).toBe(200)
+    const jb1 = await res1.json()
+    expect(Array.isArray(jb1.created_documents)).toBe(true)
+
+    const res2 = await fetch(`${BASE}/intake/confirm-challenge-document`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: markerMatterId, challenge_opinion_drafts: drafts, idempotency_key: idem }) })
+    expect(res2.status).toBe(200)
+    const jb2 = await res2.json()
+    expect(jb2.status).toBe(jb1.status)
+
+    const afterDocuments = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM documents WHERE matter_id = ${markerMatterId}
+    `
+    expect(Number(afterDocuments[0].count - beforeDocuments[0].count)).toBe(jb1.created_documents.length)
+  })
+
+  it('idempotency prevents duplicate creations for confirm-document-update', async () => {
+    const markerMatterId = `mock-intake-${Date.now()}-idem-docup`
+    await prisma.matter.create({ data: { matter_id: markerMatterId, title: 'Idem DocUp Matter', description: '', matter_type: 'test', status: 'active' } })
+
+    const beforeDocuments = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM documents WHERE matter_id = ${markerMatterId}
+    `
+
+    const suggestions = [
+      { suggestion_id: 's1', target_document_type: 'representation', target_title: '代理词（更新）', reason: 'r', suggested_change_summary: 'sum', requires_lawyer_confirmation: true }
+    ]
+    const idem = `idem-docup-${Date.now()}`
+
+    const r1 = await fetch(`${BASE}/intake/confirm-document-update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: markerMatterId, document_update_suggestions: suggestions, idempotency_key: idem }) })
+    expect(r1.status).toBe(200)
+    const j1 = await r1.json()
+    expect(Array.isArray(j1.created_versions)).toBe(true)
+
+    const r2 = await fetch(`${BASE}/intake/confirm-document-update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: markerMatterId, document_update_suggestions: suggestions, idempotency_key: idem }) })
+    expect(r2.status).toBe(200)
+    const j2 = await r2.json()
+    expect(j2.status).toBe(j1.status)
+
+    const afterDocuments = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM documents WHERE matter_id = ${markerMatterId}
+    `
+    expect(Number(afterDocuments[0].count - beforeDocuments[0].count)).toBe(j1.created_versions.length)
+  })
 })

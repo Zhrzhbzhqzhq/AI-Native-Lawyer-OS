@@ -5,6 +5,14 @@ import MaterialService from '../services/materialService'
 import EvidenceService from '../services/evidenceService'
 import DocumentService from '../services/documentService'
 
+// Simple in-memory idempotency store for alpha: endpoint|matter_id|idempotency_key -> result
+const idempotencyStore = new Map<string, any>()
+
+function makeIdemKey(endpoint: string, matter_id: string, idem?: string) {
+  if (!idem) return ''
+  return `${endpoint}|${matter_id}|${String(idem)}`
+}
+
 function genId(prefix = 'ij-') {
   return `${prefix}${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
 }
@@ -65,6 +73,7 @@ export async function intakeRoutes(app: FastifyInstance) {
         source?: 'client' | 'opponent' | 'court' | 'third_party'
         files?: Array<{ name: string; mime_type?: string }>
         analysis?: { summary?: string; material_suggestions?: unknown[] }
+        idempotency_key?: string
       }
 
       const matter_id = payload.matter_id ? String(payload.matter_id) : ''
@@ -75,6 +84,12 @@ export async function intakeRoutes(app: FastifyInstance) {
       if (!allowedSource.includes(source)) return reply.code(400).send({ error: 'invalid source' })
 
       const files = Array.isArray(payload.files) ? payload.files : []
+
+      const idem = String(payload.idempotency_key || '')
+      const mapKey = makeIdemKey('confirm-material', matter_id, idem)
+      if (mapKey && idempotencyStore.has(mapKey)) {
+        return reply.code(200).send(idempotencyStore.get(mapKey))
+      }
 
       const created: any[] = []
       for (const f of files) {
@@ -91,7 +106,9 @@ export async function intakeRoutes(app: FastifyInstance) {
         created.push(createdMaterial)
       }
 
-      return reply.code(200).send({ status: 'material_created', matter_id, created_materials: created })
+      const result = { status: 'material_created', matter_id, created_materials: created }
+      if (mapKey) idempotencyStore.set(mapKey, result)
+      return reply.code(200).send(result)
     } finally {
       try {
         await prisma.$disconnect()
@@ -154,6 +171,7 @@ export async function intakeRoutes(app: FastifyInstance) {
           suggested_opinion?: string
           requires_lawyer_confirmation?: boolean
         }>
+        idempotency_key?: string
       }
 
       const matter_id = payload.matter_id ? String(payload.matter_id) : ''
@@ -161,6 +179,12 @@ export async function intakeRoutes(app: FastifyInstance) {
 
       const drafts = Array.isArray(payload.challenge_opinion_drafts) ? payload.challenge_opinion_drafts : []
       if (drafts.length === 0) return reply.code(400).send({ error: 'challenge_opinion_drafts required' })
+
+      const idem = String(payload.idempotency_key || '')
+      const mapKey = makeIdemKey('confirm-challenge-document', matter_id, idem)
+      if (mapKey && idempotencyStore.has(mapKey)) {
+        return reply.code(200).send(idempotencyStore.get(mapKey))
+      }
 
       // only accept drafts that have requires_lawyer_confirmation === true
       for (const d of drafts) {
@@ -181,7 +205,9 @@ export async function intakeRoutes(app: FastifyInstance) {
         created.push({ document_id: doc.document_id, matter_id: doc.matter_id, title: doc.title, document_type: doc.document_type, version: doc.version, status: doc.status })
       }
 
-      return reply.code(200).send({ status: 'challenge_document_created', matter_id, created_documents: created })
+      const result = { status: 'challenge_document_created', matter_id, created_documents: created }
+      if (mapKey) idempotencyStore.set(mapKey, result)
+      return reply.code(200).send(result)
     } finally {
       try {
         await prisma.$disconnect()
@@ -223,6 +249,7 @@ export async function intakeRoutes(app: FastifyInstance) {
           suggested_change_summary?: string
           requires_lawyer_confirmation?: boolean
         }>
+        idempotency_key?: string
       }
 
       const matter_id = payload.matter_id ? String(payload.matter_id) : ''
@@ -233,6 +260,12 @@ export async function intakeRoutes(app: FastifyInstance) {
 
       for (const s of suggestions) {
         if (s.requires_lawyer_confirmation !== true) return reply.code(400).send({ error: 'all suggestions must be confirmed by lawyer' })
+      }
+
+      const idem = String(payload.idempotency_key || '')
+      const mapKey = makeIdemKey('confirm-document-update', matter_id, idem)
+      if (mapKey && idempotencyStore.has(mapKey)) {
+        return reply.code(200).send(idempotencyStore.get(mapKey))
       }
 
       const created: any[] = []
@@ -249,7 +282,9 @@ export async function intakeRoutes(app: FastifyInstance) {
         created.push({ document_id: doc.document_id, title: doc.title, document_type: doc.document_type, version: doc.version, status: doc.status })
       }
 
-      return reply.code(200).send({ status: 'document_version_created', matter_id, created_versions: created })
+      const result = { status: 'document_version_created', matter_id, created_versions: created }
+      if (mapKey) idempotencyStore.set(mapKey, result)
+      return reply.code(200).send(result)
     } finally {
       try {
         await prisma.$disconnect()
@@ -267,6 +302,7 @@ export async function intakeRoutes(app: FastifyInstance) {
       const payload = (request.body || {}) as {
         matter_id?: string
         evidence_drafts?: Array<{ draft_id?: string; material_id: string; title?: string; evidence_type?: string; proof_purpose?: string; source?: string }>
+        idempotency_key?: string
       }
 
       const matter_id = payload.matter_id ? String(payload.matter_id) : ''
@@ -274,6 +310,12 @@ export async function intakeRoutes(app: FastifyInstance) {
 
       const drafts = Array.isArray(payload.evidence_drafts) ? payload.evidence_drafts : []
       if (drafts.length === 0) return reply.code(400).send({ error: 'evidence_drafts required' })
+
+      const idem = String(payload.idempotency_key || '')
+      const mapKey = makeIdemKey('confirm-evidence', matter_id, idem)
+      if (mapKey && idempotencyStore.has(mapKey)) {
+        return reply.code(200).send(idempotencyStore.get(mapKey))
+      }
 
       const created: any[] = []
       for (const d of drafts) {
@@ -290,7 +332,9 @@ export async function intakeRoutes(app: FastifyInstance) {
         created.push(createdEv)
       }
 
-      return reply.code(200).send({ status: 'evidence_created', matter_id, created_evidence: created })
+      const result = { status: 'evidence_created', matter_id, created_evidence: created }
+      if (mapKey) idempotencyStore.set(mapKey, result)
+      return reply.code(200).send(result)
     } finally {
       try {
         await prisma.$disconnect()

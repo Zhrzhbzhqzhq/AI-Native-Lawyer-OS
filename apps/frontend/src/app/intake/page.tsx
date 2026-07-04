@@ -142,11 +142,13 @@ export default function IntakePage() {
         return 'third_party'
       }
 
+      const idempotency_key = `${matterId}-confirm-material-${Date.now()}`
       const payload = {
         matter_id: matterId,
         source: mapSource(source),
         files: files.map((f) => ({ name: f.name, mime_type: f.type })),
         analysis: { summary: result.analysis.summary, material_suggestions: result.analysis.material_suggestions ?? [] },
+        idempotency_key,
       }
 
       const res = await fetch(`${API}/intake/confirm-material`, {
@@ -428,10 +430,11 @@ export default function IntakePage() {
                               }
                               const drafts = Array.isArray(challengeResult.challenge_opinion_drafts) ? challengeResult.challenge_opinion_drafts : []
                               try {
+                                const idempotency_key = `${matterId}-confirm-challenge-document-${Date.now()}`
                                 const res = await fetch(`${API}/intake/confirm-challenge-document`, {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ matter_id: matterId, challenge_opinion_drafts: drafts }),
+                                  body: JSON.stringify({ matter_id: matterId, challenge_opinion_drafts: drafts, idempotency_key }),
                                 })
                                 if (!res.ok) {
                                   const t = await res.text().catch(() => '')
@@ -554,7 +557,7 @@ export default function IntakePage() {
                           const confirmRes = await fetch(`${API}/intake/confirm-evidence`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ matter_id: matterId, evidence_drafts: draftBody.evidence_drafts }),
+                            body: JSON.stringify({ matter_id: matterId, evidence_drafts: draftBody.evidence_drafts, idempotency_key: `${matterId}-confirm-evidence-${Date.now()}` }),
                           })
                           if (!confirmRes.ok) throw new Error('confirm evidence failed')
                           const confirmBody = await confirmRes.json()
