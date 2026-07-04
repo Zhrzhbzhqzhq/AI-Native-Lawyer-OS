@@ -209,6 +209,58 @@ export default function MatterWorkspacePage() {
           )}
         </div>
       </div>
+
+      <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div>
+          <h3>Active Works</h3>
+          <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
+            {runtime && Array.isArray(runtime.runtime_works) ? (
+              (() => {
+                const active = runtime.runtime_works.filter((w:any) => String(w.status).toUpperCase() === 'PENDING')
+                if (active.length === 0) return <div style={{ color: '#666' }}>No active works</div>
+                return (
+                  <div>
+                    {active.map((w:any, idx:number) => (
+                      <div key={w.work_id ?? idx} style={{ padding: '8px 0', borderBottom: idx === active.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+                        <div style={{ fontWeight: 600 }}>{w.title || w.work_id}</div>
+                        <div style={{ color: '#666' }}>Type: {w.type}</div>
+                        <div style={{ color: '#94a3b8', fontSize: 12 }}>ID: {w.work_id} · Status: {w.status}</div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()
+            ) : (
+              <div style={{ color: '#666' }}>No active works</div>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <h3>Waiting Works</h3>
+          <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
+            {runtime && Array.isArray(runtime.runtime_works) ? (
+              (() => {
+                const waiting = runtime.runtime_works.filter((w:any) => String(w.status).toUpperCase() === 'BLOCKED')
+                if (waiting.length === 0) return <div style={{ color: '#666' }}>No waiting works</div>
+                return (
+                  <div>
+                    {waiting.map((w:any, idx:number) => (
+                      <div key={w.work_id ?? idx} style={{ padding: '8px 0', borderBottom: idx === waiting.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+                        <div style={{ fontWeight: 600 }}>{w.title || w.work_id}</div>
+                        <div style={{ color: '#666' }}>Type: {w.type}</div>
+                        <div style={{ color: '#94a3b8', fontSize: 12 }}>ID: {w.work_id} · Status: {w.status}</div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()
+            ) : (
+              <div style={{ color: '#666' }}>No waiting works</div>
+            )}
+          </div>
+        </div>
+      </div>
     </main>
   )
 }
