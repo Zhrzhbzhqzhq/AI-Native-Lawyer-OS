@@ -476,12 +476,21 @@ export async function matterRoutes(app: FastifyInstance) {
 
       // AI Next Steps - rule based, read-only
       try {
+        // compute additional signals for engine
+        // weakEvidenceCount: rely on Prisma schema fields `relevance` and `description` which are non-nullable strings
+        const weakEvidenceCount = await prisma.evidence.count({ where: { matter_id, OR: [{ relevance: '' }, { description: '' }] } })
+        const draftDocumentCount = await prisma.document.count({ where: { matter_id, status: 'draft' } })
+        const archivedDocumentCount = await prisma.document.count({ where: { matter_id, status: 'archived' } })
+
         const engine = new NextStepEngine()
         const ai_next_steps = engine.evaluate({
           materialsCount: summary.materials,
           evidenceCount: summary.evidence,
           documentsCount: summary.documents,
           recentActivityCount: recent_activity.length,
+          weakEvidenceCount,
+          draftDocumentCount,
+          archivedDocumentCount,
         })
 
         return reply.code(200).send({
@@ -580,6 +589,10 @@ export async function matterRoutes(app: FastifyInstance) {
         ...recent_documents.map((d:any) => ({ type: 'document_updated', time: d.created_at ? (d.created_at instanceof Date ? d.created_at.toISOString() : String(d.created_at)) : null })),
       ]
 
+      const weakEvidenceCount = await prisma.evidence.count({ where: { matter_id, OR: [{ relevance: '' }, { description: '' }] } })
+      const draftDocumentCount = await prisma.document.count({ where: { matter_id, status: 'draft' } })
+      const archivedDocumentCount = await prisma.document.count({ where: { matter_id, status: 'archived' } })
+
       const NextStepEngine = (await import('../runtime/nextStepEngine')).default
       const engine = new NextStepEngine()
       const steps = engine.evaluate({
@@ -587,6 +600,9 @@ export async function matterRoutes(app: FastifyInstance) {
         evidenceCount: summary.evidence,
         documentsCount: summary.documents,
         recentActivityCount: recent_activity.length,
+        weakEvidenceCount,
+        draftDocumentCount,
+        archivedDocumentCount,
       })
 
       return reply.code(200).send({ matter_id, steps })

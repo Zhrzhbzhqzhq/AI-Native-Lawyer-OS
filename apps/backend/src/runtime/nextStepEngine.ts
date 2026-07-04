@@ -13,8 +13,8 @@ function makeId(action: string) {
 }
 
 export default class NextStepEngine {
-  evaluate(input: { materialsCount: number; evidenceCount: number; documentsCount: number; recentActivityCount: number }) {
-    const { materialsCount, evidenceCount, documentsCount, recentActivityCount } = input
+  evaluate(input: { materialsCount: number; evidenceCount: number; documentsCount: number; recentActivityCount: number; weakEvidenceCount?: number; draftDocumentCount?: number; archivedDocumentCount?: number }) {
+    const { materialsCount, evidenceCount, documentsCount, recentActivityCount, weakEvidenceCount = 0, draftDocumentCount = 0, archivedDocumentCount = 0 } = input
     const steps: NextStep[] = []
 
     // Rule 1
@@ -52,6 +52,45 @@ export default class NextStepEngine {
         priority: 'MEDIUM',
         reason: '已有文书可能需更新',
         action: 'review_document_updates',
+        status: 'suggested',
+      })
+    }
+
+    // Rule 5: weak evidence present -> suggest strengthening evidence
+    if ((typeof weakEvidenceCount === 'number') && weakEvidenceCount > 0) {
+      steps.push({
+        id: makeId('strengthen_evidence'),
+        title: '补强证据条目',
+        description: `发现 ${weakEvidenceCount} 条可能完整性不足的证据，建议补强描述或关联材料。`,
+        priority: 'HIGH',
+        reason: 'Weak evidence detected',
+        action: 'strengthen_evidence',
+        status: 'suggested',
+      })
+    }
+
+    // Rule 6: draft documents exist -> suggest finishing drafts
+    if ((typeof draftDocumentCount === 'number') && draftDocumentCount > 0) {
+      steps.push({
+        id: makeId('finalize_drafts'),
+        title: '完成草稿文书',
+        description: `存在 ${draftDocumentCount} 份草稿文书，建议完成并提交审核。`,
+        priority: 'MEDIUM',
+        reason: 'Draft documents present',
+        action: 'finalize_drafts',
+        status: 'suggested',
+      })
+    }
+
+    // Rule 7: archived documents present -> suggest review
+    if ((typeof archivedDocumentCount === 'number') && archivedDocumentCount > 0) {
+      steps.push({
+        id: makeId('review_archived_documents'),
+        title: '审查归档文书',
+        description: `检测到 ${archivedDocumentCount} 份归档文书，建议确认是否需恢复或长期存档。`,
+        priority: 'LOW',
+        reason: 'Archived documents detected',
+        action: 'review_archived_documents',
         status: 'suggested',
       })
     }
