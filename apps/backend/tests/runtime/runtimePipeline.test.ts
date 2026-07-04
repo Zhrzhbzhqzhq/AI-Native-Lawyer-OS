@@ -31,5 +31,10 @@ describe('runtime pipeline integration', () => {
     expect(Array.isArray(runtime_assignments)).toBe(true)
     expect(Array.isArray(runtime_works)).toBe(true)
     expect(Array.isArray(runtime_actions)).toBe(true)
+    // ensure payload.target_ref.object_ids is present and is an array (may be empty)
+    if (runtime_actions.length > 0) {
+      expect(runtime_actions[0].payload).toBeTruthy()
+      expect(Array.isArray(runtime_actions[0].payload.target_ref?.object_ids)).toBe(true)
+    }
   })
 })

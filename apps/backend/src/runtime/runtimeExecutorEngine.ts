@@ -21,6 +21,12 @@ type RuntimeWork = {
   depends_on?: string[]
 }
 
+type TargetRef = {
+  workspace: 'evidence' | 'documents' | 'runtime'
+  object_type: 'Evidence' | 'Document' | 'Research' | 'Matter'
+  object_ids: string[]
+}
+
 export default function actionsFromRuntimeWorks(works: RuntimeWork[] = []): RuntimeAction[] {
   if (!Array.isArray(works)) return []
 
@@ -52,26 +58,32 @@ export default function actionsFromRuntimeWorks(works: RuntimeWork[] = []): Runt
 
     const status = String(w.status || '').toUpperCase() === 'BLOCKED' ? 'BLOCKED' : 'READY'
 
-    // Build minimal payload contract for navigation/定位
-    const payload: Record<string, unknown> = { target_workspace: 'runtime', target_type: w.type, target_id: null }
+    // Build minimal payload contract for navigation and include target_ref from work when available
+    const payload: any = { target_workspace: 'runtime', target_type: w.type, target_ref: { workspace: 'runtime', object_type: 'Matter', object_ids: [] } }
+    // override by work.type mapping
     switch (w.type) {
       case 'EvidenceWork':
         payload.target_workspace = 'evidence'
         payload.target_type = 'EvidenceWork'
+        payload.target_ref = (w as any).target_ref || { workspace: 'evidence', object_type: 'Evidence', object_ids: [] }
         break
       case 'ResearchWork':
         payload.target_workspace = 'runtime'
         payload.target_type = 'ResearchWork'
+        payload.target_ref = (w as any).target_ref || { workspace: 'runtime', object_type: 'Research', object_ids: [] }
         break
       case 'DocumentWork':
         payload.target_workspace = 'documents'
         payload.target_type = 'DocumentWork'
+        payload.target_ref = (w as any).target_ref || { workspace: 'documents', object_type: 'Document', object_ids: [] }
         break
       case 'MonitorWork':
         payload.target_workspace = 'runtime'
         payload.target_type = 'MonitorWork'
+        payload.target_ref = (w as any).target_ref || { workspace: 'runtime', object_type: 'Matter', object_ids: [] }
         break
       default:
+        payload.target_ref = (w as any).target_ref || { workspace: 'runtime', object_type: 'Matter', object_ids: [] }
         break
     }
 

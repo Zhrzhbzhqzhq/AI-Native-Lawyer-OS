@@ -8,6 +8,13 @@ export type RuntimeWork = {
   title: string
   status: 'PENDING' | 'BLOCKED'
   depends_on: string[]
+  target_ref?: TargetRef
+}
+
+export type TargetRef = {
+  workspace: 'evidence' | 'documents' | 'runtime'
+  object_type: 'Evidence' | 'Document' | 'Research' | 'Matter'
+  object_ids: string[]
 }
 
 function slugify(s: string) {
@@ -54,19 +61,47 @@ export default function worksFromRuntimePlan(plan: RuntimePlan): RuntimeWork[] {
   if (hasEvidence) {
     const title = evidenceNeedsReview ? 'Evidence Review' : 'Evidence Collection'
     const workId = evidenceNeedsReview ? 'work-evidence-review' : 'work-evidence-collection'
-    works.push({ work_id: workId, type: 'EvidenceWork', title, status: 'PENDING', depends_on: [] })
+    works.push({
+      work_id: workId,
+      type: 'EvidenceWork',
+      title,
+      status: 'PENDING',
+      depends_on: [],
+      target_ref: { workspace: 'evidence', object_type: 'Evidence', object_ids: [] },
+    })
   }
 
   if (hasResearch) {
-    works.push({ work_id: 'work-research-law', type: 'ResearchWork', title: 'Legal Research', status: 'PENDING', depends_on: [] })
+    works.push({
+      work_id: 'work-research-law',
+      type: 'ResearchWork',
+      title: 'Legal Research',
+      status: 'PENDING',
+      depends_on: [],
+      target_ref: { workspace: 'runtime', object_type: 'Research', object_ids: [] },
+    })
   }
 
   if (hasDocument) {
-    works.push({ work_id: 'work-document-review', type: 'DocumentWork', title: 'Document Review', status: 'PENDING', depends_on: [] })
+    works.push({
+      work_id: 'work-document-review',
+      type: 'DocumentWork',
+      title: 'Document Review',
+      status: 'PENDING',
+      depends_on: [],
+      target_ref: { workspace: 'documents', object_type: 'Document', object_ids: [] },
+    })
   }
 
   if (hasMonitor) {
-    works.push({ work_id: 'work-monitor-matter', type: 'MonitorWork', title: 'Matter Monitoring', status: 'PENDING', depends_on: [] })
+    works.push({
+      work_id: 'work-monitor-matter',
+      type: 'MonitorWork',
+      title: 'Matter Monitoring',
+      status: 'PENDING',
+      depends_on: [],
+      target_ref: { workspace: 'runtime', object_type: 'Matter', object_ids: [] },
+    })
   }
 
   return works

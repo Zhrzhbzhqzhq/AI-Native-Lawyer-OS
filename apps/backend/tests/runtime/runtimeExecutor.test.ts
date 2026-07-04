@@ -18,7 +18,10 @@ describe('runtimeExecutorEngine', () => {
     expect(a1?.payload).toBeTruthy()
     expect((a1 as any).payload.target_workspace).toBe('evidence')
     expect((a1 as any).payload.target_type).toBe('EvidenceWork')
-    expect((a1 as any).payload.target_id).toBeNull()
+    expect((a1 as any).payload.target_ref).toBeTruthy()
+    expect((a1 as any).payload.target_ref.workspace).toBe('evidence')
+    expect((a1 as any).payload.target_ref.object_type).toBe('Evidence')
+    expect(Array.isArray((a1 as any).payload.target_ref.object_ids)).toBe(true)
 
     const a2 = actions.find(a => a.work_id === 'work-research-law')
     expect(a2).toBeTruthy()
@@ -27,7 +30,10 @@ describe('runtimeExecutorEngine', () => {
     expect(a2?.payload).toBeTruthy()
     expect((a2 as any).payload.target_workspace).toBe('runtime')
     expect((a2 as any).payload.target_type).toBe('ResearchWork')
-    expect((a2 as any).payload.target_id).toBeNull()
+    expect((a2 as any).payload.target_ref).toBeTruthy()
+    expect((a2 as any).payload.target_ref.workspace).toBe('runtime')
+    expect((a2 as any).payload.target_ref.object_type).toBe('Research')
+    expect(Array.isArray((a2 as any).payload.target_ref.object_ids)).toBe(true)
   })
 
   it('returns empty array for invalid input', () => {
