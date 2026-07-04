@@ -108,7 +108,30 @@ export default class NextStepEngine {
       })
     }
 
+    // Priority weights for sorting
+    const weight: Record<string, number> = { HIGH: 3, MEDIUM: 2, LOW: 1 }
+
+    // stable sort by priority (higher weight first). Use index to preserve original order for same priority.
+    const stepsWithIndex = steps.map((s, idx) => ({ s, idx }))
+    stepsWithIndex.sort((a, b) => {
+      const wa = weight[a.s.priority] ?? 0
+      const wb = weight[b.s.priority] ?? 0
+      if (wa !== wb) return wb - wa
+      return a.idx - b.idx
+    })
+
+    // dedupe by action, keeping first (highest priority due to sort)
+    const seen = new Set<string>()
+    const deduped: NextStep[] = []
+    for (const item of stepsWithIndex) {
+      const action = item.s.action
+      if (!seen.has(action)) {
+        seen.add(action)
+        deduped.push(item.s)
+      }
+    }
+
     // return up to 3 suggestions
-    return steps.slice(0, 3)
+    return deduped.slice(0, 3)
   }
 }
