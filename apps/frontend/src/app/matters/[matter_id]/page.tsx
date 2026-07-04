@@ -39,6 +39,7 @@ export default function MatterWorkspacePage() {
   const [data, setData] = useState<Workspace | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [runtime, setRuntime] = useState<any | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -46,10 +47,25 @@ export default function MatterWorkspacePage() {
       setError(null)
       try {
         const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000'
-        const res = await fetch(`${API}/matters/${params.matter_id}/workspace`)
+        const [res, resRuntime] = await Promise.all([
+          fetch(`${API}/matters/${params.matter_id}/workspace`),
+          fetch(`${API}/matters/${params.matter_id}/runtime`).catch(() => null),
+        ])
+
         if (!res.ok) throw new Error('workspace fetch failed')
         const body = await res.json()
         setData(body as Workspace)
+
+        if (resRuntime && resRuntime.ok) {
+          try {
+            const rt = await resRuntime.json()
+            setRuntime(rt)
+          } catch (_e) {
+            setRuntime(null)
+          }
+        } else {
+          setRuntime(null)
+        }
       } catch (e: any) {
         setError(e?.message || 'Failed to load workspace')
       } finally {
@@ -79,6 +95,20 @@ export default function MatterWorkspacePage() {
         <SummaryCard title="Evidence" value={data.summary.evidence} />
         <SummaryCard title="Documents" value={data.summary.documents} />
         <SummaryCard title="AI Suggestions" value={data.summary.pending_ai_suggestions} />
+        <div style={{ padding: 12, borderRadius: 8, background: '#fff', border: '1px solid #e6edf0', minWidth: 220 }}>
+          <div style={{ fontSize: 12, color: '#475569', fontWeight: 600 }}>AI Chief</div>
+          {runtime && runtime.runtime_plan ? (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ fontSize: 14, fontWeight: 700 }}>{runtime.runtime_plan.goal || 'No runtime plan yet'}</div>
+              <div style={{ color: '#666', fontSize: 12, marginTop: 6 }}>Priority: {runtime.runtime_plan.priority || '—'}</div>
+              <div style={{ color: '#666', fontSize: 12, marginTop: 6 }}>Decision: {runtime.runtime_decision?.code || '—'}</div>
+              <div style={{ color: '#475569', fontSize: 13, marginTop: 8 }}>Recommended: {runtime.runtime_plan.steps && runtime.runtime_plan.steps.length > 0 ? runtime.runtime_plan.steps[0] : 'No recommendation'}</div>
+              <div style={{ color: '#666', fontSize: 12, marginTop: 6 }}>Ready actions: {(Array.isArray(runtime.runtime_actions) ? runtime.runtime_actions.filter((a:any)=>a.status==='READY').length : 0)}</div>
+            </div>
+          ) : (
+            <div style={{ marginTop: 8, color: '#666' }}>No runtime plan yet</div>
+          )}
+        </div>
       </div>
 
       {Array.isArray((data as any).object_navigation) && (
