@@ -729,6 +729,122 @@ export async function matterRoutes(app: FastifyInstance) {
         { key: 'unknown', label: 'unknown', count: Number(unknown), description: '' },
       ]
 
+      // compute missing suggestions and next steps outside the response object so we can pass computed missing
+      const missing_suggestions = (function computeMissing(allEv:any[], totalCount:number) {
+        const suggestions: any[] = []
+        const typesPresent = new Set((allEv || []).map((x:any) => (x.evidence_type || '').toLowerCase()))
+
+        if (!totalCount || totalCount === 0) {
+          suggestions.push({
+            id: 'missing-basic-evidence',
+            title: '缺少基础证据材料',
+            description: '当前未发现任何证据条目，请收集基础证据材料（照片、合同、收据等）。',
+            priority: 'HIGH',
+            reason: 'No evidence exists for this matter.',
+            suggested_action: 'collect_basic_evidence'
+          })
+        }
+
+        // missing transfer/bank/payment
+        const hasTransfer = Array.from(typesPresent).some((t:any) => /transfer|bank|payment/.test(t))
+        if (!hasTransfer) {
+          suggestions.push({
+            id: 'missing-transfer-record',
+            title: '缺少转账记录',
+            description: '当前证据中未发现转账、付款或银行流水类证据。',
+            priority: 'HIGH',
+            reason: 'No evidence_type matches transfer / bank / payment.',
+            suggested_action: 'ask_client_to_provide_transfer_record'
+          })
+        }
+
+        // missing contract/agreement
+        const hasContract = Array.from(typesPresent).some((t:any) => /contract|agreement/.test(t))
+        if (!hasContract) {
+          suggestions.push({
+            id: 'missing-contract-agreement',
+            title: '缺少合同或协议',
+            description: '未发现合同或协议类证据，可能影响权利义务认定。',
+            priority: 'MEDIUM',
+            reason: 'No evidence_type matches contract / agreement.',
+            suggested_action: 'ask_client_to_provide_contract'
+          })
+        }
+
+        // missing chat/message
+        const hasChat = Array.from(typesPresent).some((t:any) => /chat|message|wechat/.test(t))
+        if (!hasChat) {
+          suggestions.push({
+            id: 'missing-chat-record',
+            title: '缺少聊天记录',
+            description: '未发现聊天或消息类证据（如微信、短信、聊天导出）。',
+            priority: 'MEDIUM',
+            reason: 'No evidence_type matches chat / message / wechat.',
+            suggested_action: 'ask_client_to_provide_chat_records'
+          })
+        }
+
+        return suggestions.slice(0, 3)
+      })(allEvidence, Number(total))
+
+      const evidence_next_steps = (function computeNextSteps(missing:any[], selected:any, totalCount:number) {
+        const steps: any[] = []
+        const hasHighMissing = Array.isArray(missing) && missing.some((m:any) => (m.priority || '').toUpperCase() === 'HIGH')
+
+        if (hasHighMissing) {
+          steps.push({
+            id: 'next-collect-high',
+            title: '优先补充关键证据',
+            description: '存在高优先级的缺失证据，建议优先补充。',
+            priority: 'HIGH',
+            reason: 'High priority missing evidence detected.',
+            suggested_action: 'collect_missing_high_priority_evidence',
+            status: 'suggested'
+          })
+        }
+
+        if (!totalCount || totalCount === 0) {
+          steps.push({
+            id: 'next-collect-basic',
+            title: '先收集基础证据',
+            description: '当前未发现证据，需先收集基础证据材料。',
+            priority: 'HIGH',
+            reason: 'No evidence present.',
+            suggested_action: 'collect_basic_evidence',
+            status: 'suggested'
+          })
+        }
+
+        try {
+          const score = selected && selected.ai_summary && typeof selected.ai_summary.score === 'number' ? Number(selected.ai_summary.score) : null
+          if (score !== null && score < 60) {
+            steps.push({
+              id: 'next-improve-selected',
+              title: '补强当前证据',
+              description: '当前证据完整性或质量较低，建议补强。',
+              priority: 'MEDIUM',
+              reason: 'Selected evidence score below threshold.',
+              suggested_action: 'improve_selected_evidence',
+              status: 'suggested'
+            })
+          }
+        } catch (e) {}
+
+        if ((!Array.isArray(missing) || missing.length === 0) && totalCount > 0) {
+          steps.push({
+            id: 'next-prepare-catalog',
+            title: '整理证据目录',
+            description: '证据齐全，建议整理证据目录以便后续工作。',
+            priority: 'MEDIUM',
+            reason: 'No missing evidence and evidence present.',
+            suggested_action: 'prepare_evidence_catalog',
+            status: 'suggested'
+          })
+        }
+
+        return steps.slice(0, 3)
+      })(missing_suggestions, selected_evidence, Number(total))
+
       return reply.code(200).send({
         matter: { matter_id: m.matter_id, title: m.title, status: m.status },
         summary,
@@ -736,64 +852,8 @@ export async function matterRoutes(app: FastifyInstance) {
         navigation: { by_type, by_status, by_strength },
         selected_evidence,
         ai_analysis: { status: 'placeholder', message: 'AI evidence analysis coming soon' },
-        // compute rule-based missing evidence suggestions (read-only)
-        missing_evidence: (function computeMissing(allEv:any[], totalCount:number) {
-          const suggestions: any[] = []
-          const typesPresent = new Set((allEv || []).map((x:any) => (x.evidence_type || '').toLowerCase()))
-
-          if (!totalCount || totalCount === 0) {
-            suggestions.push({
-              id: 'missing-basic-evidence',
-              title: '缺少基础证据材料',
-              description: '当前未发现任何证据条目，请收集基础证据材料（照片、合同、收据等）。',
-              priority: 'HIGH',
-              reason: 'No evidence exists for this matter.',
-              suggested_action: 'collect_basic_evidence'
-            })
-          }
-
-          // missing transfer/bank/payment
-          const hasTransfer = Array.from(typesPresent).some((t:any) => /transfer|bank|payment/.test(t))
-          if (!hasTransfer) {
-            suggestions.push({
-              id: 'missing-transfer-record',
-              title: '缺少转账记录',
-              description: '当前证据中未发现转账、付款或银行流水类证据。',
-              priority: 'HIGH',
-              reason: 'No evidence_type matches transfer / bank / payment.',
-              suggested_action: 'ask_client_to_provide_transfer_record'
-            })
-          }
-
-          // missing contract/agreement
-          const hasContract = Array.from(typesPresent).some((t:any) => /contract|agreement/.test(t))
-          if (!hasContract) {
-            suggestions.push({
-              id: 'missing-contract-agreement',
-              title: '缺少合同或协议',
-              description: '未发现合同或协议类证据，可能影响权利义务认定。',
-              priority: 'MEDIUM',
-              reason: 'No evidence_type matches contract / agreement.',
-              suggested_action: 'ask_client_to_provide_contract'
-            })
-          }
-
-          // missing chat/message
-          const hasChat = Array.from(typesPresent).some((t:any) => /chat|message|wechat/.test(t))
-          if (!hasChat) {
-            suggestions.push({
-              id: 'missing-chat-record',
-              title: '缺少聊天记录',
-              description: '未发现聊天或消息类证据（如微信、短信、聊天导出）。',
-              priority: 'MEDIUM',
-              reason: 'No evidence_type matches chat / message / wechat.',
-              suggested_action: 'ask_client_to_provide_chat_records'
-            })
-          }
-
-          // limit to max 3 suggestions
-          return suggestions.slice(0, 3)
-        })(allEvidence, Number(total)),
+        missing_evidence: missing_suggestions,
+        evidence_next_steps,
       })
     } catch (err: any) {
       return reply.code(500).send({ error: 'evidence workspace failed', detail: err?.message || String(err) })

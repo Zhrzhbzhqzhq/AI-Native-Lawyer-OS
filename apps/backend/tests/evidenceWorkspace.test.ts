@@ -127,6 +127,19 @@ describe('Evidence Workspace Read-only', () => {
       }
     }
 
+    // evidence_next_steps checks
+    expect(Array.isArray(body.evidence_next_steps)).toBe(true)
+    expect(body.evidence_next_steps.length).toBeLessThanOrEqual(3)
+    for (const s of body.evidence_next_steps) {
+      expect(typeof s.id).toBe('string')
+      expect(typeof s.title).toBe('string')
+      expect(typeof s.description).toBe('string')
+      expect(typeof s.priority).toBe('string')
+      expect(typeof s.reason).toBe('string')
+      expect(typeof s.suggested_action).toBe('string')
+      expect(typeof s.status).toBe('string')
+    }
+
     // counts after - ensure no new objects were created by endpoint
     const prisma2 = createPrismaClient()
     const afterEvidence = await prisma2.evidence.count({ where: { matter_id: WORK_ID } })

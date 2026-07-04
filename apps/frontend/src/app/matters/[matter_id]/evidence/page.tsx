@@ -9,6 +9,15 @@ type EvidenceWorkspace = {
   selected_evidence: any | null
   ai_analysis: { status: string; message: string }
   missing_evidence: Array<any>
+  evidence_next_steps?: Array<{
+    id: string
+    title: string
+    description: string
+    priority: string
+    reason: string
+    suggested_action: string
+    status: string
+  }>
 }
 
 function SummaryCard({ title, value }: { title: string; value: number }) {
@@ -131,6 +140,24 @@ export default function EvidenceWorkspacePage() {
                     <div style={{ color: '#333' }}>{data.selected_evidence.related_material.title} · {data.selected_evidence.related_material.material_id}</div>
                   ) : (
                     <div style={{ color: '#666' }}>No related material</div>
+                  )}
+                </div>
+
+                <div style={{ marginTop: 16, background: '#fff', padding: 12, borderRadius: 8 }}>
+                  <h3 style={{ marginTop: 0 }}>Evidence Next Step</h3>
+                  {Array.isArray(data.evidence_next_steps) && data.evidence_next_steps.length === 0 ? (
+                    <div style={{ color: '#666' }}>No evidence next steps</div>
+                  ) : (
+                    (data.evidence_next_steps || []).map((s:any, idx:number) => (
+                      <div key={s.id || idx} style={{ padding: 8, borderBottom: '1px solid #f1f5f9' }}>
+                        <div style={{ fontWeight: 700 }}>{s.title}</div>
+                        <div style={{ color: '#666' }}>{s.description}</div>
+                        <div style={{ marginTop: 6 }}><strong>Priority:</strong> {s.priority}</div>
+                        <div style={{ color: '#666' }}><strong>Reason:</strong> {s.reason}</div>
+                        <div style={{ color: '#666' }}><strong>Action:</strong> {s.suggested_action}</div>
+                        <div style={{ color: '#666' }}><strong>Status:</strong> {s.status}</div>
+                      </div>
+                    ))
                   )}
                 </div>
 
