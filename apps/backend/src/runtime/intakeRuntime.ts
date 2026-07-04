@@ -153,6 +153,75 @@ export class IntakeRuntime {
       challenge_opinion_drafts: drafts,
     }
   }
+
+  generateDocumentUpdateSuggestions(input: { matter_id: string; trigger: { type: 'evidence_created' | 'challenge_document_created'; id: string; title?: string } }) {
+    const suggestions: Array<{
+      suggestion_id: string
+      target_document_type: 'complaint' | 'defense' | 'representation' | 'evidence_catalog' | 'hearing_outline' | 'challenge_opinion'
+      target_title: string
+      reason: string
+      suggested_change_summary: string
+      requires_lawyer_confirmation: boolean
+    }> = []
+
+    const trig = input.trigger
+    const nowId = Date.now().toString(36)
+
+    if (trig.type === 'evidence_created') {
+      // at least suggest evidence_catalog, representation, hearing_outline
+      suggestions.push({
+        suggestion_id: `s-${nowId}-ec`,
+        target_document_type: 'evidence_catalog',
+        target_title: 'Evidence Catalog (建议更新)',
+        reason: `新证据 ${trig.id} (${trig.title || ''}) 已加入，需更新证据目录以便检索。`,
+        suggested_change_summary: `将证据 ${trig.id} 添加至证据目录，并补充证明事实的关联说明。`,
+        requires_lawyer_confirmation: true,
+      })
+      suggestions.push({
+        suggestion_id: `s-${nowId}-rep`,
+        target_document_type: 'representation',
+        target_title: 'Representation / 代理词 (建议更新)',
+        reason: `新增证据可能影响代理词的论点与证据链，应审阅并调整论证要点。`,
+        suggested_change_summary: `基于新增证据 ${trig.id}，建议补充或调整关键事实与引用证据编号。`,
+        requires_lawyer_confirmation: true,
+      })
+      suggestions.push({
+        suggestion_id: `s-${nowId}-ho`,
+        target_document_type: 'hearing_outline',
+        target_title: 'Hearing Outline (建议更新)',
+        reason: `新增证据可能影响庭审陈述顺序与要点，应更新庭审提纲。`,
+        suggested_change_summary: `将证据 ${trig.id} 安排在庭审提纲中合适的位置，并准备可能的质证问题。`,
+        requires_lawyer_confirmation: true,
+      })
+    }
+
+    if (trig.type === 'challenge_document_created') {
+      // at least suggest representation and hearing_outline
+      suggestions.push({
+        suggestion_id: `s-${nowId}-rep-c`,
+        target_document_type: 'representation',
+        target_title: 'Representation / 代理词 (建议更新)',
+        reason: `质证意见文书 ${trig.id} 已生成，代理词可能需依据该文书调整反驳或支持策略。`,
+        suggested_change_summary: `审阅质证意见 ${trig.id} 并在代理词中补充反驳要点及证据链。`,
+        requires_lawyer_confirmation: true,
+      })
+      suggestions.push({
+        suggestion_id: `s-${nowId}-ho-c`,
+        target_document_type: 'hearing_outline',
+        target_title: 'Hearing Outline (建议更新)',
+        reason: `针对新生成的质证意见，应调整庭审提纲以应对可能的争点。`,
+        suggested_change_summary: `将质证意见 ${trig.id} 的要点整合进庭审提纲，并标注需要准备的质证材料。`,
+        requires_lawyer_confirmation: true,
+      })
+    }
+
+    return {
+      status: 'document_update_suggestions_ready',
+      matter_id: input.matter_id,
+      trigger: input.trigger,
+      document_update_suggestions: suggestions,
+    }
+  }
 }
 
 export default IntakeRuntime

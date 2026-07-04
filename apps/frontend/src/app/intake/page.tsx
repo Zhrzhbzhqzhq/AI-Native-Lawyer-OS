@@ -37,6 +37,7 @@ export default function IntakePage() {
   const [error, setError] = useState<string | null>(null)
   const [challengeResult, setChallengeResult] = useState<any | null>(null)
   const [createdDocuments, setCreatedDocuments] = useState<any[] | null>(null)
+  const [createdEvidence, setCreatedEvidence] = useState<any[] | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
@@ -490,6 +491,49 @@ export default function IntakePage() {
                     生成证据草稿
                   </button>
                 </div>
+                {createdEvidence && (
+                  <div style={{ marginTop: 12, background: '#fff', padding: 8, borderRadius: 8 }}>
+                    <div><strong>created_evidence:</strong> {createdEvidence.length}</div>
+                    {createdEvidence.map((ev: any) => (
+                      <div key={ev.evidence_id} style={{ padding: 6, borderBottom: '1px solid #eee' }}>
+                        <div><strong>{ev.title}</strong></div>
+                        <div>id: {ev.evidence_id}</div>
+                        <div>type: {ev.evidence_type}</div>
+                        <div>status: {ev.status}</div>
+                        <div style={{ marginTop: 6 }}>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              setError(null)
+                              if (!matterId) {
+                                setError('Please select matter_id before generating suggestions')
+                                return
+                              }
+                              try {
+                                const res = await fetch(`${API}/intake/document-update-suggestions`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ matter_id: matterId, trigger: { type: 'evidence_created', id: ev.evidence_id, title: ev.title } }),
+                                })
+                                if (!res.ok) {
+                                  const t = await res.text().catch(() => '')
+                                  throw new Error(t || 'suggestions failed')
+                                }
+                                const body = await res.json()
+                                alert(`Suggestions: ${Array.isArray(body.document_update_suggestions) ? body.document_update_suggestions.length : 0}`)
+                              } catch (e: any) {
+                                setError(e?.message || 'Suggestion generation failed')
+                              }
+                            }}
+                            style={{ padding: '6px 10px', borderRadius: 6, background: '#0ea5a4', color: '#fff', border: 'none' }}
+                          >
+                            生成文书更新建议
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
                   <div style={{ marginTop: 8 }}>
                     <button
                       type="button"
@@ -514,7 +558,7 @@ export default function IntakePage() {
                           })
                           if (!confirmRes.ok) throw new Error('confirm evidence failed')
                           const confirmBody = await confirmRes.json()
-                          alert(`Created evidence: ${Array.isArray(confirmBody.created_evidence) ? confirmBody.created_evidence.length : 0}`)
+                          setCreatedEvidence(Array.isArray(confirmBody.created_evidence) ? confirmBody.created_evidence : [])
                         } catch (e) {
                           alert(String(e))
                         }

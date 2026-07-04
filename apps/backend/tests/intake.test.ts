@@ -432,4 +432,98 @@ describe('Unified Intake API', () => {
     const r3 = await fetch(`${BASE}/intake/confirm-challenge-document`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: 'x', challenge_opinion_drafts: badDraft }) })
     expect(r3.status).toBe(400)
   })
+
+  it('document-update-suggestions for evidence_created trigger', async () => {
+    const markerMatterId = `mock-intake-${Date.now()}-dus-e`
+    await prisma.matter.create({ data: { matter_id: markerMatterId, title: 'DUS Matter E', description: '', matter_type: 'test', status: 'active' } })
+
+    const beforeDocument = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM documents WHERE matter_id = ${markerMatterId}
+    `
+    const beforeKnowledge = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM knowledge WHERE matter_id = ${markerMatterId}
+    `
+    const beforeTimeline = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM timelines WHERE matter_id = ${markerMatterId}
+    `
+
+    // create a material fixture required for evidence
+    const material = await prisma.material.create({ data: { material_id: `mat-${Date.now()}`, matter_id: markerMatterId, title: 'file.pdf', material_type: 'document', source: 'client', storage_uri: '', status: 'active' } })
+
+    // create an evidence fixture referencing the material
+    const evidence = await prisma.evidence.create({ data: { evidence_id: `ev-${Date.now()}`, matter_id: markerMatterId, material_id: material.material_id, title: 'ev file', evidence_type: 'document', description: '', relevance: '', status: 'active' } })
+
+    const res = await fetch(`${BASE}/intake/document-update-suggestions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: markerMatterId, trigger: { type: 'evidence_created', id: evidence.evidence_id, title: evidence.title } }) })
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.status).toBe('document_update_suggestions_ready')
+    expect(Array.isArray(body.document_update_suggestions)).toBe(true)
+
+    const types = body.document_update_suggestions.map((s: any) => s.target_document_type)
+    expect(types).toEqual(expect.arrayContaining(['evidence_catalog', 'representation', 'hearing_outline']))
+
+    const afterDocument = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM documents WHERE matter_id = ${markerMatterId}
+    `
+    const afterKnowledge = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM knowledge WHERE matter_id = ${markerMatterId}
+    `
+    const afterTimeline = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM timelines WHERE matter_id = ${markerMatterId}
+    `
+
+    expect(afterDocument[0].count).toBe(beforeDocument[0].count)
+    expect(afterKnowledge[0].count).toBe(beforeKnowledge[0].count)
+    expect(afterTimeline[0].count).toBe(beforeTimeline[0].count)
+  })
+
+  it('document-update-suggestions for challenge_document_created trigger', async () => {
+    const markerMatterId = `mock-intake-${Date.now()}-dus-c`
+    await prisma.matter.create({ data: { matter_id: markerMatterId, title: 'DUS Matter C', description: '', matter_type: 'test', status: 'active' } })
+
+    // create a challenge document fixture
+    const doc = await prisma.document.create({ data: { document_id: `doc-${Date.now()}`, matter_id: markerMatterId, title: 'challenge doc', document_type: 'challenge_opinion', content_uri: '', version: 'v1', status: 'draft' } })
+
+    // capture counts AFTER fixture creation to ensure we only measure changes caused by the API call
+    const beforeDocument = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM documents WHERE matter_id = ${markerMatterId}
+    `
+    const beforeKnowledge = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM knowledge WHERE matter_id = ${markerMatterId}
+    `
+    const beforeTimeline = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM timelines WHERE matter_id = ${markerMatterId}
+    `
+
+    const res = await fetch(`${BASE}/intake/document-update-suggestions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: markerMatterId, trigger: { type: 'challenge_document_created', id: doc.document_id, title: doc.title } }) })
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.status).toBe('document_update_suggestions_ready')
+    expect(Array.isArray(body.document_update_suggestions)).toBe(true)
+
+    const types = body.document_update_suggestions.map((s: any) => s.target_document_type)
+    expect(types).toEqual(expect.arrayContaining(['representation', 'hearing_outline']))
+
+    const afterDocument = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM documents WHERE matter_id = ${markerMatterId}
+    `
+    const afterKnowledge = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM knowledge WHERE matter_id = ${markerMatterId}
+    `
+    const afterTimeline = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM timelines WHERE matter_id = ${markerMatterId}
+    `
+
+    expect(afterDocument[0].count).toBe(beforeDocument[0].count)
+    expect(afterKnowledge[0].count).toBe(beforeKnowledge[0].count)
+    expect(afterTimeline[0].count).toBe(beforeTimeline[0].count)
+  })
+
+  it('document-update-suggestions validation failures', async () => {
+    const r1 = await fetch(`${BASE}/intake/document-update-suggestions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ trigger: { type: 'evidence_created', id: 'x' } }) })
+    expect(r1.status).toBe(400)
+
+    const r2 = await fetch(`${BASE}/intake/document-update-suggestions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: 'x', trigger: { type: 'invalid_type', id: 'x' } }) })
+    expect(r2.status).toBe(400)
+  })
 })

@@ -191,6 +191,23 @@ export async function intakeRoutes(app: FastifyInstance) {
     }
   })
 
+  app.post('/intake/document-update-suggestions', async (request, reply) => {
+    const payload = (request.body || {}) as {
+      matter_id?: string
+      trigger?: { type?: string; id?: string; title?: string }
+    }
+
+    const matter_id = payload.matter_id ? String(payload.matter_id) : ''
+    if (!matter_id) return reply.code(400).send({ error: 'matter_id required' })
+
+    const trig = payload.trigger || {}
+    const t = String(trig.type || '')
+    if (!(t === 'evidence_created' || t === 'challenge_document_created')) return reply.code(400).send({ error: 'invalid trigger.type' })
+
+    const result = runtime.generateDocumentUpdateSuggestions({ matter_id, trigger: { type: t as any, id: String(trig.id || ''), title: String(trig.title || '') } })
+    return reply.code(200).send(result)
+  })
+
   app.post('/intake/confirm-evidence', async (request, reply) => {
     const prisma = createPrismaClient()
     const evidenceService = new EvidenceService(prisma)
