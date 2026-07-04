@@ -83,6 +83,67 @@ export default function MatterWorkspacePage() {
   const recentActivity = (data as any).recent_activity ?? []
   const aiNextSteps = (data as any).ai_next_steps ?? []
 
+  // Presentation helpers: map runtime/developer labels to lawyer-friendly copy
+  const mapDecisionCode = (code?: string) => {
+    switch (String(code || '').toUpperCase()) {
+      case 'COLLECT_EVIDENCE':
+        return '需要先补强证据'
+      case 'REVIEW_EVIDENCE':
+        return '需要审查现有证据'
+      case 'RESEARCH_LAW':
+        return '需要补充法律检索'
+      case 'REVIEW_DOCUMENT':
+        return '需要审查文书草稿'
+      case 'MONITOR_MATTER':
+        return '当前以跟进观察为主'
+      case 'NO_ACTION':
+        return '暂无明确下一步'
+      default:
+        return String(code || '')
+    }
+  }
+
+  const mapPriority = (p?: string) => {
+    switch (String(p || '').toUpperCase()) {
+      case 'HIGH': return '高优先级'
+      case 'MEDIUM': return '中优先级'
+      case 'LOW': return '低优先级'
+      default: return p || '—'
+    }
+  }
+
+  const mapActionToLabel = (a: any) => {
+    const type = String(a?.type || (a?.payload?.target_type || '')).toLowerCase()
+    if (type.includes('evidence')) return '准备证据材料'
+    if (type.includes('document')) return '审查或准备法律文书'
+    if (type.includes('research')) return '补充法律检索'
+    if (type.includes('monitor')) return '跟进案件进展'
+    return '执行任务'
+  }
+
+  const mapStatusLabel = (s: string) => String(s || '').toUpperCase() === 'READY' ? '可开始' : '暂不可执行'
+
+  const mapWorkTypeLabel = (t?: string) => {
+    switch (String(t || '')) {
+      case 'EvidenceWork': return '证据工作'
+      case 'DocumentWork': return '文书工作'
+      case 'ResearchWork': return '检索工作'
+      case 'MonitorWork': return '跟进工作'
+      default: return t || ''
+    }
+  }
+
+  const mapWorkTitle = (title?: string) => {
+    if (!title) return ''
+    const s = String(title).toLowerCase()
+    if (s.includes('evidence collection')) return '证据准备'
+    if (s.includes('evidence review')) return '证据审查'
+    if (s.includes('legal research')) return '法律检索'
+    if (s.includes('document review')) return '文书审查'
+    if (s.includes('matter monitoring')) return '案件跟进'
+    return title
+  }
+
   return (
     <main style={{ padding: 24 }}>
       <div style={{ padding: 20, borderRadius: 12, background: '#fff', boxShadow: '0 1px 6px rgba(0,0,0,0.04)' }}>
@@ -100,8 +161,8 @@ export default function MatterWorkspacePage() {
           {runtime && runtime.runtime_plan ? (
             <div style={{ marginTop: 8 }}>
               <div style={{ fontSize: 14, fontWeight: 700 }}>{runtime.runtime_plan.goal || 'No runtime plan yet'}</div>
-              <div style={{ color: '#666', fontSize: 12, marginTop: 6 }}>Priority: {runtime.runtime_plan.priority || '—'}</div>
-              <div style={{ color: '#666', fontSize: 12, marginTop: 6 }}>Decision: {runtime.runtime_decision?.code || '—'}</div>
+              <div style={{ color: '#666', fontSize: 12, marginTop: 6 }}>Priority: {mapPriority(runtime.runtime_plan.priority) || '—'}</div>
+              <div style={{ color: '#666', fontSize: 12, marginTop: 6 }}>Recommendation: {mapDecisionCode(runtime.runtime_decision?.code) || '—'}</div>
               <div style={{ color: '#666', fontSize: 12, marginTop: 6 }}>Ready actions: {(Array.isArray(runtime.runtime_actions) ? runtime.runtime_actions.filter((a:any)=>a.status==='READY').length : 0)}</div>
             </div>
           ) : (
@@ -127,12 +188,13 @@ export default function MatterWorkspacePage() {
                   {now.length > 0 && (
                     <div style={{ marginBottom: 8 }}>
                       <div style={{ fontWeight: 700 }}>NOW</div>
-                      {now.map((q:any, idx:number) => (
-                        <div key={q.queue_id || idx} style={{ padding: '6px 0', borderBottom: idx === now.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
-                          <div style={{ fontWeight: 600 }}>{q.queue_id}</div>
-                          <div style={{ color: '#666' }}>Action: {q.action_id} · Work: {q.work_id} · Status: {q.status}</div>
-                        </div>
-                      ))}
+                          {now.map((q:any, idx:number) => (
+                            <div key={q.queue_id || idx} style={{ padding: '6px 0', borderBottom: idx === now.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+                              <div style={{ fontWeight: 600 }}>{mapActionToLabel(q)}</div>
+                              <div style={{ color: '#666' }}>{mapStatusLabel(q.status)}</div>
+                              <div style={{ color: '#94a3b8', fontSize: 12 }}>{q.queue_id ? `ID: ${q.queue_id}` : ''}{q.action_id ? ` ${q.action_id}` : ''}</div>
+                            </div>
+                          ))}
                     </div>
                   )}
 
@@ -141,8 +203,9 @@ export default function MatterWorkspacePage() {
                       <div style={{ fontWeight: 700 }}>TODAY</div>
                       {today.map((q:any, idx:number) => (
                         <div key={q.queue_id || idx} style={{ padding: '6px 0', borderBottom: idx === today.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
-                          <div style={{ fontWeight: 600 }}>{q.queue_id}</div>
-                          <div style={{ color: '#666' }}>Action: {q.action_id} · Work: {q.work_id} · Status: {q.status}</div>
+                          <div style={{ fontWeight: 600 }}>{mapActionToLabel(q)}</div>
+                          <div style={{ color: '#666' }}>{mapStatusLabel(q.status)}</div>
+                          <div style={{ color: '#94a3b8', fontSize: 12 }}>{q.queue_id ? `ID: ${q.queue_id}` : ''}{q.action_id ? ` ${q.action_id}` : ''}</div>
                         </div>
                       ))}
                     </div>
@@ -153,8 +216,9 @@ export default function MatterWorkspacePage() {
                       <div style={{ fontWeight: 700 }}>LATER</div>
                       {later.map((q:any, idx:number) => (
                         <div key={q.queue_id || idx} style={{ padding: '6px 0', borderBottom: idx === later.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
-                          <div style={{ fontWeight: 600 }}>{q.queue_id}</div>
-                          <div style={{ color: '#666' }}>Action: {q.action_id} · Work: {q.work_id} · Status: {q.status}</div>
+                          <div style={{ fontWeight: 600 }}>{mapActionToLabel(q)}</div>
+                          <div style={{ color: '#666' }}>{mapStatusLabel(q.status)}</div>
+                          <div style={{ color: '#94a3b8', fontSize: 12 }}>{q.queue_id ? `ID: ${q.queue_id}` : ''}{q.action_id ? ` ${q.action_id}` : ''}</div>
                         </div>
                       ))}
                     </div>
@@ -199,11 +263,11 @@ export default function MatterWorkspacePage() {
                         return (
                           <div key={a.action_id ?? idx} style={{ padding: '8px 0', borderBottom: idx === ready.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                              <div style={{ fontWeight: 600 }}>{a.type}</div>
+                              <div style={{ fontWeight: 600 }}>{mapActionToLabel(a)}</div>
                               <div><a href={href} style={{ color: '#2563eb', fontSize: 13 }}>Open</a></div>
                             </div>
-                            <div style={{ color: '#666' }}>Work: {a.work_id}</div>
-                            <div style={{ color: '#94a3b8', fontSize: 12 }}>Status: {a.status}</div>
+                            <div style={{ color: '#666' }}>{mapStatusLabel(a.status)}</div>
+                            <div style={{ color: '#94a3b8', fontSize: 12 }}>{a.work_id ? `Work: ${a.work_id}` : ''}{a.action_id ? ` ${a.action_id}` : ''}</div>
                           </div>
                         )
                       })}
@@ -229,9 +293,9 @@ export default function MatterWorkspacePage() {
                   <div>
                     {active.map((w:any, idx:number) => (
                       <div key={w.work_id ?? idx} style={{ padding: '8px 0', borderBottom: idx === active.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
-                        <div style={{ fontWeight: 600 }}>{w.title || w.work_id}</div>
-                        <div style={{ color: '#666' }}>Type: {w.type}</div>
-                        <div style={{ color: '#94a3b8', fontSize: 12 }}>ID: {w.work_id} · Status: {w.status}</div>
+                        <div style={{ fontWeight: 600 }}>{mapWorkTitle(w.title) || w.title || w.work_id}</div>
+                        <div style={{ color: '#666' }}>{mapWorkTypeLabel(w.type)}</div>
+                        <div style={{ color: '#94a3b8', fontSize: 12 }}>{w.work_id ? `ID: ${w.work_id}` : ''} · {mapStatusLabel(w.status)}</div>
                       </div>
                     ))}
                   </div>
@@ -254,9 +318,9 @@ export default function MatterWorkspacePage() {
                   <div>
                     {waiting.map((w:any, idx:number) => (
                       <div key={w.work_id ?? idx} style={{ padding: '8px 0', borderBottom: idx === waiting.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
-                        <div style={{ fontWeight: 600 }}>{w.title || w.work_id}</div>
-                        <div style={{ color: '#666' }}>Type: {w.type}</div>
-                        <div style={{ color: '#94a3b8', fontSize: 12 }}>ID: {w.work_id} · Status: {w.status}</div>
+                        <div style={{ fontWeight: 600 }}>{mapWorkTitle(w.title) || w.title || w.work_id}</div>
+                        <div style={{ color: '#666' }}>{mapWorkTypeLabel(w.type)}</div>
+                        <div style={{ color: '#94a3b8', fontSize: 12 }}>{w.work_id ? `ID: ${w.work_id}` : ''} · {mapStatusLabel(w.status)}</div>
                       </div>
                     ))}
                   </div>
