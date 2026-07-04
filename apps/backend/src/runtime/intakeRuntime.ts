@@ -45,6 +45,21 @@ export class IntakeRuntime {
   ] as const
 
   run(input: IntakeRuntimeInput): IntakeRuntimeResult {
+    const internalSource = (() => {
+      const s = String(input.source || '')
+      if (s === 'Plaintiff') return 'client'
+      if (s === 'Opponent') return 'opponent'
+      if (s === 'Court') return 'court'
+      return 'third_party'
+    })()
+
+    const nextActions: string[] = (() => {
+      if (internalSource === 'client') return ['confirm_material', 'generate_evidence_draft']
+      if (internalSource === 'opponent') return ['confirm_material', 'generate_opponent_evidence_draft', 'prepare_challenge_opinion_draft']
+      if (internalSource === 'court') return ['confirm_material', 'review_court_notice']
+      return ['confirm_material', 'classify_third_party_material']
+    })()
+
     return {
       job_id: input.job_id,
       status: 'analysis_ready',
@@ -67,7 +82,7 @@ export class IntakeRuntime {
         material_suggestions: [],
         evidence_suggestions: [],
         document_suggestions: [],
-        next_actions: [],
+        next_actions: nextActions,
       },
     }
   }
@@ -100,7 +115,11 @@ export class IntakeRuntime {
         if (s === 'court') return 'court'
         return 'third_party'
       })(),
-      suggested_action: 'confirm_as_evidence' as const,
+      suggested_action: ((): any => {
+        const s = String(m.source || '')
+        if (s === 'opponent') return 'prepare_challenge_opinion'
+        return 'confirm_as_evidence'
+      })(),
     }))
 
     return {

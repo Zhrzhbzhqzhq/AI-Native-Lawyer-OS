@@ -10,6 +10,7 @@ type Matter = {
 type IntakeResponse = {
   job_id: string
   status: string
+  source?: string
   analysis?: {
     summary: string
     detected_matter: { matter_id: string | null; confidence: number; reason: string }
@@ -25,7 +26,8 @@ const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000'
 export default function IntakePage() {
   const [files, setFiles] = useState<File[]>([])
   const [dragActive, setDragActive] = useState(false)
-  const [source, setSource] = useState<'Plaintiff' | 'Opponent' | 'Court' | 'Third Party'>('Plaintiff')
+  const [source, setSource] = useState<'client' | 'opponent' | 'court' | 'third_party'>('client')
+  const [drafts, setDrafts] = useState<any[] | null>(null)
   const [matterId, setMatterId] = useState('')
   const [matterQuery, setMatterQuery] = useState('')
   const [matters, setMatters] = useState<Matter[]>([])
@@ -130,9 +132,10 @@ export default function IntakePage() {
 
     try {
       const mapSource = (s: string) => {
-        if (s === 'Plaintiff') return 'client'
-        if (s === 'Opponent') return 'opponent'
-        if (s === 'Court') return 'court'
+        // UI uses client/opponent/court/third_party
+        if (s === 'client') return 'client'
+        if (s === 'opponent') return 'opponent'
+        if (s === 'court') return 'court'
         return 'third_party'
       }
 
@@ -252,10 +255,10 @@ export default function IntakePage() {
             onChange={(e) => setSource(e.target.value as any)}
             style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #cbd5e1' }}
           >
-            <option value="Plaintiff">Plaintiff（我方）</option>
-            <option value="Opponent">Opponent（对方）</option>
-            <option value="Court">Court（法院）</option>
-            <option value="Third Party">Third Party（第三方）</option>
+            <option value="client">我方材料</option>
+            <option value="opponent">对方材料</option>
+            <option value="court">法院材料</option>
+            <option value="third_party">第三方材料</option>
           </select>
         </div>
 
@@ -287,6 +290,17 @@ export default function IntakePage() {
               <div style={{ marginTop: 8, background: '#f1f5f9', padding: 12, borderRadius: 8 }}>
                 <div style={{ fontWeight: 700 }}>AI Summary</div>
                 <div style={{ marginTop: 6 }}>{result.analysis.summary}</div>
+
+                <div style={{ marginTop: 8, fontWeight: 700 }}>材料来源类型</div>
+                <div>
+                  {source === 'client' ? '我方材料' : source === 'opponent' ? '对方材料' : source === 'court' ? '法院材料' : '第三方材料'}
+                </div>
+
+                {source === 'opponent' && (
+                  <div style={{ marginTop: 10, padding: 10, background: '#fff1f2', color: '#b91c1c', borderRadius: 8 }}>
+                    这是对方材料，后续将进入质证意见流程。
+                  </div>
+                )}
 
                 <div style={{ marginTop: 10, fontWeight: 700 }}>Detected Matter</div>
                 <div>
@@ -328,6 +342,25 @@ export default function IntakePage() {
                     </div>
                   </div>
                 )}
+                {drafts && (
+                  <div style={{ marginTop: 12, background: '#fff', padding: 10, borderRadius: 8 }}>
+                    <div style={{ fontWeight: 700 }}>Evidence Drafts</div>
+                    <div style={{ marginTop: 8 }}>
+                      {drafts.map((d: any) => (
+                        <div key={d.draft_id} style={{ padding: 8, borderBottom: '1px solid #eee' }}>
+                          <div><strong>{d.title}</strong></div>
+                          <div>proof_purpose: {d.proof_purpose}</div>
+                          <div>confidence: {d.confidence}</div>
+                          <div>suggested_action: {d.suggested_action}</div>
+                          <div>来源: {d.source === 'client' ? '我方材料' : d.source === 'opponent' ? '对方材料' : d.source === 'court' ? '法院材料' : '第三方材料'}</div>
+                          {d.source === 'opponent' && (
+                            <div style={{ marginTop: 6, color: '#b91c1c' }}>建议后续生成质证意见草稿</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div style={{ marginTop: 12 }}>
                   <button
                     type="button"
@@ -342,7 +375,7 @@ export default function IntakePage() {
                         })
                         if (!res.ok) throw new Error('draft failed')
                         const body = await res.json()
-                        alert(`Drafts: ${Array.isArray(body.evidence_drafts) ? body.evidence_drafts.length : 0}`)
+                        setDrafts(Array.isArray(body.evidence_drafts) ? body.evidence_drafts : [])
                       } catch (e) {
                         alert(String(e))
                       }
@@ -366,6 +399,8 @@ export default function IntakePage() {
                           })
                           if (!draftRes.ok) throw new Error('draft failed')
                           const draftBody = await draftRes.json()
+
+                          setDrafts(Array.isArray(draftBody.evidence_drafts) ? draftBody.evidence_drafts : [])
 
                           const confirmRes = await fetch(`${API}/intake/confirm-evidence`, {
                             method: 'POST',

@@ -10,7 +10,7 @@ function genId(prefix = 'ij-') {
 
 export async function intakeRoutes(app: FastifyInstance) {
   const runtime = new IntakeRuntime()
-  const allowedSources: IntakeSource[] = ['Plaintiff', 'Opponent', 'Court', 'Third Party']
+  const allowedIncomingSources = ['Plaintiff', 'Opponent', 'Court', 'Third Party', 'client', 'opponent', 'court', 'third_party']
 
   app.post('/intake', async (request, reply) => {
     const payload = (request.body || {}) as {
@@ -21,15 +21,26 @@ export async function intakeRoutes(app: FastifyInstance) {
 
     const files = Array.isArray(payload.files) ? payload.files : []
     const matter_id = payload.matter_id ? String(payload.matter_id) : null
-    const source = String(payload.source || '') as IntakeSource
+    const incomingSource = String(payload.source || '')
+
+    if (!allowedIncomingSources.includes(incomingSource)) {
+      return reply.code(400).send({ error: 'invalid source' })
+    }
+
+    const source = (() => {
+      const s = incomingSource
+      if (s === 'client') return 'Plaintiff'
+      if (s === 'opponent') return 'Opponent'
+      if (s === 'court') return 'Court'
+      if (s === 'third_party') return 'Third Party'
+      return s as IntakeSource
+    })()
 
     if (files.length === 0) {
       return reply.code(400).send({ error: 'files required' })
     }
 
-    if (!allowedSources.includes(source)) {
-      return reply.code(400).send({ error: 'invalid source' })
-    }
+    // source normalized to IntakeSource in `source` variable
 
     const job_id = genId()
 
