@@ -1,14 +1,22 @@
 # 04_API
 
-## Purpose
+本 README 仅用于导航（Navigation）。
 
-本目录负责后端 API 设计、接口规范与调用说明。
+## Governance References
 
-## Contents
+- ../00_documentation_style_guide.md
+- ../00_documentation_index.md
+- ../README.md
 
-- (no markdown files)
+## Navigation
+
+- 01_api_principles.md
+- 02_rest_conventions.md
+- 03_api_resources.md
+- 04_matter_api.md
 
 ## Notes
 
-本目录仅包含与上述开发主题直接相关的 Markdown 文档。
-不应包含产品、流程、UI/UX、AI 系统架构或文档中心导航类文档。
+- README does not define specifications.
+- README does not define architecture.
+- README does not define API rules.

@@ -1,0 +1,4 @@
+
+> @lawdesk/backend@1.0.0 build /Users/qingzhang/Desktop/AI-Native-Lawyer-OS/apps/backend
+> tsc -p tsconfig.json
+

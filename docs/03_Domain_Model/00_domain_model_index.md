@@ -58,6 +58,20 @@ Entity Relationships 定义对象之间的关联。
 
 ---
 
+## 2.1 Official Registry
+
+Domain Model Index 是 LawDesk V1 唯一 Domain Object 注册入口。
+
+新增 Domain Object 必须：
+
+- Register Here
+- Create Specification
+- Update Documentation Index
+
+未注册对象不得进入 V1。
+
+---
+
 ## 3. Core Entities
 
 | Entity | File | Purpose |
@@ -104,16 +118,66 @@ Domain Model 不直接定义业务流程。
 
 ---
 
+## 5.1 Runtime Dependency
+
+Domain Model
+
+↓
+
+Database Schema
+
+↓
+
+API Resource
+
+↓
+
+Workflow Runtime
+
+↓
+
+Today Runtime
+
+↓
+
+Frontend
+
+说明：
+
+- Domain Model 不依赖 Runtime。
+- Runtime 基于 Domain Model 构建。
+- Runtime 不得修改 Domain Model。
+
+---
+
 ## 6. Freeze Policy
 
 - 所有 Domain Model 文件采用 `00_xxx.md`、`01_xxx.md`、`02_xxx.md` 命名。
-- 旧中文命名文档保留于目录中，作为历史文档。
+- V1 官方规范采用统一英文命名。
+- 历史文档不属于 V1 官方规范体系。
 - Domain Model 正式规范文件不得随意重命名。
+- Entity registration order must remain stable.
+- Registered Entity IDs must never be reused.
+- Removing an Entity requires V2.
 - 任何 Domain Model 结构或实体调整必须进入 V2。
 
 ---
 
 ## 7. Notes
 
-- 本目录还保留旧中文命名文档，避免历史内容丢失。
+- 本目录仅包含 V1 官方规范文件。
 - 新增 Domain Model 官方规范文件应遵循本目录结构。
+
+---
+
+## Freeze Conclusion
+
+Domain Model Index 是 LawDesk V1 Domain Object 的统一注册入口。
+
+本规范自 V1 起正式冻结。
+
+Workflow、Database、API、AI Runtime、Frontend 及所有 V1 实现必须遵守本规范。
+
+任何 Domain Model 目录结构或对象注册修改必须进入 V2。
+
+Domain Model is the foundation of the entire LawDesk Architecture.

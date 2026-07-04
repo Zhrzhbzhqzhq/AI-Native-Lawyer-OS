@@ -1,14 +1,26 @@
 # 03_AI
 
-## Purpose
+本 README 仅用于导航（Navigation）。
 
-本目录负责描述 AI 相关实现、集成与开发说明。
+## Governance References
 
-## Contents
+- ../00_documentation_style_guide.md
+- ../00_documentation_index.md
+- ../README.md
 
-- (no markdown files)
+## Navigation
+
+- 01_ai_principles.md
+- 02_ai_runtime.md
+- 03_ai_record.md
+- 04_ai_boundary.md
+- 05_prompt_architecture.md
+- 06_context_assembly.md
+- 07_tool_call.md
+- 08_model_management.md
 
 ## Notes
 
-本目录仅包含与上述开发主题直接相关的 Markdown 文档。
-不应包含产品、流程、UI/UX、AI 系统架构或文档中心导航类文档。
+- README does not define specifications.
+- README does not define architecture.
+- README does not define API rules.

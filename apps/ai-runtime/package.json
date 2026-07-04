@@ -1,0 +1,22 @@
+{
+  "name": "@lawdesk/ai-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "lint": "echo 'No AI runtime lint yet'",
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'No AI runtime tests yet'"
+  },
+  "dependencies": {
+    "@lawdesk/shared": "workspace:*",
+    "dotenv": "^16.4.5",
+    "fastify": "^4.28.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.4"
+  }
+}

@@ -1,112 +1,261 @@
-# Client（客户）数据模型
+---
+Status: Frozen
+Specification Version: V1.0
+Document Version: 1.0.0
+Module: Client
+Owner: LawDesk Architecture
+Last Updated: 2026-07-01
+Architecture: LawDesk V1
+Change Policy:
+- Only documentation typo fixes are allowed.
+- Any business rule, Workflow, API, Domain Model or Schema changes must target V2.
+---
 
-## 一、定义
+# 03_client
 
-Client 是案件中的客户对象。
+## 1. Purpose
 
-AI Native Lawyer OS 只服务独立律师，因此 Client 不做复杂 CRM，只记录办案必要信息。
+Client 定义 LawDesk V1 的客户职责。
 
-## 二、基本字段
+Client 是：
 
-| 字段 | 含义 | 示例 |
-|---|---|---|
-| client_id | 客户编号 | C-2026-0001 |
-| name | 客户姓名/名称 | 张三 |
-| client_type | 客户类型 | 自然人 / 公司 / 个体工商户 |
-| phone | 联系电话 | 13800000000 |
-| wechat | 微信号 | zhangsan123 |
-| id_number | 身份证号/统一社会信用代码 | 110101xxxxxxxxxxxx |
-| address | 联系地址 | 北京市朝阳区 |
-| role_in_matter | 案件身份 | 原告 / 被告 / 申请人 / 被申请人 |
-| matter_id | 关联案件编号 | 2026-0001 |
-| source | 客户来源 | 朋友介绍 / 网络咨询 / 老客户 |
-| consultation_date | 咨询日期 | 2026-06-30 |
-| intake_status | 咨询状态 | 咨询中 / 已接案 / 未接案 |
-| ai_summary | AI客户摘要 | 客户主张存在借款关系，需补充转账记录 |
-| lawyer_note | 律师备注 | 客户沟通积极，但证据不完整 |
+- Matter 的客户对象
+- Domain Entity
+- Matter 的组成部分
 
-## 三、V1 只保留必要能力
+Client 不负责：
 
-Client V1 不做：
+- Workflow
+- API
+- Database
+- Runtime
 
-- 客户营销
-- 销售漏斗
-- 客户分层运营
-- 商机管理
-- 大型 CRM
+---
 
-只做：
+## 2. Responsibilities
 
-- 记录客户基本信息
-- 关联案件
-- 保存咨询资料
-- 支持接案评估
-- 支持后续案件沟通
+Client 负责：
 
-## 四、AI 可读取内容
+- Client Identity
+- Client Information
+- Contact Information
+- Relationship to Matter
 
-AI 可以读取：
+Client 不负责：
 
-- 客户基本信息
-- 咨询记录
-- 录音转文字
-- 微信聊天内容
-- 客户提交材料
-- 律师备注
+- Workflow Execution
+- Runtime Projection
+- Database Persistence
 
-## 五、AI 可生成内容
+---
 
-AI 可以生成：
+## 3. Identity
 
-- 客户咨询摘要
-- 客户诉求整理
-- 事实初步梳理
-- 风险提示
-- 接案评估建议
-- 需补充资料清单
-- 沟通问题清单
-
-## 六、律师确认规则
-
-以下内容必须由律师确认后生效：
-
-- 是否接案
-- 客户身份信息确认
-- 收费方案
-- 委托事项
-- 代理权限
-- 案件正式创建
-
-## 七、Client 与 Matter 的关系
-
-一个 Client 可以关联多个 Matter。
-
-一个 Matter 可以有一个或多个 Client。
-
-V1 先按最简单方式处理：
-
-- 一个案件默认一个主要客户
-- 多客户作为补充字段记录
-- 后续再扩展复杂关系
-
-## 八、V1 最小可用字段
-
-第一版开发至少需要：
+Client 的 Identity 为：
 
 - client_id
-- name
-- client_type
-- phone
-- role_in_matter
-- matter_id
-- consultation_date
-- intake_status
-- ai_summary
-- created_at
-- updated_at
 
-## 九、设计原则
+Identity：
 
-Client 不是 CRM 对象，而是案件服务对象。
+- Immutable
+- Unique
+- Stable
 
-所有客户信息都应服务于咨询、接案、办案和沟通，不做多余管理。
+Identity 一旦生成不得修改。
+
+---
+
+## 4. Aggregate Relationship
+
+Client belongs to Matter.
+
+Client is not an Aggregate Root.
+
+Ownership belongs to Matter.
+
+Cross-Matter Ownership is prohibited.
+
+---
+
+## 5. Ownership
+
+Client 由 Matter 拥有。
+
+Ownership：
+
+唯一。
+
+不得跨 Matter。
+
+---
+
+## 6. Relationships
+
+Client 可关联：
+
+- Matter
+- Material
+- Evidence
+- Document
+- Task
+
+Relationship：
+
+Reference Only.
+
+Ownership 不改变。
+
+---
+
+## 7. Lifecycle
+
+Client 生命周期：
+
+Created
+
+↓
+
+Active
+
+↓
+
+Archived
+
+说明：
+
+Matter Lifecycle 对 Client Lifecycle 具有约束作用。
+
+---
+
+## 8. Workflow Relationship
+
+Workflow：
+
+引用 Client。
+
+Client：
+
+不定义 Workflow。
+
+---
+
+## 9. Database Mapping
+
+统一采用官方 Mapping：
+
+Client
+
+↓
+
+Database Schema
+
+↓
+
+API Resource
+
+↓
+
+Workflow Runtime
+
+↓
+
+Today Runtime
+
+---
+
+## 10. API Relationship
+
+引用第 9 节官方 Mapping。
+
+补充说明：
+
+- API Resource 来源于 Client。
+- API 不拥有 Client。
+- API 不定义 Client。
+- API 仅作为 Domain Model 的访问接口。
+
+---
+
+## 11. AI Relationship
+
+AI 可以：
+
+- Analyze
+- Suggest
+- Draft
+- Review
+
+AI 不可以：
+
+- Modify Client
+- Change Ownership
+- Change Lifecycle
+
+所有修改：
+
+Lawyer Confirms
+
+↓
+
+API Executes
+
+↓
+
+Database Updates
+
+---
+
+## 12. Constraints
+
+Client：
+
+不得：
+
+- 定义 Workflow
+- 定义 API
+- 定义 Database
+- 定义 Runtime
+- 修改业务状态
+
+---
+
+## 13. Freeze Rules
+
+Client Identity：
+
+不得修改。
+
+Client Ownership：
+
+不得修改。
+
+Client Lifecycle：
+
+V1 冻结。
+
+---
+
+## 14. V2 Reserved
+
+例如：
+
+- Multiple Contacts
+- Client Organization
+- External Client Sync
+- Client Profile Extension
+
+---
+
+## 15. Freeze Conclusion
+
+该文档定义 LawDesk V1 Client 官方规范。
+
+Client 是 Matter 的 Domain Entity。
+
+Client 不属于 Aggregate Root。
+
+本规范自 V1 起正式冻结。
+
+Workflow、Database、API、AI Runtime、Frontend 及所有 V1 实现必须遵守本规范。
+
+任何 Client 修改必须进入 V2。

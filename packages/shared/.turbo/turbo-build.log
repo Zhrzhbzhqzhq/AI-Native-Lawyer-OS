@@ -1,0 +1,4 @@
+
+> @lawdesk/shared@1.0.0 build /Users/qingzhang/Desktop/AI-Native-Lawyer-OS/packages/shared
+> tsc -p tsconfig.json
+

@@ -81,9 +81,9 @@ DELETE /api/v1/documents/{id}
 - documents
 - timelines
 - tasks
-- research
+- workflow-events
+- ai-records
 - knowledge
-- ai-work-records
 - workspaces
 
 说明：
@@ -91,6 +91,7 @@ DELETE /api/v1/documents/{id}
 - API Resource 使用 kebab-case 或复数名词。
 - 字段仍使用 snake_case。
 - 不使用 get/create/update/delete 动词作为 URI。
+- API does not define business rules.
 
 禁止：
 
@@ -218,6 +219,8 @@ snake_case。
     "details": {}
   }
 }
+
+统一采用 unified Error Response。
 
 ---
 
@@ -431,7 +434,7 @@ confirm evidence
 
 confirm document
 
-confirm research
+confirm workflow event
 
 统一使用：
 
@@ -439,7 +442,7 @@ POST /api/v1/evidence/{id}/confirm
 
 POST /api/v1/documents/{id}/confirm
 
-POST /api/v1/research/{id}/confirm
+POST /api/v1/workflow-events/{id}/confirm
 
 ---
 
@@ -471,7 +474,7 @@ AI 结果不直接写正式对象。
 
 AI 结果先进入：
 
-ai_work_records
+ai-records
 
 律师确认后：
 
@@ -500,26 +503,18 @@ API 不允许创建脱离 Matter 的业务对象。
 Material
 
 Evidence
-
-Document
-
+Workflow Event
+AI Record
+Workspace
 Timeline
 
 Task
 
-Research
-
-AI_Work_Record
-
-Matter_Workspace
-
-均必须拥有：
+除 Knowledge 外，其它业务对象均必须拥有：
 
 matter_id
 
 Knowledge 可作为唯一例外。
-
-Knowledge：
 
 既可以关联 Matter，
 
@@ -547,6 +542,8 @@ BUSINESS_RULE_VIOLATION
 
 AI_RESULT_NOT_CONFIRMED
 
+统一采用 unified Error Response。
+
 ---
 
 ## 23. V2 Reserved
@@ -559,6 +556,14 @@ V2 再考虑：
 - Webhook
 - GraphQL
 - Public API
+
+---
+
+## Freeze Rules
+
+This specification is frozen for LawDesk V1.
+
+Future evolution belongs to V2.
 
 ---
 

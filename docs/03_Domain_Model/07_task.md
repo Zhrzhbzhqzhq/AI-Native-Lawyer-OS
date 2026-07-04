@@ -1,142 +1,284 @@
-# Task（案件任务）数据模型
+---
+Status: Frozen
+Specification Version: V1.0
+Document Version: 1.0.0
+Module: Task
+Owner: LawDesk Architecture
+Last Updated: 2026-07-01
+Architecture: LawDesk V1
+Change Policy:
+- Only documentation typo fixes are allowed.
+- Any business rule, Workflow, API, Domain Model or Schema changes must target V2.
+---
 
-## 一、定义
+# 07_task
 
-Task 是案件中的具体工作任务。
+## 1. Purpose
 
-它用于帮助律师管理案件推进过程中的待办事项、期限事项、AI 工作事项和律师确认事项。
+Task 定义 LawDesk 的办案任务对象（Task）。
 
-Task 不是系统中心，案件才是中心。Task 只是案件推进的抓手。
+Task 用于表示律师在案件办理过程中需要完成的具体工作。
 
-## 二、基本字段
+例如：
 
-| 字段 | 含义 | 示例 |
-|---|---|---|
-| task_id | 任务编号 | TK-2026-0001 |
-| matter_id | 关联案件编号 | 2026-0001 |
-| task_title | 任务标题 | 起草民事起诉状 |
-| task_type | 任务类型 | 立案 / 证据 / 文书 / 检索 / 庭审 / 执行 / 复盘 |
-| task_status | 任务状态 | 未开始 / 进行中 / 待审核 / 已完成 / 已取消 |
-| owner | 负责人 | 律师 / AI |
-| created_by | 创建来源 | 律师创建 / AI建议 / 系统生成 |
-| priority | 优先级 | 高 / 中 / 低 |
-| due_date | 截止日期 | 2026-07-05 |
-| related_evidence | 关联证据 | 借条、转账记录 |
-| related_document | 关联文书 | 民事起诉状 |
-| ai_plan | AI工作计划 | 先整理事实，再生成起诉状草稿 |
-| ai_result | AI工作成果 | 已生成起诉状草稿 |
-| lawyer_feedback | 律师反馈 | 诉讼请求需调整 |
-| confirm_required | 是否需律师确认 | 是 / 否 |
-| confirmed_at | 确认时间 | 2026-07-01 15:30 |
+- 法律检索
+- 起草起诉状
+- 补充证据
+- 联系客户
+- 庭审准备
+- 提交材料
+- 执行申请
+- 结案复盘
 
-## 三、任务类型
+Task 属于 Domain Object。
 
-V1 支持以下任务类型：
+Task 不是 Workflow。
 
-1. 咨询整理
-2. 接案评估
-3. 案件建立
-4. 补充资料
-5. 证据整理
-6. 法律检索
-7. 文书生成
-8. 立案准备
-9. 庭审准备
-10. 调解谈判
-11. 执行推进
-12. 结案总结
-13. 复盘归档
-14. 风险处理
-15. 其他
+Task 不是 Runtime。
 
-## 四、任务状态
+Task 不是 Today。
 
-| 状态 | 说明 |
-|---|---|
-| 未开始 | 任务已生成但尚未启动 |
-| 待律师确认执行 | AI 已提出计划，等待律师同意 |
-| 进行中 | AI 或律师正在处理 |
-| 待审核 | AI 已完成，等待律师审核 |
-| 修改中 | 律师提出反馈，AI 或律师继续修改 |
-| 已完成 | 律师确认完成 |
-| 已取消 | 任务取消 |
-| 已延期 | 超过预设期限 |
+---
 
-## 五、AI 可读取内容
+## 2. Responsibilities
 
-AI 可以读取：
+Task 负责：
 
-- 案件基本信息
-- 当前阶段
-- 时间轴
-- 证据材料
-- 文书草稿
-- 检索结果
-- 律师备注
-- 历史任务记录
+- Task Identity
+- Task Title
+- Task Description
+- Task Priority
+- Task Status
+- Due Date
+- Related Matter
+- Related Client
+- Related Material
+- Related Evidence
+- Related Document
 
-## 六、AI 可生成内容
+Task 不负责：
 
-AI 可以生成：
+- Workflow
+- Runtime
+- Today Generation
+- State Transition
+- Validation
 
-- 下一步任务建议
-- 任务优先级建议
-- AI 工作计划
-- 任务执行结果
-- 风险提醒
-- 缺失材料清单
-- 今日工作建议
+---
 
-## 七、律师确认规则
+## 3. Identity
 
-以下任务必须经过律师确认：
-
-- 接案评估结论
-- 正式创建案件
-- 正式文书生成
-- 文书提交
-- 证据采用
-- 法律意见输出
-- 结案归档
-- 复盘结论
-
-AI 可以建议任务，但不能自动将关键任务设为完成。
-
-## 八、Task 与 Matter 的关系
-
-一个 Matter 可以包含多个 Task。
-
-每个 Task 必须关联一个 Matter。
-
-Task 可以关联：
-
-- Evidence：证据
-- Document：文书
-- Timeline：时间轴
-- AI_Work_Record：AI 工作记录
-
-## 九、V1 最小可用字段
-
-第一版开发至少需要：
+Identity：
 
 - task_id
-- matter_id
-- task_title
-- task_type
-- task_status
-- owner
-- created_by
-- priority
-- due_date
-- ai_plan
-- ai_result
-- lawyer_feedback
-- confirm_required
-- created_at
-- updated_at
 
-## 十、设计原则
+Identity Immutable.
 
-Task 只服务于案件推进。
+---
 
-它的价值不是制造更多待办，而是让律师清楚知道：哪个案件现在该做什么，哪些事情必须今天处理，哪些 AI 成果需要审核确认。
+## 4. Aggregate Relationship
+
+Task belongs to Matter.
+
+Task is not an Aggregate Root.
+
+Matter is the only Aggregate Root.
+
+---
+
+## 5. Ownership
+
+Ownership belongs to Matter.
+
+Cross-Matter Ownership is prohibited.
+
+---
+
+## 6. Relationships
+
+Task 可以引用：
+
+- Matter
+- Client
+- Material
+- Evidence
+- Document
+- Timeline
+- AI Record
+- Knowledge
+
+Reference does not equal Ownership.
+
+---
+
+## 7. Lifecycle
+
+Task Lifecycle：
+
+Created
+
+↓
+
+Planned
+
+↓
+
+In Progress
+
+↓
+
+Completed
+
+↓
+
+Archived
+
+Matter Lifecycle 对 Task Lifecycle 生效。
+
+Workflow 决定状态迁移。
+
+---
+
+## 8. Workflow Relationship
+
+Workflow 可以：
+
+- Create Task
+- Update Task
+- Complete Task
+
+Workflow 不拥有 Task。
+
+Workflow 不定义 Task。
+
+Workflow 不属于 Task。
+
+---
+
+## 9. Database Mapping
+
+保持官方唯一 Mapping：
+
+Task
+
+↓
+
+Database Schema
+
+↓
+
+API Resource
+
+↓
+
+Workflow Runtime
+
+↓
+
+Today Runtime
+
+---
+
+## 10. API Relationship
+
+不得重新定义 Mapping。
+
+引用第 9 节官方 Mapping。
+
+API：
+
+仅作为 Domain Model 的访问接口。
+
+API 不拥有 Task。
+
+API 不定义 Task。
+
+---
+
+## 11. AI Relationship
+
+AI 可以：
+
+- Analyze
+- Suggest
+- Draft
+- Review
+- Summarize
+
+AI 不可以：
+
+- Modify Task
+- Complete Task
+- Change Task Lifecycle
+
+统一执行链：
+
+Lawyer Confirms
+
+↓
+
+API Executes
+
+↓
+
+Database Updates
+
+---
+
+## 12. Constraints
+
+Task 不得：
+
+- 定义 Workflow
+- 定义 API
+- 定义 Database
+- 定义 Runtime
+- 定义 Today
+- 修改业务状态
+
+Today Runtime 可以展示 Task。
+
+Today Runtime 不拥有 Task。
+
+Today Runtime 不修改 Task。
+
+---
+
+## 13. Freeze Rules
+
+保持与 Document 完全一致。
+
+仅替换：
+
+Document
+
+↓
+
+Task
+
+---
+
+## 14. V2 Reserved
+
+未来可考虑：
+
+- Task Dependency
+- Task Template
+- Task Checklist
+- Recurring Task
+- Collaborative Task
+- Task Automation
+
+---
+
+## 15. Freeze Conclusion
+
+保持与 Document 完全一致。
+
+仅替换：
+
+Document
+
+↓
+
+Task

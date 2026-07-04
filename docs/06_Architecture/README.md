@@ -1,8 +1,14 @@
 # Architecture 文档
 
-本目录负责展示 LawDesk 系统架构、对象关系与协同设计。
+本 README 仅用于导航（Navigation）。
 
-## 阅读顺序
+## Governance References
+
+- ../07_Development/00_documentation_style_guide.md
+- ../07_Development/00_documentation_index.md
+- ../07_Development/README.md
+
+## Navigation
 
 1. 00_架构总览.md
 2. 01_系统总体架构.md
@@ -13,19 +19,8 @@
 7. 06_OS对象关系图.md
 8. 07_系统架构设计.md
 
-## 文件说明
+## Notes
 
-- `00_架构总览.md`：系统架构总览。
-- `01_系统总体架构.md`：总体架构说明。
-- `02_运行架构.md`：运行架构设计。
-- `03_数据流.md`：数据流与处理路径。
-- `04_AI协同.md`：AI 协同架构。
-- `05_对象关系图.md`：对象关系图说明。
-- `06_OS对象关系图.md`：OS 对象关系图。
-- `07_系统架构设计.md`：系统设计说明。
-
-## 与其它目录关系
-
-- `03_Data_Model` 提供对象建模基础。
-- `05_AI` 提供智能组件架构。
-- `07_Development` 提供实现参考与开发落地。
+- README does not define specifications.
+- README does not define architecture.
+- README does not define API rules.

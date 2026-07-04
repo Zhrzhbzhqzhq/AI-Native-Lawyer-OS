@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: lawdesk
+          POSTGRES_USER: lawdesk
+          POSTGRES_PASSWORD: lawdesk
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lawdesk -d lawdesk"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://lawdesk:lawdesk@localhost:5432/lawdesk
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:4000
+      API_PORT: 4000
+      AI_RUNTIME_PORT: 4100
+      AI_MODEL_PROVIDER: openai
+      AI_MODEL_NAME: gpt-4o-mini
+      AI_API_KEY: test_key
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile=false
+
+      - name: Prisma Generate
+        run: pnpm --filter @lawdesk/database prisma:generate
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: pnpm test

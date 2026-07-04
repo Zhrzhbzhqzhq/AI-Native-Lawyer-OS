@@ -1,137 +1,270 @@
-# Document（文书）数据模型
+---
+Status: Frozen
+Specification Version: V1.0
+Document Version: 1.0.0
+Module: Document
+Owner: LawDesk Architecture
+Last Updated: 2026-07-01
+Architecture: LawDesk V1
+Change Policy:
+- Only documentation typo fixes are allowed.
+- Any business rule, Workflow, API, Domain Model or Schema changes must target V2.
+---
 
-## 一、定义
+# 06_document
 
-Document 是案件中的法律文书对象。
+## 1. Purpose
 
-AI Native Lawyer OS 需要帮助律师生成、修改、管理和归档文书，但所有正式文书必须由律师审核确认后生效。
+Document 定义 LawDesk 的法律文书对象（Legal Document）。
 
-## 二、基本字段
+Document 用于表示：
 
-| 字段 | 含义 | 示例 |
-|---|---|---|
-| document_id | 文书编号 | D-2026-0001 |
-| matter_id | 关联案件编号 | 2026-0001 |
-| document_name | 文书名称 | 民事起诉状 |
-| document_type | 文书类型 | 起诉状 / 答辩状 / 代理词 / 申请书 |
-| document_status | 文书状态 | 草稿 / 待审核 / 修改中 / 已确认 / 已提交 / 已归档 |
-| version | 版本号 | v1.0 |
-| file_path | 文件路径 | /案件资料/文书/民事起诉状.docx |
-| created_by | 创建者 | AI / 律师 |
-| reviewed_by | 审核者 | 律师 |
-| submit_target | 提交对象 | 法院 / 仲裁委 / 客户 / 对方 |
-| submit_date | 提交日期 | 2026-07-05 |
-| related_evidence | 关联证据 | 借条、转账记录、聊天记录 |
-| ai_summary | AI文书摘要 | 本文书主张返还借款10万元及利息 |
-| lawyer_note | 律师备注 | 诉讼请求需再核算利息 |
-
-## 三、文书类型
-
-V1 支持以下类型：
-
-1. 起诉状
-2. 答辩状
-3. 反诉状
-4. 代理词
-5. 证据目录
-6. 举证意见
-7. 庭审提纲
-8. 法律意见书
-9. 调查令申请书
-10. 财产保全申请书
-11. 执行申请书
-12. 和解协议
-13. 结案报告
-14. 复盘报告
-15. 其他文书
-
-## 四、文书状态
-
-| 状态 | 说明 |
-|---|---|
-| 草稿 | 初步生成或手动创建 |
-| 待审核 | AI 已生成，等待律师审核 |
-| 修改中 | 律师正在修改 |
-| 已确认 | 律师确认后的正式版本 |
-| 已提交 | 已提交法院、仲裁委或其他对象 |
-| 已归档 | 已进入案件归档 |
-| 作废 | 不再使用 |
-
-## 五、AI 可读取内容
-
-AI 可以读取：
-
-- 案件基本信息
-- 事实梳理
-- 证据材料
-- 时间轴
-- 法律检索结果
-- 已有文书
-- 律师修改意见
-- 文书模板
-
-## 六、AI 可生成内容
-
-AI 可以生成：
-
-- 文书初稿
-- 修改建议
-- 诉讼请求草案
-- 事实与理由草案
-- 争议焦点
-- 代理意见
-- 证据目录
+- 起诉状
+- 答辩状
+- 代理词
+- 法律意见书
 - 庭审提纲
-- 执行申请
-- 结案报告
-- 复盘报告
+- 执行申请书
+- 合同草案
+- 和解协议
+- 其他法律文书
 
-## 七、律师确认规则
+Document 是 Domain Object。
 
-以下内容必须由律师确认：
+不是 Workflow。
 
-- 文书初稿是否可用
-- 文书修改意见
-- 最终正式版本
-- 是否提交
-- 提交对象
-- 提交日期
-- 是否归档
+不是 Runtime。
 
-AI 生成的文书默认均为草稿，不得直接作为正式文书使用。
+---
 
-## 八、Document 与 Matter 的关系
+## 2. Responsibilities
 
-一个 Matter 可以包含多个 Document。
+Document 负责：
 
-每个 Document 必须关联一个 Matter。
+- Document Identity
+- Document Type
+- Document Title
+- Document Version
+- Draft Content
+- Author
+- Related Matter
+- Related Material
+- Related Evidence
 
-Document 可以关联：
+Document 不负责：
 
-- Evidence：证据
-- Timeline：时间轴
-- Task：案件任务
-- AI_Work_Record：AI 工作记录
-- Knowledge：知识沉淀
+- Workflow
+- Validation
+- Runtime
+- Submission
+- Court Delivery
 
-## 九、V1 最小可用字段
+---
 
-第一版开发至少需要：
+## 3. Identity
+
+Identity：
 
 - document_id
-- matter_id
-- document_name
-- document_type
-- document_status
-- version
-- file_path
-- created_by
-- ai_summary
-- created_at
-- updated_at
 
-## 十、设计原则
+Identity Immutable。
 
-Document 不是简单文件，而是案件推进成果。
+---
 
-AI 可以帮助律师生成文书，但文书是否成立、是否提交、是否成为正式版本，必须由律师决定。
+## 4. Aggregate Relationship
+
+Document belongs to Matter.
+
+Document is not an Aggregate Root.
+
+Matter is the only Aggregate Root.
+
+---
+
+## 5. Ownership
+
+Ownership belongs to Matter.
+
+Cross-Matter Ownership is prohibited.
+
+---
+
+## 6. Relationships
+
+Document 可以引用：
+
+- Matter
+- Client
+- Material
+- Evidence
+- Task
+- Timeline
+- AI Record
+- Knowledge
+
+Reference does not equal Ownership.
+
+---
+
+## 7. Lifecycle
+
+Document Lifecycle：
+
+Created
+
+↓
+
+Drafting
+
+↓
+
+Reviewed
+
+↓
+
+Confirmed
+
+↓
+
+Archived
+
+Matter Lifecycle 对 Document Lifecycle 生效。
+
+Workflow 决定状态迁移。
+
+---
+
+## 8. Workflow Relationship
+
+Workflow 可以：
+
+- Create Document
+- Update Document
+- Review Document
+
+Workflow 不拥有 Document。
+
+Workflow 不定义 Document。
+
+---
+
+## 9. Database Mapping
+
+保持官方唯一 Mapping：
+
+Document
+
+↓
+
+Database Schema
+
+↓
+
+API Resource
+
+↓
+
+Workflow Runtime
+
+↓
+
+Today Runtime
+
+---
+
+## 10. API Relationship
+
+不得重新定义 Mapping。
+
+引用第 9 节官方 Mapping。
+
+API：
+
+仅作为 Domain Model 的访问接口。
+
+API 不拥有 Document。
+
+API 不定义 Document。
+
+---
+
+## 11. AI Relationship
+
+AI 可以：
+
+- Analyze
+- Suggest
+- Draft
+- Review
+- Summarize
+
+AI 不可以：
+
+- Modify Document
+- Confirm Document
+- Submit Document
+- Change Lifecycle
+
+统一执行链：
+
+Lawyer Confirms
+
+↓
+
+API Executes
+
+↓
+
+Database Updates
+
+---
+
+## 12. Constraints
+
+Document 不得：
+
+- 定义 Workflow
+- 定义 API
+- 定义 Database
+- 定义 Runtime
+- 修改业务状态
+
+---
+
+## 13. Freeze Rules
+
+保持与 Evidence 完全一致。
+
+仅替换：
+
+Evidence
+
+↓
+
+Document
+
+---
+
+## 14. V2 Reserved
+
+未来可考虑：
+
+- Document Version History
+- Collaborative Editing
+- Electronic Signature
+- Court Submission Package
+- Document Template Library
+
+---
+
+## 15. Freeze Conclusion
+
+保持与 Evidence 完全一致。
+
+仅替换：
+
+Evidence
+
+↓
+
+Document

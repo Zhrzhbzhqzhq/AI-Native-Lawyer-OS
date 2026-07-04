@@ -28,6 +28,8 @@ Documentation Index 是 LawDesk V1 开发文档体系的统一规范注册表（
 
 Documentation Index 不定义业务规则。
 
+Documentation Index 是 LawDesk V1 唯一规范注册表。
+
 ---
 
 ## 2. Documentation Hierarchy
@@ -43,6 +45,17 @@ Documentation Index
 ↓
 
 README
+
+↓
+Release History
+
+↓
+
+Release Candidate
+
+↓
+
+Governance Freeze
 
 ↓
 
@@ -86,11 +99,39 @@ Implementation
 
 ---
 
+### Release Documents
+
+| Document | Status | Version |
+|----------|--------|---------|
+| 97_release_history.md | Frozen | V1.0 |
+| 98_release_candidate.md | Frozen | V1.0 RC1 |
+| 99_governance_freeze.md | Frozen | V1.0 |
+
+---
+
 ### Domain
 
 | Document | Status | Version |
 |----------|--------|---------|
-| 01_domain_model.md | Draft | V1.0 |
+| 01_matter.md | Draft | V1.0 |
+| 02_client.md | Draft | V1.0 |
+| 03_material.md | Draft | V1.0 |
+| 04_evidence.md | Draft | V1.0 |
+| 05_document.md | Draft | V1.0 |
+| 06_timeline.md | Draft | V1.0 |
+| 07_task.md | Draft | V1.0 |
+| 08_workflow_event.md | Draft | V1.0 |
+| 09_knowledge.md | Draft | V1.0 |
+| 10_ai_record.md | Draft | V1.0 |
+| 11_workspace.md | Draft | V1.0 |
+
+Legacy Archive Note:
+
+`docs/03_Data_Model` is Legacy Archive.
+
+It is not part of LawDesk V1 Official Architecture.
+
+It is excluded from Final RC scope.
 
 ---
 
@@ -113,13 +154,16 @@ Implementation
 
 | Document | Status | Version |
 |----------|--------|---------|
-| 01_schema.md | Frozen | V1.0 |
-| 02_table_relation.md | Frozen | V1.0 |
-| 03_indexes.md | Frozen | V1.0 |
-| 04_migration.md | Frozen | V1.0 |
-| 05_seed_data.md | Frozen | V1.0 |
+| 00_database_index.md | Frozen | V1.0 |
+| 01_database_principles.md | Frozen | V1.0 |
+| 02_domain_model_mapping.md | Frozen | V1.0 |
+| 03_schema.md | Frozen | V1.0 |
+| 04_table_relation.md | Frozen | V1.0 |
+| 05_indexes.md | Frozen | V1.0 |
 | 06_constraints.md | Frozen | V1.0 |
-| 07_naming_convention.md | Frozen | V1.0 |
+| 07_migration.md | Frozen | V1.0 |
+| 08_seed_data.md | Frozen | V1.0 |
+| 09_naming_convention.md | Frozen | V1.0 |
 
 ---
 
@@ -138,7 +182,14 @@ Implementation
 
 | Document | Status | Version |
 |----------|--------|---------|
-| （待建立） | Draft | V1.0 |
+| 01_ai_principles.md | Frozen | V1.0 |
+| 02_ai_runtime.md | Frozen | V1.0 |
+| 03_ai_record.md | Frozen | V1.0 |
+| 04_ai_boundary.md | Frozen | V1.0 |
+| 05_prompt_architecture.md | Frozen | V1.0 |
+| 06_context_assembly.md | Frozen | V1.0 |
+| 07_tool_call.md | Frozen | V1.0 |
+| 08_model_management.md | Frozen | V1.0 |
 
 ---
 
@@ -146,7 +197,30 @@ Implementation
 
 | Document | Status | Version |
 |----------|--------|---------|
-| （待建立） | Draft | V1.0 |
+| 01_ui_principles.md | Frozen | V1.0 |
+| 02_layout.md | Frozen | V1.0 |
+| 03_components.md | Frozen | V1.0 |
+| 04_matter_ui.md | Frozen | V1.0 |
+| 05_today_ui.md | Frozen | V1.0 |
+| 06_ai_ui.md | Frozen | V1.0 |
+| 07_navigation.md | Frozen | V1.0 |
+| 08_design_system.md | Frozen | V1.0 |
+
+---
+
+### Application
+
+| Document | Status | Version |
+|----------|--------|---------|
+| 01_application_principles.md | Frozen | V1.0 |
+| 02_today_application.md | Frozen | V1.0 |
+| 03_matter_application.md | Frozen | V1.0 |
+| 04_ai_workspace.md | Frozen | V1.0 |
+| 05_notification_center.md | Frozen | V1.0 |
+| 06_search.md | Frozen | V1.0 |
+| 07_settings.md | Frozen | V1.0 |
+| 08_permissions.md | Frozen | V1.0 |
+| 09_application_flow.md | Frozen | V1.0 |
 
 ---
 
@@ -192,6 +266,17 @@ Documentation Index
 ↓
 
 README
+
+↓
+Release History
+
+↓
+
+Release Candidate
+
+↓
+
+Governance Freeze
 
 ↓
 

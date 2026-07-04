@@ -24,11 +24,25 @@ Change Policy:
 - Predictable
 - Documentation First
 
-API 是业务对象的访问接口。
+API Executes.
 
-不是数据库接口。
+API does not define business rules.
 
-不是 AI 接口。
+API does not define Workflow.
+
+API does not define Domain Model.
+
+API does not define Database Schema.
+
+API does not change Workflow by itself.
+
+Workflow defines state transition.
+
+Validation defines whether execution is allowed.
+
+API only executes approved operations.
+
+Database is Source of Truth.
 
 ---
 
@@ -54,19 +68,21 @@ LawDesk API 应满足：
 
 例如：
 
-- Matter
-- Client
-- Material
-- Evidence
-- Document
-- Timeline
-- Task
-- Research
-- Knowledge
-- Matter_Workspace
-- AI_Work_Record
+- matters
+- clients
+- materials
+- evidence
+- documents
+- tasks
+- timelines
+- workflow-events
+- ai-records
+- knowledge
+- workspaces
 
 禁止直接暴露数据库。
+
+API Resource is the execution boundary for a Domain Model.
 
 ---
 
@@ -79,11 +95,14 @@ LawDesk API 应满足：
 资源：
 
 /matters
+/clients
 /materials
 /evidence
 /documents
 /tasks
-/research
+/timelines
+/workflow-events
+/ai-records
 /knowledge
 /workspaces
 
@@ -195,17 +214,39 @@ API：
 
 ## 10. Workflow Principles
 
-所有业务操作：
+Domain Model
 
-最终落到 Workflow。
+↓
 
-API：
+API Resource
 
-改变 Workflow。
+↓
 
-Workflow：
+Workflow Validation
 
-驱动业务。
+↓
+
+API Executes
+
+↓
+
+Database Updates
+
+↓
+
+Workflow Event
+
+↓
+
+Runtime Refresh
+
+说明：
+
+- Business Rule belongs to Workflow / Domain Model.
+- Validation belongs to Workflow Validation.
+- Persistence belongs to Database.
+- Runtime view belongs to Runtime.
+- API is execution boundary only.
 
 ---
 
@@ -237,10 +278,36 @@ API 字段：
 
 ---
 
+## Freeze Rules
+
+This specification is frozen for LawDesk V1.
+
+Future evolution belongs to V2.
+
+---
+
 ## 13. Freeze Conclusion
 
 说明：
 
-该文档定义 LawDesk V1 REST API 的总体原则。
+该文档定义 LawDesk V1 API Principles 官方规范。
+
+API Executes.
+
+API does not define business rules.
+
+API does not define Workflow.
+
+API does not define Domain Model.
+
+API does not define Database Schema.
+
+Workflow defines state transition.
+
+Validation defines whether execution is allowed.
 
 Database、Frontend、AI Runtime 必须遵守。
+
+Database is Source of Truth.
+
+本规范自 V1 起正式冻结。

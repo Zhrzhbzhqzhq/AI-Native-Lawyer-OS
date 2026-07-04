@@ -154,6 +154,20 @@ Module 根据文档填写，例如：
 
 不得混用多个名称。
 
+## 5.1 Canonical Terminology
+
+在此处列出本仓库的规范术语：
+
+- **Domain Model** — Business Entity Model. 描述业务对象及其关系，是业务建模层。
+- **Database Schema** — Database Persistence Model. 描述如何在数据库中持久化 Domain Model。
+- **Runtime View** — Runtime-generated projection. 运行时视图，用于展示或查询，不作为业务对象的权威来源。
+- **Source of Truth** — Database. 数据的权威来源为数据库。
+- **Workflow Runtime** — Runtime layer driven by Workflow. 流程驱动的运行时层，用于执行业务流程。
+- **AI Runtime** — Runtime layer for AI execution. AI 执行层，用于 AI 推断/执行，不直接改变业务真相。
+- **Today Runtime** — Runtime layer for daily work generation. 今日工作台的运行时层，由系统生成当日任务视图。
+
+注：请在引用术语时使用上表中的首选英文名称以保证一致性。
+
 ---
 
 # 6. Naming Convention
@@ -352,7 +366,6 @@ Runtime View：
 - Database 始终保存最终业务状态（Source of Truth）。
 
 以下模块默认属于 Runtime View：
-
 - Today
 - Timeline
 - Dashboard
@@ -470,3 +483,20 @@ Documentation Style Guide 仅定义：
 - Documentation Hierarchy
 
 所有业务规范由各模块文档定义。
+
+---
+
+## Documentation Stability Policy
+
+After a module reaches Frozen status:
+
+- Business rules MUST NOT change.
+- Architecture MUST NOT change.
+- Terminology SHOULD remain stable.
+- Documentation improvements are limited to:
+	- typo fixes
+	- wording consistency
+	- navigation improvements
+	- cross-reference corrections
+
+Any semantic change MUST target V2.

@@ -1,322 +1,255 @@
-# 05_证据（Evidence）
-
-> 数据模型：证据（Evidence）
-> 所属模块：案件工作区 / 证据管理
-> 优先级：★★★★★
-> 状态：V1.0
-
+---
+Status: Frozen
+Specification Version: V1.0
+Document Version: 1.0.0
+Module: Evidence
+Owner: LawDesk Architecture
+Last Updated: 2026-07-01
+Architecture: LawDesk V1
+Change Policy:
+- Only documentation typo fixes are allowed.
+- Any business rule, Workflow, API, Domain Model or Schema changes must target V2.
 ---
 
-# 一、对象定位
+# 05_evidence
 
-证据（Evidence）是律师确认后的正式证据对象。
+## 1. Purpose
 
-Evidence 不等于 Material（案件资料）。
+Evidence 定义 LawDesk V1 的案件证据职责。
 
-Material 是原始资料。
+Evidence 是：
 
-Evidence 是律师依据法律规则，从案件资料中确认并形成的正式证据。
-
-只有进入 Evidence 的对象，才能进入：
-
-- 法律检索
-- 法律论证
-- 法律文书
-- 庭审准备
-- 举证质证
-
----
-
-# 二、核心职责
-
-Evidence 负责：
-
-- 保存正式证据
-- 建立证据目录
-- 建立证明目的
-- 建立证据来源
-- 建立证据状态
-- 建立证据之间关系
-- 支持 AI 分析证明力
-- 支持庭审举证
+- Matter 的案件证据对象
+- Domain Entity
+- Matter 的组成部分
 
 Evidence 不负责：
 
-- 保存原始资料
-- 替代 Material
-- 替代法律文书
-- 替代法律检索
-- 替代律师判断
+- Workflow
+- API
+- Database
+- Runtime
 
 ---
 
-# 三、业务模式
+## 2. Responsibilities
 
-Evidence 来源于 Material。
+Evidence 负责：
 
-流程：
+- Evidence Identity
+- Evidence Description
+- Evidence Source Reference
+- Evidence Relevance
+- Evidence Classification
+- Relationship to Matter
+- Relationship to Material
 
-Material
+Evidence 不负责：
 
-↓
-
-AI 推荐候选证据
-
-↓
-
-律师审核
-
-↓
-
-确认进入 Evidence
-
-↓
-
-参与案件办理
-
-Evidence 一旦建立，将成为案件正式证据。
-
-律师可以：
-
-- 修改
-- 删除
-- 合并
-- 拆分
-
-所有正式操作必须律师确认。
+- Workflow Execution
+- Runtime Projection
+- Database Persistence
+- Evidence Legal Determination
 
 ---
 
-# 四、生命周期
+## 3. Identity
 
-Evidence 生命周期：
+Evidence 的 Identity 为：
 
-候选证据
+- evidence_id
 
-↓
+Identity：
 
-待律师确认
+- Immutable
+- Unique
+- Stable
 
-↓
-
-正式证据
-
-↓
-
-举证中
-
-↓
-
-质证中
-
-↓
-
-已采信
-
-↓
-
-未采信
-
-↓
-
-已归档
+Identity 一旦生成不得修改。
 
 ---
 
-# 五、字段设计
+## 4. Aggregate Relationship
 
-## 核心字段
+Evidence belongs to Matter.
 
-| 字段名 | 类型 | 必填 | 默认值 | 说明 |
-|---|---|---|---|---|
-| id | UUID | 是 | 自动生成 | 证据唯一 ID |
-| matter_id | UUID | 是 | 无 | 所属案件 |
-| evidence_no | string | 是 | 自动生成 | 证据编号 |
-| title | string | 是 | 无 | 证据名称 |
-| evidence_category | string | 是 | 其他（other） | 证据类别 |
-| primary_material_id | UUID | 否 | 无 | 主要来源资料 ID |
-| purpose | text | 否 | 无 | 证明目的 |
-| source_description | text | 否 | 无 | 证据来源说明 |
-| status | string | 是 | 候选证据（candidate） | 当前状态 |
-| importance | string | 否 | 中（medium） | 重要程度 |
-| credibility | string | 否 | 未评估（unknown） | 可信度 |
-| ai_summary | text | 否 | 无 | AI 摘要 |
-| ai_analysis | text | 否 | 无 | AI 分析 |
-| ai_risk_tip | text | 否 | 无 | AI 风险提示 |
-| lawyer_note | text | 否 | 无 | 律师备注 |
-| confirmed_by_lawyer | boolean | 是 | false | 是否确认 |
-| confirmed_at | datetime | 否 | 无 | 确认时间 |
-| created_at | datetime | 是 | 当前时间 | 创建时间 |
-| updated_at | datetime | 是 | 当前时间 | 更新时间 |
+Evidence is not an Aggregate Root.
 
 ---
 
-# 六、证据类别设计
+## 5. Ownership
 
-Evidence 类别建议：
+Ownership belongs to Matter.
 
-- 书证（document）
-- 物证（physical）
-- 证人证言（witness）
-- 当事人陈述（statement）
-- 电子数据（electronic）
-- 视听资料（audio_video）
-- 鉴定意见（expert_opinion）
-- 勘验笔录（inspection）
-- 其他（other）
+Cross-Matter Ownership is prohibited.
 
 ---
 
-# 七、状态设计
+## 6. Relationships
 
-Evidence 状态：
+Evidence 可以引用：
 
-- 候选证据（candidate）
-- 待律师确认（waiting_review）
-- 正式证据（confirmed）
-- 举证中（submitted）
-- 质证中（cross_examined）
-- 已采信（accepted）
-- 未采信（rejected）
-- 已归档（archived）
+- Matter
+- Material
+- Client
+- Document
+- Task
+- Timeline
+- AI Record
+- Knowledge
 
----
-
-# 八、关系设计
-
-Evidence 可以关联：
-
-- 一个案件（Matter）
-- 一个或多个案件资料（Material）
-- 一个或多个法律文书（Document）
-- 一个或多个时间轴节点（Timeline）
-- 一个或多个 AI 工作记录（AI_Work_Record）
-
-推荐关系实体：
-
-- MaterialEvidence
-- EvidenceDocument
-- EvidenceTimeline
+Reference does not equal Ownership.
 
 ---
 
-# 九、AI 参与规则
+## 7. Lifecycle
+
+Evidence Lifecycle：
+
+Created
+
+↓
+
+Reviewed
+
+↓
+
+Used
+
+↓
+
+Archived
+
+说明：
+
+Matter Lifecycle 对 Evidence Lifecycle 具有约束作用。
+
+Workflow 决定状态迁移。
+
+---
+
+## 8. Workflow Relationship
+
+Workflow：
+
+引用 Evidence。
+
+Evidence：
+
+不定义 Workflow。
+
+---
+
+## 9. Database Mapping
+
+保持官方 Mapping：
+
+Evidence
+
+↓
+
+Database Schema
+
+↓
+
+API Resource
+
+↓
+
+Workflow Runtime
+
+↓
+
+Today Runtime
+
+---
+
+## 10. API Relationship
+
+不得重新定义 Mapping。
+
+引用第 9 节官方 Mapping。
+
+补充说明：
+
+- API Resource 来源于 Evidence。
+- API 不拥有 Evidence。
+- API 不定义 Evidence。
+- API 仅作为 Domain Model 的访问接口。
+
+---
+
+## 11. AI Relationship
 
 AI 可以：
 
-- 推荐候选证据
-- 自动分类
-- 分析证明目的
-- 分析证明力
-- 分析证据链完整性
-- 提示缺失证据
-- 发现证据冲突
-- 生成证据摘要
+- Analyze
+- Suggest
+- Draft
+- Review
+- Summarize
 
-AI 不可以：
+AI 不拥有 Evidence。
 
-- 自动认定正式证据
-- 自动删除证据
-- 自动修改律师确认内容
-- 自动决定举证顺序
-- 自动向法院提交证据
+AI 不修改 Evidence。
 
-所有正式证据必须律师确认。
+统一修改链：
 
----
+Lawyer Confirms
 
-# 十、今日工作台支持
+↓
 
-今日工作台可显示：
+API Executes
 
-- 待确认候选证据
-- 缺失证据提醒
-- 证据冲突提醒
-- 举证期限提醒
-- 质证准备提醒
-- AI 建议补强证据
+↓
 
-示例：
-
-证据完整度：
-
-78%
-
-候选证据：
-
-4 项
-
-缺失：
-
-借款流水
-
-AI 建议：
-
-补充银行流水。
+Database Updates
 
 ---
 
-# 十一、Workflow关联
+## 12. Constraints
 
-| Workflow | 与证据的关系 |
-|---|---|
-| WF-003_资料整理 | Material 进入候选证据 |
-| WF-004_证据管理 | 建立正式 Evidence |
-| WF-005_法律检索 | 基于 Evidence 检索法律依据 |
-| WF-006_法律论证 | 基于 Evidence 建立法律观点 |
-| WF-007_法律文书 | 引用正式证据 |
-| WF-008_庭审准备 | 制定举证方案 |
-| WF-009_开庭与庭后 | 举证、质证 |
-| WF-011_结案归档 | 归档证据 |
-| WF-012_案件复盘 | 分析证据体系 |
-| WF-013_知识沉淀 | 提炼证据经验 |
+Evidence：
+
+不得：
+
+- 定义 Workflow
+- 定义 API
+- 定义 Database
+- 定义 Runtime
+- 修改业务状态
+- 自行决定证据法律效力
 
 ---
 
-# 十二、索引建议
+## 13. Freeze Rules
 
-建议建立索引：
-
-- matter_id
-- evidence_no
-- title
-- evidence_category
-- status
-- importance
-- confirmed_by_lawyer
-- created_at
-- updated_at
+保持与 Material 完全一致。
 
 ---
 
-# 十三、权限与安全
+## 14. V2 Reserved
 
-证据属于案件核心资产。
+例如：
 
-原则：
-
-- 默认本地存储
-- AI 不得擅自外发证据
-- 所有修改可追溯
-- 删除证据必须律师确认
-- 正式证据不得被 AI 自动覆盖
+- Evidence Chain
+- Evidence Weight
+- Evidence Authenticity Review
+- Evidence Bundle
+- Court Evidence Exchange
 
 ---
 
-# 十四、设计原则
+## 15. Freeze Conclusion
 
-1. Evidence 是正式证据，不是原始资料。
+该文档定义 LawDesk V1 Evidence 官方规范。
 
-2. 所有 Evidence 均来源于 Material。
+Evidence 是 Matter 的 Domain Entity。
 
-3. 是否成为正式证据必须律师确认。
+Evidence 不属于 Aggregate Root。
 
-4. AI 可以推荐证据，但不能确认法律效力。
+本规范自 V1 起正式冻结。
 
-5. Evidence 是法律检索、法律论证和法律文书的核心依据。
+Workflow、Database、API、AI Runtime、Frontend 及所有 V1 实现必须遵守本规范。
 
-6. Evidence 必须保留来源关系。
-
-7. 今日工作台根据 Evidence 状态持续推动律师完成举证工作。
-
-8. Evidence 是案件证据体系的核心对象。
+任何 Evidence 修改必须进入 V2。

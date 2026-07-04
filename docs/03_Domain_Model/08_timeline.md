@@ -1,296 +1,298 @@
-# 07_案件时间轴（Timeline）
-
-> 数据模型：案件时间轴（Timeline）
-> 所属模块：案件工作区 / 案件时间轴
-> 优先级：★★★★★
-> 状态：V1.0
-
+---
+Status: Frozen
+Specification Version: V1.0
+Document Version: 1.0.0
+Module: Timeline
+Owner: LawDesk Architecture
+Last Updated: 2026-07-01
+Architecture: LawDesk V1
+Change Policy:
+- Only documentation typo fixes are allowed.
+- Any business rule, Workflow, API, Domain Model or Schema changes must target V2.
 ---
 
-# 一、对象定位
+# 08_timeline
 
-案件时间轴（Timeline）用于记录案件办理全过程中的关键事件。
+## 1. Purpose
 
-Timeline 不是日志。
+Timeline 定义 LawDesk 的案件时间线对象（Timeline）。
 
-也不是待办事项。
-
-Timeline 是案件的重要事实、程序节点和工作节点的时间序列记录。
+Timeline 用于记录案件生命周期中已经发生的重要事件。
 
 例如：
 
 - 客户咨询
 - 接案
-- 起诉
-- 立案
+- 材料上传
+- 证据整理
+- 法律检索
+- 文书生成
+- 法院立案
 - 开庭
 - 判决
-- 执行申请
-- 回款
+- 执行
 - 结案
+- AI 工作记录
 
-AI 可以依据 Timeline 理解案件进展，并持续推动下一步工作。
+Timeline 是 Domain Object。
+
+Timeline 不是 Workflow。
+
+Timeline 不是 Runtime。
+
+Timeline 不是 Today。
+
+Timeline 不负责驱动业务流程。
 
 ---
 
-# 二、核心职责
+## 2. Responsibilities
 
 Timeline 负责：
 
-- 保存案件关键事件
-- 建立案件关键事件时间顺序
-- 记录事件状态
-- 关联案件
-- 关联证据
-- 关联法律文书
-- 关联案件任务
-- 支持 AI 推进案件
-- 支持案件复盘
+- Timeline Identity
+- Event Time
+- Event Type
+- Event Description
+- Event Source
+- Related Matter
+- Related Task
+- Related Document
+- Related Evidence
+
+Timeline is a business history record.
+
+Timeline records what happened in the Matter.
 
 Timeline 不负责：
 
-- 保存案件资料
-- 替代 Task
-- 替代 Document
-- 替代 Evidence
-- 替代律师判断
+- Workflow
+- Runtime
+- Today Generation
+- State Transition
+- Event Trigger
+
+Timeline does not record Workflow Runtime internals by default.
+
+Timeline does not record AI Runtime internals by default.
+
+Workflow Event records Workflow Runtime events.
+
+AI Record records AI Runtime work.
+
+Timeline does not replace Workflow Event.
+
+Timeline does not replace AI Record.
 
 ---
 
-# 三、业务模式
+## 3. Identity
 
-Timeline 中每一个节点都代表案件中的一个重要事件。
+Identity：
 
-事件可以由：
+- timeline_id
 
-- Workflow 自动生成
-- AI 建议生成
-- 律师手工创建
-
-事件发生后：
-
-AI 自动分析：
-
-- 是否影响案件推进
-- 是否需要新增任务
-- 是否需要更新文书
-- 是否需要补充证据
-- 是否需要法律检索
-
-律师确认后生效。
+Identity Immutable.
 
 ---
 
-# 四、生命周期
+## 4. Aggregate Relationship
 
-Timeline 生命周期：
+Timeline belongs to Matter.
 
-创建
+Timeline is not an Aggregate Root.
+
+Matter is the only Aggregate Root.
+
+---
+
+## 5. Ownership
+
+Ownership belongs to Matter.
+
+Cross-Matter Ownership is prohibited.
+
+---
+
+## 6. Relationships
+
+Timeline 可以引用：
+
+- Matter
+- Task
+- Document
+- Material
+- Evidence
+- AI Record
+- Knowledge
+
+Reference does not equal Ownership.
+
+---
+
+## 7. Lifecycle
+
+Timeline Lifecycle：
+
+Created
 
 ↓
 
-待确认
+Recorded
 
 ↓
 
-已确认
+Archived
+
+Matter Lifecycle 对 Timeline Lifecycle 生效。
+
+Workflow 决定事件记录时机。
+
+Timeline 不负责状态迁移。
+
+---
+
+## 8. Workflow Relationship
+
+Workflow 可以：
+
+- Create Timeline Event
+- Append Timeline Event
+
+Workflow 不拥有 Timeline。
+
+Workflow 不定义 Timeline。
+
+Timeline 不驱动 Workflow。
+
+Timeline 仅记录 Workflow 已发生的事件。
+
+---
+
+## 9. Database Mapping
+
+保持官方唯一 Mapping：
+
+Timeline
 
 ↓
 
-已完成
+Database Schema
 
 ↓
 
-已归档
+API Resource
 
-也可以：
+↓
 
-取消
+Workflow Runtime
 
----
+↓
 
-# 五、字段设计
-
-## 核心字段
-
-| 字段名 | 类型 | 必填 | 默认值 | 说明 |
-|---|---|---|---|---|
-| id | UUID | 是 | 自动生成 | 时间轴事件 ID |
-| matter_id | UUID | 是 | 无 | 所属案件 |
-| timeline_no | string | 是 | 自动生成 | 时间轴编号 |
-| title | string | 是 | 无 | 事件标题 |
-| timeline_category | string | 是 | 其他（other） | 事件类别 |
-| event_time | datetime | 是 | 无 | 事件发生时间 |
-| status | string | 是 | 待确认（pending） | 当前状态 |
-| description | text | 否 | 无 | 事件说明 |
-| related_document_id | UUID | 否 | 无 | 关联法律文书 |
-| related_evidence_id | UUID | 否 | 无 | 关联证据 |
-| related_task_id | UUID | 否 | 无 | 关联任务 |
-| ai_summary | text | 否 | 无 | AI 摘要 |
-| ai_next_action | text | 否 | 无 | AI 下一步建议 |
-| lawyer_note | text | 否 | 无 | 律师备注 |
-| confirmed_by_lawyer | boolean | 是 | false | 是否确认 |
-| confirmed_at | datetime | 否 | 无 | 确认时间 |
-| created_at | datetime | 是 | 当前时间 | 创建时间 |
-| updated_at | datetime | 是 | 当前时间 | 更新时间 |
+Today Runtime
 
 ---
 
-# 六、事件类别设计
+## 10. API Relationship
 
-Timeline 类别建议：
+不得重新定义 Mapping。
 
-- 客户咨询（consultation）
-- 接案（acceptance）
-- 案件启动（matter_start）
-- 起诉（filing）
-- 立案（case_acceptance）
-- 开庭（trial）
-- 判决（judgment）
-- 执行（enforcement）
-- 回款（payment）
-- 结案（closure）
-- 其他（other）
+引用第 9 节官方 Mapping。
+
+API：
+
+仅作为 Domain Model 的访问接口。
+
+API 不拥有 Timeline。
+
+API 不定义 Timeline。
 
 ---
 
-# 七、状态设计
-
-Timeline 状态固定为：
-
-- 待确认（pending）
-- 已确认（confirmed）
-- 已完成（completed）
-- 已归档（archived）
-- 已取消（cancelled）
-
----
-
-# 八、关系设计
-
-Timeline 可以关联：
-
-- 一个案件（Matter）
-- 一个法律文书（Document）
-- 一个正式证据（Evidence）
-- 一个案件任务（Task）
-- 一个 AI 工作记录（AI_Work_Record）
-
-Timeline 是案件全过程的时间索引，也是 Today 工作台和 AI 推进案件的重要依据。
-
----
-
-# 九、AI 参与规则
+## 11. AI Relationship
 
 AI 可以：
 
-- 自动生成时间轴节点
-- 自动识别关键日期
-- 自动发现程序节点
-- 自动生成下一步建议
-- 自动提醒期限
-- 自动发现遗漏事件
-- 自动生成案件进展摘要
+- Analyze
+- Review
+- Summarize
 
 AI 不可以：
 
-- 自动确认事件
-- 自动修改正式事件
-- 自动删除事件
-- 自动改变案件状态
+- Modify Timeline
+- Delete Timeline
+- Change Timeline Lifecycle
+- Fabricate Timeline Event
 
-所有正式事件必须律师确认。
+统一执行链：
 
----
+Lawyer Confirms
 
-# 十、今日工作台支持
+↓
 
-今日工作台可显示：
+API Executes
 
-- 今日发生事件
-- 即将到期事件
-- 超期事件
-- AI 建议推进事件
-- 下一关键节点
+↓
 
-示例：
-
-今日重点：
-
-上午9:30
-
-民间借贷纠纷
-
-开庭
-
-AI建议：
-
-准备证据目录。
+Database Updates
 
 ---
 
-# 十一、Workflow关联
+## 12. Constraints
 
-| Workflow | 与时间轴的关系 |
-|---|---|
-| WF-001_咨询到接案 | 建立咨询事件 |
-| WF-002_案件启动 | 建立案件启动事件 |
-| WF-003_资料整理 | 建立资料整理事件 |
-| WF-004_证据管理 | 建立证据确认事件 |
-| WF-005_法律检索 | 建立检索事件 |
-| WF-006_法律论证 | 建立论证事件 |
-| WF-007_法律文书 | 建立文书事件 |
-| WF-008_庭审准备 | 建立庭审准备事件 |
-| WF-009_开庭与庭后 | 建立庭审事件 |
-| WF-010_案件推进 | 建立推进事件 |
-| WF-011_结案归档 | 建立归档事件 |
-| WF-012_案件复盘 | 建立复盘事件 |
-| WF-013_知识沉淀 | 建立知识沉淀事件 |
+Timeline 不得：
 
----
+- 定义 Workflow
+- 定义 API
+- 定义 Database
+- 定义 Runtime
+- 定义 Today
+- 修改业务状态
+- 驱动 Workflow
 
-# 十二、索引建议
+Today Runtime 可以展示 Timeline。
 
-建议建立索引：
+Today Runtime 不拥有 Timeline。
 
-- matter_id
-- timeline_no
-- timeline_category
-- event_time
-- status
-- confirmed_by_lawyer
-- created_at
-- updated_at
+Today Runtime 不修改 Timeline。
 
 ---
 
-# 十三、权限与安全
+## 13. Freeze Rules
 
-Timeline 属于案件核心业务记录。
+保持与 Task 完全一致。
 
-原则：
+仅替换：
 
-- 所有事件可追溯
-- AI 不得擅自删除事件
-- 删除事件必须律师确认
-- AI 所有自动生成记录必须保留
+Task
+
+↓
+
+Timeline
 
 ---
 
-# 十四、设计原则
+## 14. V2 Reserved
 
-1. Timeline 是案件全过程的时间索引。
+未来可考虑：
 
-2. Timeline 不等于日志，也不等于任务。
+- Timeline Category
+- Timeline Tag
+- Timeline Filter
+- Timeline Replay
+- Timeline Snapshot
+- Cross-Matter Timeline
 
-3. Timeline 只记录关键事件。
+---
 
-4. AI 可以生成事件，但不能确认事件。
+## 15. Freeze Conclusion
 
-5. Timeline 与 Task、Evidence、Document 保持关联。
+保持与 Task 完全一致。
 
-6. Today 根据 Timeline 推动案件进展。
+仅替换：
 
-7. Timeline 是案件复盘的重要基础。
+Task
 
-8. Timeline 为 AI 提供案件进展的连续上下文。
+↓
+
+Timeline

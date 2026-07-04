@@ -1,18 +1,28 @@
 # 05_Database
 
-## Purpose
+本 README 仅用于导航（Navigation）。
 
-本目录负责数据库设计、索引、迁移与种子数据说明。
+## Governance References
 
-## Contents
+- ../00_documentation_style_guide.md
+- ../00_documentation_index.md
+- ../README.md
 
-- `01_schema.md`
-- `02_table_relation.md`
-- `03_indexes.md`
-- `04_migration.md`
-- `05_seed_data.md`
+## Navigation
+
+- 00_database_index.md
+- 01_database_principles.md
+- 02_domain_model_mapping.md
+- 03_schema.md
+- 04_table_relation.md
+- 05_indexes.md
+- 06_constraints.md
+- 07_migration.md
+- 08_seed_data.md
+- 09_naming_convention.md
 
 ## Notes
 
-本目录仅包含与上述开发主题直接相关的 Markdown 文档。
-不应包含产品、流程、UI/UX、AI 系统架构或文档中心导航类文档。
+- README does not define specifications.
+- README does not define architecture.
+- README does not define API rules.

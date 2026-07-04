@@ -1,302 +1,300 @@
-# 11_AI工作记录（AI_Work_Record）
-
-> 数据模型：AI工作记录（AI_Work_Record）
-> 所属模块：案件工作区 / AI 工作记录
-> 优先级：★★★★★
-> 状态：V1.0
-
+---
+Status: Frozen
+Specification Version: V1.0
+Document Version: 1.0.0
+Module: AI Record
+Owner: LawDesk Architecture
+Last Updated: 2026-07-01
+Architecture: LawDesk V1
+Change Policy:
+- Only documentation typo fixes are allowed.
+- Any business rule, Workflow, API, Domain Model or Schema changes must target V2.
 ---
 
-# 一、对象定位
+# 10_ai_record
 
-AI工作记录（AI_Work_Record）用于记录 AI 在案件办理过程中完成的每一次工作。
+## 1. Purpose
 
-AI_Work_Record 不是聊天记录。
+AI Record 定义 LawDesk 的 AI Runtime 工作记录对象（AI Record）。
 
-也不是 Prompt 历史。
-
-AI_Work_Record 表示 AI 对案件完成的一项具体工作及其结果。
+AI Record 用于记录 AI 在案件办理过程中完成的工作。
 
 例如：
 
-- 转录录音
-- OCR 图片
-- 整理案件资料
-- 推荐候选证据
-- 法律检索
-- 法律分析
-- 起草文书
-- 风险提示
-- 生成任务
-- 总结知识
+- AI Analysis
+- AI Suggestion
+- AI Draft
+- AI Review
+- AI Summary
+- AI Classification
+- AI Extraction
 
-AI_Work_Record 是 LawDesk AI 可审计、可追溯的重要基础。
+AI Record 是 Domain Object。
 
----
+AI Record 不是 Workflow。
 
-# 二、核心职责
+AI Record 不是 Runtime。
 
-AI_Work_Record 负责：
+AI Record 不是 Today。
 
-- 保存 AI 工作记录
-- 记录 AI 工作类型
-- 保存 AI 输出结果
-- 记录工作来源
-- 建立案件关联
-- 建立对象关联
-- 支持 AI 工作追溯
-- 支持案件复盘
+AI Record 不负责驱动业务流程。
 
-AI_Work_Record 不负责：
-
-- 保存正式案件数据
-- 替代 Matter
-- 替代 Material
-- 替代 Evidence
-- 替代 Document
-- 替代 Knowledge
+AI Record = AI Runtime Work Record.
 
 ---
 
-# 三、业务模式
+## 2. Responsibilities
 
-AI 在案件中的每一次工作都会生成一条 AI_Work_Record。
+AI Record 负责：
 
-例如：
+- AI Record Identity
+- AI Task Type
+- AI Model
+- AI Prompt
+- AI Result
+- AI Status
+- AI Timestamp
+- Related Matter
+- Related Document
+- Related Material
+- Related Evidence
 
-上传录音
+AI Record 不负责：
 
-↓
+- Workflow
+- Runtime
+- Today Generation
+- Domain Object Modification
+- Workflow Execution
 
-AI 转录
+AI Record does not replace Timeline.
 
-↓
+AI Record does not replace Workflow Event.
 
-AI_Work_Record
+AI Record does not execute Workflow.
 
-↓
+AI Record does not own Domain Object.
 
-生成 Material
-
-↓
-
-律师确认
-
-↓
-
-进入正式业务对象
-
-AI_Work_Record 永远保存过程。
-
-正式对象保存最终结果。
-
----
-
-# 四、生命周期
-
-AI_Work_Record 生命周期：
-
-创建
-
-↓
-
-处理中
-
-↓
-
-已完成
-
-↓
-
-律师确认引用
-
-↓
-
-已归档
-
-也可以：
-
-失败
+AI Record does not modify Domain Object.
 
 ---
 
-# 五、字段设计
+## 3. Identity
 
-## 核心字段
+Identity：
 
-| 字段名 | 类型 | 必填 | 默认值 | 说明 |
-|---|---|---|---|---|
-| id | UUID | 是 | 自动生成 | AI 工作记录 ID |
-| matter_id | UUID | 是 | 无 | 所属案件 |
-| ai_work_no | string | 是 | 自动生成 | AI 工作编号 |
-| title | string | 是 | 无 | 工作标题 |
-| work_category | string | 是 | 其他（other） | 工作类别 |
-| source_object | string | 否 | 无 | 来源对象（Material、Evidence 等） |
-| source_object_id | UUID | 否 | 无 | 来源对象 ID |
-| output_summary | text | 否 | 无 | AI 输出摘要 |
-| output_result | text | 否 | 无 | AI 输出结果 |
-| status | string | 是 | 已完成（completed） | 当前状态 |
-| confirmed_by_lawyer | boolean | 是 | false | 是否被律师确认采用 |
-| confirmed_at | datetime | 否 | 无 | 确认时间 |
-| ai_reason | text | 否 | 无 | AI 工作原因 |
-| lawyer_note | text | 否 | 无 | 律师备注 |
-| created_at | datetime | 是 | 当前时间 | 创建时间 |
-| updated_at | datetime | 是 | 当前时间 | 更新时间 |
+- ai_record_id
+
+Identity Immutable.
 
 ---
 
-# 六、工作类别设计
+## 4. Aggregate Relationship
 
-AI 工作类别建议：
+AI Record belongs to Matter.
 
-- OCR（ocr）
-- 语音转录（transcription）
-- 资料整理（material_processing）
-- 证据分析（evidence_analysis）
-- 法律检索（legal_research）
-- 法律分析（legal_analysis）
-- 文书生成（document_generation）
-- 风险分析（risk_analysis）
-- 任务生成（task_generation）
-- 知识总结（knowledge_generation）
-- 其他（other）
+AI Record is not an Aggregate Root.
+
+Matter is the only Aggregate Root.
 
 ---
 
-# 七、状态设计
+## 5. Ownership
 
-AI_Work_Record 状态固定为：
+Ownership belongs to Matter.
 
-- 处理中（processing）
-- 已完成（completed）
-- 已确认采用（confirmed）
-- 已归档（archived）
-- 失败（failed）
+Cross-Matter Ownership is prohibited.
 
 ---
 
-# 八、关系设计
+## 6. Relationships
 
-AI_Work_Record 可以关联：
+AI Record 可以引用：
 
-- 一个案件（Matter）
-- 一个案件资料（Material）
-- 一个正式证据（Evidence）
-- 一个法律检索（Research）
-- 一个法律文书（Document）
-- 一个案件任务（Task）
-- 一个知识沉淀（Knowledge）
+- Matter
+- Task
+- Timeline
+- Document
+- Material
+- Evidence
+- Workflow Event
+- Knowledge
 
-AI_Work_Record 是所有 AI 工作过程的统一记录对象。
+Reference does not equal Ownership.
 
 ---
 
-# 九、AI 参与规则
+## 7. Lifecycle
+
+AI Record Lifecycle：
+
+Created
+
+↓
+
+Recorded
+
+↓
+
+Archived
+
+Matter Lifecycle 对 AI Record Lifecycle 生效。
+
+AI Runtime 决定 AI Record 产生时机。
+
+AI Record 不负责状态迁移。
+
+---
+
+## 8. Workflow Relationship
+
+Workflow Runtime 可以：
+
+- Create AI Record
+- Read AI Record
+
+Workflow Event 可以：
+
+- Reference AI Record
+
+AI Record may append Timeline.
+
+AI Record 不驱动 Workflow。
+
+AI Record 不拥有 Workflow。
+
+---
+
+## 9. Database Mapping
+
+保持官方唯一 Mapping：
+
+AI Record
+
+↓
+
+Database Schema
+
+↓
+
+API Resource
+
+↓
+
+Workflow Runtime
+
+↓
+
+Today Runtime
+
+---
+
+## 10. API Relationship
+
+不得重新定义 Mapping。
+
+引用第 9 节官方 Mapping。
+
+API：
+
+仅作为 Domain Model 的访问接口。
+
+API 不拥有 AI Record。
+
+API 不定义 AI Record。
+
+---
+
+## 11. AI Relationship
 
 AI 可以：
 
-- 自动生成工作记录
-- 自动记录工作结果
-- 自动记录来源对象
-- 自动记录输出摘要
-- 自动关联业务对象
+- Analyze
+- Suggest
+- Draft
+- Review
+- Summarize
+- Extract
+- Classify
 
 AI 不可以：
 
-- 自动修改律师确认记录
-- 自动删除工作记录
-- 自动覆盖正式业务数据
+- Modify Domain Object
+- Modify Workflow
+- Modify Timeline
+- Modify Matter Lifecycle
+- Modify AI Record Lifecycle
 
-所有正式业务对象仍由律师确认。
+统一执行链：
 
----
+Lawyer Confirms
 
-# 十、今日工作台支持
+↓
 
-Today 工作台可显示：
+API Executes
 
-- AI 最新完成工作
-- AI 待律师确认内容
-- AI 失败任务
-- AI 推荐下一步
-- AI 今日工作摘要
+↓
 
-示例：
-
-AI 今日完成：
-
-- 完成录音转录
-- 完成法律检索
-- 起草民事起诉状
-
-待确认：
-
-2 项。
+Database Updates
 
 ---
 
-# 十一、Workflow关联
+## 12. Constraints
 
-| Workflow | 与 AI 工作记录的关系 |
-|---|---|
-| WF-001_咨询到接案 | 记录咨询分析 |
-| WF-002_案件启动 | 记录案件初始化 |
-| WF-003_资料整理 | 记录资料整理 |
-| WF-004_证据管理 | 记录证据分析 |
-| WF-005_法律检索 | 记录法律检索 |
-| WF-006_法律论证 | 记录法律分析 |
-| WF-007_法律文书 | 记录文书生成 |
-| WF-008_庭审准备 | 记录庭审准备 |
-| WF-009_开庭与庭后 | 记录庭审分析 |
-| WF-010_案件推进 | 记录 AI 推进 |
-| WF-011_结案归档 | 记录归档工作 |
-| WF-012_案件复盘 | 记录复盘分析 |
-| WF-013_知识沉淀 | 记录知识生成 |
+AI Record 不得：
 
----
+- 定义 Workflow
+- 执行 Workflow
+- 修改 Domain Object
+- 替代 Timeline
+- 替代 Workflow Event
+- 定义 API
+- 定义 Database
+- 定义 Runtime
 
-# 十二、索引建议
+Today Runtime 可以展示 AI Record。
 
-建议建立索引：
+Today Runtime 不拥有 AI Record。
 
-- matter_id
-- ai_work_no
-- work_category
-- status
-- confirmed_by_lawyer
-- created_at
-- updated_at
+Today Runtime 不修改 AI Record。
 
 ---
 
-# 十三、权限与安全
+## 13. Freeze Rules
 
-AI_Work_Record 属于系统审计记录。
+保持与 Workflow Event 完全一致。
 
-原则：
+仅替换：
 
-- 所有 AI 工作可追溯
-- AI 不得删除历史记录
-- 律师可查看全部 AI 工作
-- 所有 AI 输出必须保留来源
-- 正式业务对象不得依赖单条 AI 工作记录
+Workflow Event
+
+↓
+
+AI Record
 
 ---
 
-# 十四、设计原则
+## 14. V2 Reserved
 
-1. AI_Work_Record 记录 AI 做了什么，而不是 AI 说了什么。
+未来可考虑：
 
-2. AI_Work_Record 保存过程，正式业务对象保存结果。
+- AI Session
+- AI Conversation
+- AI Evaluation
+- AI Confidence
+- AI Version
+- AI Cost
 
-3. 所有 AI 工作都应可追溯。
+---
 
-4. AI_Work_Record 与 Matter、Material、Evidence、Research、Document、Task、Knowledge 保持关联。
+## 15. Freeze Conclusion
 
-5. AI 可以自动生成记录，但不能修改律师确认结果。
+保持与 Workflow Event 完全一致。
 
-6. AI_Work_Record 是 LawDesk AI 审计能力的重要基础。
+仅替换：
 
-7. Today 可直接读取 AI_Work_Record 展示 AI 今日工作。
+Workflow Event
 
-8. AI_Work_Record 是 AI Native Lawyer OS 的运行日志，而不是聊天记录。
+↓
+
+AI Record

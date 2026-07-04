@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@lawdesk/database": ["../../packages/database/dist/index"],
+      "@lawdesk/database/*": ["../../packages/database/dist/*"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}

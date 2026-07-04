@@ -28,7 +28,7 @@ Domain Model 是 Workflow、Database、API 与 Frontend 的共同语言。
 
 ---
 
-## 2. Core Principles
+## 2. Domain Model Principles
 
 统一原则：
 
@@ -44,7 +44,7 @@ Domain Model 描述业务对象，不描述业务流程。
 
 ---
 
-## 3. Model Responsibilities
+## 3. Domain Object Definition
 
 Domain Model 定义：
 
@@ -55,19 +55,7 @@ Domain Model 定义：
 - Ownership
 - Lifecycle Reference
 
-Domain Model 不定义：
-
-- Workflow
-- Validation
-- API
-- Database Schema
-- Runtime Behavior
-
----
-
-## 4. Core Entities
-
-LawDesk V1 核心业务对象包括：
+LawDesk V1 Domain Object 包括：
 
 - Matter
 - Client
@@ -81,21 +69,139 @@ LawDesk V1 核心业务对象包括：
 - Knowledge
 - Workspace
 
-新增 Entity 属于 V2。
+Domain Model 不定义：
+
+- Workflow
+- Validation
+- API
+- Database Schema
+- Runtime Behavior
 
 ---
 
-## 5. Relationships
+## 4. Aggregate Rules
 
-所有业务对象围绕 Matter 建立关联。
+Matter 是 LawDesk V1 唯一 Aggregate Root。
 
-Matter 是核心聚合根（Aggregate Root）。
+其他 Domain Object：
 
-其他对象通过明确关系与 Matter 关联。
+- Client
+- Material
+- Evidence
+- Document
+- Task
+- Timeline
+- Workflow Event
+- AI Record
+- Knowledge
+- Workspace
+
+均属于 Matter。
+
+Workspace 不是 Aggregate Root。
+
+Workspace 属于 Runtime Workspace。
 
 ---
 
-## 6. Domain Model and Workflow
+## 5. Identity Rules
+
+每个 Domain Object 必须拥有 Immutable Identity。
+
+Identity 一旦生成不得修改。
+
+Identity 示例：
+
+- Matter: matter_id
+- Client: client_id
+- Material: material_id
+- Evidence: evidence_id
+- Document: document_id
+- Task: task_id
+- Timeline: timeline_id
+- Workflow Event: workflow_event_id
+- AI Record: ai_record_id
+- Knowledge: knowledge_id
+- Workspace: workspace_id
+
+---
+
+## 6. Ownership Rules
+
+Every Domain Object must belong to Matter.
+
+Matter is the only Aggregate Root.
+
+Cross-Aggregate Ownership is prohibited.
+
+Ownership is immutable.
+
+---
+
+## 7. Reference Rules
+
+Reference does not equal Ownership.
+
+Domain Objects may reference other objects.
+
+All references must ultimately trace back to Matter.
+
+Reference relationships must not change Aggregate ownership.
+
+---
+
+## 8. Object Boundary
+
+Domain Object：
+
+不得：
+
+- 修改其他 Domain Object
+- 修改 Workflow
+- 修改 Database
+- 修改 Runtime
+
+对象之间只能通过 Reference 建立关联。
+
+Ownership ≠ Reference。
+
+---
+
+## 9. Event Object Boundary
+
+Timeline、Workflow Event、AI Record 均属于 Event-like Domain Objects。
+
+三者边界如下：
+
+### Timeline
+
+- records business history
+- records what happened in the Matter
+- is used for historical display and case review
+- does not trigger Workflow
+- does not execute Workflow
+- does not record AI internal work by default
+
+### Workflow Event
+
+- records Workflow Runtime events
+- records what happened inside Workflow execution
+- may drive Timeline, Today Runtime, AI Runtime
+- does not directly modify Domain Object
+- does not replace Timeline
+
+### AI Record
+
+- records AI Runtime work
+- records AI suggestions, drafts, analysis, reviews
+- is used for auditability and review
+- does not modify Domain Object
+- does not replace Timeline
+- does not replace Workflow Event
+
+---
+
+## 10. Domain Model and Workflow
 
 Workflow 决定对象状态流转。
 
@@ -105,15 +211,168 @@ Domain Model 不决定 Workflow。
 
 ---
 
-## 7. Domain Model and Database
+## 11. State Responsibility
+
+Domain Model 定义：
+
+- Identity
+- Ownership
+- Lifecycle
+
+Workflow 定义：
+
+- State Transition
+
+API：
+
+- Execute Changes
+
+Database：
+
+- Persist State
+
+Today：
+
+- Runtime Projection
+
+补充：
+
+- Domain Model 不负责状态迁移。
+- Workflow 是唯一状态流转来源。
+
+---
+
+## 12. Lifecycle Rules
+
+Matter 定义案件生命周期。
+
+其他 Domain Object 允许拥有自己的生命周期。
+
+但是所有对象生命周期必须受到 Matter Lifecycle 约束。
+
+示例：
+
+Matter Closed
+
+↓
+
+Task 不允许继续执行
+
+↓
+
+Evidence 不允许新增
+
+↓
+
+Document 不允许提交
+
+---
+
+## 13. AI Relationship
+
+AI 与 Domain Object 的关系遵循以下原则：
+
+AI 可以：
+
+- Analyze
+- Suggest
+- Draft
+- Summarize
+- Review
+
+AI 不拥有 Domain Object。
+
+AI 不修改 Domain Object。
+
+所有修改：
+
+Lawyer Confirms
+
+↓
+
+API Executes
+
+↓
+
+Database Updates
+
+---
+
+## 14. Database Mapping
 
 Database 根据 Domain Model 建立 Schema。
 
 Domain Model 不定义数据库实现。
 
+Database Schema 属于 Domain Model 的持久化实现。
+
+映射链路：
+
+Domain Model
+
+↓
+
+Database Schema
+
+↓
+
+API Resource
+
+↓
+
+Workflow Runtime
+
+↓
+
+Today Runtime
+
 ---
 
-## 8. Domain Model Constraints
+## 15. API Mapping
+
+API Resource 来源于 Domain Object。
+
+运行时链路：
+
+Domain Model
+
+↓
+
+API Resource
+
+↓
+
+Workflow Runtime
+
+↓
+
+Today Runtime
+
+---
+
+## 16. Terminology
+
+Entity：可独立识别的业务对象。
+
+Aggregate Root：聚合入口对象，用于承载同一业务边界内的对象治理。
+
+Ownership：对象归属关系。
+
+Reference：对象之间的引用关系。
+
+Identity：对象不可变标识。
+
+Lifecycle：对象从创建到结束的状态演化过程。
+
+Runtime：运行时生成和展示业务视图的执行层。
+
+Runtime Projection：运行时投影视图。
+
+Workspace：案件工作区，用于组织案件工作的运行时空间。
+
+---
+
+## 17. Constraints
 
 Domain Model：
 
@@ -123,10 +382,14 @@ Domain Model：
 - 定义状态转换
 - 定义 API
 - 定义 Runtime
+- 定义 Workflow
+- 定义 Database Schema
+- 定义 Runtime Behavior
+- 修改业务状态
 
 ---
 
-## 9. Freeze Rules
+## 18. Freeze Rules
 
 V1 Domain Model Principles 已冻结。
 
@@ -134,11 +397,17 @@ Core Entity 不得删除。
 
 已发布 Entity 语义不得修改。
 
+Entity registration order must remain stable.
+
+Matter remains the only Aggregate Root.
+
+Published Entity semantics must remain unchanged.
+
 新增 Entity 属于 V2。
 
 ---
 
-## 10. V2 Reserved
+## 19. V2 Reserved
 
 未来可考虑：
 
@@ -150,7 +419,7 @@ Core Entity 不得删除。
 
 ---
 
-## 11. Freeze Conclusion
+## 20. Freeze Conclusion
 
 该文档定义 LawDesk V1 Domain Model 官方规范。
 

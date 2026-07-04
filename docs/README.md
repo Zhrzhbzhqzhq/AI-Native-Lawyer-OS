@@ -1,60 +1,24 @@
 # LawDesk Documentation
 
-AI Native Lawyer Operating System
+本 README 仅用于文档导航（Navigation）。
 
-## Documentation Structure
+## Governance References
 
-02_Workflow
+- docs/07_Development/00_documentation_style_guide.md
+- docs/07_Development/00_documentation_index.md
+- docs/07_Development/README.md
 
-Business Workflow
+## Documentation Navigation
 
-↓
+1. 02_Workflow/
+2. 03_Domain_Model/
+3. 04_UI_UX/
+4. 05_AI/
+5. 06_Architecture/
+6. 07_Development/
 
-03_Domain_Model
+## Notes
 
-Domain Model
-
-↓
-
-04_UI_UX
-
-UI / UX Design
-
-↓
-
-05_AI
-
-AI Runtime
-
-↓
-
-06_Architecture
-
-Architecture Design
-
-↓
-
-07_Development
-
-Development Documentation
-
-## Recommended Reading Order
-
-1. Product Principle
-2. Workflow
-3. Domain Model
-4. UI/UX
-5. AI
-6. Architecture
-7. Development
-
-## Development Structure
-
-07_Development/
-
-├── 01_Domain_Model
-├── 02_Workflow
-├── 03_AI
-├── 04_API
-├── 05_Database
-└── 06_UI
+- README does not define specifications.
+- README does not define architecture.
+- README does not define API rules.

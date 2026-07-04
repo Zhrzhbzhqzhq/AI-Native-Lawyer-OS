@@ -15,31 +15,94 @@ Change Policy:
 
 ## 1. Resource Principles
 
+API Resource must come from Domain Object.
+
+API Resource does not define Domain Object.
+
+API Resource does not define business rules.
+
+API Resource does not define Workflow.
+
+API Resource does not define Database Schema.
+
+API Resource is an execution boundary only.
+
+API 执行链统一引用：
+
+Domain Model
+
+↓
+
+API Resource
+
+↓
+
+Workflow Validation
+
+↓
+
+API Executes
+
+↓
+
+Database Updates
+
+↓
+
+Workflow Event
+
+↓
+
+Runtime Refresh
+
 说明：
 
-- 每个 Domain Model 对应一个 API Resource。
-- API Resource 不等于数据库表。
-- API 不直接暴露数据库实现。
-- API 负责业务约束校验。
-- Workflow 驱动状态变化。
+- Business Rule belongs to Workflow / Domain Model.
+- Validation belongs to Workflow Validation.
+- Persistence belongs to Database.
+- Runtime view belongs to Runtime.
 
 ## 2. Resource List
 
-列出 V1 Resource：
+V1 官方 API Resources：
 
 - matters
 - clients
 - materials
 - evidence
 - documents
-- timelines
 - tasks
-- research
+- timelines
+- workflow-events
+- ai-records
 - knowledge
-- ai-work-records
 - workspaces
 
-## 3. Standard Resource Operations
+说明：
+
+- evidence 保持集合名，不加 s。
+- knowledge 保持集合名，不加 s。
+- workflow_events 数据库表，对应 API resource 为 workflow-events。
+- ai_records 数据库表，对应 API resource 为 ai-records。
+- workspaces 对应 Workspace。
+
+## 3. Official Mapping
+
+Domain Object -> API Resource -> Database Table
+
+- Matter -> matters -> matters
+- Client -> clients -> clients
+- Material -> materials -> materials
+- Evidence -> evidence -> evidence
+- Document -> documents -> documents
+- Task -> tasks -> tasks
+- Timeline -> timelines -> timelines
+- Workflow Event -> workflow-events -> workflow_events
+- AI Record -> ai-records -> ai_records
+- Knowledge -> knowledge -> knowledge
+- Workspace -> workspaces -> workspaces
+
+## 4. Standard Resource Operations
 
 统一基础操作：
 
@@ -57,11 +120,14 @@ DELETE /api/v1/{resource}/{id}
 
 DELETE 默认 Archive。
 
-## 4. Matter Resource
+## 5. Matter Resource Boundary
 
 说明：
 
-Matter 是核心资源。
+- Matter Resource 只代表 Matter。
+- Matter API 不得直接定义子资源业务规则。
+- 子资源应由各自 Resource 文档定义。
+- Matter 可通过 reference 或 query 关联子资源，但不替代子资源 API。
 
 基础接口：
 
@@ -89,7 +155,7 @@ GET /api/v1/matters/{id}/evidence
 
 GET /api/v1/matters/{id}/materials
 
-## 5. Client Resource
+## 6. Client Resource
 
 基础接口：
 
@@ -111,7 +177,7 @@ POST /api/v1/matters/{id}/clients
 
 DELETE /api/v1/matters/{id}/clients/{client_id}
 
-## 6. Material Resource
+## 7. Material Resource
 
 基础接口：
 
@@ -131,7 +197,7 @@ POST /api/v1/materials/{id}/mark-candidate-evidence
 
 POST /api/v1/materials/{id}/confirm
 
-## 7. Evidence Resource
+## 8. Evidence Resource
 
 基础接口：
 
@@ -151,7 +217,7 @@ POST /api/v1/evidence/{id}/confirm
 
 POST /api/v1/evidence/{id}/reject
 
-## 8. Document Resource
+## 9. Document Resource
 
 基础接口：
 
@@ -170,20 +236,6 @@ DELETE /api/v1/documents/{id}
 POST /api/v1/documents/{id}/confirm
 
 POST /api/v1/documents/{id}/archive
-
-## 9. Timeline Resource
-
-基础接口：
-
-GET /api/v1/timelines
-
-GET /api/v1/timelines/{id}
-
-POST /api/v1/timelines
-
-PATCH /api/v1/timelines/{id}
-
-DELETE /api/v1/timelines/{id}
 
 ## 10. Task Resource
 
@@ -205,27 +257,53 @@ POST /api/v1/tasks/{id}/complete
 
 POST /api/v1/tasks/{id}/cancel
 
-## 11. Research Resource
+## 11. Timeline Resource
 
 基础接口：
 
-GET /api/v1/research
+GET /api/v1/timelines
 
-GET /api/v1/research/{id}
+GET /api/v1/timelines/{id}
 
-POST /api/v1/research
+POST /api/v1/timelines
 
-PATCH /api/v1/research/{id}
+PATCH /api/v1/timelines/{id}
 
-DELETE /api/v1/research/{id}
+DELETE /api/v1/timelines/{id}
+
+## 12. Workflow Event Resource
+
+基础接口：
+
+GET /api/v1/workflow-events
+
+GET /api/v1/workflow-events/{id}
+
+POST /api/v1/workflow-events
+
+PATCH /api/v1/workflow-events/{id}
+
+DELETE /api/v1/workflow-events/{id}
+
+## 13. AI Record Resource
+
+基础接口：
+
+GET /api/v1/ai-records
+
+GET /api/v1/ai-records/{id}
+
+POST /api/v1/ai-records
+
+PATCH /api/v1/ai-records/{id}
+
+DELETE /api/v1/ai-records/{id}
 
 特殊接口：
 
-POST /api/v1/research/{id}/confirm
+POST /api/v1/ai-records/{id}/confirm
 
-POST /api/v1/research/{id}/reference
-
-## 12. Knowledge Resource
+## 14. Knowledge Resource
 
 基础接口：
 
@@ -243,27 +321,7 @@ DELETE /api/v1/knowledge/{id}
 
 POST /api/v1/knowledge/{id}/confirm
 
-## 13. AI Work Record Resource
-
-基础接口：
-
-GET /api/v1/ai-work-records
-
-GET /api/v1/ai-work-records/{id}
-
-POST /api/v1/ai-work-records
-
-PATCH /api/v1/ai-work-records/{id}
-
-特殊接口：
-
-POST /api/v1/ai-work-records/{id}/confirm
-
-说明：
-
-AI Work Record 不是聊天记录。
-
-## 14. Workspace Resource
+## 15. Workspace Resource
 
 基础接口：
 
@@ -281,30 +339,38 @@ GET /api/v1/workspaces/{id}/today
 
 GET /api/v1/workspaces/{id}/ai-summary
 
-## 15. Resource Ownership Rules
+## 16. Resource Boundary
 
-说明：
+每个 Resource 仅代表对应 Domain Object。
 
-除 Knowledge 外，业务资源创建时必须提供 matter_id。
+## 17. Error Boundary
 
-Matter_Workspace 必须关联 Matter。
+Error Response 可以引用统一错误格式。
 
-AI Work Record 必须关联 Matter。
+但本文件不定义业务错误规则。
 
-## 16. V2 Reserved
+业务错误规则由 Workflow Validation / Domain Model 决定。
 
-V2 再考虑：
+## 18. Freeze Rules
 
-- Batch Resource API
-- Bulk Update
-- Export API
-- Import API
-- Webhook Resource
-- Public API Resource
-- SDK Resource
+V1 API Resources 已冻结。
 
-## 17. Freeze Conclusion
+新增 Resource 属于 V2。
 
-说明：
+删除 Resource 必须进入 V2。
 
-该 Resource 设计可支撑 V1 REST API、Frontend 和 AI Runtime。
+重命名 Resource 必须进入 V2。
+
+## 19. Freeze Conclusion
+
+该文档定义 LawDesk V1 API Resources 官方规范。
+
+API Resource 来源于 Domain Object。
+
+API Resource 不定义 Domain Object。
+
+API Resource 不定义业务规则。
+
+API Resource 不定义 Workflow。
+
+本规范自 V1 起正式冻结。

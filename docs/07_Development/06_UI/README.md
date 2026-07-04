@@ -1,14 +1,32 @@
 # 06_UI
 
-## Purpose
+本 README 仅用于导航（Navigation）。
 
-本目录负责前端 UI 实现与界面开发说明。
+## Module Overview
 
-## Contents
+UI module defines frozen presentation specifications only.
 
-- (no markdown files)
+UI module never defines business rules.
+
+## Governance References
+
+- ../00_documentation_style_guide.md
+- ../00_documentation_index.md
+- ../README.md
+
+## Navigation
+
+- [01_ui_principles.md](01_ui_principles.md)
+- [02_layout.md](02_layout.md)
+- [03_components.md](03_components.md)
+- [04_matter_ui.md](04_matter_ui.md)
+- [05_today_ui.md](05_today_ui.md)
+- [06_ai_ui.md](06_ai_ui.md)
+- [07_navigation.md](07_navigation.md)
+- [08_design_system.md](08_design_system.md)
 
 ## Notes
 
-本目录仅包含与上述开发主题直接相关的 Markdown 文档。
-不应包含产品、流程、UI/UX、AI 系统架构或文档中心导航类文档。
+- README does not define specifications.
+- README does not define architecture.
+- README does not define API rules.

@@ -1,113 +1,302 @@
-# Knowledge（知识沉淀）数据模型
+---
+Status: Frozen
+Specification Version: V1.0
+Document Version: 1.0.0
+Module: Knowledge
+Owner: LawDesk Architecture
+Last Updated: 2026-07-01
+Architecture: LawDesk V1
+Change Policy:
+- Only documentation typo fixes are allowed.
+- Any business rule, Workflow, API, Domain Model or Schema changes must target V2.
+---
 
-## 一、定义
+# 11_knowledge
 
-Knowledge 是律师在办案过程中沉淀下来的可复用经验、规则、模板和复盘结论。
+## 1. Purpose
 
-AI Native Lawyer OS 不只是帮助律师完成当前案件，还要帮助律师从已办案件中总结经验、提升能力。
+Knowledge 定义 LawDesk 的知识沉淀对象（Knowledge）。
 
-## 二、基本字段
+Knowledge 用于沉淀律师在案件办理过程中形成的可复用知识资产。
 
-| 字段 | 含义 | 示例 |
-|---|---|---|
-| knowledge_id | 知识编号 | K-2026-0001 |
-| source_matter_id | 来源案件编号 | 2026-0001 |
-| knowledge_title | 知识标题 | 民间借贷案件中转账记录的证明力 |
-| knowledge_type | 知识类型 | 裁判规则 / 办案经验 / 文书模板 / 证据规则 / 风险提示 |
-| practice_area | 业务领域 | 民间借贷 / 买卖合同 / 劳动争议 |
-| summary | 知识摘要 | 转账记录需结合借条、聊天记录形成完整证据链 |
-| content | 正文内容 | 详细总结内容 |
-| source_document | 来源文书 | 判决书 / 代理词 / 复盘报告 |
-| ai_generated | 是否 AI 生成 | 是 / 否 |
-| lawyer_confirmed | 是否律师确认 | 是 / 否 |
-| reusable_level | 复用价值 | 高 / 中 / 低 |
-| tags | 标签 | 民间借贷,证据链,转账记录 |
-| lawyer_note | 律师备注 | 后续同类案件可优先检查借款合意 |
+例如：
 
-## 三、知识类型
+- Case Summary
+- Legal Strategy
+- Litigation Experience
+- Evidence Rules
+- Draft Template
+- Court Practice
+- Legal Research Result
+- AI Curated Knowledge
 
-V1 支持以下类型：
+Knowledge 属于 Domain Object。
 
-1. 办案经验
-2. 裁判规则
-3. 证据规则
-4. 文书模板
-5. 检索结论
-6. 风险提示
-7. 庭审经验
-8. 执行经验
-9. 复盘结论
-10. 其他
+Knowledge 不是 Workflow。
 
-## 四、AI 可读取内容
+Knowledge 不是 Runtime。
 
-AI 可以读取：
+Knowledge 不是 Today。
 
-- 已结案件材料
-- 结案报告
-- 复盘报告
-- 裁判文书
-- 检索报告
-- 律师备注
-- 文书修改记录
+Knowledge 不负责驱动业务流程。
 
-## 五、AI 可生成内容
+Knowledge = Reusable Knowledge Asset.
 
-AI 可以生成：
+---
 
-- 案件复盘摘要
-- 可复用裁判规则
-- 可复用办案经验
-- 文书模板优化建议
-- 证据风险经验
-- 庭审策略经验
-- 同类案件提示
+## 2. Responsibilities
 
-## 六、律师确认规则
+Knowledge 负责：
 
-以下内容必须律师确认后才能进入知识库：
+- Knowledge Identity
+- Knowledge Title
+- Knowledge Category
+- Knowledge Content
+- Knowledge Source
+- Knowledge Version
+- Related Matter
+- Related Document
+- Related Evidence
+- Related AI Record
 
-- 裁判规则
-- 办案经验
-- 文书模板
-- 复盘结论
-- 同类案件建议
+Knowledge 不负责：
 
-AI 可以建议沉淀，但不能自动作为正式知识入库。
+- Workflow
+- Runtime
+- Today Generation
+- Workflow Execution
+- Domain Object Modification
 
-## 七、Knowledge 与 Matter 的关系
+---
 
-Knowledge 可以来源于一个 Matter，也可以用于多个 Matter。
+## 3. Identity
 
-一个已结案件可以沉淀多个 Knowledge。
-
-Knowledge 可以关联：
-
-- Matter：来源案件
-- Document：来源文书
-- Evidence：相关证据
-- AI_Work_Record：AI 总结记录
-
-## 八、V1 最小可用字段
-
-第一版开发至少需要：
+Identity：
 
 - knowledge_id
-- source_matter_id
-- knowledge_title
-- knowledge_type
-- practice_area
-- summary
-- content
-- ai_generated
-- lawyer_confirmed
-- reusable_level
-- tags
-- created_at
-- updated_at
 
-## 九、设计原则
+Identity Immutable.
 
-Knowledge 不是资料库堆积，而是律师个人经验的沉淀。
+---
 
-只有经过律师确认、具有复用价值的内容，才应该进入正式知识库。
+## 4. Aggregate Relationship
+
+Knowledge belongs to Matter.
+
+Knowledge is not an Aggregate Root.
+
+Matter is the only Aggregate Root.
+
+---
+
+## 5. Ownership
+
+Ownership belongs to Matter.
+
+Cross-Matter Ownership is prohibited.
+
+---
+
+## 6. Relationships
+
+Knowledge 可以引用：
+
+- Matter
+- Document
+- Material
+- Evidence
+- Task
+- Timeline
+- Workflow Event
+- AI Record
+
+Reference does not equal Ownership.
+
+Knowledge 来源于：
+
+- Matter
+- Document
+- Evidence
+- AI Record
+- Timeline
+
+Knowledge 不替代：
+
+- Timeline
+- Workflow Event
+- AI Record
+
+---
+
+## 7. Lifecycle
+
+Knowledge Lifecycle：
+
+Created
+
+↓
+
+Curated
+
+↓
+
+Published
+
+↓
+
+Archived
+
+Matter Lifecycle 对 Knowledge Lifecycle 生效。
+
+Knowledge 不负责状态迁移。
+
+Knowledge 可被未来 Matter 复用。
+
+---
+
+## 8. Workflow Relationship
+
+Workflow 可以：
+
+- Create Knowledge
+- Read Knowledge
+
+Workflow 不拥有 Knowledge。
+
+Workflow 不定义 Knowledge。
+
+Knowledge 不驱动 Workflow。
+
+---
+
+## 9. Database Mapping
+
+保持官方唯一 Mapping：
+
+Knowledge
+
+↓
+
+Database Schema
+
+↓
+
+API Resource
+
+↓
+
+Workflow Runtime
+
+↓
+
+Today Runtime
+
+---
+
+## 10. API Relationship
+
+不得重新定义 Mapping。
+
+引用第 9 节官方 Mapping。
+
+API：
+
+仅作为 Domain Model 的访问接口。
+
+API 不拥有 Knowledge。
+
+API 不定义 Knowledge。
+
+---
+
+## 11. AI Relationship
+
+AI 可以：
+
+- Analyze
+- Suggest
+- Summarize
+- Curate
+- Classify
+
+AI 不可以：
+
+- Modify Knowledge
+- Publish Knowledge
+- Delete Knowledge
+- Change Knowledge Lifecycle
+
+统一执行链：
+
+Lawyer Confirms
+
+↓
+
+API Executes
+
+↓
+
+Database Updates
+
+---
+
+## 12. Constraints
+
+Knowledge 不得：
+
+- 定义 Workflow
+- 执行 Workflow
+- 修改 Domain Object
+- 替代 Timeline
+- 替代 Workflow Event
+- 替代 AI Record
+- 定义 API
+- 定义 Database
+- 定义 Runtime
+
+Today Runtime 可以展示 Knowledge。
+
+Today Runtime 不拥有 Knowledge。
+
+Today Runtime 不修改 Knowledge。
+
+---
+
+## 13. Freeze Rules
+
+保持与 Task 完全一致。
+
+仅替换：
+
+Task
+
+↓
+
+Knowledge
+
+---
+
+## 14. V2 Reserved
+
+未来可考虑：
+
+- Knowledge Graph
+- Knowledge Tag
+- Knowledge Recommendation
+- Cross-Matter Knowledge
+- Knowledge Version Compare
+- Knowledge Citation
+
+---
+
+## 15. Freeze Conclusion
+
+保持与 Task 完全一致。
+
+仅替换：
+
+Task
+
+↓
+
+Knowledge
