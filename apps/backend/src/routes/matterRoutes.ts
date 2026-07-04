@@ -860,6 +860,42 @@ export async function matterRoutes(app: FastifyInstance) {
     }
   })
 
+  // Document Workspace - read-only dashboard
+  app.get('/matters/:matter_id/documents/workspace', async (request, reply) => {
+    const { matter_id } = request.params as any
+    try {
+      const m = await service.get(matter_id)
+      if (!m) return reply.code(404).send({ error: 'Not found' })
+
+      const total = await prisma.document.count({ where: { matter_id } }).catch(() => 0)
+      const completed = await prisma.document.count({ where: { matter_id, status: 'completed' } }).catch(() => 0)
+      const draft = await prisma.document.count({ where: { matter_id, status: 'draft' } }).catch(() => 0)
+      const need_review = await prisma.document.count({ where: { matter_id, status: 'need_review' } }).catch(() => 0)
+
+      const summary = {
+        total: Number(total),
+        completed: Number(completed),
+        draft: Number(draft),
+        need_review: Number(need_review),
+        missing: 0,
+      }
+
+      const document_list = await prisma.document.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' }, take: 20, select: { document_id: true, title: true, document_type: true, status: true, version: true, updated_at: true } }).catch(() => [])
+
+      return reply.code(200).send({
+        matter: { matter_id: m.matter_id, title: m.title, status: m.status },
+        summary,
+        document_list: Array.isArray(document_list) ? document_list : [],
+        selected_document: null,
+        ai_analysis: { status: 'placeholder', message: 'AI document analysis coming soon' },
+        missing_documents: [],
+        document_next_steps: [],
+      })
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'documents workspace failed', detail: err?.message || String(err) })
+    }
+  })
+
   app.delete('/matters/:id/materials/:material_id', async (request, reply) => {
     const { material_id } = request.params as any;
     try {
