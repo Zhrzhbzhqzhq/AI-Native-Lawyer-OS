@@ -78,6 +78,20 @@ describe('Document Workspace Read-only', () => {
     expect(Array.isArray(body.missing_documents)).toBe(true)
     expect(Array.isArray(body.document_next_steps)).toBe(true)
 
+    // navigation checks
+    expect(body.navigation).toBeTruthy()
+    expect(Array.isArray(body.navigation.by_type)).toBe(true)
+    expect(Array.isArray(body.navigation.by_status)).toBe(true)
+    expect(Array.isArray(body.navigation.by_version)).toBe(true)
+    for (const grp of ['by_type','by_status','by_version']) {
+      for (const item of body.navigation[grp]) {
+        expect(typeof item.key).toBe('string')
+        expect(typeof item.label).toBe('string')
+        expect(typeof item.description).toBe('string')
+        expect(typeof item.count).toBe('number')
+      }
+    }
+
     // counts after - ensure no new objects were created by endpoint
     const prisma2 = createPrismaClient()
     const afterDocuments = await prisma2.document.count({ where: { matter_id: WORK_ID } })

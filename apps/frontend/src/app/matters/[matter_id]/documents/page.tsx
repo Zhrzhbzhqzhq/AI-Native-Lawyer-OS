@@ -10,6 +10,7 @@ type DocumentWorkspace = {
   ai_analysis: { status: string; message: string }
   missing_documents: Array<any>
   document_next_steps: Array<any>
+  navigation?: { by_type: Array<any>, by_status: Array<any>, by_version: Array<any> }
 }
 
 function SummaryCard({ title, value }: { title: string; value: number }) {
@@ -66,6 +67,32 @@ export default function DocumentWorkspacePage() {
         <SummaryCard title="Need Review" value={data.summary.need_review} />
         <SummaryCard title="Missing" value={data.summary.missing} />
       </div>
+
+      {data && (data as any).navigation && (
+        <div style={{ marginTop: 16 }}>
+          <h3>Document Navigation</h3>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
+              <div style={{ fontWeight: 700 }}>By Type</div>
+              {((data as any).navigation.by_type || []).map((it:any) => (
+                <div key={it.key} style={{ padding: 6 }}>{it.label} · {it.count} <div style={{ color: '#666' }}>{it.description}</div></div>
+              ))}
+            </div>
+            <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
+              <div style={{ fontWeight: 700 }}>By Status</div>
+              {((data as any).navigation.by_status || []).map((it:any) => (
+                <div key={it.key} style={{ padding: 6 }}>{it.label} · {it.count} <div style={{ color: '#666' }}>{it.description}</div></div>
+              ))}
+            </div>
+            <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
+              <div style={{ fontWeight: 700 }}>By Version</div>
+              {((data as any).navigation.by_version || []).map((it:any) => (
+                <div key={it.key} style={{ padding: 6 }}>{it.label} · {it.count} <div style={{ color: '#666' }}>{it.description}</div></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 12, marginTop: 16 }}>
         <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>

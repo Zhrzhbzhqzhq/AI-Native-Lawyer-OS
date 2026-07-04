@@ -882,9 +882,36 @@ export async function matterRoutes(app: FastifyInstance) {
 
       const document_list = await prisma.document.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' }, take: 20, select: { document_id: true, title: true, document_type: true, status: true, version: true, updated_at: true } }).catch(() => [])
 
+      // build navigation
+      const types = ['complaint','defense','representation','evidence_catalog','challenge_opinion','hearing_outline','enforcement','preservation','other']
+      const by_type = await Promise.all(types.map(async (t) => {
+        const c = await prisma.document.count({ where: { matter_id, document_type: t } }).catch(() => 0)
+        return { key: t, label: t, count: Number(c), description: '' }
+      }))
+
+      const statuses = ['draft','completed','need_review','archived']
+      const by_status = await Promise.all(statuses.map(async (s) => {
+        const c = await prisma.document.count({ where: { matter_id, status: s } }).catch(() => 0)
+        return { key: s, label: s, count: Number(c), description: '' }
+      }))
+
+      // versions
+      const v1 = await prisma.document.count({ where: { matter_id, version: 'v1' } }).catch(() => 0)
+      const v2 = await prisma.document.count({ where: { matter_id, version: 'v2' } }).catch(() => 0)
+      const outdated = await prisma.document.count({ where: { matter_id, status: 'archived' } }).catch(() => 0)
+      const totalCount = Number(total)
+      const latest = Math.max(0, totalCount - (Number(v1) + Number(v2) + Number(outdated)))
+      const by_version = [
+        { key: 'latest', label: 'latest', count: Number(latest), description: '' },
+        { key: 'v1', label: 'v1', count: Number(v1), description: '' },
+        { key: 'v2', label: 'v2', count: Number(v2), description: '' },
+        { key: 'outdated', label: 'outdated', count: Number(outdated), description: '' },
+      ]
+
       return reply.code(200).send({
         matter: { matter_id: m.matter_id, title: m.title, status: m.status },
         summary,
+        navigation: { by_type, by_status, by_version },
         document_list: Array.isArray(document_list) ? document_list : [],
         selected_document: null,
         ai_analysis: { status: 'placeholder', message: 'AI document analysis coming soon' },
