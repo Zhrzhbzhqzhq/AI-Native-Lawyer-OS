@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { createPrismaClient } from '@lawdesk/database'
 import IntakeRuntime, { type IntakeFileMeta, type IntakeSource } from '../runtime/intakeRuntime'
 import MaterialService from '../services/materialService'
+import EvidenceService from '../services/evidenceService'
 
 function genId(prefix = 'ij-') {
   return `${prefix}${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
@@ -102,6 +103,47 @@ export async function intakeRoutes(app: FastifyInstance) {
 
     const drafts = runtime.generateEvidenceDrafts({ matter_id, materials })
     return reply.code(200).send(drafts)
+  })
+
+  app.post('/intake/confirm-evidence', async (request, reply) => {
+    const prisma = createPrismaClient()
+    const evidenceService = new EvidenceService(prisma)
+
+    try {
+      const payload = (request.body || {}) as {
+        matter_id?: string
+        evidence_drafts?: Array<{ draft_id?: string; material_id: string; title?: string; evidence_type?: string; proof_purpose?: string; source?: string }>
+      }
+
+      const matter_id = payload.matter_id ? String(payload.matter_id) : ''
+      if (!matter_id) return reply.code(400).send({ error: 'matter_id required' })
+
+      const drafts = Array.isArray(payload.evidence_drafts) ? payload.evidence_drafts : []
+      if (drafts.length === 0) return reply.code(400).send({ error: 'evidence_drafts required' })
+
+      const created: any[] = []
+      for (const d of drafts) {
+        const evidence_id = `ev-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+        const createdEv = await evidenceService.createForMatter(matter_id, {
+          evidence_id,
+          material_id: d.material_id,
+          title: d.title || 'untitled',
+          evidence_type: d.evidence_type || '',
+          description: d.proof_purpose || '',
+          relevance: d.proof_purpose || '',
+          status: 'active',
+        })
+        created.push(createdEv)
+      }
+
+      return reply.code(200).send({ status: 'evidence_created', matter_id, created_evidence: created })
+    } finally {
+      try {
+        await prisma.$disconnect()
+      } catch (e) {
+        // ignore
+      }
+    }
   })
 }
 

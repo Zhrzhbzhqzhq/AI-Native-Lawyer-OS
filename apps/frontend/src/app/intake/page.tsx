@@ -352,6 +352,38 @@ export default function IntakePage() {
                     生成证据草稿
                   </button>
                 </div>
+                  <div style={{ marginTop: 8 }}>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!confirmResult || !Array.isArray(confirmResult.created_materials)) return
+                        const mats = confirmResult.created_materials.map((m: any) => ({ material_id: m.material_id, title: m.title, material_type: m.material_type, source: m.source }))
+                        try {
+                          const draftRes = await fetch(`${API}/intake/evidence-draft`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ matter_id: matterId, materials: mats }),
+                          })
+                          if (!draftRes.ok) throw new Error('draft failed')
+                          const draftBody = await draftRes.json()
+
+                          const confirmRes = await fetch(`${API}/intake/confirm-evidence`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ matter_id: matterId, evidence_drafts: draftBody.evidence_drafts }),
+                          })
+                          if (!confirmRes.ok) throw new Error('confirm evidence failed')
+                          const confirmBody = await confirmRes.json()
+                          alert(`Created evidence: ${Array.isArray(confirmBody.created_evidence) ? confirmBody.created_evidence.length : 0}`)
+                        } catch (e) {
+                          alert(String(e))
+                        }
+                      }}
+                      style={{ marginTop: 6, padding: '8px 12px', borderRadius: 8, background: '#10b981', color: '#fff', border: 'none' }}
+                    >
+                      确认生成正式证据
+                    </button>
+                  </div>
               </div>
             )}
           </div>

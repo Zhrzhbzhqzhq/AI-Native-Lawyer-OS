@@ -212,6 +212,79 @@ describe('Unified Intake API', () => {
     expect(afterTimeline[0].count).toBe(beforeTimeline[0].count)
   })
 
+  it('confirm-evidence creates formal evidence from drafts', async () => {
+    const markerMatterId = `mock-intake-${Date.now()}-ev`
+
+    // create matter fixture
+    await prisma.matter.create({ data: { matter_id: markerMatterId, title: 'EV Matter', description: '', matter_type: 'test', status: 'active' } })
+
+    // create material fixture
+    const material = await prisma.material.create({ data: { material_id: `mat-${Date.now()}`, matter_id: markerMatterId, title: 'file.pdf', material_type: 'document', source: 'client', storage_uri: '', status: 'active' } })
+
+    // generate drafts using the API
+    const draftRes = await fetch(`${BASE}/intake/evidence-draft`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ matter_id: markerMatterId, materials: [{ material_id: material.material_id, title: material.title, material_type: material.material_type, source: 'client' }] }),
+    })
+    expect(draftRes.status).toBe(200)
+    const draftBody = await draftRes.json()
+    expect(Array.isArray(draftBody.evidence_drafts)).toBe(true)
+
+    const beforeEvidence = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM evidence WHERE matter_id = ${markerMatterId}
+    `
+    const beforeDocument = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM documents WHERE matter_id = ${markerMatterId}
+    `
+    const beforeKnowledge = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM knowledge WHERE matter_id = ${markerMatterId}
+    `
+    const beforeTimeline = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM timelines WHERE matter_id = ${markerMatterId}
+    `
+
+    // confirm evidence
+    const confirmRes = await fetch(`${BASE}/intake/confirm-evidence`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ matter_id: markerMatterId, evidence_drafts: draftBody.evidence_drafts }),
+    })
+    expect(confirmRes.status).toBe(200)
+    const confirmBody = await confirmRes.json()
+    expect(confirmBody.status).toBe('evidence_created')
+    expect(Array.isArray(confirmBody.created_evidence)).toBe(true)
+    expect(confirmBody.created_evidence.length).toBe(draftBody.evidence_drafts.length)
+    expect(confirmBody.created_evidence[0].matter_id).toBe(markerMatterId)
+    expect(confirmBody.created_evidence[0].material_id).toBe(material.material_id)
+
+    const afterEvidence = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM evidence WHERE matter_id = ${markerMatterId}
+    `
+    const afterDocument = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM documents WHERE matter_id = ${markerMatterId}
+    `
+    const afterKnowledge = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM knowledge WHERE matter_id = ${markerMatterId}
+    `
+    const afterTimeline = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM timelines WHERE matter_id = ${markerMatterId}
+    `
+
+    expect(Number(afterEvidence[0].count - beforeEvidence[0].count)).toBe(draftBody.evidence_drafts.length)
+    expect(afterDocument[0].count).toBe(beforeDocument[0].count)
+    expect(afterKnowledge[0].count).toBe(beforeKnowledge[0].count)
+    expect(afterTimeline[0].count).toBe(beforeTimeline[0].count)
+  })
+
+  it('confirm-evidence validation failures', async () => {
+    const res1 = await fetch(`${BASE}/intake/confirm-evidence`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ evidence_drafts: [] }) })
+    expect(res1.status).toBe(400)
+
+    const res2 = await fetch(`${BASE}/intake/confirm-evidence`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: 'x', evidence_drafts: [] }) })
+    expect(res2.status).toBe(400)
+  })
+
   it('confirm-material returns 400 when matter_id missing', async () => {
     const res = await fetch(`${BASE}/intake/confirm-material`, {
       method: 'POST',
