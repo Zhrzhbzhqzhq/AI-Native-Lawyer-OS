@@ -736,7 +736,64 @@ export async function matterRoutes(app: FastifyInstance) {
         navigation: { by_type, by_status, by_strength },
         selected_evidence,
         ai_analysis: { status: 'placeholder', message: 'AI evidence analysis coming soon' },
-        missing_evidence: [],
+        // compute rule-based missing evidence suggestions (read-only)
+        missing_evidence: (function computeMissing(allEv:any[], totalCount:number) {
+          const suggestions: any[] = []
+          const typesPresent = new Set((allEv || []).map((x:any) => (x.evidence_type || '').toLowerCase()))
+
+          if (!totalCount || totalCount === 0) {
+            suggestions.push({
+              id: 'missing-basic-evidence',
+              title: '缺少基础证据材料',
+              description: '当前未发现任何证据条目，请收集基础证据材料（照片、合同、收据等）。',
+              priority: 'HIGH',
+              reason: 'No evidence exists for this matter.',
+              suggested_action: 'collect_basic_evidence'
+            })
+          }
+
+          // missing transfer/bank/payment
+          const hasTransfer = Array.from(typesPresent).some((t:any) => /transfer|bank|payment/.test(t))
+          if (!hasTransfer) {
+            suggestions.push({
+              id: 'missing-transfer-record',
+              title: '缺少转账记录',
+              description: '当前证据中未发现转账、付款或银行流水类证据。',
+              priority: 'HIGH',
+              reason: 'No evidence_type matches transfer / bank / payment.',
+              suggested_action: 'ask_client_to_provide_transfer_record'
+            })
+          }
+
+          // missing contract/agreement
+          const hasContract = Array.from(typesPresent).some((t:any) => /contract|agreement/.test(t))
+          if (!hasContract) {
+            suggestions.push({
+              id: 'missing-contract-agreement',
+              title: '缺少合同或协议',
+              description: '未发现合同或协议类证据，可能影响权利义务认定。',
+              priority: 'MEDIUM',
+              reason: 'No evidence_type matches contract / agreement.',
+              suggested_action: 'ask_client_to_provide_contract'
+            })
+          }
+
+          // missing chat/message
+          const hasChat = Array.from(typesPresent).some((t:any) => /chat|message|wechat/.test(t))
+          if (!hasChat) {
+            suggestions.push({
+              id: 'missing-chat-record',
+              title: '缺少聊天记录',
+              description: '未发现聊天或消息类证据（如微信、短信、聊天导出）。',
+              priority: 'MEDIUM',
+              reason: 'No evidence_type matches chat / message / wechat.',
+              suggested_action: 'ask_client_to_provide_chat_records'
+            })
+          }
+
+          // limit to max 3 suggestions
+          return suggestions.slice(0, 3)
+        })(allEvidence, Number(total)),
       })
     } catch (err: any) {
       return reply.code(500).send({ error: 'evidence workspace failed', detail: err?.message || String(err) })

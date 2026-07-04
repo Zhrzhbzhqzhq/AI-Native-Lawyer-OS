@@ -217,7 +217,13 @@ export default function EvidenceWorkspacePage() {
               <div style={{ color: '#666' }}>No missing evidence suggestions yet</div>
             ) : (
               data.missing_evidence.map((m:any, idx:number) => (
-                <div key={idx} style={{ padding: 6 }}>{m.description || m.type}</div>
+                <div key={m.id || idx} style={{ padding: 8, borderBottom: '1px solid #f1f5f9' }}>
+                  <div style={{ fontWeight: 700 }}>{m.title}</div>
+                  <div style={{ color: '#666' }}>{m.description}</div>
+                  <div style={{ marginTop: 6 }}><strong>Priority:</strong> {m.priority}</div>
+                  <div style={{ color: '#666' }}><strong>Reason:</strong> {m.reason}</div>
+                  <div style={{ color: '#666' }}><strong>Action:</strong> {m.suggested_action}</div>
+                </div>
               ))
             )}
           </div>

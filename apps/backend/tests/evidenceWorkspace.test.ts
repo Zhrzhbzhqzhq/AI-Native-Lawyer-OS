@@ -103,6 +103,15 @@ describe('Evidence Workspace Read-only', () => {
     expect(Array.isArray(se.ai_summary.recommendations)).toBe(true)
     expect(body.ai_analysis).toBeTruthy()
     expect(Array.isArray(body.missing_evidence)).toBe(true)
+    // missing_evidence items structure
+    for (const me of body.missing_evidence) {
+      expect(typeof me.id).toBe('string')
+      expect(typeof me.title).toBe('string')
+      expect(typeof me.description).toBe('string')
+      expect(typeof me.priority).toBe('string')
+      expect(typeof me.reason).toBe('string')
+      expect(typeof me.suggested_action).toBe('string')
+    }
 
     // navigation checks
     expect(body.navigation).toBeTruthy()
@@ -128,6 +137,20 @@ describe('Evidence Workspace Read-only', () => {
     expect(afterEvidence - beforeEvidence).toBe(0)
     expect(afterDocuments - beforeDocuments).toBe(0)
     expect(afterTimeline - beforeTimeline).toBe(0)
+
+    // additional missing_evidence checks for empty-matter scenario
+    // create a new empty matter
+    const WORK_ID2 = `${TEST_ID}-empty`
+    const post2 = await fetch(`${BASE}/matters`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: WORK_ID2, title: 'Empty Evidence WS' }) })
+    expect(post2.status).toBe(201)
+    const res2 = await fetch(`${BASE}/matters/${WORK_ID2}/evidence/workspace`)
+    expect(res2.status).toBe(200)
+    const body2 = await res2.json()
+    expect(Array.isArray(body2.missing_evidence)).toBe(true)
+    // should include missing-basic-evidence when no evidence
+    expect(body2.missing_evidence.find((x:any) => x.id === 'missing-basic-evidence')).toBeTruthy()
+    // cleanup empty matter
+    await fetch(`${BASE}/matters/${WORK_ID2}`, { method: 'DELETE' })
 
     // cleanup
     await fetch(`${BASE}/matters/${WORK_ID}`, { method: 'DELETE' })
