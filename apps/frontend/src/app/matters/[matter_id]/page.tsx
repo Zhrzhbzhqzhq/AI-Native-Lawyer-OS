@@ -110,6 +110,166 @@ export default function MatterWorkspacePage() {
         </div>
       </div>
 
+      {/* Runtime-first layout: AI Chief is in the summary row above. Now place Today Queue and Today's Focus high on the page. */}
+
+      <div style={{ marginTop: 16 }}>
+        {/* Today's Queue (moved up) */}
+        <h3>Today's Queue</h3>
+        <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
+          {runtime && Array.isArray(runtime.today_queue) ? (
+            (() => {
+              const now = runtime.today_queue.filter((q:any) => q.slot === 'NOW')
+              const today = runtime.today_queue.filter((q:any) => q.slot === 'TODAY')
+              const later = runtime.today_queue.filter((q:any) => q.slot === 'LATER')
+              if (runtime.today_queue.length === 0) return <div style={{ color: '#666' }}>No queue items</div>
+              return (
+                <div>
+                  {now.length > 0 && (
+                    <div style={{ marginBottom: 8 }}>
+                      <div style={{ fontWeight: 700 }}>NOW</div>
+                      {now.map((q:any, idx:number) => (
+                        <div key={q.queue_id || idx} style={{ padding: '6px 0', borderBottom: idx === now.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+                          <div style={{ fontWeight: 600 }}>{q.queue_id}</div>
+                          <div style={{ color: '#666' }}>Action: {q.action_id} · Work: {q.work_id} · Status: {q.status}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {today.length > 0 && (
+                    <div style={{ marginBottom: 8 }}>
+                      <div style={{ fontWeight: 700 }}>TODAY</div>
+                      {today.map((q:any, idx:number) => (
+                        <div key={q.queue_id || idx} style={{ padding: '6px 0', borderBottom: idx === today.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+                          <div style={{ fontWeight: 600 }}>{q.queue_id}</div>
+                          <div style={{ color: '#666' }}>Action: {q.action_id} · Work: {q.work_id} · Status: {q.status}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {later.length > 0 && (
+                    <div>
+                      <div style={{ fontWeight: 700 }}>LATER</div>
+                      {later.map((q:any, idx:number) => (
+                        <div key={q.queue_id || idx} style={{ padding: '6px 0', borderBottom: idx === later.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+                          <div style={{ fontWeight: 600 }}>{q.queue_id}</div>
+                          <div style={{ color: '#666' }}>Action: {q.action_id} · Work: {q.work_id} · Status: {q.status}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })()
+          ) : (
+            <div style={{ color: '#666' }}>No queue items</div>
+          )}
+        </div>
+      </div>
+
+      <div style={{ marginTop: 20 }}>
+        {/* Today's Focus (moved up) */}
+        <h3>Today's Focus</h3>
+        <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
+          {runtime && Array.isArray(runtime.runtime_actions) ? (
+            (() => {
+              const ready = runtime.runtime_actions.filter((a:any) => a.status === 'READY').slice(0,2)
+              if (ready.length === 0) return <div style={{ color: '#666' }}>No ready actions</div>
+              return (
+                <div>
+                      {ready.map((a:any, idx:number) => {
+                        const type = String(a.type || '')
+                        const payloadWorkspace = a?.payload?.target_workspace
+                        let href = `/${params.matter_id}`
+
+                        // Prefer payload.target_workspace when available
+                        if (payloadWorkspace) {
+                          if (payloadWorkspace === 'evidence') href = `/matters/${params.matter_id}/evidence`
+                          else if (payloadWorkspace === 'documents') href = `/matters/${params.matter_id}/documents`
+                          else if (payloadWorkspace === 'runtime') href = `/matters/${params.matter_id}/runtime`
+                        } else {
+                          // Fallback to type-based mapping
+                          if (type === 'PrepareEvidenceAction') href = `/matters/${params.matter_id}/evidence`
+                          else if (type === 'PrepareResearchAction') href = `/matters/${params.matter_id}/runtime`
+                          else if (type === 'PrepareDocumentAction') href = `/matters/${params.matter_id}/documents`
+                          else if (type === 'MonitorMatterAction') href = `/matters/${params.matter_id}/runtime`
+                        }
+
+                        return (
+                          <div key={a.action_id ?? idx} style={{ padding: '8px 0', borderBottom: idx === ready.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                              <div style={{ fontWeight: 600 }}>{a.type}</div>
+                              <div><a href={href} style={{ color: '#2563eb', fontSize: 13 }}>Open</a></div>
+                            </div>
+                            <div style={{ color: '#666' }}>Work: {a.work_id}</div>
+                            <div style={{ color: '#94a3b8', fontSize: 12 }}>Status: {a.status}</div>
+                          </div>
+                        )
+                      })}
+                  <div style={{ marginTop: 8 }}><a href={`/matters/${params.matter_id}/runtime`} style={{ color: '#2563eb' }}>See full runtime</a></div>
+                </div>
+              )
+            })()
+          ) : (
+            <div style={{ color: '#666' }}>No ready actions</div>
+          )}
+        </div>
+      </div>
+
+      <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div>
+          <h3>Active Works</h3>
+          <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
+            {runtime && Array.isArray(runtime.runtime_works) ? (
+              (() => {
+                const active = runtime.runtime_works.filter((w:any) => String(w.status).toUpperCase() === 'PENDING')
+                if (active.length === 0) return <div style={{ color: '#666' }}>No active works</div>
+                return (
+                  <div>
+                    {active.map((w:any, idx:number) => (
+                      <div key={w.work_id ?? idx} style={{ padding: '8px 0', borderBottom: idx === active.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+                        <div style={{ fontWeight: 600 }}>{w.title || w.work_id}</div>
+                        <div style={{ color: '#666' }}>Type: {w.type}</div>
+                        <div style={{ color: '#94a3b8', fontSize: 12 }}>ID: {w.work_id} · Status: {w.status}</div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()
+            ) : (
+              <div style={{ color: '#666' }}>No active works</div>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <h3>Waiting Works</h3>
+          <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
+            {runtime && Array.isArray(runtime.runtime_works) ? (
+              (() => {
+                const waiting = runtime.runtime_works.filter((w:any) => String(w.status).toUpperCase() === 'BLOCKED')
+                if (waiting.length === 0) return <div style={{ color: '#666' }}>No waiting works</div>
+                return (
+                  <div>
+                    {waiting.map((w:any, idx:number) => (
+                      <div key={w.work_id ?? idx} style={{ padding: '8px 0', borderBottom: idx === waiting.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+                        <div style={{ fontWeight: 600 }}>{w.title || w.work_id}</div>
+                        <div style={{ color: '#666' }}>Type: {w.type}</div>
+                        <div style={{ color: '#94a3b8', fontSize: 12 }}>ID: {w.work_id} · Status: {w.status}</div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()
+            ) : (
+              <div style={{ color: '#666' }}>No waiting works</div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Workspace Objects (moved lower) */}
       {Array.isArray((data as any).object_navigation) && (
         <div style={{ marginTop: 16 }}>
           <h3>Workspace Objects</h3>
@@ -125,6 +285,23 @@ export default function MatterWorkspacePage() {
           </div>
         </div>
       )}
+
+      <div style={{ marginTop: 16 }}>
+      <h3>Recent Activity</h3>
+      {recentActivity.length > 0 ? (
+        <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
+          {recentActivity.map((a:any, idx:number) => (
+            <div key={idx} style={{ padding: '8px 0', borderBottom: idx === recentActivity.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+              <div style={{ fontWeight: 600 }}>{a.title}</div>
+              <div style={{ color: '#666' }}>{a.description}</div>
+              <div style={{ color: '#94a3b8', fontSize: 12, marginTop: 6 }}>{new Date(a.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{ color: '#666' }}>No recent activity</div>
+      )}
+    </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 16 }}>
         <RecentList title="Recent Materials" items={data.recent_materials} renderItem={(m:any)=> (
@@ -148,23 +325,6 @@ export default function MatterWorkspacePage() {
           </>
         )} />
       </div>
-
-      <div style={{ marginTop: 16 }}>
-      <h3>Recent Activity</h3>
-      {recentActivity.length > 0 ? (
-        <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
-          {recentActivity.map((a:any, idx:number) => (
-            <div key={idx} style={{ padding: '8px 0', borderBottom: idx === recentActivity.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
-              <div style={{ fontWeight: 600 }}>{a.title}</div>
-              <div style={{ color: '#666' }}>{a.description}</div>
-              <div style={{ color: '#94a3b8', fontSize: 12, marginTop: 6 }}>{new Date(a.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div style={{ color: '#666' }}>No recent activity</div>
-      )}
-    </div>
 
       <div style={{ marginTop: 20 }}>
         <h3>AI Next Step</h3>
