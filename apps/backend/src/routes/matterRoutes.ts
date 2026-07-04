@@ -409,6 +409,30 @@ export async function matterRoutes(app: FastifyInstance) {
         pending_ai_suggestions: 0,
       }
 
+      const object_navigation = [
+        {
+          key: 'materials',
+          label: 'Materials',
+          count: summary.materials,
+          href: `/matters/${matter_id}/materials`,
+          description: '案件资料',
+        },
+        {
+          key: 'evidence',
+          label: 'Evidence',
+          count: summary.evidence,
+          href: `/matters/${matter_id}/evidence`,
+          description: '正式证据',
+        },
+        {
+          key: 'documents',
+          label: 'Documents',
+          count: summary.documents,
+          href: `/matters/${matter_id}/documents`,
+          description: '案件文书',
+        },
+      ]
+
       const recent_materials = Array.isArray(materials) ? materials.slice(0, 5) : []
       const recent_evidence = Array.isArray(evidence) ? evidence.slice(0, 5) : []
       const recent_documents = Array.isArray(documents) ? documents.slice(0, 5) : []
@@ -416,6 +440,7 @@ export async function matterRoutes(app: FastifyInstance) {
       return reply.code(200).send({
         matter: { matter_id: m.matter_id, title: m.title, status: m.status },
         summary,
+        object_navigation,
         recent_materials,
         recent_evidence,
         recent_documents,

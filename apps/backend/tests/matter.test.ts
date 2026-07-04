@@ -97,6 +97,18 @@ describe('Matter Workspace Read-only', () => {
     expect(Array.isArray(body.recent_evidence)).toBe(true)
     expect(Array.isArray(body.recent_documents)).toBe(true)
 
+    // object_navigation exists and contains expected items
+    expect(Array.isArray(body.object_navigation)).toBe(true)
+    const keys = body.object_navigation.map((o: any) => o.key).sort()
+    expect(keys).toEqual(['documents','evidence','materials'])
+    for (const o of body.object_navigation) {
+      expect(typeof o.key).toBe('string')
+      expect(typeof o.label).toBe('string')
+      expect(typeof o.description).toBe('string')
+      expect(typeof o.href).toBe('string')
+      expect(typeof o.count).toBe('number')
+    }
+
     // counts after - ensure no new objects were created by the workspace endpoint
     const prisma2 = createPrismaClient()
     const afterMaterials = await prisma2.material.count({ where: { matter_id: WORK_ID } })

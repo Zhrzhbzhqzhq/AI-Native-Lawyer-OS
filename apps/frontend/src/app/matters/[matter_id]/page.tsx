@@ -78,6 +78,22 @@ export default function MatterWorkspacePage() {
         <SummaryCard title="AI Suggestions" value={data.summary.pending_ai_suggestions} />
       </div>
 
+      {Array.isArray((data as any).object_navigation) && (
+        <div style={{ marginTop: 16 }}>
+          <h3>Workspace Objects</h3>
+          <div style={{ display: 'flex', gap: 12 }}>
+            {(data as any).object_navigation.map((obj: any) => (
+              <div key={obj.key} style={{ padding: 12, borderRadius: 8, background: '#fff', border: '1px solid #e6edf0', minWidth: 180 }}>
+                <div style={{ fontSize: 13, color: '#333', fontWeight: 600 }}>{obj.label}</div>
+                <div style={{ color: '#666', marginTop: 6 }}>{obj.description}</div>
+                <div style={{ marginTop: 8, fontSize: 18, fontWeight: 700 }}>{obj.count}</div>
+                <div style={{ marginTop: 8 }}><a href={obj.href}>{obj.href}</a></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 16 }}>
         <RecentList title="Recent Materials" items={data.recent_materials} renderItem={(m:any)=> (
           <>
