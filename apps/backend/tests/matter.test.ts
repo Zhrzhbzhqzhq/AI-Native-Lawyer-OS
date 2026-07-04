@@ -109,6 +109,17 @@ describe('Matter Workspace Read-only', () => {
       expect(typeof o.count).toBe('number')
     }
 
+    // recent_activity exists and items have required fields
+    expect(Array.isArray(body.recent_activity)).toBe(true)
+    for (const a of body.recent_activity) {
+      expect(typeof a.type).toBe('string')
+      expect(typeof a.title).toBe('string')
+      expect(typeof a.description).toBe('string')
+      expect(typeof a.time).toBe('string')
+      // time should be parseable
+      expect(Number.isFinite(Date.parse(a.time))).toBe(true)
+    }
+
     // counts after - ensure no new objects were created by the workspace endpoint
     const prisma2 = createPrismaClient()
     const afterMaterials = await prisma2.material.count({ where: { matter_id: WORK_ID } })

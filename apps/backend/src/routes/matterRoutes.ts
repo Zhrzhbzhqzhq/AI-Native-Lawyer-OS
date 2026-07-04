@@ -437,6 +437,41 @@ export async function matterRoutes(app: FastifyInstance) {
       const recent_evidence = Array.isArray(evidence) ? evidence.slice(0, 5) : []
       const recent_documents = Array.isArray(documents) ? documents.slice(0, 5) : []
 
+      // Build recent_activity from materials, evidence, documents (read-only)
+      const mapMaterialActivity = (m: any) => ({
+        type: 'material_uploaded',
+        title: 'Uploaded material',
+        description: m.title || m.storage_uri || m.material_type || '',
+        time: m.created_at ? (m.created_at instanceof Date ? m.created_at.toISOString() : String(m.created_at)) : null,
+      })
+
+      const mapEvidenceActivity = (e: any) => ({
+        type: 'evidence_created',
+        title: 'Evidence confirmed',
+        description: e.title || e.description || e.evidence_type || '',
+        time: e.created_at ? (e.created_at instanceof Date ? e.created_at.toISOString() : String(e.created_at)) : null,
+      })
+
+      const mapDocumentActivity = (d: any) => ({
+        type: 'document_updated',
+        title: d.title || 'Document updated',
+        description: d.version ? `v${d.version}` : (d.document_type || ''),
+        time: d.created_at ? (d.created_at instanceof Date ? d.created_at.toISOString() : String(d.created_at)) : null,
+      })
+
+      const recent_activity = [
+        ...recent_materials.map(mapMaterialActivity),
+        ...recent_evidence.map(mapEvidenceActivity),
+        ...recent_documents.map(mapDocumentActivity),
+      ]
+
+      // sort by time desc and filter out null times
+      recent_activity.sort((a: any, b: any) => {
+        const ta = a.time ? Date.parse(a.time) : 0
+        const tb = b.time ? Date.parse(b.time) : 0
+        return tb - ta
+      })
+
       return reply.code(200).send({
         matter: { matter_id: m.matter_id, title: m.title, status: m.status },
         summary,
@@ -444,6 +479,7 @@ export async function matterRoutes(app: FastifyInstance) {
         recent_materials,
         recent_evidence,
         recent_documents,
+        recent_activity,
       })
     } catch (err: any) {
       return reply.code(500).send({ error: 'workspace failed', detail: err?.message || String(err) })

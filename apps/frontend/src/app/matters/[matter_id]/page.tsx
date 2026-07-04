@@ -8,6 +8,7 @@ type Workspace = {
   recent_materials: any[]
   recent_evidence: any[]
   recent_documents: any[]
+  recent_activity?: any[]
 }
 
 function SummaryCard({ title, value }: { title: string; value: number }) {
@@ -63,6 +64,7 @@ export default function MatterWorkspacePage() {
   if (!data) return null
 
   const matter = data.matter || { matter_id: params.matter_id, title: '', status: '' }
+  const recentActivity = (data as any).recent_activity ?? []
 
   return (
     <main style={{ padding: 24 }}>
@@ -116,6 +118,23 @@ export default function MatterWorkspacePage() {
           </>
         )} />
       </div>
+
+      <div style={{ marginTop: 16 }}>
+      <h3>Recent Activity</h3>
+      {recentActivity.length > 0 ? (
+        <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
+          {recentActivity.map((a:any, idx:number) => (
+            <div key={idx} style={{ padding: '8px 0', borderBottom: idx === recentActivity.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+              <div style={{ fontWeight: 600 }}>{a.title}</div>
+              <div style={{ color: '#666' }}>{a.description}</div>
+              <div style={{ color: '#94a3b8', fontSize: 12, marginTop: 6 }}>{new Date(a.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{ color: '#666' }}>No recent activity</div>
+      )}
+    </div>
 
       <div style={{ marginTop: 20, padding: 12, color: '#94a3b8' }}>AI Next Step（Coming Soon）</div>
     </main>
