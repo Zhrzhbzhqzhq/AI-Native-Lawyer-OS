@@ -116,6 +116,28 @@ export async function intakeRoutes(app: FastifyInstance) {
     return reply.code(200).send(drafts)
   })
 
+  app.post('/intake/challenge-draft', async (request, reply) => {
+    const payload = (request.body || {}) as {
+      matter_id?: string
+      evidence_drafts?: Array<{ draft_id?: string; material_id?: string; title?: string; evidence_type?: string; proof_purpose?: string; source?: string; suggested_action?: string }>
+    }
+
+    const matter_id = payload.matter_id ? String(payload.matter_id) : ''
+    if (!matter_id) return reply.code(400).send({ error: 'matter_id required' })
+
+    const drafts = Array.isArray(payload.evidence_drafts) ? payload.evidence_drafts : []
+    if (drafts.length === 0) return reply.code(400).send({ error: 'evidence_drafts required' })
+
+    // only accept opponent source drafts
+    for (const d of drafts) {
+      const s = String(d.source || '')
+      if (s !== 'opponent') return reply.code(400).send({ error: 'only opponent drafts accepted' })
+    }
+
+    const result = runtime.generateChallengeDrafts({ matter_id, evidence_drafts: drafts as any })
+    return reply.code(200).send(result)
+  })
+
   app.post('/intake/confirm-evidence', async (request, reply) => {
     const prisma = createPrismaClient()
     const evidenceService = new EvidenceService(prisma)

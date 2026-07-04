@@ -128,6 +128,31 @@ export class IntakeRuntime {
       evidence_drafts: drafts,
     }
   }
+
+  generateChallengeDrafts(input: { matter_id: string; evidence_drafts: Array<{ draft_id: string; material_id: string; title?: string; evidence_type?: string; proof_purpose?: string; source?: string; suggested_action?: string }> }) {
+    const drafts = input.evidence_drafts
+      .filter((d) => String(d.source || '') === 'opponent')
+      .map((d, idx) => ({
+        draft_id: `cd-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}-${idx}`,
+        evidence_draft_id: d.draft_id,
+        title: d.title || 'untitled',
+        challenge_points: {
+          authenticity: '存在真实性可疑点（例如来源、签名、元数据）',
+          legality: '存在合法性疑点（例如非法取得、程序瑕疵）',
+          relevance: '关联性需进一步论证（与主张的事实链路）',
+          probative_force: '证明力受限（证据证明力不足或可被反驳）',
+        },
+        suggested_opinion: `建议对该证据的来源与真实性提出质疑，并准备证据补充或反驳方向（基于 material_id=${d.material_id}）`,
+        confidence: 0.8,
+        requires_lawyer_confirmation: true,
+      }))
+
+    return {
+      status: 'challenge_draft_ready',
+      matter_id: input.matter_id,
+      challenge_opinion_drafts: drafts,
+    }
+  }
 }
 
 export default IntakeRuntime

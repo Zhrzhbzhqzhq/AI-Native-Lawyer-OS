@@ -35,6 +35,7 @@ export default function IntakePage() {
   const [result, setResult] = useState<IntakeResponse | null>(null)
   const [confirmResult, setConfirmResult] = useState<any | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [challengeResult, setChallengeResult] = useState<any | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
@@ -359,6 +360,62 @@ export default function IntakePage() {
                         </div>
                       ))}
                     </div>
+                    {/* Generate challenge drafts button for opponent drafts */}
+                    {drafts.some((dd: any) => dd.source === 'opponent') && (
+                      <div style={{ marginTop: 12 }}>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            setError(null)
+                            setChallengeResult(null)
+                            if (!matterId) {
+                              setError('Please select matter_id before generating challenge drafts')
+                              return
+                            }
+                            const opponentDrafts = drafts.filter((dd: any) => dd.source === 'opponent')
+                            try {
+                              const res = await fetch(`${API}/intake/challenge-draft`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ matter_id: matterId, evidence_drafts: opponentDrafts }),
+                              })
+                              if (!res.ok) {
+                                const t = await res.text().catch(() => '')
+                                throw new Error(t || 'challenge failed')
+                              }
+                              const body = await res.json()
+                              setChallengeResult(body)
+                            } catch (e: any) {
+                              setError(e?.message || 'Challenge draft failed')
+                            }
+                          }}
+                          style={{ marginTop: 6, padding: '8px 12px', borderRadius: 8, background: '#7c3aed', color: '#fff', border: 'none' }}
+                        >
+                          生成质证意见草稿
+                        </button>
+                      </div>
+                    )}
+
+                    {challengeResult && (
+                      <div style={{ marginTop: 12, background: '#f8fafc', padding: 10, borderRadius: 8 }}>
+                        <div><strong>status:</strong> {challengeResult.status}</div>
+                        <div><strong>matter_id:</strong> {challengeResult.matter_id}</div>
+                        <div><strong>drafts:</strong> {Array.isArray(challengeResult.challenge_opinion_drafts) ? challengeResult.challenge_opinion_drafts.length : 0}</div>
+                        <div style={{ marginTop: 8 }}>
+                          {Array.isArray(challengeResult.challenge_opinion_drafts) && challengeResult.challenge_opinion_drafts.map((c: any) => (
+                            <div key={c.draft_id} style={{ padding: 8, borderBottom: '1px solid #eee' }}>
+                              <div><strong>{c.title}</strong></div>
+                              <div>真实性: {c.challenge_points?.authenticity}</div>
+                              <div>合法性: {c.challenge_points?.legality}</div>
+                              <div>关联性: {c.challenge_points?.relevance}</div>
+                              <div>证明力: {c.challenge_points?.probative_force}</div>
+                              <div>建议意见: {c.suggested_opinion}</div>
+                              {c.requires_lawyer_confirmation && <div style={{ color: '#b91c1c' }}>需律师确认</div>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
                 <div style={{ marginTop: 12 }}>

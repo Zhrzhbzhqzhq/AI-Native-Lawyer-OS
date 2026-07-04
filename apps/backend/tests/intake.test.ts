@@ -293,4 +293,75 @@ describe('Unified Intake API', () => {
     })
     expect(res.status).toBe(400)
   })
+
+  it('challenge-draft for opponent evidence returns drafts and does not create formal objects', async () => {
+    const markerMatterId = `mock-intake-${Date.now()}-challenge`
+
+    // create matter fixture
+    await prisma.matter.create({ data: { matter_id: markerMatterId, title: 'Challenge Matter', description: '', matter_type: 'test', status: 'active' } })
+
+    const beforeDocument = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM documents WHERE matter_id = ${markerMatterId}
+    `
+    const beforeKnowledge = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM knowledge WHERE matter_id = ${markerMatterId}
+    `
+    const beforeTimeline = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM timelines WHERE matter_id = ${markerMatterId}
+    `
+
+    // generate opponent evidence drafts via API
+    const materials = [{ material_id: `mat-${Date.now()}`, title: 'op.pdf', material_type: 'document', source: 'opponent' }]
+
+    const draftRes = await fetch(`${BASE}/intake/evidence-draft`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ matter_id: markerMatterId, materials }),
+    })
+    expect(draftRes.status).toBe(200)
+    const draftBody = await draftRes.json()
+    expect(Array.isArray(draftBody.evidence_drafts)).toBe(true)
+
+    // call challenge-draft
+    const challengeRes = await fetch(`${BASE}/intake/challenge-draft`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ matter_id: markerMatterId, evidence_drafts: draftBody.evidence_drafts }),
+    })
+    expect(challengeRes.status).toBe(200)
+    const challengeBody = await challengeRes.json()
+    expect(challengeBody.status).toBe('challenge_draft_ready')
+    expect(Array.isArray(challengeBody.challenge_opinion_drafts)).toBe(true)
+    expect(challengeBody.challenge_opinion_drafts.length).toBeGreaterThan(0)
+    expect(challengeBody.challenge_opinion_drafts[0].requires_lawyer_confirmation).toBe(true)
+
+    const afterDocument = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM documents WHERE matter_id = ${markerMatterId}
+    `
+    const afterKnowledge = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM knowledge WHERE matter_id = ${markerMatterId}
+    `
+    const afterTimeline = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM timelines WHERE matter_id = ${markerMatterId}
+    `
+
+    expect(afterDocument[0].count).toBe(beforeDocument[0].count)
+    expect(afterKnowledge[0].count).toBe(beforeKnowledge[0].count)
+    expect(afterTimeline[0].count).toBe(beforeTimeline[0].count)
+  })
+
+  it('challenge-draft validation failures', async () => {
+    // missing matter_id
+    const r1 = await fetch(`${BASE}/intake/challenge-draft`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ evidence_drafts: [] }) })
+    expect(r1.status).toBe(400)
+
+    // empty drafts
+    const r2 = await fetch(`${BASE}/intake/challenge-draft`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: 'x', evidence_drafts: [] }) })
+    expect(r2.status).toBe(400)
+
+    // non-opponent source should fail
+    const badDraft = [{ draft_id: 'd1', material_id: 'm1', title: 't', evidence_type: 'document', proof_purpose: 'p', source: 'client' }]
+    const r3 = await fetch(`${BASE}/intake/challenge-draft`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: 'x', evidence_drafts: badDraft }) })
+    expect(r3.status).toBe(400)
+  })
 })
