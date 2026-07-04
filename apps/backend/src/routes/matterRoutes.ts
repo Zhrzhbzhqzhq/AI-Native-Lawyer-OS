@@ -595,6 +595,46 @@ export async function matterRoutes(app: FastifyInstance) {
     }
   })
 
+  // Evidence Workspace - read-only dashboard
+  app.get('/matters/:matter_id/evidence/workspace', async (request, reply) => {
+    const { matter_id } = request.params as any
+    try {
+      const m = await service.get(matter_id)
+      if (!m) return reply.code(404).send({ error: 'Not found' })
+
+      // counts
+      const total = await prisma.evidence.count({ where: { matter_id } }).catch(() => 0)
+      const accepted = await prisma.evidence.count({ where: { matter_id, status: 'accepted' } }).catch(() => 0)
+      const pending = await prisma.evidence.count({ where: { matter_id, status: { in: ['pending', 'draft', 'active'] } } }).catch(() => 0)
+      // weak = relevance empty OR description empty
+      const allEvidence = await prisma.evidence.findMany({ where: { matter_id }, select: { evidence_id: true, relevance: true, description: true, updated_at: true, title: true, evidence_type: true, status: true } }).catch(() => [])
+      const weak = Array.isArray(allEvidence) ? allEvidence.filter((e:any) => !e.relevance || !e.description).length : 0
+
+      const summary = {
+        total: Number(total),
+        accepted: Number(accepted),
+        pending: Number(pending),
+        weak: Number(weak),
+        missing: 0,
+      }
+
+      const evidence_list = await prisma.evidence.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' }, take: 20, select: { evidence_id: true, title: true, evidence_type: true, status: true, relevance: true, updated_at: true } }).catch(() => [])
+      // ensure `source` field exists for frontend compatibility
+      const evidence_list_mapped = (Array.isArray(evidence_list) ? evidence_list : []).map((e:any) => ({ ...e, source: (e as any).source ?? 'unknown' }))
+
+      return reply.code(200).send({
+        matter: { matter_id: m.matter_id, title: m.title, status: m.status },
+        summary,
+        evidence_list: evidence_list_mapped,
+        selected_evidence: null,
+        ai_analysis: { status: 'placeholder', message: 'AI evidence analysis coming soon' },
+        missing_evidence: [],
+      })
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'evidence workspace failed', detail: err?.message || String(err) })
+    }
+  })
+
   app.delete('/matters/:id/materials/:material_id', async (request, reply) => {
     const { material_id } = request.params as any;
     try {

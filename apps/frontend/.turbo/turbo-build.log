@@ -14,16 +14,17 @@
 [2K[1G[?25h [37m[1m [22m[39m Finalizing page optimization     [32m[1m✓[22m[39m Finalizing page optimization 
 
 [4mRoute (app)[24m                              [4mSize[24m     [4mFirst Load JS[24m
-┌ ○ /                                    145 B          [37m[1m87.1 kB[22m[39m
+┌ ○ /                                    145 B          [37m[1m87.2 kB[22m[39m
 ├ ○ /_not-found                          874 B          [37m[1m87.9 kB[22m[39m
 ├ ○ /intake                              3.9 kB         [37m[1m90.9 kB[22m[39m
 ├ ○ /matters                             1.56 kB        [37m[1m88.6 kB[22m[39m
-├ ƒ /matters/[matter_id]                 1.71 kB        [37m[1m88.7 kB[22m[39m
-└ ƒ /matters/[matter_id]/runtime         145 B          [37m[1m87.1 kB[22m[39m
+├ ƒ /matters/[matter_id]                 1.74 kB        [37m[1m88.8 kB[22m[39m
+├ ƒ /matters/[matter_id]/evidence        1.37 kB        [37m[1m88.4 kB[22m[39m
+└ ƒ /matters/[matter_id]/runtime         145 B          [37m[1m87.2 kB[22m[39m
 + First Load JS shared by all            [37m[1m87 kB[22m[39m
   ├ chunks/753-9c1050b8c60bc8ed.js       31.5 kB
   ├ chunks/abf17911-66951ae7a2f899bd.js  53.7 kB
-  └ other shared chunks (total)          1.83 kB
+  └ other shared chunks (total)          1.86 kB
 
 
 ○  (Static)   prerendered as static content
