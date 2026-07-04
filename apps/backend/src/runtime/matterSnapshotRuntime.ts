@@ -64,6 +64,30 @@ export class MatterSnapshotRuntime {
       (ai as any).intelligence = null
     }
 
+    // build snapshot_facts (pure facts, no analysis)
+    const snapshot_facts = {
+      matter_id: matter?.matter_id || null,
+      counts: {
+        tasks: tasks.total,
+        documents: documents.total,
+        evidence: evidence.total,
+        research: research.total,
+        timeline: timeline.total,
+      },
+      documents: {
+        draft: documents.draft,
+        final: documents.final,
+        archived: (ctx.graph?.documents || []).filter((d:any) => String(d?.status || '').toLowerCase() === 'archived').length,
+      },
+      evidence: {
+        weak: Array.isArray(evidence.items) ? evidence.items.filter((e:any) => (String(e.relevance || '').trim() === '' || String(e.description || '').trim() === '')).length : 0,
+      },
+      activity: {
+        recent: typeof timeline.total === 'number' ? timeline.total : (Array.isArray(timeline.recent) ? timeline.recent.length : 0),
+      },
+      generated_at: new Date().toISOString(),
+    }
+
     return {
       matter,
       workflow,
@@ -73,6 +97,7 @@ export class MatterSnapshotRuntime {
       research,
       timeline,
       ai,
+      snapshot_facts,
       generated_at: new Date().toISOString(),
     };
   }
