@@ -36,6 +36,7 @@ export default function IntakePage() {
   const [confirmResult, setConfirmResult] = useState<any | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [challengeResult, setChallengeResult] = useState<any | null>(null)
+  const [createdDocuments, setCreatedDocuments] = useState<any[] | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
@@ -414,6 +415,53 @@ export default function IntakePage() {
                             </div>
                           ))}
                         </div>
+                        <div style={{ marginTop: 8 }}>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              setError(null)
+                              setCreatedDocuments(null)
+                              if (!matterId) {
+                                setError('Please select matter_id before confirming documents')
+                                return
+                              }
+                              const drafts = Array.isArray(challengeResult.challenge_opinion_drafts) ? challengeResult.challenge_opinion_drafts : []
+                              try {
+                                const res = await fetch(`${API}/intake/confirm-challenge-document`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ matter_id: matterId, challenge_opinion_drafts: drafts }),
+                                })
+                                if (!res.ok) {
+                                  const t = await res.text().catch(() => '')
+                                  throw new Error(t || 'confirm document failed')
+                                }
+                                const body = await res.json()
+                                setCreatedDocuments(Array.isArray(body.created_documents) ? body.created_documents : [])
+                              } catch (e: any) {
+                                setError(e?.message || 'Confirm document failed')
+                              }
+                            }}
+                            style={{ marginTop: 6, padding: '8px 12px', borderRadius: 8, background: '#0369a1', color: '#fff', border: 'none' }}
+                          >
+                            确认生成质证意见文书
+                          </button>
+                        </div>
+
+                        {createdDocuments && (
+                          <div style={{ marginTop: 8, background: '#fff', padding: 8, borderRadius: 8 }}>
+                            <div><strong>created_documents:</strong> {createdDocuments.length}</div>
+                            {createdDocuments.map((doc: any) => (
+                              <div key={doc.document_id} style={{ padding: 6, borderBottom: '1px solid #eee' }}>
+                                <div><strong>{doc.title}</strong></div>
+                                <div>id: {doc.document_id}</div>
+                                <div>type: {doc.document_type}</div>
+                                <div>version: {doc.version}</div>
+                                <div>status: {doc.status}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
