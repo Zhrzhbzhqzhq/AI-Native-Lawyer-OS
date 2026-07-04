@@ -83,6 +83,20 @@ describe('Evidence Workspace Read-only', () => {
     expect(body.ai_analysis).toBeTruthy()
     expect(Array.isArray(body.missing_evidence)).toBe(true)
 
+    // navigation checks
+    expect(body.navigation).toBeTruthy()
+    expect(Array.isArray(body.navigation.by_type)).toBe(true)
+    expect(Array.isArray(body.navigation.by_status)).toBe(true)
+    expect(Array.isArray(body.navigation.by_strength)).toBe(true)
+    for (const grp of ['by_type','by_status','by_strength']) {
+      for (const item of body.navigation[grp]) {
+        expect(typeof item.key).toBe('string')
+        expect(typeof item.label).toBe('string')
+        expect(typeof item.description).toBe('string')
+        expect(typeof item.count).toBe('number')
+      }
+    }
+
     // counts after - ensure no new objects were created by endpoint
     const prisma2 = createPrismaClient()
     const afterEvidence = await prisma2.evidence.count({ where: { matter_id: WORK_ID } })

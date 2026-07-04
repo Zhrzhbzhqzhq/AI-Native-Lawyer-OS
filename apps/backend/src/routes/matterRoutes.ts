@@ -622,10 +622,37 @@ export async function matterRoutes(app: FastifyInstance) {
       // ensure `source` field exists for frontend compatibility
       const evidence_list_mapped = (Array.isArray(evidence_list) ? evidence_list : []).map((e:any) => ({ ...e, source: (e as any).source ?? 'unknown' }))
 
+      // build navigation (read-only counts)
+      const types = ['electronic','physical','recording','photo','video','contract','transfer','chat','witness','other']
+      const by_type = await Promise.all(types.map(async (t) => {
+        const c = await prisma.evidence.count({ where: { matter_id, evidence_type: t } }).catch(() => 0)
+        return { key: t, label: t, count: Number(c), description: '' }
+      }))
+
+      const statuses = ['active','pending','accepted','weak','rejected']
+      const by_status = await Promise.all(statuses.map(async (s) => {
+        const c = await prisma.evidence.count({ where: { matter_id, status: s } }).catch(() => 0)
+        return { key: s, label: s, count: Number(c), description: '' }
+      }))
+
+      // strength rules
+      const strong = await prisma.evidence.count({ where: { matter_id, status: 'accepted' } }).catch(() => 0)
+      const medium = await prisma.evidence.count({ where: { matter_id, status: { in: ['active','pending','draft'] } } }).catch(() => 0)
+      const weakCount = await prisma.evidence.count({ where: { matter_id, OR: [{ relevance: '' }, { description: '' }] } }).catch(() => 0)
+      const totalCount = Number(total)
+      const unknown = Math.max(0, totalCount - (Number(strong) + Number(medium) + Number(weakCount)))
+      const by_strength = [
+        { key: 'strong', label: 'strong', count: Number(strong), description: '' },
+        { key: 'medium', label: 'medium', count: Number(medium), description: '' },
+        { key: 'weak', label: 'weak', count: Number(weakCount), description: '' },
+        { key: 'unknown', label: 'unknown', count: Number(unknown), description: '' },
+      ]
+
       return reply.code(200).send({
         matter: { matter_id: m.matter_id, title: m.title, status: m.status },
         summary,
         evidence_list: evidence_list_mapped,
+        navigation: { by_type, by_status, by_strength },
         selected_evidence: null,
         ai_analysis: { status: 'placeholder', message: 'AI evidence analysis coming soon' },
         missing_evidence: [],

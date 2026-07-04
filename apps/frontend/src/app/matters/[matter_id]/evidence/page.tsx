@@ -66,6 +66,32 @@ export default function EvidenceWorkspacePage() {
         <SummaryCard title="Missing" value={data.summary.missing} />
       </div>
 
+      {data && (data as any).navigation && (
+        <div style={{ marginTop: 16 }}>
+          <h3>Evidence Navigation</h3>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
+              <div style={{ fontWeight: 700 }}>By Type</div>
+              {((data as any).navigation.by_type || []).map((it:any) => (
+                <div key={it.key} style={{ padding: 6 }}>{it.label} · {it.count} <div style={{ color: '#666' }}>{it.description}</div></div>
+              ))}
+            </div>
+            <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
+              <div style={{ fontWeight: 700 }}>By Status</div>
+              {((data as any).navigation.by_status || []).map((it:any) => (
+                <div key={it.key} style={{ padding: 6 }}>{it.label} · {it.count} <div style={{ color: '#666' }}>{it.description}</div></div>
+              ))}
+            </div>
+            <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
+              <div style={{ fontWeight: 700 }}>By Strength</div>
+              {((data as any).navigation.by_strength || []).map((it:any) => (
+                <div key={it.key} style={{ padding: 6 }}>{it.label} · {it.count} <div style={{ color: '#666' }}>{it.description}</div></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 12, marginTop: 16 }}>
         <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
           <h3 style={{ marginTop: 0 }}>Evidence List</h3>
