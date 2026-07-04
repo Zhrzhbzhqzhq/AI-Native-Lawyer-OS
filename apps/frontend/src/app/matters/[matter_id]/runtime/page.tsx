@@ -203,6 +203,24 @@ export default async function RuntimePage({ params }: Props) {
           )}
         </div>
       </div>
+
+      <div style={{marginTop:20}}>
+        <details>
+          <summary style={{cursor:'pointer', padding:8, fontWeight:600}}>Developer Runtime Kernel</summary>
+          <div style={{padding:12, background:'#fff', border:'1px solid #e2e8f0', borderRadius:8, marginTop:8}}>
+            <pre style={{whiteSpace:'pre-wrap', wordBreak:'break-word'}}>
+{JSON.stringify({
+  runtime_state: snapshot?.runtime_state ?? null,
+  runtime_decision: snapshot?.runtime_decision ?? null,
+  runtime_plan: snapshot?.runtime_plan ?? null,
+  runtime_assignments: snapshot?.runtime_assignments ?? [],
+  runtime_works: snapshot?.runtime_works ?? [],
+  runtime_actions: snapshot?.runtime_actions ?? []
+}, null, 2)}
+            </pre>
+          </div>
+        </details>
+      </div>
     </div>
   )
 }
