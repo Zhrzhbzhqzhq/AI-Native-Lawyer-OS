@@ -6,6 +6,7 @@ import planFromRuntimeDecision from './runtimePlannerEngine'
 import assignFromRuntimePlan from './runtimeChiefEngine'
 import worksFromRuntimePlan from './runtimeLegalEngine'
 import actionsFromRuntimeWorks from './runtimeExecutorEngine'
+import scheduleRuntimeActions from './runtimeScheduler'
 import MatterStateEngine from './matterStateEngine';
 
 export class MatterSnapshotRuntime {
@@ -100,6 +101,7 @@ export class MatterSnapshotRuntime {
     const runtime_assignments = assignFromRuntimePlan(runtime_plan)
     const runtime_works = worksFromRuntimePlan(runtime_plan)
     const runtime_actions = actionsFromRuntimeWorks(runtime_works)
+    const today_queue = scheduleRuntimeActions(runtime_actions)
 
     return {
       matter,
@@ -111,6 +113,7 @@ export class MatterSnapshotRuntime {
       runtime_assignments,
       runtime_works,
       runtime_actions,
+      today_queue,
       documents,
       evidence,
       research,

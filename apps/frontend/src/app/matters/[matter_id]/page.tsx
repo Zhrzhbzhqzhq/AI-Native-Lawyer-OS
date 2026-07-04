@@ -232,6 +232,61 @@ export default function MatterWorkspacePage() {
         </div>
       </div>
 
+      <div style={{ marginTop: 20 }}>
+        <h3>Today's Queue</h3>
+        <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
+          {runtime && Array.isArray(runtime.today_queue) ? (
+            (() => {
+              const now = runtime.today_queue.filter((q:any) => q.slot === 'NOW')
+              const today = runtime.today_queue.filter((q:any) => q.slot === 'TODAY')
+              const later = runtime.today_queue.filter((q:any) => q.slot === 'LATER')
+              if (runtime.today_queue.length === 0) return <div style={{ color: '#666' }}>No queue items</div>
+              return (
+                <div>
+                  {now.length > 0 && (
+                    <div style={{ marginBottom: 8 }}>
+                      <div style={{ fontWeight: 700 }}>NOW</div>
+                      {now.map((q:any, idx:number) => (
+                        <div key={q.queue_id || idx} style={{ padding: '6px 0', borderBottom: idx === now.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+                          <div style={{ fontWeight: 600 }}>{q.queue_id}</div>
+                          <div style={{ color: '#666' }}>Action: {q.action_id} · Work: {q.work_id} · Status: {q.status}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {today.length > 0 && (
+                    <div style={{ marginBottom: 8 }}>
+                      <div style={{ fontWeight: 700 }}>TODAY</div>
+                      {today.map((q:any, idx:number) => (
+                        <div key={q.queue_id || idx} style={{ padding: '6px 0', borderBottom: idx === today.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+                          <div style={{ fontWeight: 600 }}>{q.queue_id}</div>
+                          <div style={{ color: '#666' }}>Action: {q.action_id} · Work: {q.work_id} · Status: {q.status}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {later.length > 0 && (
+                    <div>
+                      <div style={{ fontWeight: 700 }}>LATER</div>
+                      {later.map((q:any, idx:number) => (
+                        <div key={q.queue_id || idx} style={{ padding: '6px 0', borderBottom: idx === later.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+                          <div style={{ fontWeight: 600 }}>{q.queue_id}</div>
+                          <div style={{ color: '#666' }}>Action: {q.action_id} · Work: {q.work_id} · Status: {q.status}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })()
+          ) : (
+            <div style={{ color: '#666' }}>No queue items</div>
+          )}
+        </div>
+      </div>
+
       <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <div>
           <h3>Active Works</h3>

@@ -5,6 +5,7 @@ import planFromRuntimeDecision from '../../src/runtime/runtimePlannerEngine'
 import assignFromRuntimePlan from '../../src/runtime/runtimeChiefEngine'
 import worksFromRuntimePlan from '../../src/runtime/runtimeLegalEngine'
 import actionsFromRuntimeWorks from '../../src/runtime/runtimeExecutorEngine'
+import scheduleRuntimeActions from '../../src/runtime/runtimeScheduler'
 import { RuntimeStateCode } from '../../src/runtime/runtimeTypes'
 
 describe('runtime pipeline integration', () => {
@@ -27,6 +28,7 @@ describe('runtime pipeline integration', () => {
     const runtime_assignments = assignFromRuntimePlan(runtime_plan)
     const runtime_works = worksFromRuntimePlan(runtime_plan)
     const runtime_actions = actionsFromRuntimeWorks(runtime_works)
+    const today_queue = scheduleRuntimeActions(runtime_actions)
 
     expect(Array.isArray(runtime_assignments)).toBe(true)
     expect(Array.isArray(runtime_works)).toBe(true)
@@ -35,6 +37,11 @@ describe('runtime pipeline integration', () => {
     if (runtime_actions.length > 0) {
       expect(runtime_actions[0].payload).toBeTruthy()
       expect(Array.isArray(runtime_actions[0].payload.target_ref?.object_ids)).toBe(true)
+    }
+    // today_queue should be present and queue_id stable
+    expect(Array.isArray(today_queue)).toBe(true)
+    if (today_queue.length > 0) {
+      expect(today_queue[0].queue_id).toBe(`queue-${today_queue[0].action_id}`)
     }
   })
 })
