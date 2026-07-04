@@ -110,7 +110,60 @@ export default function DocumentWorkspacePage() {
         <div>
           <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
             <h3 style={{ marginTop: 0 }}>Document Detail</h3>
-            <div style={{ color: '#666' }}>Select a document item to view details</div>
+            {data.selected_document ? (
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 700 }}>{data.selected_document.title}</div>
+                <div style={{ color: '#666', fontSize: 13, marginTop: 6 }}>{data.selected_document.document_type} · {data.selected_document.status} · v{data.selected_document.version || '1'}</div>
+                <div style={{ marginTop: 8, fontSize: 12, color: '#475569' }}>Updated: {data.selected_document.updated_at || 'N/A'}</div>
+                {data.selected_document.content_uri && (
+                  <div style={{ marginTop: 8 }}><a href={data.selected_document.content_uri} target="_blank" rel="noreferrer">Open content</a></div>
+                )}
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontWeight: 600 }}>Lawyer Notes</div>
+                  <div style={{ color: '#666' }}>{data.selected_document.lawyer_notes?.message || 'No notes'}</div>
+                </div>
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontWeight: 600 }}>AI Summary (rule-based)</div>
+                  <div style={{ color: '#333', marginTop: 6 }}>Score: {data.selected_document.ai_summary?.score ?? 'N/A'} · {data.selected_document.ai_summary?.completeness}</div>
+                  {Array.isArray(data.selected_document.ai_summary?.strengths) && data.selected_document.ai_summary.strengths.length > 0 && (
+                    <div style={{ marginTop: 6 }}>
+                      <div style={{ fontWeight: 600 }}>Strengths</div>
+                      <ul>{data.selected_document.ai_summary.strengths.map((s:any, i:number) => <li key={i}>{s}</li>)}</ul>
+                    </div>
+                  )}
+                  {Array.isArray(data.selected_document.ai_summary?.risks) && data.selected_document.ai_summary.risks.length > 0 && (
+                    <div style={{ marginTop: 6 }}>
+                      <div style={{ fontWeight: 600 }}>Risks</div>
+                      <ul>{data.selected_document.ai_summary.risks.map((s:any, i:number) => <li key={i}>{s}</li>)}</ul>
+                    </div>
+                  )}
+                  {Array.isArray(data.selected_document.ai_summary?.recommendations) && data.selected_document.ai_summary.recommendations.length > 0 && (
+                    <div style={{ marginTop: 6 }}>
+                      <div style={{ fontWeight: 600 }}>Recommendations</div>
+                      <ul>{data.selected_document.ai_summary.recommendations.map((s:any, i:number) => <li key={i}>{s}</li>)}</ul>
+                    </div>
+                  )}
+                </div>
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontWeight: 600 }}>Related Materials</div>
+                  {Array.isArray(data.selected_document.related_materials) && data.selected_document.related_materials.length === 0 ? (
+                    <div style={{ color: '#666' }}>No related materials</div>
+                  ) : (
+                    data.selected_document.related_materials.map((r:any, idx:number) => <div key={idx}>{r.title || r.material_id}</div>)
+                  )}
+                </div>
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontWeight: 600 }}>Related Evidence</div>
+                  {Array.isArray(data.selected_document.related_evidence) && data.selected_document.related_evidence.length === 0 ? (
+                    <div style={{ color: '#666' }}>No related evidence</div>
+                  ) : (
+                    data.selected_document.related_evidence.map((r:any, idx:number) => <div key={idx}>{r.title || r.evidence_id}</div>)
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div style={{ color: '#666' }}>Select a document item to view details</div>
+            )}
           </div>
 
           <div style={{ marginTop: 12, background: '#fff', padding: 12, borderRadius: 8 }}>

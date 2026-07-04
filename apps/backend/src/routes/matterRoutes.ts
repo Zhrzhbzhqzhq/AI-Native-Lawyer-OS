@@ -880,7 +880,7 @@ export async function matterRoutes(app: FastifyInstance) {
         missing: 0,
       }
 
-      const document_list = await prisma.document.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' }, take: 20, select: { document_id: true, title: true, document_type: true, status: true, version: true, updated_at: true } }).catch(() => [])
+      const document_list = await prisma.document.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' }, take: 20, select: { document_id: true, title: true, document_type: true, status: true, version: true, updated_at: true, content_uri: true } }).catch(() => [])
 
       // build navigation
       const types = ['complaint','defense','representation','evidence_catalog','challenge_opinion','hearing_outline','enforcement','preservation','other']
@@ -908,12 +908,74 @@ export async function matterRoutes(app: FastifyInstance) {
         { key: 'outdated', label: 'outdated', count: Number(outdated), description: '' },
       ]
 
+      // selected_document: choose first item from document_list and provide read-only detail
+      let selected_document: any = null
+      if (Array.isArray(document_list) && document_list.length > 0) {
+        const first = document_list[0]
+        const updated_at = first.updated_at ? (first.updated_at instanceof Date ? first.updated_at.toISOString() : String(first.updated_at)) : null
+
+        // simple rule-based ai_summary (deterministic, local)
+        const computeAi = (doc: any) => {
+          let score = 50
+          const strengths: string[] = []
+          const risks: string[] = []
+          const recommendations: string[] = []
+
+          if (doc.content_uri && String(doc.content_uri).trim().length > 0) {
+            score += 20
+            strengths.push('Content URI available')
+          } else {
+            risks.push('No content URI')
+            recommendations.push('Attach or provide content URI for this document')
+          }
+
+          if (doc.version) {
+            score += 10
+            strengths.push(`Version ${doc.version}`)
+          }
+
+          if (doc.title && String(doc.title).trim().length > 10) {
+            score += 10
+            strengths.push('Detailed title')
+          }
+
+          if (score > 100) score = 100
+
+          let completeness = 'low'
+          if (score >= 80) completeness = 'high'
+          else if (score >= 60) completeness = 'medium'
+
+          return {
+            status: 'rule_based',
+            score: Number(score),
+            completeness,
+            strengths,
+            risks,
+            recommendations,
+          }
+        }
+
+        selected_document = {
+          document_id: first.document_id,
+          title: first.title,
+          document_type: first.document_type,
+          status: first.status,
+          version: first.version,
+          updated_at,
+          content_uri: first.content_uri ?? null,
+          related_materials: [],
+          related_evidence: [],
+          lawyer_notes: { status: 'read_only', message: 'Lawyer notes coming soon' },
+          ai_summary: computeAi(first),
+        }
+      }
+
       return reply.code(200).send({
         matter: { matter_id: m.matter_id, title: m.title, status: m.status },
         summary,
         navigation: { by_type, by_status, by_version },
         document_list: Array.isArray(document_list) ? document_list : [],
-        selected_document: null,
+        selected_document,
         ai_analysis: { status: 'placeholder', message: 'AI document analysis coming soon' },
         missing_documents: [],
         document_next_steps: [],
