@@ -184,6 +184,31 @@ export default function MatterWorkspacePage() {
           <div style={{ color: '#666' }}>No AI next steps</div>
         )}
       </div>
+      
+      <div style={{ marginTop: 20 }}>
+        <h3>Today's Focus</h3>
+        <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
+          {runtime && Array.isArray(runtime.runtime_actions) ? (
+            (() => {
+              const ready = runtime.runtime_actions.filter((a:any) => a.status === 'READY').slice(0,3)
+              if (ready.length === 0) return <div style={{ color: '#666' }}>No ready actions</div>
+              return (
+                <div>
+                  {ready.map((a:any, idx:number) => (
+                    <div key={a.action_id ?? idx} style={{ padding: '8px 0', borderBottom: idx === ready.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+                      <div style={{ fontWeight: 600 }}>{a.type}</div>
+                      <div style={{ color: '#666' }}>Work: {a.work_id}</div>
+                      <div style={{ color: '#94a3b8', fontSize: 12 }}>Status: {a.status}</div>
+                    </div>
+                  ))}
+                </div>
+              )
+            })()
+          ) : (
+            <div style={{ color: '#666' }}>No ready actions</div>
+          )}
+        </div>
+      </div>
     </main>
   )
 }
