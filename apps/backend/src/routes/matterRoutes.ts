@@ -398,14 +398,15 @@ export async function matterRoutes(app: FastifyInstance) {
       if (!m) return reply.code(404).send({ error: 'Not found' });
 
       // list resources (read-only) and compute simple summaries
-      const materials = await materialService.listByMatter(matter_id).catch(() => [])
-      const evidence = await evidenceService.listByMatter(matter_id).catch(() => [])
-      const documents = await documentService.listByMatter(matter_id).catch(() => [])
+      // Use server-side limited queries for recent_* to avoid fetching large result sets.
+      const materialsCount = await prisma.material.count({ where: { matter_id } }).catch(() => 0)
+      const evidenceCount = await prisma.evidence.count({ where: { matter_id } }).catch(() => 0)
+      const documentsCount = await prisma.document.count({ where: { matter_id } }).catch(() => 0)
 
       const summary = {
-        materials: Array.isArray(materials) ? materials.length : 0,
-        evidence: Array.isArray(evidence) ? evidence.length : 0,
-        documents: Array.isArray(documents) ? documents.length : 0,
+        materials: materialsCount,
+        evidence: evidenceCount,
+        documents: documentsCount,
         // placeholder: do not invoke AI/runtime in this read-only alpha endpoint
         pending_ai_suggestions: 0,
       }
@@ -434,9 +435,9 @@ export async function matterRoutes(app: FastifyInstance) {
         },
       ]
 
-      const recent_materials = Array.isArray(materials) ? materials.slice(0, 5) : []
-      const recent_evidence = Array.isArray(evidence) ? evidence.slice(0, 5) : []
-      const recent_documents = Array.isArray(documents) ? documents.slice(0, 5) : []
+      const recent_materials = await prisma.material.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' }, take: 5 }).catch(() => [])
+      const recent_evidence = await prisma.evidence.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' }, take: 5 }).catch(() => [])
+      const recent_documents = await prisma.document.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' }, take: 5 }).catch(() => [])
 
       // Build recent_activity from materials, evidence, documents (read-only)
       const mapMaterialActivity = (m: any) => ({

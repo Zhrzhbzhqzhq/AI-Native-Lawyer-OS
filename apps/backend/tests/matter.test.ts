@@ -73,6 +73,27 @@ describe('Matter Workspace Read-only', () => {
     const post = await fetch(`${BASE}/matters`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: WORK_ID, title: 'Workspace Test' }) })
     expect(post.status).toBe(201)
 
+    // create more than 5 materials/evidence/documents to validate server-side limiting
+    for (let i = 1; i <= 6; i++) {
+      const mid = `${WORK_ID}-mat-${i}`
+      const mres = await fetch(`${BASE}/matters/${WORK_ID}/materials`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ material_id: mid, title: `Material ${i}` }) })
+      expect(mres.status).toBe(201)
+    }
+
+    // create evidence entries referencing the first material
+    for (let i = 1; i <= 6; i++) {
+      const eid = `${WORK_ID}-ev-${i}`
+      const eres = await fetch(`${BASE}/matters/${WORK_ID}/evidence`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ evidence_id: eid, material_id: `${WORK_ID}-mat-1`, title: `Evidence ${i}` }) })
+      expect(eres.status).toBe(201)
+    }
+
+    // create documents
+    for (let i = 1; i <= 6; i++) {
+      const did = `${WORK_ID}-doc-${i}`
+      const dres = await fetch(`${BASE}/matters/${WORK_ID}/documents`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ document_id: did, title: `Document ${i}` }) })
+      expect(dres.status).toBe(201)
+    }
+
     // counts before
     const prisma = createPrismaClient()
     const beforeMaterials = await prisma.material.count({ where: { matter_id: WORK_ID } })
