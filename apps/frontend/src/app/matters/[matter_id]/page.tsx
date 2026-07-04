@@ -102,7 +102,6 @@ export default function MatterWorkspacePage() {
               <div style={{ fontSize: 14, fontWeight: 700 }}>{runtime.runtime_plan.goal || 'No runtime plan yet'}</div>
               <div style={{ color: '#666', fontSize: 12, marginTop: 6 }}>Priority: {runtime.runtime_plan.priority || '—'}</div>
               <div style={{ color: '#666', fontSize: 12, marginTop: 6 }}>Decision: {runtime.runtime_decision?.code || '—'}</div>
-              <div style={{ color: '#475569', fontSize: 13, marginTop: 8 }}>Recommended: {runtime.runtime_plan.steps && runtime.runtime_plan.steps.length > 0 ? runtime.runtime_plan.steps[0] : 'No recommendation'}</div>
               <div style={{ color: '#666', fontSize: 12, marginTop: 6 }}>Ready actions: {(Array.isArray(runtime.runtime_actions) ? runtime.runtime_actions.filter((a:any)=>a.status==='READY').length : 0)}</div>
             </div>
           ) : (
@@ -190,7 +189,7 @@ export default function MatterWorkspacePage() {
         <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
           {runtime && Array.isArray(runtime.runtime_actions) ? (
             (() => {
-              const ready = runtime.runtime_actions.filter((a:any) => a.status === 'READY').slice(0,3)
+              const ready = runtime.runtime_actions.filter((a:any) => a.status === 'READY').slice(0,2)
               if (ready.length === 0) return <div style={{ color: '#666' }}>No ready actions</div>
               return (
                 <div>
@@ -214,6 +213,7 @@ export default function MatterWorkspacePage() {
                           </div>
                         )
                       })}
+                  <div style={{ marginTop: 8 }}><a href={`/matters/${params.matter_id}/runtime`} style={{ color: '#2563eb' }}>See full runtime</a></div>
                 </div>
               )
             })()
