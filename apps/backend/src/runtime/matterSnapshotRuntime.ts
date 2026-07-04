@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@lawdesk/database';
 import ContextBuilder from './contextBuilder';
+import analyzeRuntimeState from './runtimeAnalyzer'
 import MatterStateEngine from './matterStateEngine';
 
 export class MatterSnapshotRuntime {
@@ -87,6 +88,8 @@ export class MatterSnapshotRuntime {
       },
       generated_at: new Date().toISOString(),
     }
+
+    const runtime_state = analyzeRuntimeState(snapshot_facts)
 
     return {
       matter,
