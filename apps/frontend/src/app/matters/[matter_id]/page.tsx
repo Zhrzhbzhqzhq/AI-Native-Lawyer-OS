@@ -195,12 +195,21 @@ export default function MatterWorkspacePage() {
                 <div>
                       {ready.map((a:any, idx:number) => {
                         const type = String(a.type || '')
+                        const payloadWorkspace = a?.payload?.target_workspace
                         let href = `/${params.matter_id}`
-                        // Navigation rules
-                        if (type === 'PrepareEvidenceAction') href = `/matters/${params.matter_id}/evidence`
-                        else if (type === 'PrepareResearchAction') href = `/matters/${params.matter_id}/runtime`
-                        else if (type === 'PrepareDocumentAction') href = `/matters/${params.matter_id}/documents`
-                        else if (type === 'MonitorMatterAction') href = `/matters/${params.matter_id}/runtime`
+
+                        // Prefer payload.target_workspace when available
+                        if (payloadWorkspace) {
+                          if (payloadWorkspace === 'evidence') href = `/matters/${params.matter_id}/evidence`
+                          else if (payloadWorkspace === 'documents') href = `/matters/${params.matter_id}/documents`
+                          else if (payloadWorkspace === 'runtime') href = `/matters/${params.matter_id}/runtime`
+                        } else {
+                          // Fallback to type-based mapping
+                          if (type === 'PrepareEvidenceAction') href = `/matters/${params.matter_id}/evidence`
+                          else if (type === 'PrepareResearchAction') href = `/matters/${params.matter_id}/runtime`
+                          else if (type === 'PrepareDocumentAction') href = `/matters/${params.matter_id}/documents`
+                          else if (type === 'MonitorMatterAction') href = `/matters/${params.matter_id}/runtime`
+                        }
 
                         return (
                           <div key={a.action_id ?? idx} style={{ padding: '8px 0', borderBottom: idx === ready.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
