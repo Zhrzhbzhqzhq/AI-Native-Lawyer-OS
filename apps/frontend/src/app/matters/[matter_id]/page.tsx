@@ -194,13 +194,26 @@ export default function MatterWorkspacePage() {
               if (ready.length === 0) return <div style={{ color: '#666' }}>No ready actions</div>
               return (
                 <div>
-                  {ready.map((a:any, idx:number) => (
-                    <div key={a.action_id ?? idx} style={{ padding: '8px 0', borderBottom: idx === ready.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
-                      <div style={{ fontWeight: 600 }}>{a.type}</div>
-                      <div style={{ color: '#666' }}>Work: {a.work_id}</div>
-                      <div style={{ color: '#94a3b8', fontSize: 12 }}>Status: {a.status}</div>
-                    </div>
-                  ))}
+                      {ready.map((a:any, idx:number) => {
+                        const type = String(a.type || '')
+                        let href = `/${params.matter_id}`
+                        // Navigation rules
+                        if (type === 'PrepareEvidenceAction') href = `/matters/${params.matter_id}/evidence`
+                        else if (type === 'PrepareResearchAction') href = `/matters/${params.matter_id}/runtime`
+                        else if (type === 'PrepareDocumentAction') href = `/matters/${params.matter_id}/documents`
+                        else if (type === 'MonitorMatterAction') href = `/matters/${params.matter_id}/runtime`
+
+                        return (
+                          <div key={a.action_id ?? idx} style={{ padding: '8px 0', borderBottom: idx === ready.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                              <div style={{ fontWeight: 600 }}>{a.type}</div>
+                              <div><a href={href} style={{ color: '#2563eb', fontSize: 13 }}>Open</a></div>
+                            </div>
+                            <div style={{ color: '#666' }}>Work: {a.work_id}</div>
+                            <div style={{ color: '#94a3b8', fontSize: 12 }}>Status: {a.status}</div>
+                          </div>
+                        )
+                      })}
                 </div>
               )
             })()
