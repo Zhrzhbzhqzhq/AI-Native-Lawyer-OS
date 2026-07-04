@@ -65,6 +65,7 @@ export default function MatterWorkspacePage() {
 
   const matter = data.matter || { matter_id: params.matter_id, title: '', status: '' }
   const recentActivity = (data as any).recent_activity ?? []
+  const aiNextSteps = (data as any).ai_next_steps ?? []
 
   return (
     <main style={{ padding: 24 }}>
@@ -136,7 +137,23 @@ export default function MatterWorkspacePage() {
       )}
     </div>
 
-      <div style={{ marginTop: 20, padding: 12, color: '#94a3b8' }}>AI Next Step（Coming Soon）</div>
+      <div style={{ marginTop: 20 }}>
+        <h3>AI Next Step</h3>
+        {aiNextSteps.length > 0 ? (
+          <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
+            {aiNextSteps.map((s:any, idx:number) => (
+              <div key={s.id ?? idx} style={{ padding: '8px 0', borderBottom: idx === aiNextSteps.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+                <div style={{ fontWeight: 600 }}>{s.title}</div>
+                <div style={{ color: '#666' }}>{s.description}</div>
+                <div style={{ marginTop: 6, fontSize: 12, color: '#475569' }}>Priority: {s.priority} · Action: {s.action}</div>
+                <div style={{ color: '#94a3b8', fontSize: 12 }}>{s.reason}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ color: '#666' }}>No AI next steps</div>
+        )}
+      </div>
     </main>
   )
 }

@@ -19,6 +19,7 @@ export async function matterRoutes(app: FastifyInstance) {
   const objectGraphBuilder = new (await import('../runtime/objectGraphBuilder')).default(prisma);
   const contextBuilder = new (await import('../runtime/contextBuilder')).default(prisma);
   const promptRuntime = new (await import('../runtime/promptRuntime')).default(prisma);
+  const NextStepEngine = (await import('../runtime/nextStepEngine')).default;
   const plannerRuntime = new (await import('../runtime/plannerRuntime')).default(prisma);
   const actionProposalRuntime = new (await import('../runtime/actionProposalRuntime')).default(prisma);
   // workflow service
@@ -472,15 +473,38 @@ export async function matterRoutes(app: FastifyInstance) {
         return tb - ta
       })
 
-      return reply.code(200).send({
-        matter: { matter_id: m.matter_id, title: m.title, status: m.status },
-        summary,
-        object_navigation,
-        recent_materials,
-        recent_evidence,
-        recent_documents,
-        recent_activity,
-      })
+      // AI Next Steps - rule based, read-only
+      try {
+        const engine = new NextStepEngine()
+        const ai_next_steps = engine.evaluate({
+          materialsCount: summary.materials,
+          evidenceCount: summary.evidence,
+          documentsCount: summary.documents,
+          recentActivityCount: recent_activity.length,
+        })
+
+        return reply.code(200).send({
+          matter: { matter_id: m.matter_id, title: m.title, status: m.status },
+          summary,
+          object_navigation,
+          recent_materials,
+          recent_evidence,
+          recent_documents,
+          recent_activity,
+          ai_next_steps,
+        })
+      } catch (e) {
+        // fallback: still return workspace without ai_next_steps
+        return reply.code(200).send({
+          matter: { matter_id: m.matter_id, title: m.title, status: m.status },
+          summary,
+          object_navigation,
+          recent_materials,
+          recent_evidence,
+          recent_documents,
+          recent_activity,
+        })
+      }
     } catch (err: any) {
       return reply.code(500).send({ error: 'workspace failed', detail: err?.message || String(err) })
     }
@@ -530,6 +554,45 @@ export async function matterRoutes(app: FastifyInstance) {
       return reply.code(500).send({ error: 'create failed', detail: err?.message || String(err) });
     }
   });
+
+  app.get('/matters/:matter_id/next-step', async (request, reply) => {
+    const { matter_id } = request.params as any;
+    try {
+      // build counts from services (read-only)
+      const materials = await materialService.listByMatter(matter_id).catch(() => [])
+      const evidence = await evidenceService.listByMatter(matter_id).catch(() => [])
+      const documents = await documentService.listByMatter(matter_id).catch(() => [])
+
+      const summary = {
+        materials: Array.isArray(materials) ? materials.length : 0,
+        evidence: Array.isArray(evidence) ? evidence.length : 0,
+        documents: Array.isArray(documents) ? documents.length : 0,
+      }
+
+      const recent_materials = Array.isArray(materials) ? materials.slice(0, 5) : []
+      const recent_evidence = Array.isArray(evidence) ? evidence.slice(0, 5) : []
+      const recent_documents = Array.isArray(documents) ? documents.slice(0, 5) : []
+
+      const recent_activity = [
+        ...recent_materials.map((m:any) => ({ type: 'material_uploaded', time: m.created_at ? (m.created_at instanceof Date ? m.created_at.toISOString() : String(m.created_at)) : null })),
+        ...recent_evidence.map((e:any) => ({ type: 'evidence_created', time: e.created_at ? (e.created_at instanceof Date ? e.created_at.toISOString() : String(e.created_at)) : null })),
+        ...recent_documents.map((d:any) => ({ type: 'document_updated', time: d.created_at ? (d.created_at instanceof Date ? d.created_at.toISOString() : String(d.created_at)) : null })),
+      ]
+
+      const NextStepEngine = (await import('../runtime/nextStepEngine')).default
+      const engine = new NextStepEngine()
+      const steps = engine.evaluate({
+        materialsCount: summary.materials,
+        evidenceCount: summary.evidence,
+        documentsCount: summary.documents,
+        recentActivityCount: recent_activity.length,
+      })
+
+      return reply.code(200).send({ matter_id, steps })
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'next-step failed', detail: err?.message || String(err) })
+    }
+  })
 
   app.delete('/matters/:id/materials/:material_id', async (request, reply) => {
     const { material_id } = request.params as any;

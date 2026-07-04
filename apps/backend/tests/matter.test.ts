@@ -134,4 +134,54 @@ describe('Matter Workspace Read-only', () => {
     // cleanup
     await fetch(`${BASE}/matters/${WORK_ID}`, { method: 'DELETE' })
   })
+
+  it('Next Step engine: workspace and next-step endpoints return ai suggestions and are read-only', async () => {
+    const NS_ID = `${TEST_ID}-ns`
+
+    // create a matter and a material fixture (materials > 0, evidence = 0)
+    const post = await fetch(`${BASE}/matters`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: NS_ID, title: 'NextStep Test' }) })
+    expect(post.status).toBe(201)
+
+    const createMat = await fetch(`${BASE}/matters/${NS_ID}/materials`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ material_id: `${NS_ID}-mat-1`, title: 'Chat record.pdf' }) })
+    expect(createMat.status).toBe(201)
+
+    // counts before calling next-step
+    const prisma = createPrismaClient()
+    const beforeMaterials = await prisma.material.count({ where: { matter_id: NS_ID } })
+    const beforeEvidence = await prisma.evidence.count({ where: { matter_id: NS_ID } })
+    const beforeDocuments = await prisma.document.count({ where: { matter_id: NS_ID } })
+    await prisma.$disconnect()
+
+    // workspace should include ai_next_steps
+    const res = await fetch(`${BASE}/matters/${NS_ID}/workspace`)
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(Array.isArray(body.ai_next_steps)).toBe(true)
+
+    // next-step endpoint
+    const ns = await fetch(`${BASE}/matters/${NS_ID}/next-step`)
+    expect(ns.status).toBe(200)
+    const nsBody = await ns.json()
+    expect(nsBody.matter_id).toBe(NS_ID)
+    expect(Array.isArray(nsBody.steps)).toBe(true)
+    // should include generate_evidence_draft because materials >0 and evidence == 0
+    const actions = nsBody.steps.map((s: any) => s.action)
+    expect(actions).toContain('generate_evidence_draft')
+    // at most 3
+    expect(nsBody.steps.length).toBeLessThanOrEqual(3)
+
+    // ensure no mutation after calling next-step
+    const prisma2 = createPrismaClient()
+    const afterMaterials = await prisma2.material.count({ where: { matter_id: NS_ID } })
+    const afterEvidence = await prisma2.evidence.count({ where: { matter_id: NS_ID } })
+    const afterDocuments = await prisma2.document.count({ where: { matter_id: NS_ID } })
+    await prisma2.$disconnect()
+
+    expect(afterMaterials - beforeMaterials).toBe(0)
+    expect(afterEvidence - beforeEvidence).toBe(0)
+    expect(afterDocuments - beforeDocuments).toBe(0)
+
+    // cleanup
+    await fetch(`${BASE}/matters/${NS_ID}`, { method: 'DELETE' })
+  })
 })
