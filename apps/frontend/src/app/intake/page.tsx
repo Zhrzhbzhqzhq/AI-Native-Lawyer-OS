@@ -31,6 +31,7 @@ export default function IntakePage() {
   const [matters, setMatters] = useState<Matter[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState<IntakeResponse | null>(null)
+  const [confirmResult, setConfirmResult] = useState<any | null>(null)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -113,6 +114,48 @@ export default function IntakePage() {
       setError(e?.message || 'Start analysis failed')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function handleConfirmMaterials() {
+    setError(null)
+    if (!result || !result.analysis) {
+      setError('No analysis to confirm')
+      return
+    }
+    if (!matterId) {
+      setError('Please provide a matter_id before confirming')
+      return
+    }
+
+    try {
+      const mapSource = (s: string) => {
+        if (s === 'Plaintiff') return 'client'
+        if (s === 'Opponent') return 'opponent'
+        if (s === 'Court') return 'court'
+        return 'third_party'
+      }
+
+      const payload = {
+        matter_id: matterId,
+        source: mapSource(source),
+        files: files.map((f) => ({ name: f.name, mime_type: f.type })),
+        analysis: { summary: result.analysis.summary, material_suggestions: result.analysis.material_suggestions ?? [] },
+      }
+
+      const res = await fetch(`${API}/intake/confirm-material`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        throw new Error(text || 'confirm failed')
+      }
+      const body = await res.json()
+      setConfirmResult(body)
+    } catch (e: any) {
+      setError(e?.message || 'Confirm failed')
     }
   }
 
@@ -262,6 +305,29 @@ export default function IntakePage() {
 
                 <div style={{ marginTop: 10, fontWeight: 700 }}>Next Actions</div>
                 <div>{Array.isArray(result.analysis.next_actions) ? 'No suggestions' : ''}</div>
+                <div style={{ marginTop: 12 }}>
+                  <button
+                    type="button"
+                    onClick={handleConfirmMaterials}
+                    style={{ marginTop: 6, padding: '8px 12px', borderRadius: 8, background: '#0ea5a4', color: '#fff', border: 'none' }}
+                  >
+                    确认并归档为材料
+                  </button>
+                </div>
+                {confirmResult && (
+                  <div style={{ marginTop: 12, background: '#fff', padding: 10, borderRadius: 8 }}>
+                    <div><strong>status:</strong> {String(confirmResult.status)}</div>
+                    <div><strong>created:</strong> {Array.isArray(confirmResult.created_materials) ? confirmResult.created_materials.length : 0}</div>
+                    <div style={{ marginTop: 8 }}>
+                      {Array.isArray(confirmResult.created_materials) && confirmResult.created_materials.map((m: any) => (
+                        <div key={m.material_id} style={{ padding: 6, borderBottom: '1px solid #eee' }}>
+                          <div><strong>{m.title}</strong></div>
+                          <div style={{ color: '#6b7280' }}>{m.material_id}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

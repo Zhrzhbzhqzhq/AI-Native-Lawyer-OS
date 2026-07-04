@@ -87,4 +87,86 @@ describe('Unified Intake API', () => {
     expect(afterMaterials[0].count).toBe(beforeMaterials[0].count)
     expect(afterTimeline[0].count).toBe(beforeTimeline[0].count)
   })
+
+  it('confirm-material creates materials and does not create other objects', async () => {
+    const markerMatterId = `mock-intake-${Date.now()}-confirm`
+
+    const beforeMaterials = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM materials WHERE matter_id = ${markerMatterId}
+    `
+    const beforeEvidence = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM evidence WHERE matter_id = ${markerMatterId}
+    `
+    const beforeDocument = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM documents WHERE matter_id = ${markerMatterId}
+    `
+    const beforeKnowledge = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM knowledge WHERE matter_id = ${markerMatterId}
+    `
+    const beforeTimeline = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM timelines WHERE matter_id = ${markerMatterId}
+    `
+
+    // first get an analysis
+    const res = await fetch(`${BASE}/intake`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files: [{ name: 'x.pdf', size: 10, type: 'application/pdf' }], matter_id: markerMatterId, source: 'Plaintiff' }),
+    })
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.analysis).toBeDefined()
+
+    // create matter fixture required for confirm-material
+    await prisma.matter.create({ data: { matter_id: markerMatterId, title: 'Confirm Material Matter', description: 'fixture', matter_type: 'test', status: 'active' } })
+
+    // now confirm material
+    const confirmRes = await fetch(`${BASE}/intake/confirm-material`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        matter_id: markerMatterId,
+        source: 'client',
+        files: [{ name: 'x.pdf', mime_type: 'application/pdf' }],
+        analysis: { summary: body.analysis.summary, material_suggestions: [] },
+      }),
+    })
+    expect(confirmRes.status).toBe(200)
+    const confirmBody = await confirmRes.json()
+    expect(confirmBody.status).toBe('material_created')
+    expect(Array.isArray(confirmBody.created_materials)).toBe(true)
+    expect(confirmBody.created_materials.length).toBe(1)
+    expect(confirmBody.created_materials[0].matter_id).toBe(markerMatterId)
+
+    const afterMaterials = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM materials WHERE matter_id = ${markerMatterId}
+    `
+    const afterEvidence = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM evidence WHERE matter_id = ${markerMatterId}
+    `
+    const afterDocument = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM documents WHERE matter_id = ${markerMatterId}
+    `
+    const afterKnowledge = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM knowledge WHERE matter_id = ${markerMatterId}
+    `
+    const afterTimeline = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM timelines WHERE matter_id = ${markerMatterId}
+    `
+
+    expect(Number(afterMaterials[0].count - beforeMaterials[0].count)).toBe(1)
+    expect(afterEvidence[0].count).toBe(beforeEvidence[0].count)
+    expect(afterDocument[0].count).toBe(beforeDocument[0].count)
+    expect(afterKnowledge[0].count).toBe(beforeKnowledge[0].count)
+    expect(afterTimeline[0].count).toBe(beforeTimeline[0].count)
+  })
+
+  it('confirm-material returns 400 when matter_id missing', async () => {
+    const res = await fetch(`${BASE}/intake/confirm-material`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ source: 'client', files: [{ name: 'x.pdf' }] }),
+    })
+    expect(res.status).toBe(400)
+  })
 })
