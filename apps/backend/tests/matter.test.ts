@@ -64,3 +64,51 @@ describe('Matter CRUD', () => {
     expect(get2.status).toBe(404)
   })
 })
+
+describe('Matter Workspace Read-only', () => {
+  it('GET /matters/:id/workspace returns summary and recent arrays and does not create objects', async () => {
+    const WORK_ID = `${TEST_ID}-ws`
+
+    // create a matter to inspect
+    const post = await fetch(`${BASE}/matters`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: WORK_ID, title: 'Workspace Test' }) })
+    expect(post.status).toBe(201)
+
+    // counts before
+    const prisma = createPrismaClient()
+    const beforeMaterials = await prisma.material.count({ where: { matter_id: WORK_ID } })
+    const beforeEvidence = await prisma.evidence.count({ where: { matter_id: WORK_ID } })
+    const beforeDocuments = await prisma.document.count({ where: { matter_id: WORK_ID } })
+    await prisma.$disconnect()
+
+    const res = await fetch(`${BASE}/matters/${WORK_ID}/workspace`)
+    expect(res.status).toBe(200)
+    const body = await res.json()
+
+    expect(body).toBeTruthy()
+    expect(body.matter).toBeTruthy()
+    expect(body.matter.matter_id).toBe(WORK_ID)
+    expect(body.summary).toBeTruthy()
+    expect(typeof body.summary.materials).toBe('number')
+    expect(typeof body.summary.evidence).toBe('number')
+    expect(typeof body.summary.documents).toBe('number')
+    expect(typeof body.summary.pending_ai_suggestions).toBe('number')
+
+    expect(Array.isArray(body.recent_materials)).toBe(true)
+    expect(Array.isArray(body.recent_evidence)).toBe(true)
+    expect(Array.isArray(body.recent_documents)).toBe(true)
+
+    // counts after - ensure no new objects were created by the workspace endpoint
+    const prisma2 = createPrismaClient()
+    const afterMaterials = await prisma2.material.count({ where: { matter_id: WORK_ID } })
+    const afterEvidence = await prisma2.evidence.count({ where: { matter_id: WORK_ID } })
+    const afterDocuments = await prisma2.document.count({ where: { matter_id: WORK_ID } })
+    await prisma2.$disconnect()
+
+    expect(afterMaterials - beforeMaterials).toBe(0)
+    expect(afterEvidence - beforeEvidence).toBe(0)
+    expect(afterDocuments - beforeDocuments).toBe(0)
+
+    // cleanup
+    await fetch(`${BASE}/matters/${WORK_ID}`, { method: 'DELETE' })
+  })
+})

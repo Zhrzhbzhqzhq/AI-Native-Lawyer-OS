@@ -389,6 +389,42 @@ export async function matterRoutes(app: FastifyInstance) {
     }
   });
 
+  // Matter Workspace - read-only dashboard data for the matter workspace home (Alpha)
+  app.get('/matters/:matter_id/workspace', async (request, reply) => {
+    const { matter_id } = request.params as any;
+    try {
+      const m = await service.get(matter_id);
+      if (!m) return reply.code(404).send({ error: 'Not found' });
+
+      // list resources (read-only) and compute simple summaries
+      const materials = await materialService.listByMatter(matter_id).catch(() => [])
+      const evidence = await evidenceService.listByMatter(matter_id).catch(() => [])
+      const documents = await documentService.listByMatter(matter_id).catch(() => [])
+
+      const summary = {
+        materials: Array.isArray(materials) ? materials.length : 0,
+        evidence: Array.isArray(evidence) ? evidence.length : 0,
+        documents: Array.isArray(documents) ? documents.length : 0,
+        // placeholder: do not invoke AI/runtime in this read-only alpha endpoint
+        pending_ai_suggestions: 0,
+      }
+
+      const recent_materials = Array.isArray(materials) ? materials.slice(0, 5) : []
+      const recent_evidence = Array.isArray(evidence) ? evidence.slice(0, 5) : []
+      const recent_documents = Array.isArray(documents) ? documents.slice(0, 5) : []
+
+      return reply.code(200).send({
+        matter: { matter_id: m.matter_id, title: m.title, status: m.status },
+        summary,
+        recent_materials,
+        recent_evidence,
+        recent_documents,
+      })
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'workspace failed', detail: err?.message || String(err) })
+    }
+  })
+
   app.delete('/matters/:id/research/:research_id', async (request, reply) => {
     const { research_id } = request.params as any;
     try {
