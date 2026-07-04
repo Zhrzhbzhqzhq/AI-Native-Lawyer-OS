@@ -15,11 +15,19 @@ describe('runtimeExecutorEngine', () => {
     expect(a1).toBeTruthy()
     expect(a1?.action_id).toBe('action-work-evidence-collection')
     expect(a1?.status).toBe('READY')
+    expect(a1?.payload).toBeTruthy()
+    expect((a1 as any).payload.target_workspace).toBe('evidence')
+    expect((a1 as any).payload.target_type).toBe('EvidenceWork')
+    expect((a1 as any).payload.target_id).toBeNull()
 
     const a2 = actions.find(a => a.work_id === 'work-research-law')
     expect(a2).toBeTruthy()
     expect(a2?.status).toBe('BLOCKED')
     expect(a2?.type).toBe('PrepareResearchAction')
+    expect(a2?.payload).toBeTruthy()
+    expect((a2 as any).payload.target_workspace).toBe('runtime')
+    expect((a2 as any).payload.target_type).toBe('ResearchWork')
+    expect((a2 as any).payload.target_id).toBeNull()
   })
 
   it('returns empty array for invalid input', () => {

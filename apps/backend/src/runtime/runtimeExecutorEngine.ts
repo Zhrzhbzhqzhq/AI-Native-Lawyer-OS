@@ -52,12 +52,35 @@ export default function actionsFromRuntimeWorks(works: RuntimeWork[] = []): Runt
 
     const status = String(w.status || '').toUpperCase() === 'BLOCKED' ? 'BLOCKED' : 'READY'
 
+    // Build minimal payload contract for navigation/定位
+    const payload: Record<string, unknown> = { target_workspace: 'runtime', target_type: w.type, target_id: null }
+    switch (w.type) {
+      case 'EvidenceWork':
+        payload.target_workspace = 'evidence'
+        payload.target_type = 'EvidenceWork'
+        break
+      case 'ResearchWork':
+        payload.target_workspace = 'runtime'
+        payload.target_type = 'ResearchWork'
+        break
+      case 'DocumentWork':
+        payload.target_workspace = 'documents'
+        payload.target_type = 'DocumentWork'
+        break
+      case 'MonitorWork':
+        payload.target_workspace = 'runtime'
+        payload.target_type = 'MonitorWork'
+        break
+      default:
+        break
+    }
+
     actions.push({
       action_id: `action-${w.work_id}`,
       type: actionType,
       work_id: w.work_id,
       status,
-      payload: {},
+      payload,
     })
   }
 
