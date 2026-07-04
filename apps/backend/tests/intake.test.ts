@@ -526,4 +526,60 @@ describe('Unified Intake API', () => {
     const r2 = await fetch(`${BASE}/intake/document-update-suggestions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: 'x', trigger: { type: 'invalid_type', id: 'x' } }) })
     expect(r2.status).toBe(400)
   })
+
+  it('confirm-document-update creates new document versions and preserves old documents', async () => {
+    const markerMatterId = `mock-intake-${Date.now()}-cdu`
+    await prisma.matter.create({ data: { matter_id: markerMatterId, title: 'CDU Matter', description: '', matter_type: 'test', status: 'active' } })
+
+    // create an original document to be preserved
+    const original = await prisma.document.create({ data: { document_id: `doc-orig-${Date.now()}`, matter_id: markerMatterId, title: 'Original Doc', document_type: 'representation', content_uri: '', version: 'v1', status: 'active' } })
+
+    const beforeDocs = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM documents WHERE matter_id = ${markerMatterId}
+    `
+
+    const suggestions = [
+      { suggestion_id: 's1', target_document_type: 'representation', target_title: '代理词（更新）', reason: 'reason', suggested_change_summary: 'summary', requires_lawyer_confirmation: true },
+      { suggestion_id: 's2', target_document_type: 'hearing_outline', target_title: '庭审提纲（更新）', reason: 'reason', suggested_change_summary: 'summary', requires_lawyer_confirmation: true },
+    ]
+
+    const res = await fetch(`${BASE}/intake/confirm-document-update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: markerMatterId, document_update_suggestions: suggestions }) })
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.status).toBe('document_version_created')
+    expect(Array.isArray(body.created_versions)).toBe(true)
+    expect(body.created_versions.length).toBe(suggestions.length)
+    expect(body.created_versions[0].version).toBe('v2')
+    expect(body.created_versions[0].status).toBe('draft')
+
+    const afterDocs = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM documents WHERE matter_id = ${markerMatterId}
+    `
+    expect(Number(afterDocs[0].count - beforeDocs[0].count)).toBe(suggestions.length)
+
+    // ensure original document still exists
+    const found = await prisma.document.findUnique({ where: { document_id: original.document_id } })
+    expect(found).not.toBeNull()
+
+    const afterKnowledge = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM knowledge WHERE matter_id = ${markerMatterId}
+    `
+    const afterTimeline = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count FROM timelines WHERE matter_id = ${markerMatterId}
+    `
+    expect(afterKnowledge[0].count).toBe(BigInt(0))
+    expect(afterTimeline[0].count).toBe(BigInt(0))
+  })
+
+  it('confirm-document-update validation failures', async () => {
+    const r1 = await fetch(`${BASE}/intake/confirm-document-update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ document_update_suggestions: [] }) })
+    expect(r1.status).toBe(400)
+
+    const r2 = await fetch(`${BASE}/intake/confirm-document-update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: 'x', document_update_suggestions: [] }) })
+    expect(r2.status).toBe(400)
+
+    const bad = [{ suggestion_id: 's', target_document_type: 'representation', target_title: 't', requires_lawyer_confirmation: false }]
+    const r3 = await fetch(`${BASE}/intake/confirm-document-update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: 'x', document_update_suggestions: bad }) })
+    expect(r3.status).toBe(400)
+  })
 })

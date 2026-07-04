@@ -208,6 +208,57 @@ export async function intakeRoutes(app: FastifyInstance) {
     return reply.code(200).send(result)
   })
 
+  app.post('/intake/confirm-document-update', async (request, reply) => {
+    const prisma = createPrismaClient()
+    const documentService = new DocumentService(prisma)
+
+    try {
+      const payload = (request.body || {}) as {
+        matter_id?: string
+        document_update_suggestions?: Array<{
+          suggestion_id?: string
+          target_document_type?: string
+          target_title?: string
+          reason?: string
+          suggested_change_summary?: string
+          requires_lawyer_confirmation?: boolean
+        }>
+      }
+
+      const matter_id = payload.matter_id ? String(payload.matter_id) : ''
+      if (!matter_id) return reply.code(400).send({ error: 'matter_id required' })
+
+      const suggestions = Array.isArray(payload.document_update_suggestions) ? payload.document_update_suggestions : []
+      if (suggestions.length === 0) return reply.code(400).send({ error: 'document_update_suggestions required' })
+
+      for (const s of suggestions) {
+        if (s.requires_lawyer_confirmation !== true) return reply.code(400).send({ error: 'all suggestions must be confirmed by lawyer' })
+      }
+
+      const created: any[] = []
+      for (const s of suggestions) {
+        const document_id = `doc-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+        const doc = await documentService.createForMatter(matter_id, {
+          document_id,
+          title: String(s.target_title || ''),
+          document_type: String(s.target_document_type || ''),
+          content_uri: '',
+          version: 'v2',
+          status: 'draft',
+        })
+        created.push({ document_id: doc.document_id, title: doc.title, document_type: doc.document_type, version: doc.version, status: doc.status })
+      }
+
+      return reply.code(200).send({ status: 'document_version_created', matter_id, created_versions: created })
+    } finally {
+      try {
+        await prisma.$disconnect()
+      } catch (e) {
+        // ignore
+      }
+    }
+  })
+
   app.post('/intake/confirm-evidence', async (request, reply) => {
     const prisma = createPrismaClient()
     const evidenceService = new EvidenceService(prisma)
