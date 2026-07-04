@@ -376,3 +376,17 @@ model SystemDictionary {
   @@unique([dict_type, dict_key], map: "uq_system_dictionary_type_key")
   @@map("system_dictionary")
 }
+
+model ExecutionQueueItem {
+  id               String   @id @default(uuid())
+  matter_id        String
+  queue_id         String   @unique
+  action_id        String
+  work_id          String?
+  slot             String
+  execution_status String
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  @@map("execution_queue_item")
+}
