@@ -1,0 +1,77 @@
+
+"use client"
+
+import React from 'react'
+import { useRouter } from 'next/navigation'
+
+export default function AnalyzingPage() {
+  const router = useRouter()
+
+  const steps = [
+    { label: '提取案件事实', done: true },
+    { label: '判断案件类型', done: true },
+    { label: '识别当事人', done: true },
+    { label: '提取时间轴', done: true },
+    { label: '分析证据情况', done: true },
+    { label: '评估诉讼风险', done: false },
+    { label: '生成接案建议', done: false },
+    { label: '生成接案分析报告', done: false },
+  ]
+
+  const logs = [
+    '13:21:01 发现借款金额：100000元',
+    '13:21:02 识别案件类型：民间借贷纠纷',
+    '13:21:03 发现证据：银行转账记录',
+    '13:21:04 发现证据：微信聊天记录',
+    '13:21:05 风险提示：缺少正式借条',
+  ]
+
+  return (
+    <main>
+      <section style={{ maxWidth: 1000, margin: '0 auto', padding: 24 }}>
+        <h2>AI 正在分析客户咨询</h2>
+        <div style={{ color: '#6b7280', marginTop: 6 }}>LawDesk 正在提取案件事实、识别证据并生成接案分析报告。</div>
+
+        <div style={{ display: 'flex', gap: 24, marginTop: 20 }}>
+          <div style={{ flex: 1, background: '#fff', padding: 18, borderRadius: 8, border: '1px solid #eef2ff' }}>
+            <div style={{ fontWeight: 700, marginBottom: 10 }}>AI 工作流</div>
+            <div>
+              {steps.map((s, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', padding: '8px 0', color: s.done ? '#0b5cff' : '#6b7280' }}>
+                  <div style={{ width: 20 }}>{s.done ? '✓' : '○'}</div>
+                  <div style={{ marginLeft: 8 }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ width: 420, background: '#fff', padding: 18, borderRadius: 8, border: '1px solid #eef2ff' }}>
+            <div style={{ fontWeight: 700, marginBottom: 10 }}>AI 实时日志</div>
+            <div style={{ fontFamily: 'monospace', fontSize: 13, color: '#111827' }}>
+              {logs.map((l, i) => (
+                <div key={i} style={{ padding: '6px 0', borderBottom: '1px solid #f1f5f9' }}>{l}</div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ marginTop: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ fontWeight: 700, color: '#0b5cff' }}>正在分析中……</div>
+            <div style={{ color: '#6b7280', fontSize: 13, marginTop: 6 }}>预计还需 15 秒</div>
+          </div>
+
+          <div>
+            <button
+              type="button"
+              onClick={() => router.push('/intake/report')}
+              style={{ padding: '10px 14px', borderRadius: 8, background: '#2563eb', color: '#fff', border: 'none' }}
+            >
+              查看接案分析报告
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  )
+}
