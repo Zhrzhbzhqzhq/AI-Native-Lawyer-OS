@@ -40,6 +40,7 @@ export default function MatterWorkspacePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [runtime, setRuntime] = useState<any | null>(null)
+  const [opLoading, setOpLoading] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -74,6 +75,52 @@ export default function MatterWorkspacePage() {
     }
     load()
   }, [params.matter_id])
+
+  // fetch runtime snapshot (used after operations)
+  async function fetchRuntime() {
+    try {
+      const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000'
+      const res = await fetch(`${API}/matters/${params.matter_id}/runtime`)
+      if (!res.ok) return
+      const rt = await res.json()
+      setRuntime(rt)
+    } catch (e) {
+      console.error('fetchRuntime failed', e)
+    }
+  }
+
+  async function callOperation(queue_id: string, operation: 'start'|'pause'|'complete') {
+    if (!queue_id) return
+    setOpLoading(queue_id)
+    try {
+      const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000'
+      const res = await fetch(`${API}/matters/${params.matter_id}/execution/${queue_id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ operation }),
+      })
+      if (!res.ok) {
+        const txt = await res.text().catch(()=>null)
+        alert('操作失败: ' + (txt || res.statusText))
+        return
+      }
+      // refresh runtime snapshot after successful op
+      await fetchRuntime()
+    } catch (e:any) {
+      console.error('operation failed', e)
+      alert('操作失败')
+    } finally {
+      setOpLoading(null)
+    }
+  }
+
+  const mapExecutionStatusLabel = (s?: string) => {
+    const v = String(s || 'PENDING').toUpperCase()
+    if (v === 'PENDING') return '待开始'
+    if (v === 'RUNNING') return '进行中'
+    if (v === 'DONE') return '已完成'
+    return s || '待开始'
+  }
 
   if (loading) return <main style={{ padding: 24 }}><div>Loading workspace...</div></main>
   if (error) return <main style={{ padding: 24 }}><div style={{ color: '#b91c1c' }}>Error: {error}</div></main>
@@ -193,6 +240,23 @@ export default function MatterWorkspacePage() {
                               <div style={{ fontWeight: 600 }}>{mapActionToLabel(q)}</div>
                               <div style={{ color: '#666' }}>{mapStatusLabel(q.status)}</div>
                               <div style={{ color: '#94a3b8', fontSize: 12 }}>{q.queue_id ? `ID: ${q.queue_id}` : ''}{q.action_id ? ` ${q.action_id}` : ''}</div>
+                              <div style={{ marginTop: 6 }}>
+                                <div style={{ color: '#374151', fontSize: 13 }}>{mapExecutionStatusLabel(q.execution_status)}</div>
+                                <div style={{ marginTop: 6 }}>
+                                  {((q.execution_status || 'PENDING').toUpperCase() === 'PENDING') && (
+                                    <button onClick={() => callOperation(q.queue_id, 'start')} disabled={opLoading === q.queue_id} style={{ padding: '6px 10px' }}>开始</button>
+                                  )}
+                                  {((q.execution_status || 'PENDING').toUpperCase() === 'RUNNING') && (
+                                    <>
+                                      <button onClick={() => callOperation(q.queue_id, 'pause')} disabled={opLoading === q.queue_id} style={{ padding: '6px 10px' }}>暂停</button>
+                                      <button onClick={() => callOperation(q.queue_id, 'complete')} disabled={opLoading === q.queue_id} style={{ padding: '6px 10px', marginLeft: 8 }}>完成</button>
+                                    </>
+                                  )}
+                                  {((q.execution_status || 'PENDING').toUpperCase() === 'DONE') && (
+                                    <span style={{ color: '#16a34a', fontWeight: 600 }}>已完成</span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           ))}
                     </div>
@@ -206,6 +270,23 @@ export default function MatterWorkspacePage() {
                           <div style={{ fontWeight: 600 }}>{mapActionToLabel(q)}</div>
                           <div style={{ color: '#666' }}>{mapStatusLabel(q.status)}</div>
                           <div style={{ color: '#94a3b8', fontSize: 12 }}>{q.queue_id ? `ID: ${q.queue_id}` : ''}{q.action_id ? ` ${q.action_id}` : ''}</div>
+                          <div style={{ marginTop: 6 }}>
+                            <div style={{ color: '#374151', fontSize: 13 }}>{mapExecutionStatusLabel(q.execution_status)}</div>
+                            <div style={{ marginTop: 6 }}>
+                              {((q.execution_status || 'PENDING').toUpperCase() === 'PENDING') && (
+                                <button onClick={() => callOperation(q.queue_id, 'start')} disabled={opLoading === q.queue_id} style={{ padding: '6px 10px' }}>开始</button>
+                              )}
+                              {((q.execution_status || 'PENDING').toUpperCase() === 'RUNNING') && (
+                                <>
+                                  <button onClick={() => callOperation(q.queue_id, 'pause')} disabled={opLoading === q.queue_id} style={{ padding: '6px 10px' }}>暂停</button>
+                                  <button onClick={() => callOperation(q.queue_id, 'complete')} disabled={opLoading === q.queue_id} style={{ padding: '6px 10px', marginLeft: 8 }}>完成</button>
+                                </>
+                              )}
+                              {((q.execution_status || 'PENDING').toUpperCase() === 'DONE') && (
+                                <span style={{ color: '#16a34a', fontWeight: 600 }}>已完成</span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -219,6 +300,23 @@ export default function MatterWorkspacePage() {
                           <div style={{ fontWeight: 600 }}>{mapActionToLabel(q)}</div>
                           <div style={{ color: '#666' }}>{mapStatusLabel(q.status)}</div>
                           <div style={{ color: '#94a3b8', fontSize: 12 }}>{q.queue_id ? `ID: ${q.queue_id}` : ''}{q.action_id ? ` ${q.action_id}` : ''}</div>
+                          <div style={{ marginTop: 6 }}>
+                            <div style={{ color: '#374151', fontSize: 13 }}>{mapExecutionStatusLabel(q.execution_status)}</div>
+                            <div style={{ marginTop: 6 }}>
+                              {((q.execution_status || 'PENDING').toUpperCase() === 'PENDING') && (
+                                <button onClick={() => callOperation(q.queue_id, 'start')} disabled={opLoading === q.queue_id} style={{ padding: '6px 10px' }}>开始</button>
+                              )}
+                              {((q.execution_status || 'PENDING').toUpperCase() === 'RUNNING') && (
+                                <>
+                                  <button onClick={() => callOperation(q.queue_id, 'pause')} disabled={opLoading === q.queue_id} style={{ padding: '6px 10px' }}>暂停</button>
+                                  <button onClick={() => callOperation(q.queue_id, 'complete')} disabled={opLoading === q.queue_id} style={{ padding: '6px 10px', marginLeft: 8 }}>完成</button>
+                                </>
+                              )}
+                              {((q.execution_status || 'PENDING').toUpperCase() === 'DONE') && (
+                                <span style={{ color: '#16a34a', fontWeight: 600 }}>已完成</span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -474,6 +572,23 @@ export default function MatterWorkspacePage() {
                         <div key={q.queue_id || idx} style={{ padding: '6px 0', borderBottom: idx === now.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
                           <div style={{ fontWeight: 600 }}>{q.queue_id}</div>
                           <div style={{ color: '#666' }}>Action: {q.action_id} · Work: {q.work_id} · Status: {q.status}</div>
+                          <div style={{ marginTop: 6 }}>
+                            <div style={{ color: '#374151', fontSize: 13 }}>{mapExecutionStatusLabel(q.execution_status)}</div>
+                            <div style={{ marginTop: 6 }}>
+                              {((q.execution_status || 'PENDING').toUpperCase() === 'PENDING') && (
+                                <button onClick={() => callOperation(q.queue_id, 'start')} disabled={opLoading === q.queue_id} style={{ padding: '6px 10px' }}>开始</button>
+                              )}
+                              {((q.execution_status || 'PENDING').toUpperCase() === 'RUNNING') && (
+                                <>
+                                  <button onClick={() => callOperation(q.queue_id, 'pause')} disabled={opLoading === q.queue_id} style={{ padding: '6px 10px' }}>暂停</button>
+                                  <button onClick={() => callOperation(q.queue_id, 'complete')} disabled={opLoading === q.queue_id} style={{ padding: '6px 10px', marginLeft: 8 }}>完成</button>
+                                </>
+                              )}
+                              {((q.execution_status || 'PENDING').toUpperCase() === 'DONE') && (
+                                <span style={{ color: '#16a34a', fontWeight: 600 }}>已完成</span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -486,6 +601,23 @@ export default function MatterWorkspacePage() {
                         <div key={q.queue_id || idx} style={{ padding: '6px 0', borderBottom: idx === today.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
                           <div style={{ fontWeight: 600 }}>{q.queue_id}</div>
                           <div style={{ color: '#666' }}>Action: {q.action_id} · Work: {q.work_id} · Status: {q.status}</div>
+                          <div style={{ marginTop: 6 }}>
+                            <div style={{ color: '#374151', fontSize: 13 }}>{mapExecutionStatusLabel(q.execution_status)}</div>
+                            <div style={{ marginTop: 6 }}>
+                              {((q.execution_status || 'PENDING').toUpperCase() === 'PENDING') && (
+                                <button onClick={() => callOperation(q.queue_id, 'start')} disabled={opLoading === q.queue_id} style={{ padding: '6px 10px' }}>开始</button>
+                              )}
+                              {((q.execution_status || 'PENDING').toUpperCase() === 'RUNNING') && (
+                                <>
+                                  <button onClick={() => callOperation(q.queue_id, 'pause')} disabled={opLoading === q.queue_id} style={{ padding: '6px 10px' }}>暂停</button>
+                                  <button onClick={() => callOperation(q.queue_id, 'complete')} disabled={opLoading === q.queue_id} style={{ padding: '6px 10px', marginLeft: 8 }}>完成</button>
+                                </>
+                              )}
+                              {((q.execution_status || 'PENDING').toUpperCase() === 'DONE') && (
+                                <span style={{ color: '#16a34a', fontWeight: 600 }}>已完成</span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -498,6 +630,23 @@ export default function MatterWorkspacePage() {
                         <div key={q.queue_id || idx} style={{ padding: '6px 0', borderBottom: idx === later.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
                           <div style={{ fontWeight: 600 }}>{q.queue_id}</div>
                           <div style={{ color: '#666' }}>Action: {q.action_id} · Work: {q.work_id} · Status: {q.status}</div>
+                          <div style={{ marginTop: 6 }}>
+                            <div style={{ color: '#374151', fontSize: 13 }}>{mapExecutionStatusLabel(q.execution_status)}</div>
+                            <div style={{ marginTop: 6 }}>
+                              {((q.execution_status || 'PENDING').toUpperCase() === 'PENDING') && (
+                                <button onClick={() => callOperation(q.queue_id, 'start')} disabled={opLoading === q.queue_id} style={{ padding: '6px 10px' }}>开始</button>
+                              )}
+                              {((q.execution_status || 'PENDING').toUpperCase() === 'RUNNING') && (
+                                <>
+                                  <button onClick={() => callOperation(q.queue_id, 'pause')} disabled={opLoading === q.queue_id} style={{ padding: '6px 10px' }}>暂停</button>
+                                  <button onClick={() => callOperation(q.queue_id, 'complete')} disabled={opLoading === q.queue_id} style={{ padding: '6px 10px', marginLeft: 8 }}>完成</button>
+                                </>
+                              )}
+                              {((q.execution_status || 'PENDING').toUpperCase() === 'DONE') && (
+                                <span style={{ color: '#16a34a', fontWeight: 600 }}>已完成</span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
