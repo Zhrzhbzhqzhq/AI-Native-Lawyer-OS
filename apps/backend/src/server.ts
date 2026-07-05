@@ -3,6 +3,7 @@ import cors from '@fastify/cors'
 import { createPrismaClient } from '@lawdesk/database'
 import matterRoutes from './routes/matterRoutes'
 import intakeRoutes from './routes/intakeRoutes'
+import executionRoutes from './routes/executionRoutes'
 
 export async function buildApp() {
   const app = Fastify({ logger: true })
@@ -27,6 +28,7 @@ export async function buildApp() {
 
   await app.register(matterRoutes)
   await app.register(intakeRoutes)
+  await app.register(executionRoutes)
 
   return app
 }
