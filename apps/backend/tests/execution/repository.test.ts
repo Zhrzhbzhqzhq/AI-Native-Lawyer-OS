@@ -32,7 +32,7 @@ describe('ExecutionRepository CRUD', () => {
     })
 
     expect(row.queue_id).toBe(qid)
-    const fetched = await repo.getByQueueId(qid)
+    const fetched = await repo.getByMatterAndQueueId(TEST_MATTER, qid)
     expect(fetched?.queue_id).toBe(qid)
 
     const updated = await repo.update({ queue_id: qid, execution_status: 'RUNNING' })
@@ -47,6 +47,6 @@ describe('ExecutionRepository CRUD', () => {
     expect(up.execution_status).toBe('DONE')
 
     // cleanup
-    await prisma.executionQueueItem.deleteMany({ where: { queue_id: qid } }).catch(() => {})
+    await prisma.executionQueueItem.deleteMany({ where: { matter_id: TEST_MATTER, queue_id: qid } }).catch(() => {})
   })
 })

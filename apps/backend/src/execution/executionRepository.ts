@@ -20,7 +20,7 @@ export default class ExecutionRepository {
   }
 
   async getByQueueId(queue_id: string): Promise<ExecutionQueueRow | null> {
-    return this.prisma.executionQueueItem.findUnique({ where: { queue_id } }) as any
+    return this.prisma.executionQueueItem.findFirst({ where: { queue_id } }) as any
   }
 
   async getByMatter(matter_id: string): Promise<ExecutionQueueRow[]> {
@@ -44,15 +44,17 @@ export default class ExecutionRepository {
       execution_status: item.execution_status,
     }
 
-    return this.prisma.executionQueueItem.upsert({
-      where: { queue_id: item.queue_id },
-      create: payload as any,
-      update: payload as any,
-    }) as any
+    // Prisma upsert requires a unique scalar field; use updateMany/create fallback to emulate upsert by (matter_id, queue_id)
+    const updated = await this.prisma.executionQueueItem.updateMany({ where: { matter_id: item.matter_id, queue_id: item.queue_id }, data: payload as any })
+    if (updated.count && updated.count > 0) {
+      return this.getByMatterAndQueueId(item.matter_id, item.queue_id) as any
+    }
+    return this.prisma.executionQueueItem.create({ data: payload as any }) as any
   }
 
   async updateStatus(queue_id: string, status: string): Promise<ExecutionQueueRow> {
-    return this.prisma.executionQueueItem.update({ where: { queue_id }, data: { execution_status: status } }) as any
+    await this.prisma.executionQueueItem.updateMany({ where: { queue_id }, data: { execution_status: status } })
+    return this.prisma.executionQueueItem.findFirst({ where: { queue_id } }) as any
   }
 
   async create(item: {
@@ -86,6 +88,16 @@ export default class ExecutionRepository {
     if (item.work_id !== undefined) data.work_id = item.work_id
     if (item.slot !== undefined) data.slot = item.slot
     if (item.execution_status !== undefined) data.execution_status = item.execution_status
-    return this.prisma.executionQueueItem.update({ where: { queue_id: item.queue_id }, data }) as any
+    await this.prisma.executionQueueItem.updateMany({ where: { queue_id: item.queue_id }, data })
+    return this.prisma.executionQueueItem.findFirst({ where: { queue_id: item.queue_id } }) as any
+  }
+
+  async getByMatterAndQueueId(matter_id: string, queue_id: string): Promise<ExecutionQueueRow | null> {
+    return this.prisma.executionQueueItem.findFirst({ where: { matter_id, queue_id } }) as any
+  }
+
+  async updateStatusByMatter(matter_id: string, queue_id: string, status: string): Promise<ExecutionQueueRow> {
+    await this.prisma.executionQueueItem.updateMany({ where: { matter_id, queue_id }, data: { execution_status: status } })
+    return this.prisma.executionQueueItem.findFirst({ where: { matter_id, queue_id } }) as any
   }
 }

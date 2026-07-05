@@ -25,8 +25,8 @@ export default class ExecutionService {
     return this.repo.upsert(item)
   }
 
-  async start(queue_id: string) {
-    const existing = await this.repo.getByQueueId(queue_id)
+  async start(matter_id: string, queue_id: string) {
+    const existing = await this.repo.getByMatterAndQueueId(matter_id, queue_id)
     if (!existing) throw new Error('Not found')
 
     const current = {
@@ -37,12 +37,12 @@ export default class ExecutionService {
     } as ExecutionQueueType
 
     const next = startQueueItem(current)
-    await this.repo.updateStatus(queue_id, next.execution_status)
+    await this.repo.updateStatusByMatter(existing.matter_id, queue_id, next.execution_status)
     return next
   }
 
-  async pause(queue_id: string) {
-    const existing = await this.repo.getByQueueId(queue_id)
+  async pause(matter_id: string, queue_id: string) {
+    const existing = await this.repo.getByMatterAndQueueId(matter_id, queue_id)
     if (!existing) throw new Error('Not found')
 
     const current = {
@@ -53,12 +53,12 @@ export default class ExecutionService {
     } as ExecutionQueueType
 
     const next = pauseQueueItem(current)
-    await this.repo.updateStatus(queue_id, next.execution_status)
+    await this.repo.updateStatusByMatter(existing.matter_id, queue_id, next.execution_status)
     return next
   }
 
-  async complete(queue_id: string) {
-    const existing = await this.repo.getByQueueId(queue_id)
+  async complete(matter_id: string, queue_id: string) {
+    const existing = await this.repo.getByMatterAndQueueId(matter_id, queue_id)
     if (!existing) throw new Error('Not found')
 
     const current = {
@@ -69,7 +69,7 @@ export default class ExecutionService {
     } as ExecutionQueueType
 
     const next = completeQueueItem(current)
-    await this.repo.updateStatus(queue_id, next.execution_status)
+    await this.repo.updateStatusByMatter(existing.matter_id, queue_id, next.execution_status)
     return next
   }
 }
