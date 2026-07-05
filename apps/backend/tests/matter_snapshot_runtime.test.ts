@@ -71,5 +71,13 @@ describe('Matter Snapshot Runtime', () => {
     expect(res.statusCode).toBe(200)
     const body = JSON.parse(res.body)
     expect(body.matter).toBeTruthy()
+
+    // today_queue should include execution_status overlay (default PENDING when no persisted rows)
+    expect(body.today_queue).toBeTruthy()
+    expect(Array.isArray(body.today_queue)).toBe(true)
+    for (const item of body.today_queue) {
+      expect(item.execution_status).toBeDefined()
+      expect(item.execution_status).toBe('PENDING')
+    }
   })
 })

@@ -139,6 +139,24 @@ export async function matterRoutes(app: FastifyInstance) {
       try {
         const runtime = new (await import('../runtime/matterSnapshotRuntime')).default(prisma);
         const snap = await runtime.build(matter_id);
+
+        // Overlay persisted execution status onto today_queue at the route layer
+        try {
+          const ExecutionService = (await import('../execution/executionService')).default
+          const execService = new ExecutionService(prisma)
+          const persisted = await execService.loadQueueState(matter_id)
+          const map = new Map((Array.isArray(persisted) ? persisted : []).map((p:any) => [p.queue_id, p]))
+
+          if (Array.isArray(snap.today_queue)) {
+            snap.today_queue = snap.today_queue.map((q:any) => {
+              const p = map.get(q.queue_id)
+              return { ...q, execution_status: p ? p.execution_status : 'PENDING' }
+            })
+          }
+        } catch (e) {
+          // overlay failure should not block returning the snapshot
+        }
+
         return reply.code(200).send(snap);
       } catch (err: any) {
         return reply.code(500).send({ error: 'runtime snapshot failed', detail: err?.message || String(err) });
