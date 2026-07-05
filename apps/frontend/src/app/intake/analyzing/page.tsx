@@ -64,7 +64,13 @@ export default function AnalyzingPage() {
           <div>
             <button
               type="button"
-              onClick={() => router.push('/intake/report')}
+              onClick={() => {
+                try {
+                  const analysis = { title: '张三诉李四民间借贷纠纷', matter_type: '民间借贷纠纷', summary: 'AI 识别到民间借贷要件，建议接案。' }
+                  sessionStorage.setItem('intake_analysis', JSON.stringify(analysis))
+                } catch (e) {}
+                router.push('/intake/report')
+              }}
               style={{ padding: '10px 14px', borderRadius: 8, background: '#2563eb', color: '#fff', border: 'none' }}
             >
               查看接案分析报告

@@ -2,8 +2,10 @@
 "use client"
 
 import React from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function ReportPage() {
+  const router = useRouter()
   const evidence = {
     have: ['银行流水', '微信聊天记录', '借款承认'],
     missing: ['被告身份信息', '催款记录', '利息约定'],
@@ -105,7 +107,29 @@ export default function ReportPage() {
             </button>
             <button
               type="button"
-              onClick={() => alert('下一阶段实现')}
+              onClick={() => {
+                const analysis = {
+                  title: '张三诉李四民间借贷纠纷',
+                  summary: 'AI 建议接案，证据链较完整，建议补充被告身份信息与催款证据。',
+                  matter_type: '民间借贷纠纷',
+                  score: 92,
+                }
+                try {
+                  sessionStorage.setItem('intake_analysis', JSON.stringify(analysis))
+                  const draft = JSON.parse(sessionStorage.getItem('intake_draft') || '{}')
+                  const payload = {
+                    matter_id: `matter-${Date.now()}`,
+                    title: analysis.title,
+                    description: draft.clientContent || analysis.summary || '',
+                    matter_type: analysis.matter_type,
+                    analysis,
+                  }
+                  sessionStorage.setItem('intake_create_payload', JSON.stringify(payload))
+                } catch (e) {
+                  // ignore storage errors
+                }
+                router.push('/intake/creating')
+              }}
               style={{ padding: '10px 14px', borderRadius: 8, background: '#2563eb', color: '#fff', border: 'none' }}
             >
               确认接案
