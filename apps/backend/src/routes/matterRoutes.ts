@@ -1057,8 +1057,45 @@ export async function matterRoutes(app: FastifyInstance) {
   app.post('/matters', async (request, reply) => {
     const payload = request.body as any;
     if (!payload.matter_id || !payload.title) return reply.code(400).send({ error: 'matter_id and title required' });
-    const created = await service.create(payload);
-    return reply.code(201).send(created);
+    try {
+      const created = await service.create(payload);
+      // return both legacy fields and new fields for compatibility with tests and frontend
+      return reply.code(201).send({
+        matter_id: created.matter_id,
+        title: created.title,
+        description: created.description,
+        matter_type: created.matter_type,
+        status: created.status,
+        created_at: created.created_at,
+        updated_at: created.updated_at,
+        matterId: created.matter_id,
+        matter: created,
+      });
+    } catch (err: any) {
+      // handle unique constraint (matter already exists)
+      const code = err?.code || err?.meta?.code || null
+      const message = String(err?.message || err)
+      if (code === 'P2002' || /unique constraint/i.test(message) || /already exists/i.test(message)) {
+        try {
+          const existing = await service.get(payload.matter_id);
+          if (existing) return reply.code(200).send({
+            matter_id: existing.matter_id,
+            title: existing.title,
+            description: existing.description,
+            matter_type: existing.matter_type,
+            status: existing.status,
+            created_at: existing.created_at,
+            updated_at: existing.updated_at,
+            matterId: existing.matter_id,
+            matter: existing,
+          });
+        } catch (e) {
+          // fall through to error
+        }
+        return reply.code(409).send({ error: 'matter_exists' });
+      }
+      return reply.code(500).send({ error: 'create_failed', detail: message });
+    }
   });
 
   app.patch('/matters/:id', async (request, reply) => {
