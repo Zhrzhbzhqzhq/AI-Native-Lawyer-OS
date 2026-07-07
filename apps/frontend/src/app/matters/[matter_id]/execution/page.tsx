@@ -98,6 +98,43 @@ export default function ExecutionWorkspacePage() {
     '财产线索清单',
   ]
 
+  // derive execution advice from runtime snapshot when available
+  const runtimeData: any = runtime || null
+  let realExecutionAdvice = ''
+  try {
+    if (runtimeData) {
+      // prefer runtime_next_step if it's a string or has description/title
+      const rns = runtimeData.runtime_next_step
+      if (rns) {
+        if (typeof rns === 'string') realExecutionAdvice = rns
+        else if (typeof rns === 'object') realExecutionAdvice = rns.description || rns.title || JSON.stringify(rns)
+      }
+
+      // fallback to runtime_plan summary or ai.last_summary
+      if (!realExecutionAdvice) {
+        const plan = runtimeData.runtime_plan
+        if (plan) realExecutionAdvice = plan.summary || plan.description || JSON.stringify(plan)
+      }
+
+      if (!realExecutionAdvice) {
+        const ai = runtimeData.ai
+        if (ai && ai.last_summary) realExecutionAdvice = ai.last_summary.summary || ai.last_summary.message || JSON.stringify(ai.last_summary)
+      }
+
+      // final fallback to snapshot_facts hints
+      if (!realExecutionAdvice) {
+        const sf = runtimeData.snapshot_facts
+        if (sf) {
+          realExecutionAdvice = `文书：${sf.documents?.draft ?? 0} 草稿，${sf.documents?.final ?? 0} 已定稿；证据弱项：${sf.evidence?.weak ?? 0} 项。建议补强关键证据与材料。`
+        }
+      }
+    }
+  } catch (e) {
+    realExecutionAdvice = ''
+  }
+
+  const realExecutionAdviceOrFallback = realExecutionAdvice || '下一步建议律师补强执行依据、确认被执行人财产线索、准备执行申请材料。'
+
   return (
     <main style={{ padding: 24, background: theme.pageBg }}>
       <div style={{ padding: 20, borderRadius: 16, background: theme.cardBg, border: `1px solid ${theme.border}`, boxShadow: '0 8px 24px rgba(2,6,23,0.04)' }}>
@@ -134,7 +171,7 @@ export default function ExecutionWorkspacePage() {
         <section style={{ background: theme.cardBg, padding: 16, borderRadius: 12, border: `1px solid ${theme.border}` }}>
           <TwoLineTitle zh="AI 执行建议" en="AI Execution Advice" size="md" />
           <div style={{ color: theme.text, marginTop: 12, lineHeight: 1.65 }}>
-            下一步建议律师补强执行依据、确认被执行人财产线索、准备执行申请材料。
+            {realExecutionAdviceOrFallback}
           </div>
           <div style={{ marginTop: 14 }}>
             <a
