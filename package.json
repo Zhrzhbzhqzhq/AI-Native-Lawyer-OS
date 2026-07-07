@@ -9,6 +9,7 @@
     "lint": "turbo run lint",
     "dev:local": "bash scripts/dev-local.sh",
     "dev:frontend:clean": "bash scripts/dev-frontend-clean.sh",
+    "validate:v1": "bash scripts/validate-v1-workflow.sh",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "format": "turbo run format"

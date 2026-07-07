@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 
 type Workspace = {
   matter: { matter_id: string; title?: string; status?: string }
@@ -11,22 +11,51 @@ type Workspace = {
   recent_activity?: any[]
 }
 
+// Visual design tokens (M39.7)
+const tokens = {
+  blue: '#2563eb',
+  text: '#0f172a',
+  muted: '#64748b',
+  border: '#e2e8f0',
+  pageBg: '#f8fafc',
+  cardBg: '#ffffff',
+  radius: 16,
+  shadow: '0 8px 24px rgba(2,6,23,0.04)',
+  spacing: 16,
+}
+
+function TwoLineTitle({ zh, en, size = 'md' }: { zh: string; en?: string; size?: 'xl' | 'lg' | 'md' | 'sm' }) {
+  const sizes: Record<string, { zh: number; en: number; gap: number }> = {
+    xl: { zh: 24, en: 14, gap: 2 },
+    lg: { zh: 20, en: 12, gap: 2 },
+    md: { zh: 16, en: 10, gap: 2 },
+    sm: { zh: 14, en: 9, gap: 1 },
+  }
+  const s = sizes[size] || sizes.md
+  return (
+    <div style={{ lineHeight: 1.05 }}>
+      <div style={{ fontSize: s.zh, fontWeight: 800, color: tokens.text, margin: 0 }}>{zh}</div>
+      {en ? <div style={{ fontSize: s.en, fontWeight: 400, color: tokens.muted, marginTop: s.gap }}>{en}</div> : null}
+    </div>
+  )
+}
+
 function SummaryCard({ title, value }: { title: string; value: number }) {
   return (
-    <div style={{ padding: 12, borderRadius: 8, background: '#fff', border: '1px solid #e6edf0', minWidth: 140 }}>
-      <div style={{ fontSize: 12, color: '#475569' }}>{title}</div>
-      <div style={{ fontSize: 20, fontWeight: 700 }}>{value}</div>
+    <div style={{ padding: tokens.spacing, borderRadius: tokens.radius, background: tokens.cardBg, border: `1px solid ${tokens.border}`, minWidth: 140 }}>
+      <div style={{ fontSize: 12, color: tokens.muted }}>{title}</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: tokens.text }}>{value === 0 ? '—' : value}</div>
     </div>
   )
 }
 
 function RecentList({ title, items, renderItem }: { title: string; items: any[]; renderItem: (it: any) => React.ReactNode }) {
   return (
-    <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
-      <h3 style={{ marginTop: 0 }}>{title}</h3>
-      {items.length === 0 && <div style={{ color: '#666' }}>暂无内容</div>}
+    <div style={{ background: tokens.cardBg, padding: tokens.spacing, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+      <div style={{ marginTop: 0 }}><TwoLineTitle zh={title} size="md" /></div>
+      {items.length === 0 && <div style={{ color: tokens.muted }}>—</div>}
       {items.map((it, idx) => (
-        <div key={it.material_id ?? it.evidence_id ?? it.document_id ?? idx} style={{ padding: 8, borderBottom: '1px solid #f1f5f9' }}>
+        <div key={it.material_id ?? it.evidence_id ?? it.document_id ?? idx} style={{ padding: 8, borderBottom: `1px solid ${tokens.border}` }}>
           {renderItem(it)}
         </div>
       ))}
@@ -34,537 +63,337 @@ function RecentList({ title, items, renderItem }: { title: string; items: any[];
   )
 }
 
+// Small TimelineItem component required by the page
+function TimelineItem({ title, time }: { title: string; time?: string }) {
+  return (
+    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+      <div style={{ width: 10, height: 10, background: tokens.blue, borderRadius: '50%', marginTop: 6 }} />
+      <div>
+        <div style={{ fontWeight: 600 }}>{title}</div>
+        {time ? <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>{String(time)}</div> : null}
+      </div>
+    </div>
+  )
+}
+
+function TaskCard({ title, status, estimate, onStart }: { title: string; status?: string; estimate?: string; onStart?: () => void }) {
+  const statusLabel = String(status || 'PENDING').toUpperCase() === 'RUNNING' ? '进行中' : String(status || 'PENDING').toUpperCase() === 'DONE' ? '已完成' : '等待中'
+  return (
+    <div style={{ background: tokens.cardBg, padding: tokens.spacing, borderRadius: tokens.radius, border: `1px solid ${tokens.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: tokens.shadow }}>
+      <div>
+        <div style={{ fontWeight: 700, color: tokens.text }}>{title}</div>
+        <div style={{ color: tokens.muted, fontSize: 13, marginTop: 6 }}>{statusLabel} · 预计：{estimate || '—'}</div>
+      </div>
+      <div>
+        <button onClick={onStart} style={{
+          background: tokens.blue,
+          color: '#fff',
+          border: `1px solid ${tokens.blue}`,
+          borderRadius: 12,
+          padding: '8px 14px',
+          fontWeight: 600,
+          cursor: 'pointer'
+        }}>
+          开始
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// Rich task card for Today Tasks (M39.2)
+function RichTaskCard({
+  title,
+  why,
+  estimate,
+  taskMatch,
+  onStart,
+  onComplete,
+}: {
+  title: string
+  why: string
+  estimate: string
+  taskMatch?: any
+  onStart: (matched?: any) => void
+  onComplete?: (matched?: any) => void
+}) {
+  const statusLabel = taskMatch ? mapTaskStatusLabel(taskMatch.execution_status) : '等待中'
+  return (
+    <div style={{ background: tokens.cardBg, padding: tokens.spacing + 2, borderRadius: tokens.radius, border: `1px solid ${tokens.border}`, boxShadow: tokens.shadow, display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontWeight: 800, fontSize: 16, color: tokens.text }}>{title}</div>
+        <div style={{ color: tokens.muted, marginTop: 8 }}>{why}</div>
+        <div style={{ color: tokens.muted, marginTop: 10, fontSize: 13 }}>预计耗时：{estimate}</div>
+        <div style={{ color: tokens.text, marginTop: 8, fontWeight: 600 }}>{statusLabel}</div>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+        <div>
+          {(() => {
+            const exec = taskMatch ? String(taskMatch.execution_status || taskMatch.status || '').toUpperCase() : ''
+            const isDone = exec === 'DONE'
+            const isRunning = exec === 'RUNNING'
+            const isPending = exec === 'PENDING' || exec === 'READY' || exec === ''
+
+            return (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={() => onStart(taskMatch)}
+                  disabled={isRunning || isDone}
+                  style={{
+                    background: isPending ? tokens.blue : tokens.cardBg,
+                    color: isPending ? '#fff' : tokens.text,
+                    border: `1px solid ${isPending ? tokens.blue : tokens.border}`,
+                    borderRadius: 12,
+                    padding: '8px 14px',
+                    fontWeight: 600,
+                    cursor: isRunning || isDone ? 'not-allowed' : 'pointer',
+                    opacity: isRunning || isDone ? 0.6 : 1,
+                  }}
+                >
+                  开始
+                </button>
+
+                <button
+                  onClick={() => (typeof onComplete === 'function' ? onComplete(taskMatch) : undefined)}
+                  disabled={isPending || isDone}
+                  style={{
+                    background: isRunning ? tokens.blue : tokens.cardBg,
+                    color: isRunning ? '#fff' : tokens.text,
+                    border: `1px solid ${isRunning ? tokens.blue : tokens.border}`,
+                    borderRadius: 12,
+                    padding: '8px 14px',
+                    fontWeight: 600,
+                    cursor: isPending || isDone ? 'not-allowed' : 'pointer',
+                    opacity: isPending || isDone ? 0.6 : 1,
+                  }}
+                >
+                  完成
+                </button>
+              </div>
+            )
+          })()}
+        </div>
+
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => alert(why)} style={{ background: tokens.cardBg, color: tokens.blue, border: `1px solid ${tokens.border}`, borderRadius: 12, padding: '6px 10px', cursor: 'pointer' }}>查看说明</button>
+          <button onClick={() => alert('已标记为稍后处理')} style={{ background: tokens.cardBg, color: tokens.text, border: `1px solid ${tokens.border}`, borderRadius: 12, padding: '6px 10px', cursor: 'pointer' }}>稍后处理</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function mapTaskStatusLabel(s?: string) {
+  const v = String(s || 'PENDING').toUpperCase()
+  if (v === 'PENDING') return '等待中'
+  if (v === 'RUNNING') return '进行中'
+  if (v === 'DONE') return '已完成'
+  return s || '等待中'
+}
+
+function formatWaitingForDisplay(value: any): string {
+  if (value == null) return '无'
+  if (typeof value === 'string') return value.trim() || '无'
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+  if (Array.isArray(value)) {
+    const text = value
+      .map((it) => formatWaitingForDisplay(it))
+      .filter((s) => s && s !== '无')
+      .join('，')
+    return text || '无'
+  }
+  if (typeof value === 'object') {
+    const obj = value as Record<string, any>
+    const candidate = obj.title ?? obj.summary ?? obj.reason ?? obj.message ?? obj.lawyer_action
+    if (candidate == null) return '无'
+    return formatWaitingForDisplay(candidate)
+  }
+  return '无'
+}
+
+function TimelineNode({ idx, title, state }: { idx: number; title: string; state: 'done'|'current'|'future' }) {
+  const color = state === 'done' ? tokens.blue : state === 'current' ? '#0ea5a4' : '#cbd5e1'
+  return (
+    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+      <div style={{ width: 14, height: 14, background: color, borderRadius: '50%', marginTop: 4 }} />
+      <div>
+        <div style={{ fontWeight: state === 'current' ? 800 : 600, color: tokens.text }}>{title}</div>
+      </div>
+    </div>
+  )
+}
+
 export default function MatterWorkspacePage() {
   const params = useParams() as { matter_id: string }
-  const [data, setData] = useState<Workspace | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [runtime, setRuntime] = useState<any | null>(null)
-  const [opLoading, setOpLoading] = useState<string | null>(null)
+  const router = useRouter()
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true)
-      setError(null)
-      try {
-        const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000'
-        const [res, resRuntime] = await Promise.all([
-          fetch(`${API}/matters/${params.matter_id}/workspace`),
-          fetch(`${API}/matters/${params.matter_id}/runtime`).catch(() => null),
-        ])
-
-        if (!res.ok) throw new Error('workspace fetch failed')
-        const body = await res.json()
-        setData(body as Workspace)
-
-        if (resRuntime && resRuntime.ok) {
-          try {
-            const rt = await resRuntime.json()
-            setRuntime(rt)
-          } catch (_e) {
-            setRuntime(null)
-          }
-        } else {
-          setRuntime(null)
-        }
-      } catch (e: any) {
-        setError(e?.message || 'Failed to load workspace')
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
-  }, [params.matter_id])
-
-  // fetch runtime snapshot (used after operations)
-  async function fetchRuntime() {
-    try {
-      const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000'
-      const res = await fetch(`${API}/matters/${params.matter_id}/runtime`)
-      if (!res.ok) return
-      const rt = await res.json()
-      setRuntime(rt)
-    } catch (e) {
-      console.error('fetchRuntime failed', e)
-    }
+  // Mock workspace data for M92
+  const mock = {
+    title: '张三诉李四民间借贷纠纷',
+    priorityStars: 5,
+    currentStage: '证据整理',
+    aiWorkedMinutes: 42,
+    aiConfidence: 82,
+    aiTimeline: [
+      { t: '09:10', text: 'OCR' },
+      { t: '09:12', text: '分类' },
+      { t: '09:15', text: 'Proof Map' },
+      { t: '09:18', text: '缺口分析' },
+      { t: '09:22', text: '等待律师' },
+    ],
+    workspaces: [
+      { key: 'evidence', title: 'Evidence Workspace', status: '等待补证', progress: 42 },
+      { key: 'research', title: 'Research Workspace', status: '未开始', progress: 10 },
+      { key: 'document', title: 'Document Workspace', status: '未开始', progress: 5 },
+      { key: 'execution', title: 'Execution Workspace', status: '未开始', progress: 0 },
+    ],
+    discoveries: ['借条真实', '微信聊天完整', '缺少银行流水', '建议申请保全'],
+    lawyerTodo: ['上传银行流水', '确认诉请', '联系客户', '是否申请保全'],
+    confidences: [
+      { k: '总体', v: 82 },
+      { k: '证据完整度', v: 64 },
+      { k: '法律依据', v: 58 },
+      { k: '文书准备', v: 30 },
+      { k: '起诉可行性', v: 70 },
+    ],
+    roadmap: ['咨询', '接案', '证据整理', '法律检索', '文书生成', '起诉', '庭审', '执行', '结案'],
   }
 
-  async function callOperation(item: any, operation: 'start'|'pause'|'complete') {
-    const queue_id = item?.queue_id
-    if (!queue_id) return
-    setOpLoading(queue_id)
-    try {
-      const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000'
-      const payload = {
-        operation,
-        action_id: item?.action_id,
-        work_id: item?.work_id ?? null,
-        slot: item?.slot,
-      }
-      const res = await fetch(`${API}/matters/${params.matter_id}/execution/${queue_id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      if (!res.ok) {
-        const txt = await res.text().catch(()=>null)
-        alert('操作失败: ' + (txt || res.statusText))
-        return
-      }
-      // refresh runtime snapshot after successful op
-      await fetchRuntime()
-    } catch (e:any) {
-      console.error('operation failed', e)
-      alert('操作失败')
-    } finally {
-      setOpLoading(null)
-    }
-  }
-
-  const mapExecutionStatusLabel = (s?: string) => {
-    const v = String(s || 'PENDING').toUpperCase()
-    if (v === 'PENDING') return '待开始'
-    if (v === 'RUNNING') return '进行中'
-    if (v === 'DONE') return '已完成'
-    return s || '待开始'
-  }
-
-  const mapExecutionStatusLabelForActiveWork = (s?: string) => {
-    const v = String(s || 'PENDING').toUpperCase()
-    if (v === 'PENDING') return '暂不可执行'
-    if (v === 'RUNNING') return '执行中'
-    if (v === 'DONE') return '已完成'
-    return s || '暂不可执行'
-  }
-
-  const findQueueForAction = (a: any) => {
-    if (!runtime || !Array.isArray(runtime.today_queue)) return null
-    return runtime.today_queue.find((q:any) => (a.action_id && q.action_id === a.action_id) || (a.work_id && q.work_id === a.work_id) ) || null
-  }
-
-  const findQueueForWork = (w: any) => {
-    if (!runtime || !Array.isArray(runtime.today_queue)) return null
-    return runtime.today_queue.find((q:any) => (w.work_id && q.work_id === w.work_id) || (w.action_id && q.action_id === w.action_id)) || null
-  }
-
-  if (loading) return <main style={{ padding: 24 }}><div>正在加载工作区…</div></main>
-  if (error) return <main style={{ padding: 24 }}><div style={{ color: '#b91c1c' }}>错误：{error}</div></main>
-  if (!data) return null
-
-  const matter = data.matter || { matter_id: params.matter_id, title: '', status: '' }
-  const recentActivity = (data as any).recent_activity ?? []
-  const aiNextSteps = (data as any).ai_next_steps ?? []
-
-  const mapDecisionCode = (code?: string) => {
-    switch (String(code || '').toUpperCase()) {
-      case 'COLLECT_EVIDENCE':
-        return '需要先补强证据'
-      case 'REVIEW_EVIDENCE':
-        return '需要审查现有证据'
-      case 'RESEARCH_LAW':
-        return '需要补充法律检索'
-      case 'REVIEW_DOCUMENT':
-        return '需要审查文书草稿'
-      case 'MONITOR_MATTER':
-        return '当前以跟进观察为主'
-      case 'NO_ACTION':
-        return '暂无明确下一步'
-      default:
-        return String(code || '')
-    }
-  }
-
-  const mapPriority = (p?: string) => {
-    switch (String(p || '').toUpperCase()) {
-      case 'HIGH': return '高优先级'
-      case 'MEDIUM': return '中优先级'
-      case 'LOW': return '低优先级'
-      default: return p || '—'
-    }
-  }
-
-  const mapActionToLabel = (a: any) => {
-    const type = String(a?.type || (a?.payload?.target_type || '')).toLowerCase()
-    if (type.includes('evidence')) return '准备证据材料'
-    if (type.includes('document')) return '审查或准备法律文书'
-    if (type.includes('research')) return '补充法律检索'
-    if (type.includes('monitor')) return '跟进案件进展'
-    return '执行任务'
-  }
-
-  const mapStatusLabel = (s: string) => String(s || '').toUpperCase() === 'READY' ? '可开始' : '暂不可执行'
-
-  const mapWorkTypeLabel = (t?: string) => {
-    switch (String(t || '')) {
-      case 'EvidenceWork': return '证据工作'
-      case 'DocumentWork': return '文书工作'
-      case 'ResearchWork': return '检索工作'
-      case 'MonitorWork': return '跟进工作'
-      default: return t || ''
-    }
-  }
-
-  const mapWorkTitle = (title?: string) => {
-    if (!title) return ''
-    const s = String(title).toLowerCase()
-    if (s.includes('evidence collection')) return '证据准备'
-    if (s.includes('evidence review')) return '证据审查'
-    if (s.includes('legal research')) return '法律检索'
-    if (s.includes('document review')) return '文书审查'
-    if (s.includes('matter monitoring')) return '案件跟进'
-    return title
-  }
-
-  // button styles
-  const primaryBtn: React.CSSProperties = { padding: '6px 10px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8 }
-  const secondaryBtn: React.CSSProperties = { padding: '6px 10px', background: '#fff', color: '#374151', border: '1px solid #cbd5e1', borderRadius: 8 }
+  const ProgressBar = ({ value }: { value: number }) => (
+    <div style={{ background: '#e6eef6', borderRadius: 8, height: 10, width: '100%' }}>
+      <div style={{ width: `${Math.max(0, Math.min(100, value))}%`, height: '100%', background: tokens.blue, borderRadius: 8 }} />
+    </div>
+  )
 
   return (
-    <main style={{ padding: 24 }}>
-      {/* Header: 案件名称 + 状态 + 收案日期(若有) */}
-      <div style={{ padding: 20, borderRadius: 12, background: '#fff', boxShadow: '0 1px 6px rgba(0,0,0,0.04)' }}>
-        <h1 style={{ margin: 0 }}>{matter.title || '未命名案件'}</h1>
-        <div style={{ color: '#666', marginTop: 6, fontSize: 13 }}>{matter.status}</div>
-        { (matter as any).received_at ? <div style={{ color: '#94a3b8', marginTop: 4, fontSize: 12 }}>收案日期：{new Date((matter as any).received_at).toLocaleDateString()}</div> : null }
-      </div>
-
-      {/* 第一部分：AI 主席（重要卡片） + Summary 卡片 */}
-      <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
-        <div style={{ padding: 16, borderRadius: 8, background: '#fff', border: '1px solid #e6edf0', minWidth: 320 }}>
-          <div style={{ fontSize: 14, color: '#475569', fontWeight: 700 }}>AI 主席</div>
-          <div style={{ marginTop: 8, fontWeight: 600 }}>当前阶段：{runtime?.runtime_plan?.stage || '—'}</div>
-          <div style={{ marginTop: 8 }}>今天建议完成：</div>
-          <ol style={{ marginTop: 6, paddingLeft: 18 }}>
-            <li>上传银行流水</li>
-            <li>上传微信聊天</li>
-            <li>自动生成证据目录</li>
-          </ol>
-          <div style={{ marginTop: 8 }}>预计耗时：{runtime?.runtime_plan?.estimate || '—'}</div>
-          <div style={{ marginTop: 8, color: '#2563eb', fontWeight: 600 }}>完成后：即可进入起诉准备</div>
+    <main style={{ padding: 28, background: tokens.pageBg, color: tokens.text }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: 18, alignItems: 'center' }}>
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 900 }}>{mock.title}</div>
+            <div style={{ marginTop: 6, color: tokens.muted }}>★★★★★</div>
+          </div>
+          <div style={{ color: tokens.muted }}>当前阶段：<span style={{ fontWeight: 800 }}>{mock.currentStage}</span></div>
+          <div style={{ color: tokens.muted }}>AI 已工作 {mock.aiWorkedMinutes} min</div>
+          <div style={{ color: tokens.muted }}>AI Confidence {mock.aiConfidence}%</div>
         </div>
 
-        <SummaryCard title="案件资料" value={data.summary.materials} />
-        <SummaryCard title="正式证据" value={data.summary.evidence} />
-        <SummaryCard title="案件文书" value={data.summary.documents} />
-        <SummaryCard title="AI建议" value={data.summary.pending_ai_suggestions} />
-      </div>
-
-      {/* Workspace Objects 卡片，统一中文并提供查看按钮 */}
-      {Array.isArray((data as any).object_navigation) && (
-        <div style={{ marginTop: 20 }}>
-          <h3>工作区对象</h3>
-          <div style={{ display: 'flex', gap: 12 }}>
-            {(data as any).object_navigation.map((obj: any) => {
-              // map common keys to Chinese labels
-              const key = String(obj.key || '').toLowerCase()
-              let label = obj.label || ''
-              if (key.includes('material') || key.includes('materials')) label = '案件资料'
-              else if (key.includes('evidence')) label = '正式证据'
-              else if (key.includes('document') || key.includes('documents')) label = '案件文书'
-
-              return (
-                <div key={obj.key} style={{ padding: 12, borderRadius: 8, background: '#fff', border: '1px solid #e6edf0', minWidth: 180 }}>
-                  <div style={{ fontSize: 13, color: '#333', fontWeight: 600 }}>{label}</div>
-                  <div style={{ marginTop: 8, fontSize: 18, fontWeight: 700 }}>{obj.count}</div>
-                  <div style={{ marginTop: 8 }}>
-                    <a href={obj.href} style={{ textDecoration: 'none' }}>
-                      <button style={{ padding: '8px 12px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8 }}>查看 →</button>
-                    </a>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* 第一行：今日队列 | 当前目标 */}
-      <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <div>
-          <h3>今日队列</h3>
-          <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
-            {runtime && Array.isArray(runtime.today_queue) ? (
-              (() => {
-                const now = runtime.today_queue.filter((q:any) => q.slot === 'NOW')
-                const today = runtime.today_queue.filter((q:any) => q.slot === 'TODAY')
-                const later = runtime.today_queue.filter((q:any) => q.slot === 'LATER')
-                if (runtime.today_queue.length === 0) return <div style={{ color: '#666' }}>暂无内容</div>
-                return (
-                  <div>
-                    {now.length > 0 && (
-                      <div style={{ marginBottom: 8 }}>
-                        <div style={{ fontWeight: 700 }}>立即执行</div>
-                        {now.map((q:any, idx:number) => (
-                          <div key={idx} style={{ padding: '6px 0', borderBottom: idx === now.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
-                            <div style={{ fontWeight: 600 }}>任务名称：{mapActionToLabel(q)}</div>
-                            <div style={{ color: '#666' }}>预计耗时：{q.estimate || q.estimated_time || q.duration || '—'}</div>
-                            <div style={{ marginTop: 6 }}>
-                              <div style={{ color: '#374151', fontSize: 13 }}>{mapExecutionStatusLabel(q.execution_status)}</div>
-                              <div style={{ marginTop: 6 }}>
-                                {((q.execution_status || 'PENDING').toUpperCase() === 'PENDING') && (
-                                  <button onClick={() => callOperation(q, 'start')} disabled={opLoading === q.queue_id} style={primaryBtn}>开始</button>
-                                )}
-                                {((q.execution_status || 'PENDING').toUpperCase() === 'RUNNING') && (
-                                  <>
-                                    <button onClick={() => callOperation(q, 'pause')} disabled={opLoading === q.queue_id} style={secondaryBtn}>暂停</button>
-                                    <button onClick={() => callOperation(q, 'complete')} disabled={opLoading === q.queue_id} style={{ ...primaryBtn, marginLeft: 8 }}>完成</button>
-                                  </>
-                                )}
-                                {((q.execution_status || 'PENDING').toUpperCase() === 'DONE') && (
-                                  <span style={{ color: '#16a34a', fontWeight: 600 }}>已完成</span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {today.length > 0 && (
-                      <div style={{ marginBottom: 8 }}>
-                        <div style={{ fontWeight: 700 }}>今日执行</div>
-                        {today.map((q:any, idx:number) => (
-                          <div key={idx} style={{ padding: '6px 0', borderBottom: idx === today.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
-                            <div style={{ fontWeight: 600 }}>任务名称：{mapActionToLabel(q)}</div>
-                            <div style={{ color: '#666' }}>预计耗时：{q.estimate || q.estimated_time || q.duration || '—'}</div>
-                            <div style={{ marginTop: 6 }}>
-                              <div style={{ color: '#374151', fontSize: 13 }}>{mapExecutionStatusLabel(q.execution_status)}</div>
-                              <div style={{ marginTop: 6 }}>
-                                {((q.execution_status || 'PENDING').toUpperCase() === 'PENDING') && (
-                                  <button onClick={() => callOperation(q, 'start')} disabled={opLoading === q.queue_id} style={primaryBtn}>开始</button>
-                                )}
-                                {((q.execution_status || 'PENDING').toUpperCase() === 'RUNNING') && (
-                                  <>
-                                    <button onClick={() => callOperation(q, 'pause')} disabled={opLoading === q.queue_id} style={secondaryBtn}>暂停</button>
-                                    <button onClick={() => callOperation(q, 'complete')} disabled={opLoading === q.queue_id} style={{ ...primaryBtn, marginLeft: 8 }}>完成</button>
-                                  </>
-                                )}
-                                {((q.execution_status || 'PENDING').toUpperCase() === 'DONE') && (
-                                  <span style={{ color: '#16a34a', fontWeight: 600 }}>已完成</span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {later.length > 0 && (
-                      <div>
-                        <div style={{ fontWeight: 700 }}>稍后执行</div>
-                        {later.map((q:any, idx:number) => (
-                          <div key={idx} style={{ padding: '6px 0', borderBottom: idx === later.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
-                            <div style={{ fontWeight: 600 }}>任务名称：{mapActionToLabel(q)}</div>
-                            <div style={{ color: '#666' }}>预计耗时：{q.estimate || q.estimated_time || q.duration || '—'}</div>
-                            <div style={{ marginTop: 6 }}>
-                              <div style={{ color: '#374151', fontSize: 13 }}>{mapExecutionStatusLabel(q.execution_status)}</div>
-                              <div style={{ marginTop: 6 }}>
-                                {((q.execution_status || 'PENDING').toUpperCase() === 'PENDING') && (
-                                  <button onClick={() => callOperation(q, 'start')} disabled={opLoading === q.queue_id} style={primaryBtn}>开始</button>
-                                )}
-                                {((q.execution_status || 'PENDING').toUpperCase() === 'RUNNING') && (
-                                  <>
-                                    <button onClick={() => callOperation(q, 'pause')} disabled={opLoading === q.queue_id} style={secondaryBtn}>暂停</button>
-                                    <button onClick={() => callOperation(q, 'complete')} disabled={opLoading === q.queue_id} style={{ ...primaryBtn, marginLeft: 8 }}>完成</button>
-                                  </>
-                                )}
-                                {((q.execution_status || 'PENDING').toUpperCase() === 'DONE') && (
-                                  <span style={{ color: '#16a34a', fontWeight: 600 }}>已完成</span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )
-              })()
-            ) : (
-              <div style={{ color: '#666' }}>暂无内容</div>
-            )}
-          </div>
-        </div>
-
-        <div>
-          <h3>当前目标</h3>
-          <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
-            {runtime && Array.isArray(runtime.runtime_actions) ? (
-              (() => {
-                const ready = runtime.runtime_actions.filter((a:any) => a.status === 'READY').slice(0,3)
-                if (ready.length === 0) return <div style={{ color: '#666' }}>暂无内容</div>
-                return (
-                  <div>
-                    {ready.map((a:any, idx:number) => {
-                      const name = mapActionToLabel(a)
-                      const queueMatch = findQueueForAction(a)
-                      const statusLabel = queueMatch ? mapExecutionStatusLabel(queueMatch.execution_status) : mapStatusLabel(a.status)
-                      const est = a.estimate || a.estimated_time || '—'
-                      const target = a?.payload?.target_workspace || ''
-                      const targetLabel = target === 'evidence' ? '正式证据' : target === 'documents' ? '案件文书' : target === 'materials' ? '案件资料' : target
-                      return (
-                        <div key={a.action_id ?? idx} style={{ padding: '8px 0', borderBottom: idx === ready.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
-                          <div style={{ fontWeight: 600 }}>任务名称：{name}</div>
-                          <div style={{ color: '#666' }}>状态：{statusLabel}</div>
-                          <div style={{ color: '#666' }}>预计耗时：{est}</div>
-                          <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 6 }}>完成后进入：{targetLabel || '—'}</div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )
-              })()
-            ) : (
-              <div style={{ color: '#666' }}>暂无内容</div>
-            )}
-          </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => alert('继续推进（模拟）')} style={{ background: tokens.blue, color: '#fff', border: 'none', padding: '8px 14px', borderRadius: 8, fontWeight: 700 }}>继续推进</button>
+          <button onClick={() => alert('更多（模拟）')} style={{ background: '#fff', color: tokens.text, border: `1px solid ${tokens.border}`, padding: '8px 12px', borderRadius: 8 }}>更多</button>
         </div>
       </div>
 
-      {/* Fourth screen: Today's Focus + Active/Waiting Works */}
-      <div style={{ marginTop: 20 }}>
-        <h3>今日重点</h3>
-        <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
-          {runtime && Array.isArray(runtime.runtime_actions) ? (
-            (() => {
-              const ready = runtime.runtime_actions.filter((a:any) => a.status === 'READY').slice(0,2)
-              if (ready.length === 0) return <div style={{ color: '#666' }}>暂无内容</div>
-              return (
-                <div>
-                      {ready.map((a:any, idx:number) => {
-                        const type = String(a.type || '')
-                        const payloadWorkspace = a?.payload?.target_workspace
-                        let href = `/${params.matter_id}`
-
-                        if (payloadWorkspace) {
-                          if (payloadWorkspace === 'evidence') href = `/matters/${params.matter_id}/evidence`
-                          else if (payloadWorkspace === 'documents') href = `/matters/${params.matter_id}/documents`
-                          else if (payloadWorkspace === 'runtime') href = `/matters/${params.matter_id}/runtime`
-                        } else {
-                          if (type === 'PrepareEvidenceAction') href = `/matters/${params.matter_id}/evidence`
-                          else if (type === 'PrepareResearchAction') href = `/matters/${params.matter_id}/runtime`
-                          else if (type === 'PrepareDocumentAction') href = `/matters/${params.matter_id}/documents`
-                          else if (type === 'MonitorMatterAction') href = `/matters/${params.matter_id}/runtime`
-                        }
-
-                        const queueMatch = findQueueForAction(a)
-                        const statusLabel = queueMatch ? mapExecutionStatusLabel(queueMatch.execution_status) : mapStatusLabel(a.status)
-
-                        return (
-                          <div key={a.action_id ?? idx} style={{ padding: '8px 0', borderBottom: idx === ready.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                              <div style={{ fontWeight: 600 }}>{mapActionToLabel(a)}</div>
-                              <div><a href={href} style={{ color: '#2563eb', fontSize: 13 }}>打开</a></div>
-                            </div>
-                            <div style={{ color: '#666' }}>{statusLabel}</div>
-                            <div style={{ color: '#9ca3af', fontSize: 11 }} />
-                          </div>
-                        )
-                      })}
-                  <div style={{ marginTop: 8 }}><a href={`/matters/${params.matter_id}/runtime`} style={{ color: '#2563eb' }}>查看完整运行时</a></div>
-                </div>
-              )
-            })()
-          ) : (
-            <div style={{ color: '#666' }}>No ready actions</div>
-          )}
-        </div>
-      </div>
-
-      <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <div>
-          <h3>进行中</h3>
-          <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
-            {runtime && Array.isArray(runtime.runtime_works) ? (
-              (() => {
-                const active = runtime.runtime_works.filter((w:any) => String(w.status).toUpperCase() === 'PENDING')
-                if (active.length === 0) return <div style={{ color: '#666' }}>暂无内容</div>
-                return (
-                  <div>
-                    {active.map((w:any, idx:number) => (
-                      <div key={w.work_id ?? idx} style={{ padding: '8px 0', borderBottom: idx === active.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
-                        <div style={{ fontWeight: 600 }}>{mapWorkTitle(w.title) || w.title || ''}</div>
-                        <div style={{ color: '#666' }}>{mapWorkTypeLabel(w.type)}</div>
-                        <div style={{ color: '#9ca3af', fontSize: 11 }}>{(() => {
-                          const q = findQueueForWork(w)
-                          return q ? mapExecutionStatusLabelForActiveWork(q.execution_status) : mapStatusLabel(w.status)
-                        })()}</div>
-                      </div>
-                    ))}
-                  </div>
-                )
-              })()
-            ) : (
-              <div style={{ color: '#666' }}>暂无内容</div>
-            )}
+      {/* AI Area: two columns */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+        <div style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 16 }}>
+          <div style={{ fontWeight: 900 }}>AI Chief</div>
+          <div style={{ marginTop: 10 }}>
+            <div style={{ fontWeight: 700 }}>当前判断</div>
+            <div style={{ marginTop: 6, color: tokens.muted }}>本案具备初步起诉条件，但缺少完整银行流水。</div>
+          </div>
+          <div style={{ marginTop: 10 }}>
+            <div style={{ fontWeight: 700 }}>阻塞点</div>
+            <div style={{ marginTop: 6, color: tokens.muted }}>缺少银行流水</div>
+          </div>
+          <div style={{ marginTop: 10 }}>
+            <div style={{ fontWeight: 700 }}>下一步</div>
+            <div style={{ marginTop: 6, color: tokens.muted }}>律师补强证据后开始法律检索</div>
+          </div>
+          <div style={{ marginTop: 10 }}>
+            <div style={{ fontWeight: 700 }}>等待律师</div>
+            <ul style={{ marginTop: 6, color: tokens.muted }}>
+              <li>上传银行流水</li>
+              <li>确认诉请</li>
+            </ul>
           </div>
         </div>
 
-        <div>
-          <h3>等待中</h3>
-          <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
-            {runtime && Array.isArray(runtime.runtime_works) ? (
-              (() => {
-                const waiting = runtime.runtime_works.filter((w:any) => String(w.status).toUpperCase() === 'BLOCKED')
-                if (waiting.length === 0) return <div style={{ color: '#666' }}>暂无内容</div>
-                return (
-                  <div>
-                    {waiting.map((w:any, idx:number) => (
-                      <div key={w.work_id ?? idx} style={{ padding: '8px 0', borderBottom: idx === waiting.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
-                        <div style={{ fontWeight: 600 }}>{w.title || ''}</div>
-                        <div style={{ color: '#666' }}>类型：{w.type}</div>
-                        <div style={{ color: '#9ca3af', fontSize: 11 }}>状态：{w.status}</div>
-                      </div>
-                    ))}
-                  </div>
-                )
-              })()
-            ) : (
-              <div style={{ color: '#666' }}>暂无内容</div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Fifth screen: Recent Activity + Recent lists */}
-      <div style={{ marginTop: 20 }}>
-        <h3>最近活动</h3>
-        {recentActivity.length > 0 ? (
-          <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
-            {recentActivity.map((a:any, idx:number) => (
-              <div key={idx} style={{ padding: '8px 0', borderBottom: idx === recentActivity.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
-                <div style={{ fontWeight: 600 }}>{a.title}</div>
-                <div style={{ color: '#666' }}>{a.description}</div>
-                <div style={{ color: '#9ca3af', fontSize: 11, marginTop: 6 }}>{new Date(a.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+        <div style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 16 }}>
+          <div style={{ fontWeight: 900 }}>AI Timeline</div>
+          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {mock.aiTimeline.map((it) => (
+              <div key={it.t} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                <div style={{ width: 56, color: tokens.muted }}>{it.t}</div>
+                <div style={{ height: 8, width: 8, borderRadius: '50%', background: tokens.blue }} />
+                <div style={{ fontWeight: 700 }}>{it.text}</div>
               </div>
             ))}
           </div>
-        ) : (
-          <div style={{ color: '#666' }}>暂无内容</div>
-        )}
+        </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 16 }}>
-        <RecentList title="最近资料" items={data.recent_materials} renderItem={(m:any)=> (
-          <>
-            <div style={{ fontWeight: 600 }}>{m.title || m.name || 'Untitled'}</div>
-            <div style={{ color: '#666', fontSize: 12 }}>{m.material_type || m.source || ''}</div>
-          </>
-        )} />
+      {/* Workspace cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
+        {mock.workspaces.map((w) => (
+          <div key={w.key} style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 16, height: 120, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div style={{ fontWeight: 800 }}>{w.title}</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ color: tokens.muted }}>{w.status}</div>
+              <div style={{ width: 120 }}><ProgressBar value={w.progress} /></div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button onClick={() => alert(`进入 ${w.title}（模拟）`)} style={{ border: `1px solid ${tokens.blue}`, background: '#fff', color: tokens.blue, padding: '6px 12px', borderRadius: 8 }}>进入</button>
+            </div>
+          </div>
+        ))}
+      </div>
 
-        <RecentList title="最近证据" items={data.recent_evidence} renderItem={(e:any)=> (
-          <>
-            <div style={{ fontWeight: 600 }}>{e.title || 'Untitled'}</div>
-            <div style={{ color: '#666', fontSize: 12 }}>{e.evidence_type || ''}</div>
-          </>
-        )} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* AI Discovery */}
+          <div style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 16 }}>
+            <div style={{ fontWeight: 900 }}>AI 最近发现</div>
+            <ul style={{ marginTop: 8 }}>
+              {mock.discoveries.map((d) => (
+                <li key={d}>✓ {d}</li>
+              ))}
+            </ul>
+          </div>
 
-        <RecentList title="最近文书" items={data.recent_documents} renderItem={(d:any)=> (
-          <>
-            <div style={{ fontWeight: 600 }}>{d.title || 'Untitled'}</div>
-            <div style={{ color: '#666', fontSize: 12 }}>{d.document_type || ''} · {d.version || ''}</div>
-          </>
-        )} />
+          {/* Lawyer Todo */}
+          <div style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 16 }}>
+            <div style={{ fontWeight: 900 }}>律师今日待办</div>
+            <ol style={{ marginTop: 8 }}>
+              {mock.lawyerTodo.map((t) => (
+                <li key={t}>{t}</li>
+              ))}
+            </ol>
+          </div>
+        </div>
+
+        <aside style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* AI Confidence */}
+          <div style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 16 }}>
+            <div style={{ fontWeight: 900 }}>AI Confidence</div>
+            <div style={{ marginTop: 12, display: 'grid', gap: 8 }}>
+              {mock.confidences.map((c) => (
+                <div key={c.k}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ color: tokens.muted }}>{c.k}</div>
+                    <div style={{ fontWeight: 800 }}>{c.v}%</div>
+                  </div>
+                  <div style={{ marginTop: 6 }}><ProgressBar value={c.v} /></div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Roadmap */}
+          <div style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 16 }}>
+            <div style={{ fontWeight: 900 }}>案件推进路线</div>
+            <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {mock.roadmap.map((s, idx) => (
+                <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: s === mock.currentStage ? tokens.blue : '#cbd5e1' }} />
+                  <div style={{ fontWeight: s === mock.currentStage ? 800 : 500, color: s === mock.currentStage ? tokens.blue : tokens.text }}>{s}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </aside>
       </div>
     </main>
   )

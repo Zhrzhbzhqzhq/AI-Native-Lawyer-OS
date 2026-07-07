@@ -31,13 +31,13 @@ export default function planFromRuntimeDecision(decision: RuntimeDecision): Runt
       }
     case RuntimeDecisionCode.REVIEW_EVIDENCE:
       return {
-        goal: 'Review and strengthen weak evidence',
+        goal: 'Review Evidence',
         priority: 'HIGH',
         source_decision: code,
         steps: [
-          'Audit weak evidence items and missing fields',
-          'Associate supporting materials',
-          'Request clarifications from client',
+          'Review uploaded evidence',
+          'Check relevance and completeness',
+          'Prepare evidence summary',
         ],
         generated_at: now,
       }
@@ -50,6 +50,18 @@ export default function planFromRuntimeDecision(decision: RuntimeDecision): Runt
           'Identify key legal questions',
           'Assign research tasks to team',
           'Summarize research findings',
+        ],
+        generated_at: now,
+      }
+    case RuntimeDecisionCode.LEGAL_RESEARCH:
+      return {
+        goal: 'Legal Research',
+        priority: 'HIGH',
+        source_decision: code,
+        steps: [
+          'Search statutes',
+          'Search precedents',
+          'Generate research memo',
         ],
         generated_at: now,
       }

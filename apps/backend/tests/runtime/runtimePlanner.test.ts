@@ -19,4 +19,13 @@ describe('runtimePlannerEngine', () => {
     expect(plan.priority).toBe('LOW')
     expect(typeof plan.generated_at).toBe('string')
   })
+
+  it('LEGAL_RESEARCH yields expected detailed steps', () => {
+    const decision: any = { code: RuntimeDecisionCode.LEGAL_RESEARCH, source: [] }
+    const plan = planFromRuntimeDecision(decision)
+    expect(plan.goal).toBe('Legal Research')
+    expect(plan.priority).toBe('HIGH')
+    expect(Array.isArray(plan.steps)).toBe(true)
+    expect(plan.steps).toEqual(['Search statutes', 'Search precedents', 'Generate research memo'])
+  })
 })

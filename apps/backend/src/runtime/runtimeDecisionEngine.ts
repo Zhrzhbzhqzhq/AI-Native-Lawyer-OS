@@ -3,7 +3,7 @@ import { RuntimeStateCode, RuntimeDecisionCode } from './runtimeTypes'
 import type { RuntimeDecision } from './runtimeTypes'
 
 export default function decideFromRuntimeState(runtimeState: RuntimeStateItem[]): RuntimeDecision {
-  // Step 1: collect all matched runtime state codes (preserve original order of appearance if any)
+  // collect matched runtime state codes (preserve original order)
   const matchedSet = new Set<string>()
   const matchedStates: RuntimeStateCode[] = []
   for (const s of runtimeState || []) {
@@ -13,40 +13,37 @@ export default function decideFromRuntimeState(runtimeState: RuntimeStateItem[])
     }
   }
 
-  // Step 2: fixed priority table mapping decisions to triggering runtime states
-  const decisionTriggers: Record<string, RuntimeStateCode[]> = {
-    [RuntimeDecisionCode.COLLECT_EVIDENCE]: [RuntimeStateCode.NEEDS_EVIDENCE],
-    [RuntimeDecisionCode.REVIEW_EVIDENCE]: [RuntimeStateCode.HAS_WEAK_EVIDENCE],
-    [RuntimeDecisionCode.RESEARCH_LAW]: [RuntimeStateCode.NO_RESEARCH],
-    [RuntimeDecisionCode.REVIEW_DOCUMENT]: [RuntimeStateCode.HAS_DRAFT_DOCUMENTS],
-    [RuntimeDecisionCode.MONITOR_MATTER]: [RuntimeStateCode.NO_RECENT_ACTIVITY],
-    [RuntimeDecisionCode.NO_ACTION]: [],
+  const has = (code: RuntimeStateCode) => matchedSet.has(code)
+
+  // 1) NEEDS_EVIDENCE -> COLLECT_EVIDENCE
+  if (has(RuntimeStateCode.NEEDS_EVIDENCE)) {
+    return { code: RuntimeDecisionCode.COLLECT_EVIDENCE, source: matchedStates }
   }
 
-  const decisionPriority: RuntimeDecisionCode[] = [
-    RuntimeDecisionCode.COLLECT_EVIDENCE,
-    RuntimeDecisionCode.REVIEW_EVIDENCE,
-    RuntimeDecisionCode.RESEARCH_LAW,
-    RuntimeDecisionCode.REVIEW_DOCUMENT,
-    RuntimeDecisionCode.MONITOR_MATTER,
-    RuntimeDecisionCode.NO_ACTION,
-  ]
-
-  // Select the highest-priority decision whose triggers intersect with matchedStates
-  for (const decision of decisionPriority) {
-    const triggers = decisionTriggers[decision] || []
-    if (triggers.length === 0 && matchedStates.length === 0) {
-      // no matched states -> NO_ACTION
-      return { code: RuntimeDecisionCode.NO_ACTION, source: [] }
-    }
-    for (const t of triggers) {
-      if (matchedSet.has(t)) {
-        // return decision with full source being all matched states
-        return { code: decision as RuntimeDecisionCode, source: matchedStates }
-      }
-    }
+  // 2) HAS_EVIDENCE + EVIDENCE_REVIEW_DONE -> LEGAL_RESEARCH (must be before REVIEW_EVIDENCE)
+  if (has(RuntimeStateCode.HAS_EVIDENCE) && matchedSet.has(RuntimeStateCode.EVIDENCE_REVIEW_DONE)) {
+    return { code: RuntimeDecisionCode.LEGAL_RESEARCH, source: matchedStates }
   }
 
-  // Fallback: NO_ACTION with all matched states (shouldn't reach due to priority including NO_ACTION)
+  // 3) HAS_EVIDENCE -> REVIEW_EVIDENCE
+  if (has(RuntimeStateCode.HAS_EVIDENCE)) {
+    return { code: RuntimeDecisionCode.REVIEW_EVIDENCE, source: matchedStates }
+  }
+
+  // 4) NO_RESEARCH -> LEGAL_RESEARCH
+  if (has(RuntimeStateCode.NO_RESEARCH)) {
+    return { code: RuntimeDecisionCode.LEGAL_RESEARCH, source: matchedStates }
+  }
+
+  // Remaining decisions: review documents, monitor, or no action
+  if (has(RuntimeStateCode.HAS_DRAFT_DOCUMENTS)) {
+    return { code: RuntimeDecisionCode.REVIEW_DOCUMENT, source: matchedStates }
+  }
+
+  if (has(RuntimeStateCode.NO_RECENT_ACTIVITY)) {
+    return { code: RuntimeDecisionCode.MONITOR_MATTER, source: matchedStates }
+  }
+
+  // default
   return { code: RuntimeDecisionCode.NO_ACTION, source: matchedStates }
 }

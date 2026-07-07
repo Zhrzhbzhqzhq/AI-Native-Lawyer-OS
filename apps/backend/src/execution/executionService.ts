@@ -2,6 +2,7 @@ import type { PrismaClient } from '@lawdesk/database'
 import ExecutionRepository from './executionRepository'
 import { ExecutionQueueItem as ExecutionQueueType } from './executionTypes'
 import { startQueueItem, pauseQueueItem, completeQueueItem } from './executionEngine'
+import RuntimeEventEngine from '../runtime/runtimeEventEngine'
 
 export default class ExecutionService {
   repo: ExecutionRepository
@@ -38,6 +39,17 @@ export default class ExecutionService {
 
     const next = startQueueItem(current)
     await this.repo.updateStatusByMatter(existing.matter_id, queue_id, next.execution_status)
+    try {
+      const events = new RuntimeEventEngine()
+      events.emit(existing.matter_id, 'ExecutionStatusChanged', {
+        time: new Date().toISOString(),
+        action: 'AI 已开始处理今日任务',
+        result: 'started',
+        status: next.execution_status,
+        queue_id,
+        matter_id: existing.matter_id,
+      })
+    } catch (e) {}
     return next
   }
 
@@ -54,6 +66,17 @@ export default class ExecutionService {
 
     const next = pauseQueueItem(current)
     await this.repo.updateStatusByMatter(existing.matter_id, queue_id, next.execution_status)
+    try {
+      const events = new RuntimeEventEngine()
+      events.emit(existing.matter_id, 'ExecutionStatusChanged', {
+        time: new Date().toISOString(),
+        action: 'AI 已暂停今日任务',
+        result: 'paused',
+        status: next.execution_status,
+        queue_id,
+        matter_id: existing.matter_id,
+      })
+    } catch (e) {}
     return next
   }
 
@@ -70,6 +93,17 @@ export default class ExecutionService {
 
     const next = completeQueueItem(current)
     await this.repo.updateStatusByMatter(existing.matter_id, queue_id, next.execution_status)
+    try {
+      const events = new RuntimeEventEngine()
+      events.emit(existing.matter_id, 'ExecutionStatusChanged', {
+        time: new Date().toISOString(),
+        action: 'AI 已完成今日任务',
+        result: 'completed',
+        status: next.execution_status,
+        queue_id,
+        matter_id: existing.matter_id,
+      })
+    } catch (e) {}
     return next
   }
 }

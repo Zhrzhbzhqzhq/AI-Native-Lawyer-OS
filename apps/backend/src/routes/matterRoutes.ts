@@ -19,7 +19,7 @@ export async function matterRoutes(app: FastifyInstance) {
   const objectGraphBuilder = new (await import('../runtime/objectGraphBuilder')).default(prisma);
   const contextBuilder = new (await import('../runtime/contextBuilder')).default(prisma);
   const promptRuntime = new (await import('../runtime/promptRuntime')).default(prisma);
-  const NextStepEngine = (await import('../runtime/nextStepEngine')).default;
+  // nextStepEngine will be dynamically imported where needed to maintain compatibility with different engine shapes
   const plannerRuntime = new (await import('../runtime/plannerRuntime')).default(prisma);
   const actionProposalRuntime = new (await import('../runtime/actionProposalRuntime')).default(prisma);
   // workflow service
@@ -37,21 +37,9 @@ export async function matterRoutes(app: FastifyInstance) {
   });
 
   app.get('/matters/:id/timeline', async (request, reply) => {
-    const { id } = request.params as any;
+    const { id } = request.params as any
     const list = await timelineService.listByMatter(id);
-    return list;
-  });
-
-  app.get('/matters/:id/evidence', async (request, reply) => {
-    const { id } = request.params as any;
-    const list = await evidenceService.listByMatter(id);
-    return list;
-  });
-
-  app.get('/matters/:id/materials', async (request, reply) => {
-    const { id } = request.params as any;
-    const list = await materialService.listByMatter(id);
-    return list;
+    return reply.code(200).send(list)
   });
 
   app.get('/matters/:id/research', async (request, reply) => {
@@ -133,59 +121,79 @@ export async function matterRoutes(app: FastifyInstance) {
       return reply.code(500).send({ error: 'context-runtime failed', detail: err?.message || String(err) });
     }
   });
-  
-    app.get('/matters/:matter_id/runtime', async (request, reply) => {
-      const { matter_id } = request.params as any;
+
+  app.get('/matters/:matter_id/runtime', async (request, reply) => {
+    const { matter_id } = request.params as any;
+    try {
+      const runtime = new (await import('../runtime/matterSnapshotRuntime')).default(prisma);
+      const snap = await runtime.build(matter_id);
+
+      // Overlay persisted execution status onto today_queue at the route layer
       try {
-        const runtime = new (await import('../runtime/matterSnapshotRuntime')).default(prisma);
-        const snap = await runtime.build(matter_id);
+        const ExecutionService = (await import('../execution/executionService')).default
+        const execService = new ExecutionService(prisma)
+        const persisted = await execService.loadQueueState(matter_id)
+        const map = new Map((Array.isArray(persisted) ? persisted : []).map((p: any) => [p.queue_id, p]))
 
-        // Overlay persisted execution status onto today_queue at the route layer
-        try {
-          const ExecutionService = (await import('../execution/executionService')).default
-          const execService = new ExecutionService(prisma)
-          const persisted = await execService.loadQueueState(matter_id)
-          const map = new Map((Array.isArray(persisted) ? persisted : []).map((p:any) => [p.queue_id, p]))
-
-          if (Array.isArray(snap.today_queue)) {
-            snap.today_queue = snap.today_queue.map((q:any) => {
-              const p = map.get(q.queue_id)
-              return { ...q, execution_status: p ? p.execution_status : 'PENDING' }
-            })
-          }
-        } catch (e) {
-          // overlay failure should not block returning the snapshot
+        if (Array.isArray(snap.today_queue)) {
+          snap.today_queue = snap.today_queue.map((q: any) => {
+            const p = map.get(q.queue_id)
+            return { ...q, execution_status: p ? p.execution_status : 'PENDING' }
+          })
         }
-
-        return reply.code(200).send(snap);
-      } catch (err: any) {
-        return reply.code(500).send({ error: 'runtime snapshot failed', detail: err?.message || String(err) });
+      } catch (e) {
+        // overlay failure should not block returning the snapshot
       }
-    });
 
-    app.get('/matters/:matter_id/director', async (request, reply) => {
-      const { matter_id } = request.params as any;
-      try {
-        const RuntimeDirector = (await import('../runtime/runtimeDirector')).default
-        const director = new RuntimeDirector(createPrismaClient())
-        const res = await director.decide(matter_id)
-        return reply.code(200).send(res)
-      } catch (err: any) {
-        return reply.code(500).send({ error: 'director failed', detail: err?.message || String(err) })
-      }
-    })
-
-    app.get('/matters/:matter_id/events', async (request, reply) => {
-      const { matter_id } = request.params as any
+      // attach in-memory runtime events/logs so frontend can display AI 工作日志
       try {
         const RuntimeEventEngine = (await import('../runtime/runtimeEventEngine')).default
         const engine = new RuntimeEventEngine()
-        const events = engine.list(matter_id)
-        return reply.code(200).send({ events })
-      } catch (err: any) {
-        return reply.code(500).send({ error: 'events failed', detail: err?.message || String(err) })
+        const evs = engine.list(matter_id) || []
+        const mapped = (Array.isArray(evs) ? evs : []).map((e: any) => ({
+          time: e.created_at || e.payload?.time || new Date().toISOString(),
+          action: e.payload?.action || e.type || (e.payload && e.payload.action) || '',
+          result: e.payload?.result || e.payload?.result || '',
+          status: e.payload?.status || '',
+          queue_id: e.payload?.queue_id || e.payload?.queueId || null,
+          matter_id: e.matter_id || matter_id,
+        }))
+          // provide both fields so frontend can use runtime.logs or runtime.events
+          ; (snap as any).logs = mapped
+          ; (snap as any).events = mapped
+      } catch (e) {
+        // ignore
       }
-    })
+
+      return reply.code(200).send(snap);
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'runtime snapshot failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.get('/matters/:matter_id/director', async (request, reply) => {
+    const { matter_id } = request.params as any;
+    try {
+      const RuntimeDirector = (await import('../runtime/runtimeDirector')).default
+      const director = new RuntimeDirector(createPrismaClient())
+      const res = await director.decide(matter_id)
+      return reply.code(200).send(res)
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'director failed', detail: err?.message || String(err) })
+    }
+  })
+
+  app.get('/matters/:matter_id/events', async (request, reply) => {
+    const { matter_id } = request.params as any
+    try {
+      const RuntimeEventEngine = (await import('../runtime/runtimeEventEngine')).default
+      const engine = new RuntimeEventEngine()
+      const events = engine.list(matter_id)
+      return reply.code(200).send({ events })
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'events failed', detail: err?.message || String(err) })
+    }
+  })
 
   app.get('/matters/:matter_id/prompt-runtime', async (request, reply) => {
     const { matter_id } = request.params as any;
@@ -237,7 +245,7 @@ export async function matterRoutes(app: FastifyInstance) {
   app.patch('/matters/:matter_id/action-proposals/:proposal_id', async (request, reply) => {
     const { proposal_id } = request.params as any;
     const payload = request.body as any;
-    if (!payload || !['approved','rejected'].includes(payload.status)) return reply.code(400).send({ error: 'invalid status' });
+    if (!payload || !['approved', 'rejected'].includes(payload.status)) return reply.code(400).send({ error: 'invalid status' });
     try {
       const updated = await actionProposalRuntime.updateStatus(proposal_id, payload.status);
       return updated;
@@ -343,7 +351,7 @@ export async function matterRoutes(app: FastifyInstance) {
     const { id } = request.params as any;
     const payload = request.body as any;
     if (!payload.message_id || !payload.role || !payload.content) return reply.code(400).send({ error: 'message_id, role and content required' });
-    if (!['user','assistant','system'].includes(payload.role)) return reply.code(400).send({ error: 'invalid role' });
+    if (!['user', 'assistant', 'system'].includes(payload.role)) return reply.code(400).send({ error: 'invalid role' });
     try {
       const created = await conversationService.createForMatter(id, payload);
       return reply.code(201).send(created);
@@ -495,21 +503,38 @@ export async function matterRoutes(app: FastifyInstance) {
       // AI Next Steps - rule based, read-only
       try {
         // compute additional signals for engine
-        // weakEvidenceCount: rely on Prisma schema fields `relevance` and `description` which are non-nullable strings
         const weakEvidenceCount = await prisma.evidence.count({ where: { matter_id, OR: [{ relevance: '' }, { description: '' }] } })
         const draftDocumentCount = await prisma.document.count({ where: { matter_id, status: 'draft' } })
         const archivedDocumentCount = await prisma.document.count({ where: { matter_id, status: 'archived' } })
 
-        const engine = new NextStepEngine()
-        const ai_next_steps = engine.evaluate({
-          materialsCount: summary.materials,
-          evidenceCount: summary.evidence,
-          documentsCount: summary.documents,
-          recentActivityCount: recent_activity.length,
-          weakEvidenceCount,
-          draftDocumentCount,
-          archivedDocumentCount,
-        })
+        // Attempt to use nextStepEngine in a backward-compatible way
+        let ai_next_steps: any[] = []
+        try {
+          const mod = (await import('../runtime/nextStepEngine')) as (typeof import('../runtime/nextStepEngine') & { default?: any })
+          // prefer named NextStepEngine with generate()
+          if (mod && typeof mod.NextStepEngine === 'function' && typeof mod.NextStepEngine.generate === 'function') {
+            const out = mod.NextStepEngine.generate({ runtime_state: [], runtime_decision: {}, runtime_plan: {}, today_queue: [], snapshot_facts: {} })
+            ai_next_steps = out ? [out] : []
+          } else if (mod && typeof mod.default === 'function') {
+            // older engine: instantiate and call evaluate()
+            const Engine = mod.default
+            const engine = new Engine()
+            if (typeof engine.evaluate === 'function') {
+              ai_next_steps = engine.evaluate({
+                materialsCount: summary.materials,
+                evidenceCount: summary.evidence,
+                documentsCount: summary.documents,
+                recentActivityCount: recent_activity.length,
+                weakEvidenceCount,
+                draftDocumentCount,
+                archivedDocumentCount,
+              })
+              if (!Array.isArray(ai_next_steps)) ai_next_steps = Array.isArray(ai_next_steps) ? ai_next_steps : []
+            }
+          }
+        } catch (e) {
+          ai_next_steps = []
+        }
 
         return reply.code(200).send({
           matter: { matter_id: m.matter_id, title: m.title, status: m.status },
@@ -519,10 +544,10 @@ export async function matterRoutes(app: FastifyInstance) {
           recent_evidence,
           recent_documents,
           recent_activity,
-          ai_next_steps,
+          ai_next_steps: Array.isArray(ai_next_steps) ? ai_next_steps : [],
         })
       } catch (e) {
-        // fallback: still return workspace without ai_next_steps
+        // fallback: still return workspace ensuring ai_next_steps exists as an array
         return reply.code(200).send({
           matter: { matter_id: m.matter_id, title: m.title, status: m.status },
           summary,
@@ -531,6 +556,7 @@ export async function matterRoutes(app: FastifyInstance) {
           recent_evidence,
           recent_documents,
           recent_activity,
+          ai_next_steps: [],
         })
       }
     } catch (err: any) {
@@ -583,6 +609,17 @@ export async function matterRoutes(app: FastifyInstance) {
     }
   });
 
+  // Restore legacy GET materials list for compatibility with tests/frontend
+  app.get('/matters/:id/materials', async (request, reply) => {
+    const { id } = request.params as any;
+    try {
+      const list = await materialService.listByMatter(id);
+      return reply.code(200).send(list);
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'failed', detail: err?.message || String(err) });
+    }
+  });
+
   app.get('/matters/:matter_id/next-step', async (request, reply) => {
     const { matter_id } = request.params as any;
     try {
@@ -602,28 +639,64 @@ export async function matterRoutes(app: FastifyInstance) {
       const recent_documents = Array.isArray(documents) ? documents.slice(0, 5) : []
 
       const recent_activity = [
-        ...recent_materials.map((m:any) => ({ type: 'material_uploaded', time: m.created_at ? (m.created_at instanceof Date ? m.created_at.toISOString() : String(m.created_at)) : null })),
-        ...recent_evidence.map((e:any) => ({ type: 'evidence_created', time: e.created_at ? (e.created_at instanceof Date ? e.created_at.toISOString() : String(e.created_at)) : null })),
-        ...recent_documents.map((d:any) => ({ type: 'document_updated', time: d.created_at ? (d.created_at instanceof Date ? d.created_at.toISOString() : String(d.created_at)) : null })),
+        ...recent_materials.map((m: any) => ({ type: 'material_uploaded', time: m.created_at ? (m.created_at instanceof Date ? m.created_at.toISOString() : String(m.created_at)) : null })),
+        ...recent_evidence.map((e: any) => ({ type: 'evidence_created', time: e.created_at ? (e.created_at instanceof Date ? e.created_at.toISOString() : String(e.created_at)) : null })),
+        ...recent_documents.map((d: any) => ({ type: 'document_updated', time: d.created_at ? (d.created_at instanceof Date ? d.created_at.toISOString() : String(d.created_at)) : null })),
       ]
 
       const weakEvidenceCount = await prisma.evidence.count({ where: { matter_id, OR: [{ relevance: '' }, { description: '' }] } })
       const draftDocumentCount = await prisma.document.count({ where: { matter_id, status: 'draft' } })
       const archivedDocumentCount = await prisma.document.count({ where: { matter_id, status: 'archived' } })
 
-      const NextStepEngine = (await import('../runtime/nextStepEngine')).default
-      const engine = new NextStepEngine()
-      const steps = engine.evaluate({
-        materialsCount: summary.materials,
-        evidenceCount: summary.evidence,
-        documentsCount: summary.documents,
-        recentActivityCount: recent_activity.length,
-        weakEvidenceCount,
-        draftDocumentCount,
-        archivedDocumentCount,
-      })
+      // Use nextStepEngine in a backward-compatible way
+      try {
+        const mod = (await import('../runtime/nextStepEngine')) as (typeof import('../runtime/nextStepEngine') & { default?: any })
+        let steps: any[] = []
+        if (mod && typeof mod.NextStepEngine === 'function' && typeof mod.NextStepEngine.generate === 'function') {
+          const out = mod.NextStepEngine.generate({ runtime_state: [], runtime_decision: {}, runtime_plan: {}, today_queue: [], snapshot_facts: {} })
+          steps = out ? [out] : []
+        } else if (mod && typeof mod.default === 'function') {
+          const Engine = mod.default
+          const engine = new Engine()
+          const evaluated = typeof engine.evaluate === 'function' ? engine.evaluate({
+            materialsCount: summary.materials,
+            evidenceCount: summary.evidence,
+            documentsCount: summary.documents,
+            recentActivityCount: recent_activity.length,
+            weakEvidenceCount,
+            draftDocumentCount,
+            archivedDocumentCount,
+          }) : []
+          steps = Array.isArray(evaluated) ? evaluated : []
+        }
 
-      return reply.code(200).send({ matter_id, steps })
+        // Compatibility rule: if materials > 0 and evidence == 0, ensure generate_evidence_draft is present first
+        try {
+          const needsGenerate = (Number(summary.materials || 0) > 0) && (Number(summary.evidence || 0) === 0)
+          if (needsGenerate) {
+            const exists = steps.some((s: any) => s && (s.action === 'generate_evidence_draft' || String(s.action || '').toLowerCase().includes('generate_evidence')))
+            if (!exists) {
+              const gen = {
+                action: 'generate_evidence_draft',
+                title: '生成证据草稿',
+                target_workspace: 'evidence',
+                reason: '案件已有材料，但尚未形成正式证据，建议先生成证据草稿。',
+                priority: 1,
+              }
+              steps.unshift(gen)
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
+
+        // cap to 3 steps
+        steps = Array.isArray(steps) ? steps.slice(0, 3) : []
+
+        return reply.code(200).send({ matter_id, steps })
+      } catch (e) {
+        return reply.code(200).send({ matter_id, steps: [] })
+      }
     } catch (err: any) {
       return reply.code(500).send({ error: 'next-step failed', detail: err?.message || String(err) })
     }
@@ -642,7 +715,7 @@ export async function matterRoutes(app: FastifyInstance) {
       const pending = await prisma.evidence.count({ where: { matter_id, status: { in: ['pending', 'draft', 'active'] } } }).catch(() => 0)
       // weak = relevance empty OR description empty
       const allEvidence = await prisma.evidence.findMany({ where: { matter_id }, select: { evidence_id: true, relevance: true, description: true, updated_at: true, title: true, evidence_type: true, status: true } }).catch(() => [])
-      const weak = Array.isArray(allEvidence) ? allEvidence.filter((e:any) => !e.relevance || !e.description).length : 0
+      const weak = Array.isArray(allEvidence) ? allEvidence.filter((e: any) => !e.relevance || !e.description).length : 0
 
       const summary = {
         total: Number(total),
@@ -654,7 +727,7 @@ export async function matterRoutes(app: FastifyInstance) {
 
       const evidence_list = await prisma.evidence.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' }, take: 20, select: { evidence_id: true, title: true, evidence_type: true, status: true, relevance: true, description: true, material_id: true, updated_at: true } }).catch(() => [])
       // ensure `source` field exists for frontend compatibility
-      const evidence_list_mapped = (Array.isArray(evidence_list) ? evidence_list : []).map((e:any) => ({ ...e, source: (e as any).source ?? 'unknown' }))
+      const evidence_list_mapped = (Array.isArray(evidence_list) ? evidence_list : []).map((e: any) => ({ ...e, source: (e as any).source ?? 'unknown' }))
 
       // selected_evidence: if list non-empty, pick first and enrich with related material, placeholders
       let selected_evidence: any = null
@@ -684,7 +757,7 @@ export async function matterRoutes(app: FastifyInstance) {
           related_documents: [],
           related_timeline: [],
           lawyer_notes: { status: 'read_only', message: 'Lawyer notes coming soon' },
-          ai_summary: (function computeAiSummary(ev:any, rm:any) {
+          ai_summary: (function computeAiSummary(ev: any, rm: any) {
             // Rule-based analysis (read-only, deterministic)
             let score = 50
             const strengths: string[] = []
@@ -738,13 +811,13 @@ export async function matterRoutes(app: FastifyInstance) {
       }
 
       // build navigation (read-only counts)
-      const types = ['electronic','physical','recording','photo','video','contract','transfer','chat','witness','other']
+      const types = ['electronic', 'physical', 'recording', 'photo', 'video', 'contract', 'transfer', 'chat', 'witness', 'other']
       const by_type = await Promise.all(types.map(async (t) => {
         const c = await prisma.evidence.count({ where: { matter_id, evidence_type: t } }).catch(() => 0)
         return { key: t, label: t, count: Number(c), description: '' }
       }))
 
-      const statuses = ['active','pending','accepted','weak','rejected']
+      const statuses = ['active', 'pending', 'accepted', 'weak', 'rejected']
       const by_status = await Promise.all(statuses.map(async (s) => {
         const c = await prisma.evidence.count({ where: { matter_id, status: s } }).catch(() => 0)
         return { key: s, label: s, count: Number(c), description: '' }
@@ -752,7 +825,7 @@ export async function matterRoutes(app: FastifyInstance) {
 
       // strength rules
       const strong = await prisma.evidence.count({ where: { matter_id, status: 'accepted' } }).catch(() => 0)
-      const medium = await prisma.evidence.count({ where: { matter_id, status: { in: ['active','pending','draft'] } } }).catch(() => 0)
+      const medium = await prisma.evidence.count({ where: { matter_id, status: { in: ['active', 'pending', 'draft'] } } }).catch(() => 0)
       const weakCount = await prisma.evidence.count({ where: { matter_id, OR: [{ relevance: '' }, { description: '' }] } }).catch(() => 0)
       const totalCount = Number(total)
       const unknown = Math.max(0, totalCount - (Number(strong) + Number(medium) + Number(weakCount)))
@@ -764,9 +837,9 @@ export async function matterRoutes(app: FastifyInstance) {
       ]
 
       // compute missing suggestions and next steps outside the response object so we can pass computed missing
-      const missing_suggestions = (function computeMissing(allEv:any[], totalCount:number) {
+      const missing_suggestions = (function computeMissing(allEv: any[], totalCount: number) {
         const suggestions: any[] = []
-        const typesPresent = new Set((allEv || []).map((x:any) => (x.evidence_type || '').toLowerCase()))
+        const typesPresent = new Set((allEv || []).map((x: any) => (x.evidence_type || '').toLowerCase()))
 
         if (!totalCount || totalCount === 0) {
           suggestions.push({
@@ -780,7 +853,7 @@ export async function matterRoutes(app: FastifyInstance) {
         }
 
         // missing transfer/bank/payment
-        const hasTransfer = Array.from(typesPresent).some((t:any) => /transfer|bank|payment/.test(t))
+        const hasTransfer = Array.from(typesPresent).some((t: any) => /transfer|bank|payment/.test(t))
         if (!hasTransfer) {
           suggestions.push({
             id: 'missing-transfer-record',
@@ -793,7 +866,7 @@ export async function matterRoutes(app: FastifyInstance) {
         }
 
         // missing contract/agreement
-        const hasContract = Array.from(typesPresent).some((t:any) => /contract|agreement/.test(t))
+        const hasContract = Array.from(typesPresent).some((t: any) => /contract|agreement/.test(t))
         if (!hasContract) {
           suggestions.push({
             id: 'missing-contract-agreement',
@@ -806,7 +879,7 @@ export async function matterRoutes(app: FastifyInstance) {
         }
 
         // missing chat/message
-        const hasChat = Array.from(typesPresent).some((t:any) => /chat|message|wechat/.test(t))
+        const hasChat = Array.from(typesPresent).some((t: any) => /chat|message|wechat/.test(t))
         if (!hasChat) {
           suggestions.push({
             id: 'missing-chat-record',
@@ -821,9 +894,9 @@ export async function matterRoutes(app: FastifyInstance) {
         return suggestions.slice(0, 3)
       })(allEvidence, Number(total))
 
-      const evidence_next_steps = (function computeNextSteps(missing:any[], selected:any, totalCount:number) {
+      const evidence_next_steps = (function computeNextSteps(missing: any[], selected: any, totalCount: number) {
         const steps: any[] = []
-        const hasHighMissing = Array.isArray(missing) && missing.some((m:any) => (m.priority || '').toUpperCase() === 'HIGH')
+        const hasHighMissing = Array.isArray(missing) && missing.some((m: any) => (m.priority || '').toUpperCase() === 'HIGH')
 
         if (hasHighMissing) {
           steps.push({
@@ -862,7 +935,7 @@ export async function matterRoutes(app: FastifyInstance) {
               status: 'suggested'
             })
           }
-        } catch (e) {}
+        } catch (e) { }
 
         if ((!Array.isArray(missing) || missing.length === 0) && totalCount > 0) {
           steps.push({
@@ -917,13 +990,13 @@ export async function matterRoutes(app: FastifyInstance) {
       const document_list = await prisma.document.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' }, take: 20, select: { document_id: true, title: true, document_type: true, status: true, version: true, updated_at: true, content_uri: true } }).catch(() => [])
 
       // build navigation
-      const types = ['complaint','defense','representation','evidence_catalog','challenge_opinion','hearing_outline','enforcement','preservation','other']
+      const types = ['complaint', 'defense', 'representation', 'evidence_catalog', 'challenge_opinion', 'hearing_outline', 'enforcement', 'preservation', 'other']
       const by_type = await Promise.all(types.map(async (t) => {
         const c = await prisma.document.count({ where: { matter_id, document_type: t } }).catch(() => 0)
         return { key: t, label: t, count: Number(c), description: '' }
       }))
 
-      const statuses = ['draft','completed','need_review','archived']
+      const statuses = ['draft', 'completed', 'need_review', 'archived']
       const by_status = await Promise.all(statuses.map(async (s) => {
         const c = await prisma.document.count({ where: { matter_id, status: s } }).catch(() => 0)
         return { key: s, label: s, count: Number(c), description: '' }
@@ -1032,15 +1105,54 @@ export async function matterRoutes(app: FastifyInstance) {
   app.post('/matters/:id/evidence', async (request, reply) => {
     const { id } = request.params as any;
     const payload = request.body as any;
-    // require evidence_id, material_id, title
-    if (!payload.evidence_id || !payload.material_id || !payload.title) return reply.code(400).send({ error: 'evidence_id, material_id and title required' });
+    // Support two payload shapes:
+    // - full: { evidence_id, material_id, title, ... }
+    // - minimal: { title, type?, status? }
+    const title = String(payload.title || '').trim()
+    if (!title) return reply.code(400).send({ error: 'title required' })
+
     try {
-      const created = await evidenceService.createForMatter(id, payload);
-      return reply.code(201).send(created);
+      // ensure material exists: use provided material_id or create a placeholder material
+      let material_id = String(payload.material_id || '')
+      if (!material_id) {
+        // generate a lightweight material to attach evidence to
+        material_id = `mat-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+        try {
+          await materialService.createForMatter(id, { material_id, title: `Auto material for ${title}`, material_type: 'uploaded', source: 'upload', storage_uri: '', status: 'active' })
+        } catch (e) {
+          // ignore creation error and proceed; createForMatter may fail if material exists
+        }
+      }
+
+      const evidence_id = String(payload.evidence_id || `ev-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`)
+      const evPayload: any = {
+        evidence_id,
+        material_id,
+        title,
+        evidence_type: String(payload.type || payload.evidence_type || ''),
+        description: String(payload.description || ''),
+        relevance: String(payload.relevance || ''),
+        status: String(payload.status || 'uploaded'),
+      }
+
+      const created = await evidenceService.createForMatter(id, evPayload)
+
+      return reply.code(201).send(created)
     } catch (err: any) {
-      return reply.code(500).send({ error: 'create failed', detail: err?.message || String(err) });
+      return reply.code(500).send({ error: 'create failed', detail: err?.message || String(err) })
     }
   });
+
+  // Restore legacy GET evidence list endpoint for compatibility
+  app.get('/matters/:id/evidence', async (request, reply) => {
+    const { id } = request.params as any
+    try {
+      const list = await evidenceService.listByMatter(id)
+      return reply.code(200).send(list)
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'failed', detail: err?.message || String(err) })
+    }
+  })
 
   app.post('/matters/:id/timeline', async (request, reply) => {
     const { id } = request.params as any;

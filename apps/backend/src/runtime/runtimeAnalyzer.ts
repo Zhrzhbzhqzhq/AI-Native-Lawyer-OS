@@ -13,8 +13,12 @@ export default function analyzeRuntimeState(snapshotFacts: any): RuntimeStateIte
   const ev = sf.evidence || {}
   const activity = sf.activity || {}
 
-  // NEEDS_EVIDENCE: no evidence at all
-  if ((counts.evidence || 0) === 0) out.push({ code: RuntimeStateCode.NEEDS_EVIDENCE, value: true })
+  // If evidence exists, emit HAS_EVIDENCE; otherwise emit NEEDS_EVIDENCE
+  if ((counts.evidence || 0) > 0) {
+    out.push({ code: RuntimeStateCode.HAS_EVIDENCE, value: true })
+  } else {
+    out.push({ code: RuntimeStateCode.NEEDS_EVIDENCE, value: true })
+  }
 
   // HAS_WEAK_EVIDENCE: number of weak evidence items (only include if >0)
   const weak = Number(ev.weak || 0)
@@ -42,6 +46,17 @@ export default function analyzeRuntimeState(snapshotFacts: any): RuntimeStateIte
 
   // NO_RESEARCH
   if ((counts.research || 0) === 0) out.push({ code: RuntimeStateCode.NO_RESEARCH, value: true })
+
+  // Accept appended raw state codes from caller (e.g., EVIDENCE_REVIEW_DONE)
+  if (Array.isArray((snapshotFacts as any).appended_states)) {
+    ;(snapshotFacts as any).appended_states.forEach((s:any) => {
+      if (!s || !s.code) return
+      const code = String(s.code || '').toUpperCase()
+      if (code === 'EVIDENCE_REVIEW_DONE') {
+        out.push({ code: 'EVIDENCE_REVIEW_DONE' as any, value: true } as any)
+      }
+    })
+  }
 
   return out
 }

@@ -1,260 +1,364 @@
 "use client"
-import React, { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import React from 'react'
+import { useState, useEffect } from 'react'
+import { useParams, useRouter } from 'next/navigation'
 
-type EvidenceWorkspace = {
-  matter: { matter_id: string; title?: string; status?: string }
-  summary: { total: number; accepted: number; pending: number; weak: number; missing: number }
-  evidence_list: Array<any>
-  selected_evidence: any | null
-  ai_analysis: { status: string; message: string }
-  missing_evidence: Array<any>
-  evidence_next_steps?: Array<{
-    id: string
-    title: string
-    description: string
-    priority: string
-    reason: string
-    suggested_action: string
-    status: string
-  }>
+const tokens = {
+  pageBg: '#f7fafc',
+  cardBg: '#ffffff',
+  border: '#e6eef6',
+  text: '#0f172a',
+  muted: '#6b7280',
+  blue: '#2563eb',
+  radius: 10,
 }
 
-function SummaryCard({ title, value }: { title: string; value: number }) {
+const mock = {
+  proofGoal: '借贷关系成立',
+  evidences: [
+    { id: 'e1', title: '借条（签字）', type: '文书', date: '2025-11-02', strength: 90, notes: '原件在客户处' },
+    { id: 'e2', title: '银行转账记录', type: '银行凭证', date: '2025-11-03', strength: 95, notes: '截屏，有交易流水' },
+    { id: 'e3', title: '微信聊天截图', type: '社交记录', date: '2025-11-04', strength: 60, notes: '部分关键内容已删除' },
+    { id: 'e4', title: '催收短信', type: '通信', date: '2026-01-12', strength: 50, notes: '可作为补强' },
+  ],
+  proofMap: {
+    nodes: [
+      { id: 'n1', label: '借款合意' },
+      { id: 'n2', label: '资金交付' },
+      { id: 'n3', label: '未归还' },
+    ],
+    links: [
+      ['n1', 'n2'],
+      ['n2', 'n3'],
+    ],
+  },
+  gaps: [
+    { id: 'g1', title: '缺原始银行流水', impact: '高' },
+    { id: 'g2', title: '借条签字原件未拍照', impact: '中' },
+  ],
+  discoveries: [
+    { id: 'd1', text: 'AI 发现付款备注显示“借款”字样，支持资金交付。', confidence: 0.88 },
+    { id: 'd2', text: '疑似第三方资金流转，应核实账户归属。', confidence: 0.62 },
+  ],
+  timeline: [
+    { id: 't1', text: '2025-11-02 借条签署', time: '2025-11-02' },
+    { id: 't2', text: '2025-11-03 转账发生', time: '2025-11-03' },
+    { id: 't3', text: '2026-01-12 客户发起催收', time: '2026-01-12' },
+  ],
+  score: 78,
+}
+
+function ProgressBar({ value, color = tokens.blue, height = 10 }: { value: number; color?: string; height?: number }) {
   return (
-    <div style={{ padding: 12, borderRadius: 8, background: '#fff', border: '1px solid #e6edf0', minWidth: 120 }}>
-      <div style={{ fontSize: 12, color: '#475569' }}>{title}</div>
-      <div style={{ fontSize: 20, fontWeight: 700 }}>{value}</div>
+    <div style={{ background: '#eef2f7', borderRadius: 999, height }}>
+      <div style={{ width: `${Math.max(0, Math.min(100, value))}%`, height: '100%', background: color, borderRadius: 999 }} />
     </div>
   )
 }
 
-export default function EvidenceWorkspacePage() {
-  const params = useParams() as { matter_id: string }
-  const [data, setData] = useState<EvidenceWorkspace | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export default function EvidencePage() {
+  const params = useParams() as { matter_id?: string }
+  const router = useRouter()
+  const matterId = params?.matter_id || 'demo-001'
+
+  // fallback workspace (used initially and on fetch failure)
+  const fallbackWorkspace = mock
+
+  const [data, setData] = useState<typeof mock>(fallbackWorkspace)
+  const [loading, setLoading] = useState<boolean>(true)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+
+  const [selectedEvidenceId, setSelectedEvidenceId] = useState<string>(fallbackWorkspace.evidences[0].id)
+
+  // derive selected evidence from current data
+  const selectedEvidence = (data?.evidences || []).find((e) => e.id === selectedEvidenceId) || (data?.evidences && data.evidences[0]) || fallbackWorkspace.evidences[0]
 
   useEffect(() => {
+    let cancelled = false
     async function load() {
       setLoading(true)
-      setError(null)
+      setErrorMsg(null)
+      const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
+      const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence/workspace`
       try {
-        const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000'
-        const res = await fetch(`${API}/matters/${params.matter_id}/evidence/workspace`)
-        if (!res.ok) throw new Error('failed to load')
-        const body = await res.json()
-        setData(body as EvidenceWorkspace)
-      } catch (e: any) {
-        setError(e?.message || 'Failed')
-      } finally {
-        setLoading(false)
+        const res = await fetch(url)
+        if (!res.ok) throw new Error(`status:${res.status}`)
+        const json = await res.json()
+
+        // require evidence_list to consider success
+        if (!json || !Array.isArray(json.evidence_list)) throw new Error('missing evidence_list')
+
+        const mapped = {
+          proofGoal: json.matter?.title || fallbackWorkspace.proofGoal,
+          evidences: (json.evidence_list || []).map((e: any, idx: number) => ({
+            id: e.evidence_id || e.id || `ev-${idx}`,
+            title: e.title || `Evidence ${idx + 1}`,
+            type: e.evidence_type || e.type || 'other',
+            date: e.updated_at || e.created_at || '',
+            strength: typeof e.relevance === 'string' && e.relevance.toLowerCase() === 'high' ? 90 : (e.relevance ? 70 : 50),
+            notes: e.description || '',
+          })),
+          proofMap: json.graph || fallbackWorkspace.proofMap,
+          // missing_evidence / gaps
+          gaps: Array.isArray(json.missing_evidence) && json.missing_evidence.length > 0 ? json.missing_evidence.map((g:any) => ({ id: g.id || g.key || String(g.title||Math.random()), title: g.title || g.description || '', impact: g.priority || g.impact || '中' })) : fallbackWorkspace.gaps,
+          // ai discoveries
+          discoveries: Array.isArray(json.ai_analysis?.discoveries) ? json.ai_analysis.discoveries : (json.ai_analysis && json.ai_analysis.message ? [json.ai_analysis.message] : fallbackWorkspace.discoveries),
+          // timeline: prefer explicit timeline, else derive from evidence_list
+          timeline: Array.isArray(json.timeline) && json.timeline.length > 0 ? json.timeline : ((Array.isArray(json.evidence_list) && json.evidence_list.length > 0) ? json.evidence_list.map((e:any, i:number) => ({ id: e.evidence_id || `ev-${i}`, text: `${e.title || '证据'}`, time: e.updated_at || e.created_at || '' })) : (json.selected_evidence?.related_timeline || fallbackWorkspace.timeline)),
+          score: json.summary && typeof json.summary.total === 'number' ? Math.round(((json.summary.accepted || 0) / Math.max(1, (json.summary.total || 1))) * 100) : fallbackWorkspace.score,
+          selected_evidence: json.selected_evidence ? {
+            id: json.selected_evidence.evidence_id || json.selected_evidence.id,
+            title: json.selected_evidence.title || json.selected_evidence.name || '',
+            type: json.selected_evidence.evidence_type || json.selected_evidence.type || '',
+            date: json.selected_evidence.updated_at || json.selected_evidence.created_at || '',
+            strength: json.selected_evidence.ai_summary && typeof json.selected_evidence.ai_summary.score === 'number' ? Number(json.selected_evidence.ai_summary.score) : (json.selected_evidence.relevance ? 70 : 50),
+            notes: json.selected_evidence.description || '',
+            ai_summary: json.selected_evidence.ai_summary || json.selected_evidence.ai_analysis || null,
+          } : null,
+          // pass through next steps and missing suggestions
+          evidence_next_steps: Array.isArray(json.evidence_next_steps) ? json.evidence_next_steps : [],
+          missing_evidence: Array.isArray(json.missing_evidence) ? json.missing_evidence : [],
+          ai_analysis: json.ai_analysis || null,
+        }
+
+        if (!cancelled) {
+          setData(mapped as any)
+          // ensure selected evidence id exists in new data
+          if (mapped.evidences && mapped.evidences.length > 0) {
+            const exist = mapped.evidences.find((x:any) => x.id === selectedEvidenceId)
+            if (!exist) setSelectedEvidenceId(mapped.evidences[0].id)
+          }
+          setLoading(false)
+        }
+      } catch (err:any) {
+        if (!cancelled) {
+          setData(fallbackWorkspace)
+          setErrorMsg('已加载本地示例数据')
+          setLoading(false)
+        }
       }
     }
     load()
-  }, [params.matter_id])
+    return () => { cancelled = true }
+  }, [matterId])
 
-  if (loading) return <main style={{ padding: 24 }}><div>Loading Evidence Workspace...</div></main>
-  if (error) return <main style={{ padding: 24 }}><div style={{ color: '#b91c1c' }}>Error: {error}</div></main>
-  if (!data) return null
+  // reconcile selectedEvidenceId when data.evidences change
+  useEffect(() => {
+    const evidences = (data as any)?.evidences || []
+    if (!Array.isArray(evidences) || evidences.length === 0) return
+    const exists = evidences.some((e:any) => e.id === selectedEvidenceId)
+    if (!exists) {
+      setSelectedEvidenceId(evidences[0].id)
+    }
+  }, [(data as any)?.evidences, selectedEvidenceId])
 
-  const matter = data.matter || { matter_id: params.matter_id, title: '', status: '' }
+  // fetch proof graph separately (GET /matters/:id/graph) to enrich proofMap
+  useEffect(() => {
+    let cancelled = false
+    async function loadGraph() {
+      const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
+      const url = `${base}/matters/${encodeURIComponent(matterId)}/graph`
+      try {
+        const res = await fetch(url)
+        if (!res.ok) return
+        const json = await res.json()
+        if (!json) return
+        if (!cancelled) {
+          setData((prev: any) => ({ ...prev, proofMap: json || prev.proofMap }))
+        }
+      } catch (e) {
+        // ignore graph fetch errors; keep fallback
+      }
+    }
+    loadGraph()
+    return () => { cancelled = true }
+  }, [matterId])
+
+  // render
+  const selectedAiSummary = (data as any)?.selected_evidence?.ai_summary ?? null
+  const globalScore = (data as any)?.score ?? fallbackWorkspace.score
+  const evidencesCount = Array.isArray((data as any)?.evidences) ? (data as any).evidences.length : fallbackWorkspace.evidences.length
+  const highGapCount = Array.isArray((data as any)?.gaps) ? ((data as any).gaps.filter((g:any) => String(g.impact || '').toLowerCase() === '高' || String(g.impact || '').toLowerCase() === 'high').length) : (fallbackWorkspace.gaps.filter((g:any)=>g.impact==='高').length)
 
   return (
-    <main style={{ padding: 24 }}>
-      <div style={{ padding: 20, borderRadius: 12, background: '#fff', boxShadow: '0 1px 6px rgba(0,0,0,0.04)' }}>
-        <h1 style={{ margin: 0 }}>Evidence Workspace</h1>
-        <div style={{ color: '#666', marginTop: 6 }}>{matter.title} · {matter.status}</div>
-      </div>
-
-      <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
-        <SummaryCard title="Total" value={data.summary.total} />
-        <SummaryCard title="Accepted" value={data.summary.accepted} />
-        <SummaryCard title="Pending" value={data.summary.pending} />
-        <SummaryCard title="Weak" value={data.summary.weak} />
-        <SummaryCard title="Missing" value={data.summary.missing} />
-      </div>
-
-      {data && (data as any).navigation && (
-        <div style={{ marginTop: 16 }}>
-          <h3>Evidence Navigation</h3>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
-              <div style={{ fontWeight: 700 }}>By Type</div>
-              {((data as any).navigation.by_type || []).map((it:any) => (
-                <div key={it.key} style={{ padding: 6 }}>{it.label} · {it.count} <div style={{ color: '#666' }}>{it.description}</div></div>
-              ))}
-            </div>
-            <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
-              <div style={{ fontWeight: 700 }}>By Status</div>
-              {((data as any).navigation.by_status || []).map((it:any) => (
-                <div key={it.key} style={{ padding: 6 }}>{it.label} · {it.count} <div style={{ color: '#666' }}>{it.description}</div></div>
-              ))}
-            </div>
-            <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
-              <div style={{ fontWeight: 700 }}>By Strength</div>
-              {((data as any).navigation.by_strength || []).map((it:any) => (
-                <div key={it.key} style={{ padding: 6 }}>{it.label} · {it.count} <div style={{ color: '#666' }}>{it.description}</div></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 12, marginTop: 16 }}>
-        <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
-          <h3 style={{ marginTop: 0 }}>Evidence List</h3>
-          {data.evidence_list.length === 0 && <div style={{ color: '#666' }}>No evidence</div>}
-          {data.evidence_list.map((e:any) => (
-            <div key={e.evidence_id} style={{ padding: 8, borderBottom: '1px solid #f1f5f9' }}>
-              <div style={{ fontWeight: 600 }}>{e.title}</div>
-              <div style={{ color: '#666', fontSize: 12 }}>{e.evidence_type} · {e.source}</div>
-              <div style={{ fontSize: 12, color: '#475569' }}>{e.status} · relevance: {e.relevance}</div>
-            </div>
-          ))}
+    <main style={{ minHeight: '80vh', padding: 20, background: tokens.pageBg, fontFamily: 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div>
+          <h2 style={{ margin: 0 }}>证据工作区</h2>
+          <div style={{ color: tokens.muted, marginTop: 6 }}>基于证明目标组织证据（仅 Mock 数据）</div>
         </div>
 
         <div>
-          <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
-            <h3 style={{ marginTop: 0 }}>Evidence Detail</h3>
-            {data.selected_evidence ? (
-              <div>
-                <h2 style={{ margin: '6px 0' }}>{data.selected_evidence.title}</h2>
-                <div style={{ color: '#666', fontSize: 13 }}>ID: {data.selected_evidence.evidence_id}</div>
-                <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-                  <div style={{ fontSize: 13 }}>Type: {data.selected_evidence.evidence_type}</div>
-                  <div style={{ fontSize: 13 }}>Status: {data.selected_evidence.status}</div>
-                  <div style={{ fontSize: 13 }}>Relevance: {data.selected_evidence.relevance}</div>
-                </div>
-                <div style={{ fontSize: 13, color: '#666', marginTop: 6 }}>Source: {data.selected_evidence.source}</div>
-                <div style={{ fontSize: 13, color: '#666' }}>Updated: {data.selected_evidence.updated_at ?? 'N/A'}</div>
+          <button onClick={() => alert('上传证据（模拟）')} style={{ padding: '8px 12px', borderRadius: 8, background: tokens.blue, color: '#fff', border: 'none' }}>上传证据</button>
+        </div>
+      </header>
 
-                <div style={{ marginTop: 12 }}>
-                  <div style={{ fontWeight: 700 }}>Description</div>
-                  <div style={{ color: '#333' }}>{data.selected_evidence.description || 'No description'}</div>
-                </div>
-
-                <div style={{ marginTop: 12 }}>
-                  <div style={{ fontWeight: 700 }}>Related Material</div>
-                  {data.selected_evidence.related_material ? (
-                    <div style={{ color: '#333' }}>{data.selected_evidence.related_material.title} · {data.selected_evidence.related_material.material_id}</div>
-                  ) : (
-                    <div style={{ color: '#666' }}>No related material</div>
-                  )}
-                </div>
-
-                <div style={{ marginTop: 16, background: '#fff', padding: 12, borderRadius: 8 }}>
-                  <h3 style={{ marginTop: 0 }}>Evidence Next Step</h3>
-                  {Array.isArray(data.evidence_next_steps) && data.evidence_next_steps.length === 0 ? (
-                    <div style={{ color: '#666' }}>No evidence next steps</div>
-                  ) : (
-                    (data.evidence_next_steps || []).map((s:any, idx:number) => (
-                      <div key={s.id || idx} style={{ padding: 8, borderBottom: '1px solid #f1f5f9' }}>
-                        <div style={{ fontWeight: 700 }}>{s.title}</div>
-                        <div style={{ color: '#666' }}>{s.description}</div>
-                        <div style={{ marginTop: 6 }}><strong>Priority:</strong> {s.priority}</div>
-                        <div style={{ color: '#666' }}><strong>Reason:</strong> {s.reason}</div>
-                        <div style={{ color: '#666' }}><strong>Action:</strong> {s.suggested_action}</div>
-                        <div style={{ color: '#666' }}><strong>Status:</strong> {s.status}</div>
-                      </div>
-                    ))
-                  )}
-                </div>
-
-                <div style={{ marginTop: 12 }}>
-                  <div style={{ fontWeight: 700 }}>AI Summary</div>
-                  <div style={{ color: '#666' }}>{data.selected_evidence.ai_summary?.message || 'AI evidence summary coming soon'}</div>
-                </div>
-
-                <div style={{ marginTop: 12 }}>
-                  <div style={{ fontWeight: 700 }}>Related Documents</div>
-                  {Array.isArray(data.selected_evidence.related_documents) && data.selected_evidence.related_documents.length === 0 ? (
-                    <div style={{ color: '#666' }}>No related documents</div>
-                  ) : (
-                    (data.selected_evidence.related_documents || []).map((d:any, idx:number) => (
-                      <div key={idx} style={{ padding: 6 }}>{d.title || d.document_id}</div>
-                    ))
-                  )}
-                </div>
-
-                <div style={{ marginTop: 12 }}>
-                  <div style={{ fontWeight: 700 }}>Timeline</div>
-                  {Array.isArray(data.selected_evidence.related_timeline) && data.selected_evidence.related_timeline.length === 0 ? (
-                    <div style={{ color: '#666' }}>No related timeline events</div>
-                  ) : (
-                    (data.selected_evidence.related_timeline || []).map((t:any, idx:number) => (
-                      <div key={idx} style={{ padding: 6 }}>{t.event_type || t.timeline_id}</div>
-                    ))
-                  )}
-                </div>
-
-                <div style={{ marginTop: 12 }}>
-                  <div style={{ fontWeight: 700 }}>Lawyer Notes</div>
-                  <div style={{ color: '#666' }}>{data.selected_evidence.lawyer_notes?.message || 'Lawyer notes coming soon'}</div>
-                </div>
+      <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+        {/* AI Chief */}
+        <div style={{ background: tokens.cardBg, padding: 14, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+          <div style={{ fontWeight: 800, fontSize: 16 }}>AI Chief</div>
+          <div style={{ color: tokens.muted, marginTop: 6 }}>总览证据质量与风险（模拟）</div>
+          <div style={{ marginTop: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div style={{ color: tokens.muted }}>证据完整度</div>
+              <div style={{ fontWeight: 800 }}>{globalScore}%</div>
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <ProgressBar value={globalScore} />
+            </div>
+            <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+              <div style={{ padding: 8, borderRadius: 8, background: '#f1f5f9', flex: 1 }}>
+                <div style={{ fontWeight: 700 }}>{evidencesCount}</div>
+                <div style={{ color: tokens.muted, fontSize: 12 }}>证据对象</div>
               </div>
-            ) : (
-              <div style={{ color: '#666' }}>Select an evidence item to view details</div>
-            )}
-          </div>
-
-          <div style={{ marginTop: 12, background: '#fff', padding: 12, borderRadius: 8 }}>
-            <h3 style={{ marginTop: 0 }}>AI Analysis</h3>
-            {/* Render new rule-based ai_summary when available on selected_evidence, otherwise fallback */}
-            {data.selected_evidence && data.selected_evidence.ai_summary && data.selected_evidence.ai_summary.status === 'rule_based' ? (
-              <div>
-                <div style={{ fontWeight: 700 }}>Score: {data.selected_evidence.ai_summary.score}</div>
-                <div style={{ color: '#666' }}>Completeness: {data.selected_evidence.ai_summary.completeness}</div>
-
-                <div style={{ marginTop: 8 }}>
-                  <div style={{ fontWeight: 700 }}>Strengths</div>
-                  {Array.isArray(data.selected_evidence.ai_summary.strengths) && data.selected_evidence.ai_summary.strengths.length > 0 ? (
-                    data.selected_evidence.ai_summary.strengths.map((s:any, idx:number) => <div key={idx}>{s}</div>)
-                  ) : (
-                    <div style={{ color: '#666' }}>No strengths</div>
-                  )}
-                </div>
-
-                <div style={{ marginTop: 8 }}>
-                  <div style={{ fontWeight: 700 }}>Risks</div>
-                  {Array.isArray(data.selected_evidence.ai_summary.risks) && data.selected_evidence.ai_summary.risks.length > 0 ? (
-                    data.selected_evidence.ai_summary.risks.map((r:any, idx:number) => <div key={idx} style={{ color: '#b91c1c' }}>{r}</div>)
-                  ) : (
-                    <div style={{ color: '#666' }}>No risks</div>
-                  )}
-                </div>
-
-                <div style={{ marginTop: 8 }}>
-                  <div style={{ fontWeight: 700 }}>Recommendations</div>
-                  {Array.isArray(data.selected_evidence.ai_summary.recommendations) && data.selected_evidence.ai_summary.recommendations.length > 0 ? (
-                    data.selected_evidence.ai_summary.recommendations.map((r:any, idx:number) => <div key={idx}>{r}</div>)
-                  ) : (
-                    <div style={{ color: '#666' }}>No recommendations</div>
-                  )}
-                </div>
+              <div style={{ padding: 8, borderRadius: 8, background: '#fff8ed', flex: 1 }}>
+                <div style={{ fontWeight: 700, color: '#b45309' }}>{highGapCount}</div>
+                <div style={{ color: tokens.muted, fontSize: 12 }}>高风险缺口</div>
               </div>
-            ) : (
-              <div style={{ color: '#666' }}>{data.ai_analysis?.message ?? 'AI evidence analysis coming soon'}</div>
-            )}
-          </div>
+            </div>
+            <div style={{ marginTop: 12 }}>
+              <div style={{ fontWeight: 700 }}>阻塞点</div>
+              <div style={{ color: tokens.muted, marginTop: 6 }}>{((data as any)?.missing_evidence && (data as any).missing_evidence[0]?.title) || (selectedAiSummary && ((selectedAiSummary as any).risks || [])[0]) || '无'}</div>
 
-          <div style={{ marginTop: 12, background: '#fff', padding: 12, borderRadius: 8 }}>
-            <h3 style={{ marginTop: 0 }}>Missing Evidence</h3>
-            {Array.isArray(data.missing_evidence) && data.missing_evidence.length === 0 ? (
-              <div style={{ color: '#666' }}>No missing evidence suggestions yet</div>
-            ) : (
-              data.missing_evidence.map((m:any, idx:number) => (
-                <div key={m.id || idx} style={{ padding: 8, borderBottom: '1px solid #f1f5f9' }}>
-                  <div style={{ fontWeight: 700 }}>{m.title}</div>
-                  <div style={{ color: '#666' }}>{m.description}</div>
-                  <div style={{ marginTop: 6 }}><strong>Priority:</strong> {m.priority}</div>
-                  <div style={{ color: '#666' }}><strong>Reason:</strong> {m.reason}</div>
-                  <div style={{ color: '#666' }}><strong>Action:</strong> {m.suggested_action}</div>
-                </div>
-              ))
-            )}
+              <div style={{ fontWeight: 700, marginTop: 8 }}>建议下一步</div>
+              <div style={{ color: tokens.muted, marginTop: 6 }}>{((data as any)?.evidence_next_steps && (data as any).evidence_next_steps[0]?.title) || (selectedAiSummary && ((selectedAiSummary as any).recommendations || [])[0]) || '请律师补强证据'}</div>
+            </div>
           </div>
         </div>
+
+        {/* Evidence Tree */}
+        <div style={{ background: tokens.cardBg, padding: 14, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+          <div style={{ fontWeight: 800 }}>Evidence Tree</div>
+          <div style={{ color: tokens.muted, marginTop: 6 }}>证据对象（非文件）按证明目标组织</div>
+          <div style={{ marginTop: 12 }}>
+            <div style={{ fontWeight: 700 }}>{(data as any)?.proofGoal ?? fallbackWorkspace.proofGoal}</div>
+            <div style={{ marginTop: 8 }}>
+              {(data as any)?.evidences?.map((e: any) => (
+                <div key={e.id} onClick={() => setSelectedEvidenceId(e.id)} style={{ padding: 8, borderRadius: 8, cursor: 'pointer', marginBottom: 8, background: selectedEvidenceId === e.id ? '#eef6ff' : '#fff' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ fontWeight: 700, color: selectedEvidenceId === e.id ? tokens.blue : tokens.text }}>{e.title}</div>
+                    <div style={{ color: tokens.muted, fontSize: 12 }}>{e.date}</div>
+                  </div>
+                  <div style={{ color: tokens.muted, fontSize: 13, marginTop: 6 }}>{e.type} • 强度 {e.strength}%</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Proof Map */}
+        <div style={{ background: tokens.cardBg, padding: 14, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+          <div style={{ fontWeight: 800 }}>Proof Map</div>
+          <div style={{ color: tokens.muted, marginTop: 6 }}>静态关系示意（Mock）</div>
+          <div style={{ marginTop: 12, height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="100%" height="120" viewBox="0 0 400 120">
+              {/* nodes */}
+              <circle cx="60" cy="60" r="28" fill="#eef2ff" stroke="#c7ddff" />
+              <text x="60" y="65" fontSize="12" textAnchor="middle" fill="#1e293b">{(data as any)?.proofMap?.nodes?.[0]?.label ?? '借款合意'}</text>
+              <circle cx="200" cy="60" r="28" fill="#eef2ff" stroke="#c7ddff" />
+              <text x="200" y="65" fontSize="12" textAnchor="middle" fill="#1e293b">{(data as any)?.proofMap?.nodes?.[1]?.label ?? '资金交付'}</text>
+              <circle cx="340" cy="60" r="28" fill="#eef2ff" stroke="#c7ddff" />
+              <text x="340" y="65" fontSize="12" textAnchor="middle" fill="#1e293b">{(data as any)?.proofMap?.nodes?.[2]?.label ?? '未归还'}</text>
+              {/* links */}
+              <line x1="88" y1="60" x2="172" y2="60" stroke="#c7ddff" strokeWidth="2" />
+              <line x1="228" y1="60" x2="312" y2="60" stroke="#c7ddff" strokeWidth="2" />
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+        {/* Evidence Gap */}
+        <div style={{ background: tokens.cardBg, padding: 14, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+          <div style={{ fontWeight: 800 }}>Evidence Gap</div>
+          <div style={{ color: tokens.muted, marginTop: 6 }}>缺失证据与影响评估</div>
+          <div style={{ marginTop: 10 }}>
+            {(data as any)?.gaps?.length > 0 ? (data as any).gaps.map((g: any) => (
+              <div key={g.id} style={{ padding: 10, borderRadius: 8, marginBottom: 8, background: '#fff', border: '1px solid #f1f5f9' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={{ fontWeight: 700 }}>{g.title}</div>
+                  <div style={{ color: (String(g.impact || '').toLowerCase() === '高' || String(g.impact || '').toLowerCase() === 'high') ? '#b91c1c' : '#d97706' }}>{g.impact}</div>
+                </div>
+                <div style={{ color: tokens.muted, marginTop: 6 }}>建议：联系客户补充或寻求替代证据。</div>
+              </div>
+            )) : fallbackWorkspace.gaps.map((g:any) => (
+              <div key={g.id} style={{ padding: 10, borderRadius: 8, marginBottom: 8, background: '#fff', border: '1px solid #f1f5f9' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={{ fontWeight: 700 }}>{g.title}</div>
+                  <div style={{ color: g.impact === '高' ? '#b91c1c' : '#d97706' }}>{g.impact}</div>
+                </div>
+                <div style={{ color: tokens.muted, marginTop: 6 }}>建议：联系客户补充或寻求替代证据。</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* AI Discovery */}
+        <div style={{ background: tokens.cardBg, padding: 14, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+          <div style={{ fontWeight: 800 }}>AI Discovery</div>
+          <div style={{ color: tokens.muted, marginTop: 6 }}>AI 自动发现（仅 Mock）</div>
+          <div style={{ marginTop: 10 }}>
+            {((data as any)?.discoveries || fallbackWorkspace.discoveries).map((d: any) => (
+              <div key={d.id || d.text} style={{ padding: 10, borderRadius: 8, marginBottom: 8, background: '#fff', border: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: 14 }}>{d.text || String(d)}</div>
+                {d.confidence ? <div style={{ marginTop: 6, color: tokens.muted, fontSize: 12 }}>可信度：{Math.round((d.confidence || 0) * 100)}%</div> : null}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Evidence Timeline */}
+        <div style={{ background: tokens.cardBg, padding: 14, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+          <div style={{ fontWeight: 800 }}>Evidence Timeline</div>
+          <div style={{ color: tokens.muted, marginTop: 6 }}>按时间排列关键证据事件</div>
+          <div style={{ marginTop: 10 }}>
+            {((data as any)?.timeline || fallbackWorkspace.timeline).map((t: any) => (
+              <div key={t.id || t.time || t.text} style={{ padding: 8, borderBottom: '1px dashed #f1f5f9' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={{ fontWeight: 700 }}>{t.text}</div>
+                  <div style={{ color: tokens.muted }}>{t.time}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Evidence Details + Score footer */}
+      <section style={{ marginTop: 12, display: 'grid', gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
+        <div style={{ background: tokens.cardBg, padding: 14, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+          <div style={{ fontWeight: 800 }}>证据详情</div>
+          <div style={{ color: tokens.muted, marginTop: 6 }}>{selectedEvidence.title} • {selectedEvidence.type}</div>
+          <div style={{ marginTop: 10 }}>
+            <div style={{ fontWeight: 700 }}>说明</div>
+            <div style={{ marginTop: 6, color: tokens.muted }}>{selectedEvidence.notes}</div>
+            <div style={{ marginTop: 10, display: 'flex', gap: 12 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, color: tokens.muted }}>强度</div>
+                <div style={{ marginTop: 6 }}><ProgressBar value={selectedEvidence.strength} /></div>
+              </div>
+              <div style={{ width: 120 }}>
+                <div style={{ fontSize: 12, color: tokens.muted }}>日期</div>
+                <div style={{ marginTop: 6 }}>{selectedEvidence.date}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ background: tokens.cardBg, padding: 14, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+          <div style={{ fontWeight: 800 }}>Evidence Score</div>
+          <div style={{ color: tokens.muted, marginTop: 6 }}>综合评分（Mock）</div>
+          <div style={{ marginTop: 12 }}>
+            <div style={{ fontSize: 22, fontWeight: 800 }}>{selectedAiSummary && typeof selectedAiSummary.score === 'number' ? selectedAiSummary.score : globalScore}%</div>
+            <div style={{ marginTop: 8 }}><ProgressBar value={selectedAiSummary && typeof selectedAiSummary.score === 'number' ? selectedAiSummary.score : globalScore} /></div>
+            <div style={{ marginTop: 10, color: tokens.muted }}>说明：分数基于证据完整度、可靠性与可验证性（模拟计算）。</div>
+          </div>
+        </div>
+      </section>
+
+      <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+        <button onClick={() => router.push(`/matters/${matterId}`)} style={{ padding: '8px 12px', borderRadius: 8, background: '#f1f5f9', border: 'none', color: tokens.text }}>返回案件</button>
+        <button onClick={() => alert('已保存（模拟）')} style={{ padding: '8px 12px', borderRadius: 8, background: tokens.blue, border: 'none', color: '#fff' }}>保存</button>
       </div>
     </main>
   )

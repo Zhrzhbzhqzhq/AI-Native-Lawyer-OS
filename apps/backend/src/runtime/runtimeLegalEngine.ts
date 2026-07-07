@@ -72,14 +72,33 @@ export default function worksFromRuntimePlan(plan: RuntimePlan): RuntimeWork[] {
   }
 
   if (hasResearch) {
-    works.push({
-      work_id: 'work-research-law',
-      type: 'ResearchWork',
-      title: 'Legal Research',
-      status: 'PENDING',
-      depends_on: [],
-      target_ref: { workspace: 'runtime', object_type: 'Research', object_ids: [] },
-    })
+    // For Legal Research, create detailed works for planner steps if present
+    // If plan contains explicit research steps, create one ResearchWork for each
+    // Here we rely on plan.steps presence upstream; fallback to single work
+    const planSteps: string[] = (plan as any)?.steps || []
+    const researchSteps = planSteps.filter((s:any) => String(s || '').toLowerCase().includes('search') || String(s || '').toLowerCase().includes('research') || String(s || '').toLowerCase().includes('memo'))
+    if (researchSteps.length > 0) {
+      researchSteps.forEach((step:any, idx:number) => {
+        const id = `work-research-${idx}`
+        works.push({
+          work_id: id,
+          type: 'ResearchWork',
+          title: String(step || 'Legal Research'),
+          status: 'PENDING',
+          depends_on: [],
+          target_ref: { workspace: 'runtime', object_type: 'Research', object_ids: [] },
+        })
+      })
+    } else {
+      works.push({
+        work_id: 'work-research-law',
+        type: 'ResearchWork',
+        title: 'Legal Research',
+        status: 'PENDING',
+        depends_on: [],
+        target_ref: { workspace: 'runtime', object_type: 'Research', object_ids: [] },
+      })
+    }
   }
 
   if (hasDocument) {

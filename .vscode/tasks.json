@@ -1,0 +1,46 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Frontend: Build",
+            "type": "shell",
+            "command": "pnpm --filter @lawdesk/frontend build",
+            "group": "build",
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+        {
+            "label": "Frontend: Dev",
+            "type": "shell",
+            "command": "pnpm --filter @lawdesk/frontend dev",
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+        {
+            "label": "Backend: Dev",
+            "type": "shell",
+            "command": "pnpm --filter @lawdesk/backend dev",
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+        {
+            "label": "Type Check",
+            "type": "shell",
+            "command": "pnpm -w run typecheck",
+            "presentation": {
+                "reveal": "silent"
+            }
+        },
+        {
+            "label": "LawDesk: Full Check",
+            "type": "shell",
+            "command": "bash scripts/check.sh",
+            "presentation": {
+                "reveal": "always"
+            }
+        }
+    ]
+}

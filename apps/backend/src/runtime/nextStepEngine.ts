@@ -1,137 +1,90 @@
-export type NextStep = {
-  id: string
+export type RuntimeNextStep = {
   title: string
-  description: string
-  priority: 'HIGH' | 'MEDIUM' | 'LOW'
   reason: string
-  action: string
-  status: 'suggested'
+  estimated_minutes: number
+  next_state: string
+  lawyer_action: string
+  // legacy label preserved
+  priority_label?: 'HIGH' | 'NORMAL' | 'LOW'
+  // numeric priority for compatibility with tests/tools (higher = more urgent)
+  priority: number
+  target_workspace: 'evidence' | 'research' | 'documents' | 'execution' | 'runtime'
+  action?: string
 }
 
-function makeId(action: string) {
-  return `ns-${action}-${Math.random().toString(36).slice(2,8)}`
-}
+export class NextStepEngine {
+  static generate(input: {
+    runtime_state?: any[]
+    runtime_decision?: any
+    runtime_plan?: any
+    today_queue?: any[]
+    snapshot_facts?: any
+  }): RuntimeNextStep {
+    const runtime_decision = input?.runtime_decision ?? {}
+    const code = String(runtime_decision.code || '').toUpperCase()
 
-export default class NextStepEngine {
-  evaluate(input: { materialsCount: number; evidenceCount: number; documentsCount: number; recentActivityCount: number; weakEvidenceCount?: number; draftDocumentCount?: number; archivedDocumentCount?: number }) {
-    const { materialsCount, evidenceCount, documentsCount, recentActivityCount, weakEvidenceCount = 0, draftDocumentCount = 0, archivedDocumentCount = 0 } = input
-    const steps: NextStep[] = []
-
-    // Rule 1
-    if (materialsCount > 0 && evidenceCount === 0) {
-      steps.push({
-        id: makeId('generate_evidence_draft'),
-        title: '生成证据草稿',
-        description: '根据已有案件资料，生成可用的证据草稿以支持主张',
-        priority: 'HIGH',
-        reason: '有案件资料但尚未形成证据',
-        action: 'generate_evidence_draft',
-        status: 'suggested',
-      })
+    switch (code) {
+      case 'COLLECT_EVIDENCE':
+        return {
+          title: '补充关键证据',
+          reason: '当前案件证据不足，建议先补强证据后再进入下一阶段。',
+          estimated_minutes: 10,
+          next_state: 'REVIEW_EVIDENCE',
+          lawyer_action: '上传或确认关键证据',
+          priority_label: 'HIGH',
+          // numeric priority for compatibility
+          priority: 3,
+          target_workspace: 'evidence',
+          action: 'generate_evidence_draft',
+        }
+      case 'REVIEW_EVIDENCE':
+        return {
+          title: '审核证据完整性',
+          reason: '已有证据需要律师确认真实性、关联性和完整性。',
+          estimated_minutes: 8,
+          next_state: 'LEGAL_RESEARCH',
+          lawyer_action: '确认已上传证据',
+          priority_label: 'HIGH',
+          priority: 3,
+          target_workspace: 'evidence',
+          action: 'review_evidence',
+        }
+      case 'LEGAL_RESEARCH':
+        return {
+          title: '开始法律检索',
+          reason: '证据基础已具备，建议开始检索相关法规、案例和争点。',
+          estimated_minutes: 15,
+          next_state: 'DRAFT_DOCUMENTS',
+          lawyer_action: '确认开始法律检索',
+          priority_label: 'NORMAL',
+          priority: 2,
+          target_workspace: 'research',
+          action: 'legal_research',
+        }
+      case 'DRAFT_DOCUMENTS':
+        return {
+          title: '生成诉讼文书',
+          reason: '法律检索已完成，建议开始生成起诉状、证据目录或代理词。',
+          estimated_minutes: 20,
+          next_state: 'READY_TO_FILE',
+          lawyer_action: '确认生成文书',
+          priority_label: 'NORMAL',
+          priority: 2,
+          target_workspace: 'documents',
+          action: 'draft_documents',
+        }
+      default:
+        return {
+          title: '继续推进案件',
+          reason: 'AI 已根据当前案件状态生成下一步工作建议。',
+          estimated_minutes: 10,
+          next_state: 'RUNTIME_REVIEW',
+          lawyer_action: '查看 AI 工作中心',
+          priority_label: 'NORMAL',
+          priority: 2,
+          target_workspace: 'runtime',
+          action: 'continue_case',
+        }
     }
-
-    // Rule 2
-    if (evidenceCount > 0 && documentsCount === 0) {
-      steps.push({
-        id: makeId('generate_primary_document'),
-        title: '生成起诉状或核心文书',
-        description: '基于已确认证据，起草起诉状或其他核心文书',
-        priority: 'HIGH',
-        reason: '存在证据但尚无文书',
-        action: 'generate_primary_document',
-        status: 'suggested',
-      })
-    }
-
-    // Rule 3
-    if (documentsCount > 0) {
-      steps.push({
-        id: makeId('review_document_updates'),
-        title: '检查文书是否需要更新',
-        description: '审查现有文书，判断是否需要基于新证据或事实更新',
-        priority: 'MEDIUM',
-        reason: '已有文书可能需更新',
-        action: 'review_document_updates',
-        status: 'suggested',
-      })
-    }
-
-    // Rule 5: weak evidence present -> suggest strengthening evidence
-    if ((typeof weakEvidenceCount === 'number') && weakEvidenceCount > 0) {
-      steps.push({
-        id: makeId('strengthen_evidence'),
-        title: '补强证据条目',
-        description: `发现 ${weakEvidenceCount} 条可能完整性不足的证据，建议补强描述或关联材料。`,
-        priority: 'HIGH',
-        reason: 'Weak evidence detected',
-        action: 'strengthen_evidence',
-        status: 'suggested',
-      })
-    }
-
-    // Rule 6: draft documents exist -> suggest finishing drafts
-    if ((typeof draftDocumentCount === 'number') && draftDocumentCount > 0) {
-      steps.push({
-        id: makeId('finalize_drafts'),
-        title: '完成草稿文书',
-        description: `存在 ${draftDocumentCount} 份草稿文书，建议完成并提交审核。`,
-        priority: 'MEDIUM',
-        reason: 'Draft documents present',
-        action: 'finalize_drafts',
-        status: 'suggested',
-      })
-    }
-
-    // Rule 7: archived documents present -> suggest review
-    if ((typeof archivedDocumentCount === 'number') && archivedDocumentCount > 0) {
-      steps.push({
-        id: makeId('review_archived_documents'),
-        title: '审查归档文书',
-        description: `检测到 ${archivedDocumentCount} 份归档文书，建议确认是否需恢复或长期存档。`,
-        priority: 'LOW',
-        reason: 'Archived documents detected',
-        action: 'review_archived_documents',
-        status: 'suggested',
-      })
-    }
-
-    // Rule 4
-    if (recentActivityCount === 0) {
-      steps.push({
-        id: makeId('add_case_materials'),
-        title: '补充案件基础资料',
-        description: '收集并添加案件相关基础资料，以便推进后续工作',
-        priority: 'MEDIUM',
-        reason: '近期无活动，案件资料可能不足',
-        action: 'add_case_materials',
-        status: 'suggested',
-      })
-    }
-
-    // Priority weights for sorting
-    const weight: Record<string, number> = { HIGH: 3, MEDIUM: 2, LOW: 1 }
-
-    // stable sort by priority (higher weight first). Use index to preserve original order for same priority.
-    const stepsWithIndex = steps.map((s, idx) => ({ s, idx }))
-    stepsWithIndex.sort((a, b) => {
-      const wa = weight[a.s.priority] ?? 0
-      const wb = weight[b.s.priority] ?? 0
-      if (wa !== wb) return wb - wa
-      return a.idx - b.idx
-    })
-
-    // dedupe by action, keeping first (highest priority due to sort)
-    const seen = new Set<string>()
-    const deduped: NextStep[] = []
-    for (const item of stepsWithIndex) {
-      const action = item.s.action
-      if (!seen.has(action)) {
-        seen.add(action)
-        deduped.push(item.s)
-      }
-    }
-
-    // return up to 3 suggestions
-    return deduped.slice(0, 3)
   }
 }
