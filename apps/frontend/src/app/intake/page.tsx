@@ -22,7 +22,7 @@ export default function IntakePage() {
       const draft = { caseName, client, opponent, caseType, files }
       sessionStorage.setItem('new_matter_draft', JSON.stringify(draft))
     } catch (e) { }
-    router.push('/matters')
+    router.push('/intake/creating')
   }
 
   return (
