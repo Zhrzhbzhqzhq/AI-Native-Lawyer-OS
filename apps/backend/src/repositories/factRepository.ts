@@ -37,6 +37,25 @@ export class FactRepository {
         if (!existing) throw new Error('Not found');
         return this.prisma.fact.delete({ where: { fact_id } });
     }
+
+    async attachEvidence(fact_id: string, evidence_id: string, note?: string): Promise<any> {
+        // check existing
+        const existing = await this.prisma.factEvidence.findFirst({ where: { fact_id, evidence_id } });
+        if (existing) return existing;
+
+        const created = await this.prisma.factEvidence.create({ data: { fact_id, evidence_id, note: note ?? '' } });
+        return created;
+    }
+
+    async detachEvidence(fact_id: string, evidence_id: string): Promise<{ count: number }> {
+        // delete any matching relation
+        const res = await this.prisma.factEvidence.deleteMany({ where: { fact_id, evidence_id } });
+        return res;
+    }
+
+    async listFactEvidence(fact_id: string): Promise<any[]> {
+        return this.prisma.factEvidence.findMany({ where: { fact_id }, include: { evidence: { select: { evidence_id: true, title: true, evidence_type: true, description: true, status: true, created_at: true, updated_at: true } } }, orderBy: { created_at: 'desc' } });
+    }
 }
 
 export default FactRepository;

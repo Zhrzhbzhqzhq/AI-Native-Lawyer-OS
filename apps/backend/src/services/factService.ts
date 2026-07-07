@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@lawdesk/database';
 import FactRepository from '../repositories/factRepository';
+import EvidenceRepository from '../repositories/evidenceRepository';
 
 export class FactService {
     repo: FactRepository;
@@ -28,6 +29,40 @@ export class FactService {
 
     deleteFact(fact_id: string) {
         return this.repo.delete(fact_id);
+    }
+
+    async attachEvidenceToFact(matter_id: string, fact_id: string, evidence_id: string, note?: string) {
+        // verify fact exists and belongs to matter
+        const fact = await this.repo.getByFactId(fact_id);
+        if (!fact) throw new Error('fact_not_found');
+        if (String(fact.matter_id) !== String(matter_id)) throw new Error('fact_mismatch');
+
+        // verify evidence exists and belongs to same matter
+        const evRepo = new EvidenceRepository((this.repo as any).prisma);
+        const evList = await evRepo.findByMatterId(matter_id);
+        const exists = Array.isArray(evList) && evList.some((e: any) => String(e.evidence_id) === String(evidence_id));
+        if (!exists) throw new Error('evidence_not_found');
+
+        // attach (idempotent)
+        return this.repo.attachEvidence(fact_id, evidence_id, note);
+    }
+
+    async detachEvidenceFromFact(matter_id: string, fact_id: string, evidence_id: string) {
+        const fact = await this.repo.getByFactId(fact_id);
+        if (!fact) throw new Error('fact_not_found');
+        if (String(fact.matter_id) !== String(matter_id)) throw new Error('fact_mismatch');
+
+        const evRepo = new EvidenceRepository((this.repo as any).prisma);
+        const evList = await evRepo.findByMatterId(matter_id);
+        const exists = Array.isArray(evList) && evList.some((e: any) => String(e.evidence_id) === String(evidence_id));
+        if (!exists) throw new Error('evidence_not_found');
+
+        await this.repo.detachEvidence(fact_id, evidence_id);
+        return { ok: true };
+    }
+
+    listFactEvidence(fact_id: string) {
+        return this.repo.listFactEvidence(fact_id);
     }
 }
 

@@ -1179,6 +1179,38 @@ export async function matterRoutes(app: FastifyInstance) {
     }
   });
 
+  // Attach evidence to fact
+  app.post('/matters/:matter_id/facts/:fact_id/evidence', async (request, reply) => {
+    const { matter_id, fact_id } = request.params as any;
+    const payload = request.body as any || {};
+    if (!payload || !payload.evidence_id) return reply.code(400).send({ error: 'evidence_id required' });
+    try {
+      const attached = await factService.attachEvidenceToFact(matter_id, fact_id, String(payload.evidence_id), typeof payload.note === 'string' ? String(payload.note) : undefined);
+      return reply.code(201).send(attached);
+    } catch (err: any) {
+      const msg = String(err.message || err);
+      if (msg === 'fact_not_found') return reply.code(404).send({ error: 'fact_not_found' });
+      if (msg === 'fact_mismatch') return reply.code(400).send({ error: 'fact_mismatch' });
+      if (msg === 'evidence_not_found') return reply.code(404).send({ error: 'evidence_not_found' });
+      return reply.code(500).send({ error: 'attach_failed', detail: err?.message || String(err) });
+    }
+  });
+
+  // Detach evidence from fact
+  app.delete('/matters/:matter_id/facts/:fact_id/evidence/:evidence_id', async (request, reply) => {
+    const { matter_id, fact_id, evidence_id } = request.params as any;
+    try {
+      const res = await factService.detachEvidenceFromFact(matter_id, fact_id, evidence_id);
+      return reply.code(200).send(res);
+    } catch (err: any) {
+      const msg = String(err.message || err);
+      if (msg === 'fact_not_found') return reply.code(404).send({ error: 'fact_not_found' });
+      if (msg === 'fact_mismatch') return reply.code(400).send({ error: 'fact_mismatch' });
+      if (msg === 'evidence_not_found') return reply.code(404).send({ error: 'evidence_not_found' });
+      return reply.code(500).send({ error: 'delete_failed', detail: err?.message || String(err) });
+    }
+  });
+
   app.get('/matters/:matter_id/facts/:fact_id', async (request, reply) => {
     const { fact_id } = request.params as any;
     try {
