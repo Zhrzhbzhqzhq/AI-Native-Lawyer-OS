@@ -10,6 +10,7 @@ export async function matterRoutes(app: FastifyInstance) {
   const evidenceService = new (await import('../services/evidenceService')).default(prisma);
   const factService = new (await import('../services/factService')).default(prisma);
   const materialService = new (await import('../services/materialService')).default(prisma);
+  const issueService = new (await import('../services/issueService')).default(prisma);
   const researchService = new (await import('../services/researchService')).default(prisma);
   const documentService = new (await import('../services/documentService')).default(prisma);
   const taskService = new (await import('../services/taskService')).default(prisma);
@@ -1265,6 +1266,118 @@ export async function matterRoutes(app: FastifyInstance) {
     } catch (err: any) {
       if (String(err.message) === 'Not found') return reply.code(404).send({ error: 'not_found' });
       return reply.code(500).send({ error: 'delete_failed', detail: err?.message || String(err) });
+    }
+  });
+
+  // Issues CRUD
+  app.post('/matters/:id/issues', async (request, reply) => {
+    const { id } = request.params as any;
+    const payload = request.body as any || {};
+    const title = String(payload.title || '').trim();
+    if (!title) return reply.code(400).send({ error: 'title required' });
+    try {
+      const created = await issueService.createIssue(id, { title, description: String(payload.description || ''), status: String(payload.status || 'draft'), priority: String(payload.priority || 'medium') });
+      return reply.code(201).send(created);
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'create_failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.get('/matters/:id/issues', async (request, reply) => {
+    const { id } = request.params as any;
+    try {
+      const list = await issueService.listIssues(id);
+      return reply.code(200).send(list);
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.get('/matters/:matter_id/issues/:issue_id', async (request, reply) => {
+    const { issue_id } = request.params as any;
+    try {
+      const it = await issueService.getIssue(issue_id);
+      if (!it) return reply.code(404).send({ error: 'not_found' });
+      return reply.code(200).send(it);
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.patch('/matters/:matter_id/issues/:issue_id', async (request, reply) => {
+    const { issue_id } = request.params as any;
+    const payload = request.body as any || {};
+    const patch: any = {};
+    if (typeof payload.title === 'string') patch.title = String(payload.title);
+    if (typeof payload.description === 'string') patch.description = String(payload.description);
+    if (typeof payload.status === 'string') patch.status = String(payload.status);
+    if (typeof payload.priority === 'string') patch.priority = String(payload.priority);
+    if (Object.keys(patch).length === 0) return reply.code(400).send({ error: 'nothing to update' });
+    try {
+      const updated = await issueService.updateIssue(issue_id, patch);
+      return reply.code(200).send(updated);
+    } catch (err: any) {
+      if (String(err.message) === 'Not found') return reply.code(404).send({ error: 'not_found' });
+      return reply.code(500).send({ error: 'update_failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.delete('/matters/:matter_id/issues/:issue_id', async (request, reply) => {
+    const { issue_id } = request.params as any;
+    try {
+      await issueService.deleteIssue(issue_id);
+      return reply.code(204).send();
+    } catch (err: any) {
+      if (String(err.message) === 'Not found') return reply.code(404).send({ error: 'not_found' });
+      return reply.code(500).send({ error: 'delete_failed', detail: err?.message || String(err) });
+    }
+  });
+
+  // Issue <-> Fact attach/detach/list
+  app.post('/matters/:matter_id/issues/:issue_id/facts', async (request, reply) => {
+    const { matter_id, issue_id } = request.params as any;
+    const payload = request.body as any || {};
+    if (!payload || !payload.fact_id) return reply.code(400).send({ error: 'fact_id required' });
+    try {
+      const attached = await issueService.attachFactToIssue(matter_id, issue_id, String(payload.fact_id), typeof payload.note === 'string' ? String(payload.note) : undefined);
+      return reply.code(201).send(attached);
+    } catch (err: any) {
+      const msg = String(err.message || err);
+      if (msg === 'issue_not_found') return reply.code(404).send({ error: 'issue_not_found' });
+      if (msg === 'issue_mismatch') return reply.code(400).send({ error: 'issue_mismatch' });
+      if (msg === 'fact_not_found') return reply.code(404).send({ error: 'fact_not_found' });
+      if (msg === 'fact_mismatch') return reply.code(400).send({ error: 'fact_mismatch' });
+      return reply.code(500).send({ error: 'attach_failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.delete('/matters/:matter_id/issues/:issue_id/facts/:fact_id', async (request, reply) => {
+    const { matter_id, issue_id, fact_id } = request.params as any;
+    try {
+      const res = await issueService.detachFactFromIssue(matter_id, issue_id, fact_id);
+      return reply.code(200).send(res);
+    } catch (err: any) {
+      const msg = String(err.message || err);
+      if (msg === 'issue_not_found') return reply.code(404).send({ error: 'issue_not_found' });
+      if (msg === 'issue_mismatch') return reply.code(400).send({ error: 'issue_mismatch' });
+      if (msg === 'fact_not_found') return reply.code(404).send({ error: 'fact_not_found' });
+      if (msg === 'fact_mismatch') return reply.code(400).send({ error: 'fact_mismatch' });
+      return reply.code(500).send({ error: 'delete_failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.get('/matters/:matter_id/issues/:issue_id/facts', async (request, reply) => {
+    const { matter_id, issue_id } = request.params as any;
+    try {
+      const issue = await issueService.getIssue(issue_id);
+      if (!issue) return reply.code(404).send({ error: 'issue_not_found' });
+      if (String(issue.matter_id) !== String(matter_id)) return reply.code(400).send({ error: 'issue_mismatch' });
+
+      const list = await issueService.listIssueFacts(issue_id);
+      const mapped = Array.isArray(list) ? list.map((r: any) => ({ fact_id: r.fact?.fact_id || r.fact_id, title: r.fact?.title || '', status: r.fact?.status || '' })) : [];
+      return reply.code(200).send(mapped);
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'failed', detail: err?.message || String(err) });
     }
   });
 
