@@ -122,9 +122,19 @@ export default function DocumentWorkspacePage() {
           <div style={{ flex: 1, minWidth: 220 }}>
             <div style={{ fontWeight: 800, color: lawdesk.text }}>已生成成果</div>
             <div style={{ marginTop: 8, color: lawdesk.muted }}>
-              <div>✓ Proof Map</div>
-              <div>✓ Litigation Plan</div>
-              <div>✓ AI 法律意见</div>
+              {/* Use backend ai_analysis when available, otherwise show static bullets */}
+              {documentsWorkspace?.ai_analysis ? (
+                <div>
+                  <div style={{ fontWeight: 700 }}>{documentsWorkspace.ai_analysis.title || 'AI 分析'}</div>
+                  <div style={{ marginTop: 6 }}>{documentsWorkspace.ai_analysis.message || documentsWorkspace.ai_analysis.summary || JSON.stringify(documentsWorkspace.ai_analysis)}</div>
+                </div>
+              ) : (
+                <div>
+                  <div>✓ Proof Map</div>
+                  <div>✓ Litigation Plan</div>
+                  <div>✓ AI 法律意见</div>
+                </div>
+              )}
             </div>
           </div>
         </div>
