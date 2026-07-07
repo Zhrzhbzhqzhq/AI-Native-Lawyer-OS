@@ -25,6 +25,7 @@ export default function FactsWorkspace() {
     const [selectedFactId, setSelectedFactId] = useState<string | null>(null)
     const [factEvidences, setFactEvidences] = useState<any[]>([])
     const [loadingFactEvidences, setLoadingFactEvidences] = useState<boolean>(false)
+    const [detachingEvidenceIds, setDetachingEvidenceIds] = useState<string[]>([])
 
     const [showCreate, setShowCreate] = useState<boolean>(false)
     const [newTitle, setNewTitle] = useState<string>('')
@@ -77,6 +78,25 @@ export default function FactsWorkspace() {
             setFactEvidences([])
         } finally {
             setLoadingFactEvidences(false)
+        }
+    }
+
+    async function detachEvidence(factId: string, evidenceId: string) {
+        if (!factId || !evidenceId) return
+        setDetachingEvidenceIds((s) => (s.includes(evidenceId) ? s : [...s, evidenceId]))
+        try {
+            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/facts/${encodeURIComponent(factId)}/evidence/${encodeURIComponent(evidenceId)}`, { method: 'DELETE' })
+            if (!res.ok) {
+                const txt = await res.text().catch(() => '')
+                throw new Error(`删除关联失败 ${res.status} ${txt}`)
+            }
+            // refresh current fact evidences
+            await fetchFactEvidences(factId)
+        } catch (e: any) {
+            console.error('detach failed', e)
+            setErrorMsg(String(e?.message || e))
+        } finally {
+            setDetachingEvidenceIds((s) => s.filter((id) => id !== evidenceId))
         }
     }
 
@@ -211,11 +231,16 @@ export default function FactsWorkspace() {
                                                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                                                             {factEvidences.map((ev: any) => (
                                                                 <li key={ev.evidence_id} style={{ padding: '6px 0' }}>
-                                                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                                                        <div style={{ color: '#10b981', fontWeight: 700 }}>✓</div>
+                                                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'space-between' }}>
+                                                                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                                                            <div style={{ color: '#10b981', fontWeight: 700 }}>✓</div>
+                                                                            <div>
+                                                                                <div style={{ fontWeight: 700 }}>{ev.title || ev.evidence_id}</div>
+                                                                                <div style={{ color: tokens.muted, fontSize: 12 }}>{ev.status || ''}</div>
+                                                                            </div>
+                                                                        </div>
                                                                         <div>
-                                                                            <div style={{ fontWeight: 700 }}>{ev.title || ev.evidence_id}</div>
-                                                                            <div style={{ color: tokens.muted, fontSize: 12 }}>{ev.status || ''}</div>
+                                                                            <button onClick={() => detachEvidence(f.fact_id, ev.evidence_id)} disabled={detachingEvidenceIds.includes(ev.evidence_id)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #e6eef6', background: '#fff', color: tokens.muted, fontSize: 12 }}>{detachingEvidenceIds.includes(ev.evidence_id) ? '移除中…' : '移除关联'}</button>
                                                                         </div>
                                                                     </div>
                                                                 </li>
