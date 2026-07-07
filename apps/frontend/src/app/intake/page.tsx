@@ -10,7 +10,7 @@ export default function IntakePage() {
   const [client, setClient] = useState('')
   const [opponent, setOpponent] = useState('')
   const [caseType, setCaseType] = useState('')
-  const [files, setFiles] = useState<string[]>([])
+  const [files, setFiles] = useState<Array<{ name: string; size: number; type?: string; upload_time: string }>>([])
 
   function handleStart() {
     // For V1: no backend. Save lightweight draft to sessionStorage and return to matters.
@@ -50,13 +50,24 @@ export default function IntakePage() {
           <div>
             <div style={{ fontWeight: 600, marginBottom: 6 }}>案件资料</div>
 
-            <Uploader onUploaded={(saved) => setFiles(saved.map((s) => s.name))} />
+            <Uploader onUploaded={(saved) => setFiles(saved)} />
 
             {files.length > 0 && (
-              <div style={{ marginTop: 12, border: '1px solid #f1f5f9', borderRadius: 8, background: '#fafafa' }}>
-                <ul style={{ listStyle: 'none', padding: 12, margin: 0 }}>
+              <div style={{ marginTop: 12, border: '1px solid #f1f5f9', borderRadius: 8, background: '#fafafa', padding: 8 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 110px 160px', gap: 8, padding: '8px 12px', fontWeight: 700, color: '#111827' }}>
+                  <div>文件名</div>
+                  <div>类型</div>
+                  <div>大小</div>
+                  <div>上传时间</div>
+                </div>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                   {files.map((f, i) => (
-                    <li key={i} style={{ padding: '8px 6px', borderBottom: i < files.length - 1 ? '1px solid #f1f5f9' : 'none', color: '#111827' }}>{f}</li>
+                    <li key={i} style={{ padding: '8px 12px', borderTop: i === 0 ? '1px solid #f1f5f9' : undefined, borderBottom: i < files.length - 1 ? '1px solid #f1f5f9' : 'none', color: '#111827', display: 'grid', gridTemplateColumns: '1fr 120px 110px 160px', gap: 8 }}>
+                      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
+                      <div style={{ color: '#6b7280' }}>{f.type || '-'}</div>
+                      <div style={{ color: '#6b7280' }}>{(f.size / 1024).toFixed(1)} KB</div>
+                      <div style={{ color: '#6b7280' }}>{new Date(f.upload_time).toLocaleString()}</div>
+                    </li>
                   ))}
                 </ul>
               </div>

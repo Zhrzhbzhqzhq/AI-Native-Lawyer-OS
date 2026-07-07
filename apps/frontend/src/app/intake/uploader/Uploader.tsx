@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState } from 'react'
 
-type UploadedFile = { name: string; url?: string; size: number; type?: string }
+type UploadedFile = { name: string; size: number; type?: string; upload_time: string }
 
 export default function Uploader({ onUploaded }: { onUploaded?: (files: UploadedFile[]) => void }) {
     const [files, setFiles] = useState<File[]>([])
@@ -37,6 +37,7 @@ export default function Uploader({ onUploaded }: { onUploaded?: (files: Uploaded
             const res = await fetch('/api/uploads', { method: 'POST', body: fd })
             if (!res.ok) throw new Error('upload failed')
             const json = await res.json()
+            // Expect files: [{ name, size, type, upload_time }]
             setUploaded(json.files || [])
             setFiles([])
             if (onUploaded) onUploaded(json.files || [])
@@ -96,8 +97,11 @@ export default function Uploader({ onUploaded }: { onUploaded?: (files: Uploaded
                     <div style={{ fontWeight: 700, marginBottom: 8 }}>已上传文件</div>
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                         {uploaded.map((u, i) => (
-                            <li key={i} style={{ padding: '8px 6px', borderBottom: i < uploaded.length - 1 ? '1px solid #f1f5f9' : 'none', color: '#111827' }}>
-                                {u.url ? <a href={u.url} style={{ color: '#111827' }}>{u.name}</a> : <span>{u.name}</span>} <span style={{ color: '#6b7280', marginLeft: 8 }}>{(u.size / 1024).toFixed(1)} KB</span>
+                            <li key={i} style={{ padding: '8px 6px', borderBottom: i < uploaded.length - 1 ? '1px solid #f1f5f9' : 'none', color: '#111827', display: 'grid', gridTemplateColumns: '1fr 120px 110px 160px', gap: 8 }}>
+                                <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.name}</div>
+                                <div style={{ color: '#6b7280' }}>{u.type || '-'}</div>
+                                <div style={{ color: '#6b7280' }}>{(u.size / 1024).toFixed(1)} KB</div>
+                                <div style={{ color: '#6b7280' }}>{new Date(u.upload_time).toLocaleString()}</div>
                             </li>
                         ))}
                     </ul>
