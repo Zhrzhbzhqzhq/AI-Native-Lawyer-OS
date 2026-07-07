@@ -22,6 +22,7 @@ model Matter {
   clients         Client[]
   materials       Material[]
   evidence        Evidence[]
+  facts           Fact[]
   documents       Document[]
   tasks           Task[]
   timelines       Timeline[]
@@ -98,6 +99,7 @@ model Evidence {
   ai_records  AiRecord[]
   knowledge   Knowledge[]
   workspaces  Workspace[]
+  fact_evidences FactEvidence[]
 
   @@index([matter_id], map: "idx_evidence_matter_id")
   @@index([material_id], map: "idx_evidence_material_id")
@@ -390,4 +392,37 @@ model ExecutionQueueItem {
 
   @@unique([matter_id, queue_id], map: "uq_execution_queue_item_matter_queue")
   @@map("execution_queue_item")
+}
+
+model Fact {
+  id         String   @id @default(uuid()) @db.Uuid
+  fact_id    String   @unique
+  matter_id  String
+  title      String
+  description String?
+  status     String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  matter    Matter    @relation(fields: [matter_id], references: [matter_id], onDelete: Restrict, onUpdate: Cascade)
+  evidences FactEvidence[]
+
+  @@index([matter_id], map: "idx_facts_matter_id")
+  @@map("facts")
+}
+
+model FactEvidence {
+  id          String   @id @default(uuid()) @db.Uuid
+  fact_id     String
+  evidence_id String
+  note        String?
+  created_at  DateTime @default(now())
+
+  fact     Fact     @relation(fields: [fact_id], references: [fact_id], onDelete: Cascade, onUpdate: Cascade)
+  evidence Evidence @relation(fields: [evidence_id], references: [evidence_id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([fact_id, evidence_id], map: "uq_fact_evidence_fact_evidence")
+  @@index([fact_id], map: "idx_fact_evidence_fact_id")
+  @@index([evidence_id], map: "idx_fact_evidence_evidence_id")
+  @@map("fact_evidence")
 }
