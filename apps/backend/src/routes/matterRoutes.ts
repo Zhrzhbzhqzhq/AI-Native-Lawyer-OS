@@ -8,6 +8,7 @@ export async function matterRoutes(app: FastifyInstance) {
   const service = new MatterService(prisma);
   const timelineService = new TimelineService(prisma);
   const evidenceService = new (await import('../services/evidenceService')).default(prisma);
+  const factService = new (await import('../services/factService')).default(prisma);
   const materialService = new (await import('../services/materialService')).default(prisma);
   const researchService = new (await import('../services/researchService')).default(prisma);
   const documentService = new (await import('../services/documentService')).default(prisma);
@@ -1153,6 +1154,69 @@ export async function matterRoutes(app: FastifyInstance) {
       return reply.code(500).send({ error: 'failed', detail: err?.message || String(err) })
     }
   })
+
+  // Facts CRUD - minimal API
+  app.post('/matters/:id/facts', async (request, reply) => {
+    const { id } = request.params as any;
+    const payload = request.body as any || {};
+    const title = String(payload.title || '').trim();
+    if (!title) return reply.code(400).send({ error: 'title required' });
+    try {
+      const created = await factService.createFact(id, { title, description: String(payload.description || ''), status: String(payload.status || 'draft') });
+      return reply.code(201).send(created);
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'create_failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.get('/matters/:id/facts', async (request, reply) => {
+    const { id } = request.params as any;
+    try {
+      const list = await factService.listFacts(id);
+      return reply.code(200).send(list);
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.get('/matters/:matter_id/facts/:fact_id', async (request, reply) => {
+    const { fact_id } = request.params as any;
+    try {
+      const f = await factService.getFact(fact_id);
+      if (!f) return reply.code(404).send({ error: 'not_found' });
+      return reply.code(200).send(f);
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.patch('/matters/:matter_id/facts/:fact_id', async (request, reply) => {
+    const { fact_id } = request.params as any;
+    const payload = request.body as any || {};
+    const patch: any = {};
+    if (typeof payload.title === 'string') patch.title = String(payload.title);
+    if (typeof payload.description === 'string') patch.description = String(payload.description);
+    if (typeof payload.status === 'string') patch.status = String(payload.status);
+    if (Object.keys(patch).length === 0) return reply.code(400).send({ error: 'nothing to update' });
+    try {
+      const updated = await factService.updateFact(fact_id, patch);
+      return reply.code(200).send(updated);
+    } catch (err: any) {
+      if (String(err.message) === 'Not found') return reply.code(404).send({ error: 'not_found' });
+      return reply.code(500).send({ error: 'update_failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.delete('/matters/:matter_id/facts/:fact_id', async (request, reply) => {
+    const { fact_id } = request.params as any;
+    try {
+      await factService.deleteFact(fact_id);
+      return reply.code(204).send();
+    } catch (err: any) {
+      if (String(err.message) === 'Not found') return reply.code(404).send({ error: 'not_found' });
+      return reply.code(500).send({ error: 'delete_failed', detail: err?.message || String(err) });
+    }
+  });
 
   // Update evidence description (lawyer notes)
   app.patch('/matters/:matter_id/evidence/:evidence_id', async (request, reply) => {
