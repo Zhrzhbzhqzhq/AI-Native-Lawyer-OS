@@ -25,6 +25,15 @@ export default function CreatingPage() {
         return () => clearTimeout(t)
     }, [index])
 
+    useEffect(() => {
+        if (done) {
+            const t = setTimeout(() => {
+                router.push('/intake/report')
+            }, 300)
+            return () => clearTimeout(t)
+        }
+    }, [done, router])
+
     return (
         <main style={{ padding: 24 }}>
             <div style={{ maxWidth: 720, margin: '0 auto' }}>
