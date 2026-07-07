@@ -49,7 +49,7 @@ export default function ResearchWorkspacePage() {
   const [files, setFiles] = useState<File[]>([])
 
   // Live outputs
-  const [logs, setLogs] = useState<string[]>(['AI 等待开始……'])
+  const [logs, setLogs] = useState<string[]>(['等待开始'])
   const [copilotText, setCopilotText] = useState('我会先理解案件，再制定检索策略。')
   // append M63 note
   useEffect(() => {
@@ -499,7 +499,7 @@ export default function ResearchWorkspacePage() {
         <div style={{ flex: '0 0 40%', display: 'flex', flexDirection: 'column', gap: 12, height: '100%', minHeight: 'calc(100vh - 180px)' }}>
           {/* AI Runtime */}
           <div style={{ background: lawdesk.cardBg, padding: 12, borderRadius: lawdesk.radius, border: `1px solid ${lawdesk.border}` }}>
-            <div style={{ fontWeight: 800, color: lawdesk.text }}>AI Runtime</div>
+            <div style={{ fontWeight: 800, color: lawdesk.text }}>研究进度</div>
             <div style={{ marginTop: 8, color: lawdesk.muted }}><strong>当前阶段：</strong>{aiStage}</div>
             <div style={{ marginTop: 6, color: lawdesk.muted }}><strong>当前任务：</strong>{aiTask}</div>
             <div style={{ marginTop: 10 }}>
@@ -582,7 +582,7 @@ export default function ResearchWorkspacePage() {
         <div ref={rightContainerRef} style={{ flex: '1 1 60%', display: 'flex', flexDirection: 'column', gap: 12, height: '100%', minHeight: 'calc(100vh - 180px)', overflowY: 'auto' }}>
           {/* AI Copilot */}
           <div style={{ background: lawdesk.cardBg, padding: 12, borderRadius: lawdesk.radius, border: `1px solid ${lawdesk.border}` }}>
-            <div style={{ fontWeight: 800, color: lawdesk.text }}>AI Copilot</div>
+            <div style={{ fontWeight: 800, color: lawdesk.text }}>AI 助手</div>
             <div style={{ marginTop: 8, color: lawdesk.text }}>{copilotText}</div>
           </div>
 

@@ -76,7 +76,7 @@ export default function ExecutionWorkspacePage() {
   if (loading) return <main style={{ padding: 24 }}><div>正在加载执行工作区...</div></main>
   if (error) return <main style={{ padding: 24 }}><div style={{ color: '#b91c1c' }}>错误：{error}</div></main>
 
-  const runtimeHint = runtime ? 'AI 运行时已连接，当前展示为执行工作台标准视图。' : '当前使用执行工作台标准视图（Mock）。'
+  const runtimeHint = runtime ? '当前展示为执行工作台标准视图。' : '当前展示为执行工作台标准视图。'
 
   const executionStatus = [
     { label: '当前阶段', value: '执行前准备' },

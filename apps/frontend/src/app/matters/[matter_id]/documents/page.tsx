@@ -327,7 +327,7 @@ export default function DocumentWorkspacePage() {
                                 setDraftContent('')
                                 setDraftVersion(0)
                                 await new Promise(r => setTimeout(r, 900))
-                                setDraftContent(`【AI Draft V1 - ${selectedDocType}】\n\n（本为模拟草稿）\n主要事实：双方于某日发生借贷行为……\n证据目录：微信聊天、部分转账截图`)
+                                setDraftContent(`【${selectedDocType}】\n\n主要事实：双方于某日发生借贷行为……\n证据目录：微信聊天、部分转账截图`)
                                 setDraftVersion(1)
                                 setIsDrafting(false)
                                 // automatically advance to concept review
@@ -389,7 +389,7 @@ export default function DocumentWorkspacePage() {
                               }} style={{ padding: '8px 12px', borderRadius: 6, background: lawdesk.blue, color: '#fff', border: 'none' }}>AI 根据意见修改</button>
 
                               <button onClick={() => {
-                                setDraftContent((d) => d.replace(/^【AI Draft V1[^】]*】\s*(（本为模拟草稿）\s*)?/, '').replace(/^\s+/, ''))
+                                setDraftContent((d) => d.replace(/^【[^】]*】\s*/, '').replace(/^\s+/, ''))
                                 setCurrentStep(4)
                               }} style={{ padding: '8px 12px', borderRadius: 6, background: '#f1f5f9', border: 'none' }}>确认进入最终编辑</button>
                             </div>
