@@ -161,6 +161,32 @@ export default function DocumentWorkspacePage() {
           </div>
         </div>
 
+        {/* Document Next Steps: use backend document_next_steps when available, otherwise local fallback */}
+        <div style={{ marginTop: 12, color: lawdesk.muted }}>
+          <div style={{ fontWeight: 700 }}>后续建议</div>
+          <div style={{ marginTop: 6 }}>
+            {Array.isArray(documentsWorkspace?.document_next_steps) && documentsWorkspace!.document_next_steps.length ? (
+              documentsWorkspace!.document_next_steps.map((s: any, idx: number) => (
+                <div key={idx} style={{ marginTop: 6 }}>
+                  <div style={{ fontWeight: 700 }}>{s.title}</div>
+                  <div style={{ color: lawdesk.muted }}>{s.description}{s.priority ? ` · 优先级：${s.priority}` : ''}</div>
+                </div>
+              ))
+            ) : (
+              <div>
+                <div style={{ marginTop: 6 }}>
+                  <div style={{ fontWeight: 700 }}>补充银行流水</div>
+                  <div style={{ color: lawdesk.muted }}>请客户提供近12个月完整银行流水 · 优先级：高</div>
+                </div>
+                <div style={{ marginTop: 6 }}>
+                  <div style={{ fontWeight: 700 }}>补齐借据原件</div>
+                  <div style={{ color: lawdesk.muted }}>联系客户确认借据原件位置并扫描上传 · 优先级：中</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
           {/* Remove '开始起草' button per spec */}
           <button style={{ padding: '8px 12px', borderRadius: 6, background: '#f1f5f9', color: lawdesk.muted, border: 'none' }}>查看研究详情</button>
