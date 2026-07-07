@@ -71,6 +71,7 @@ export default function EvidencePage() {
     const [selectedEvidenceId, setSelectedEvidenceId] = useState<string>(fallbackWorkspace.evidences[0].id)
     const [materials, setMaterials] = useState<any[]>([])
     const [loadingMaterials, setLoadingMaterials] = useState<boolean>(true)
+    const [materialsConfirmed, setMaterialsConfirmed] = useState<boolean>(false)
 
     // derive selected evidence from current data
     const selectedEvidence = (data?.evidences || []).find((e) => e.id === selectedEvidenceId) || (data?.evidences && data.evidences[0]) || fallbackWorkspace.evidences[0]
@@ -247,6 +248,13 @@ export default function EvidencePage() {
                         ) : (
                             <div style={{ color: tokens.muted }}>暂无案件资料</div>
                         )}
+                        <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center' }}>
+                            {materialsConfirmed ? (
+                                <div style={{ color: '#111827', border: '1px solid #f1f5f9', padding: '8px 12px', borderRadius: 8 }}>已确认资料接收完成</div>
+                            ) : (
+                                <button onClick={() => setMaterialsConfirmed(true)} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff', color: '#111827', fontWeight: 700 }}>资料接收完成</button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </section>
