@@ -73,6 +73,8 @@ export default function EvidencePage() {
     const [loadingMaterials, setLoadingMaterials] = useState<boolean>(true)
     const [materialsConfirmed, setMaterialsConfirmed] = useState<boolean>(false)
     const [showOrganizeNotice, setShowOrganizeNotice] = useState<boolean>(false)
+    const [convertingMaterialId, setConvertingMaterialId] = useState<string | null>(null)
+    const [conversionError, setConversionError] = useState<string | null>(null)
 
     // derive selected evidence from current data
     const selectedEvidence = (data?.evidences || []).find((e) => e.id === selectedEvidenceId) || (data?.evidences && data.evidences[0]) || fallbackWorkspace.evidences[0]
@@ -240,8 +242,43 @@ export default function EvidencePage() {
                                     const time = m.created_at || m.updated_at || null
                                     return (
                                         <li key={m.material_id ?? i} style={{ padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
-                                            <div style={{ fontWeight: 600 }}>{filename}</div>
-                                            <div style={{ color: '#6b7280', fontSize: 13 }}>{filetype} • {typeof size === 'number' ? `${(size / 1024).toFixed(1)} KB` : size} • {time ? new Date(time).toLocaleString() : '-'}</div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <div>
+                                                    <div style={{ fontWeight: 600 }}>{filename}</div>
+                                                    <div style={{ color: '#6b7280', fontSize: 13 }}>{filetype} • {typeof size === 'number' ? `${(size / 1024).toFixed(1)} KB` : size} • {time ? new Date(time).toLocaleString() : '-'}</div>
+                                                </div>
+                                                <div>
+                                                    <button
+                                                        onClick={async () => {
+                                                            setConversionError(null)
+                                                            if (!m || !m.material_id) return
+                                                            setConvertingMaterialId(m.material_id)
+                                                            try {
+                                                                const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
+                                                                const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence`
+                                                                const body = {
+                                                                    material_id: m.material_id,
+                                                                    title: m.title || (m.storage_uri ? m.storage_uri.split('/').pop() : '未命名文件'),
+                                                                    evidence_type: 'material',
+                                                                }
+                                                                const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+                                                                if (!res.ok) throw new Error(`status:${res.status}`)
+                                                                // refresh page data simply by reloading
+                                                                window.location.reload()
+                                                            } catch (e) {
+                                                                console.error('convert failed', e)
+                                                                setConversionError('转为证据失败，请稍后重试')
+                                                            } finally {
+                                                                setConvertingMaterialId(null)
+                                                            }
+                                                        }}
+                                                        disabled={convertingMaterialId === m.material_id}
+                                                        style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff', color: '#111827', cursor: convertingMaterialId === m.material_id ? 'not-allowed' : 'pointer' }}
+                                                    >
+                                                        {convertingMaterialId === m.material_id ? '转换中…' : '转为证据'}
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </li>
                                     )
                                 })}
@@ -249,6 +286,7 @@ export default function EvidencePage() {
                         ) : (
                             <div style={{ color: tokens.muted }}>暂无案件资料</div>
                         )}
+                        {conversionError ? <div style={{ color: '#b91c1c', marginTop: 8 }}>{conversionError}</div> : null}
                         <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
                             {materialsConfirmed ? (
                                 <div style={{ color: '#111827', border: '1px solid #f1f5f9', padding: '8px 12px', borderRadius: 8 }}>已确认资料接收完成</div>
