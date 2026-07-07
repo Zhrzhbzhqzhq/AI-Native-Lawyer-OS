@@ -73,6 +73,8 @@ export default function EvidencePage() {
     const [loadingMaterials, setLoadingMaterials] = useState<boolean>(true)
     const [materialsConfirmed, setMaterialsConfirmed] = useState<boolean>(false)
     const [showOrganizeNotice, setShowOrganizeNotice] = useState<boolean>(false)
+    const [evidenceRecords, setEvidenceRecords] = useState<any[]>([])
+    const [loadingEvidence, setLoadingEvidence] = useState<boolean>(true)
     const [convertingMaterialId, setConvertingMaterialId] = useState<string | null>(null)
     const [conversionError, setConversionError] = useState<string | null>(null)
 
@@ -146,6 +148,33 @@ export default function EvidencePage() {
         }
         load()
         return () => { cancelled = true }
+    }, [matterId])
+
+    // fetch evidence records (GET /matters/:matter_id/evidence)
+    async function fetchEvidence() {
+        setLoadingEvidence(true)
+        try {
+            const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
+            const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence`
+            const res = await fetch(url)
+            if (!res.ok) {
+                setEvidenceRecords([])
+                setLoadingEvidence(false)
+                return
+            }
+            const d = await res.json().catch(() => [])
+            setEvidenceRecords(Array.isArray(d) ? d : [])
+        } catch (e) {
+            console.error('load evidence failed', e)
+            setEvidenceRecords([])
+        } finally {
+            setLoadingEvidence(false)
+        }
+    }
+
+    useEffect(() => {
+        if (!matterId) return
+        fetchEvidence()
     }, [matterId])
 
     // load materials for this matter (real uploaded files)
@@ -305,6 +334,29 @@ export default function EvidencePage() {
                                 </div>
                             ) : null}
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* 证据条目（来自 evidence API） */}
+            <section style={{ marginBottom: 12 }}>
+                <div style={{ background: tokens.cardBg, padding: 14, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+                    <div style={{ fontWeight: 800, marginBottom: 8 }}>证据条目</div>
+                    <div style={{ color: tokens.muted }}>
+                        {loadingEvidence ? (
+                            <div style={{ color: tokens.muted }}>加载中…</div>
+                        ) : evidenceRecords && evidenceRecords.length > 0 ? (
+                            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                                {evidenceRecords.map((ev: any, idx: number) => (
+                                    <li key={ev.evidence_id ?? ev.id ?? idx} style={{ padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                                        <div style={{ fontWeight: 600 }}>{ev.title || '未命名证据'}</div>
+                                        <div style={{ color: '#6b7280', fontSize: 13 }}>类型：{ev.evidence_type || '-'} • 关联资料：{ev.material_id || '-'} • 创建时间：{ev.created_at ? new Date(ev.created_at).toLocaleString() : '-'}</div>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <div style={{ color: tokens.muted }}>暂无证据条目</div>
+                        )}
                     </div>
                 </div>
             </section>
