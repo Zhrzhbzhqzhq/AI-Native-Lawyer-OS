@@ -23,6 +23,7 @@ model Matter {
   materials       Material[]
   evidence        Evidence[]
   facts           Fact[]
+  issues          Issue[]
   documents       Document[]
   tasks           Task[]
   timelines       Timeline[]
@@ -406,6 +407,7 @@ model Fact {
 
   matter    Matter    @relation(fields: [matter_id], references: [matter_id], onDelete: Restrict, onUpdate: Cascade)
   evidences FactEvidence[]
+  issues    IssueFact[]
 
   @@index([matter_id], map: "idx_facts_matter_id")
   @@map("facts")
@@ -425,4 +427,38 @@ model FactEvidence {
   @@index([fact_id], map: "idx_fact_evidence_fact_id")
   @@index([evidence_id], map: "idx_fact_evidence_evidence_id")
   @@map("fact_evidence")
+}
+
+model Issue {
+  id         String   @id @default(uuid()) @db.Uuid
+  issue_id   String   @unique
+  matter_id  String
+  title      String
+  description String?
+  status     String   @default("draft")
+  priority   String   @default("medium")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  matter     Matter    @relation(fields: [matter_id], references: [matter_id], onDelete: Restrict, onUpdate: Cascade)
+  facts      IssueFact[]
+
+  @@index([matter_id], map: "idx_issues_matter_id")
+  @@map("issues")
+}
+
+model IssueFact {
+  id         String   @id @default(uuid()) @db.Uuid
+  issue_id   String
+  fact_id    String
+  note       String?
+  created_at DateTime @default(now())
+
+  issue Issue @relation(fields: [issue_id], references: [issue_id], onDelete: Cascade, onUpdate: Cascade)
+  fact  Fact  @relation(fields: [fact_id], references: [fact_id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([issue_id, fact_id], map: "uq_issue_fact_issue_fact")
+  @@index([issue_id], map: "idx_issue_fact_issue_id")
+  @@index([fact_id], map: "idx_issue_fact_fact_id")
+  @@map("issue_fact")
 }
