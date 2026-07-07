@@ -1,0 +1,13 @@
+{
+    "name": "@lawdesk/types",
+    "version": "1.0.0",
+    "private": true,
+    "main": "dist/index.js",
+    "types": "src/index.ts",
+    "scripts": {
+        "typecheck": "tsc -p tsconfig.json --noEmit"
+    },
+    "devDependencies": {
+        "typescript": "^5.5.4"
+    }
+}
