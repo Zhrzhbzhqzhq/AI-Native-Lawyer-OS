@@ -126,7 +126,7 @@ export default function MattersPage() {
         </div>
 
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <button onClick={() => setShowCreate(s => !s)} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: 8, fontSize: 16 }}>＋ AI 接案</button>
+          <button onClick={() => router.push('/intake')} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: 8, fontSize: 16 }}>＋ 新建案件</button>
         </div>
       </div>
 
