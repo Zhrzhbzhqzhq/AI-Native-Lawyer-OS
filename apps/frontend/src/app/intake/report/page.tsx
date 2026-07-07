@@ -1,10 +1,23 @@
 "use client"
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function ReportPage() {
   const router = useRouter()
+  const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; size: number; type?: string; upload_time: string }>>([])
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('lawdesk_intake_uploaded_files')
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed)) setUploadedFiles(parsed)
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [])
 
   // Mock content per M120.4 requirements
   const caseTitle = '张三诉李四 民间借贷纠纷'
@@ -21,7 +34,7 @@ export default function ReportPage() {
           <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 10 }}>AI 已完成</div>
           <ul style={{ margin: 0, paddingLeft: 18, color: '#111827', lineHeight: 1.8 }}>
             <li>✓ 建立案件</li>
-            <li>✓ 整理案件资料</li>
+            <li>✓ 整理案件資料</li>
             <li>✓ 建立案件摘要</li>
             <li>✓ 建立时间线</li>
             <li>✓ 建立证据目录</li>
@@ -65,6 +78,28 @@ export default function ReportPage() {
             <li>□ 借条</li>
             <li>□ 录音</li>
           </ul>
+        </section>
+
+        {/* 上传的真实文件清单 */}
+        <section style={{ marginTop: 20, background: '#fff', border: '1px solid #e6e7eb', padding: 20, borderRadius: 10 }}>
+          <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 10 }}>已上传的案件资料</div>
+          <div style={{ color: '#111827' }}>
+            {uploadedFiles && uploadedFiles.length > 0 ? (
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {uploadedFiles.map((f, i) => (
+                  <li key={i} style={{ padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                    <div style={{ fontWeight: 600 }}>{f.name}</div>
+                    <div style={{ color: '#6b7280', fontSize: 13 }}>{f.type || '-'} • {(f.size / 1024).toFixed(1)} KB • {new Date(f.upload_time).toLocaleString()}</div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div style={{ color: '#6b7280' }}>
+                <div style={{ marginBottom: 8 }}>尚未接收到案件资料</div>
+                <button onClick={() => router.push('/intake')} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: '#111827', color: '#fff', fontWeight: 700 }}>返回上传资料</button>
+              </div>
+            )}
+          </div>
         </section>
 
         {/* 底部按钮 */}
