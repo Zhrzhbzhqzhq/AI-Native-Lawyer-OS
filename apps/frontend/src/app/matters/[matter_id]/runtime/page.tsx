@@ -172,6 +172,26 @@ export default function RuntimeDashboardPage() {
     return [...doneFromToday, ...doneFromActions].slice(0, 6)
   })()
 
+  // derive today's progress from runtime.today_queue and runtime_actions (DONE items)
+  let realTodaysProgress: Array<{ title: string; time: string }> = []
+  try {
+    if (runtime) {
+      const rawToday = Array.isArray(runtime.today_queue) ? runtime.today_queue : []
+      const rawActions = Array.isArray(runtime.runtime_actions) ? runtime.runtime_actions : []
+      const doneFromToday = rawToday
+        .filter((item: any) => doneStatuses.includes(String(item?.status || item?.execution_status || item?.state || '').toUpperCase()))
+        .map((item: any) => ({ title: normalizeTitle(item), time: getTimeText(item) }))
+      const doneFromActions = rawActions
+        .filter((item: any) => doneStatuses.includes(String(item?.status || item?.execution_status || item?.state || '').toUpperCase()))
+        .map((item: any) => ({ title: normalizeTitle(item), time: getTimeText(item) }))
+      realTodaysProgress = [...doneFromToday, ...doneFromActions].slice(0, 6)
+    }
+  } catch (e) {
+    realTodaysProgress = []
+  }
+
+  const realTodaysProgressOrFallback = realTodaysProgress.length ? realTodaysProgress : todaysProgress
+
   const nextActions = (() => {
     const steps = Array.isArray(plan?.steps) ? plan.steps.map((step: any) => String(step)) : []
     const stage = runtime?.next_stage || runtime?.workflow?.next_step
@@ -238,7 +258,7 @@ export default function RuntimeDashboardPage() {
 
         <section style={{ background: tokens.cardBg, padding: tokens.spacing, borderRadius: tokens.radius, border: `1px solid ${tokens.border}`, boxShadow: tokens.shadow }}>
           <SectionTitle zh="今日完成" en="Today's Progress" />
-          {todaysProgress.length > 0 ? todaysProgress.map((item: any, index: number) => (
+          {realTodaysProgressOrFallback.length > 0 ? realTodaysProgressOrFallback.map((item: any, index: number) => (
             <div key={`${item.title}-${index}`} style={{ marginBottom: 8, color: tokens.text }}>
               <span style={{ color: tokens.muted, marginRight: 8 }}>{item.time}</span>
               <span>{item.title}</span>
