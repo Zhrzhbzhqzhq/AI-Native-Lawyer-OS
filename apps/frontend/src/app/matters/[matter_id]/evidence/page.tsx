@@ -1,6 +1,6 @@
 "use client"
 import React from 'react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 
 const tokens = {
@@ -75,6 +75,7 @@ export default function EvidencePage() {
     const [showOrganizeNotice, setShowOrganizeNotice] = useState<boolean>(false)
     const [evidenceRecords, setEvidenceRecords] = useState<any[]>([])
     const [loadingEvidence, setLoadingEvidence] = useState<boolean>(true)
+    const convertedMaterialIds = useMemo(() => new Set((evidenceRecords || []).map((e: any) => e.material_id).filter(Boolean)), [evidenceRecords])
     const [convertingMaterialId, setConvertingMaterialId] = useState<string | null>(null)
     const [conversionError, setConversionError] = useState<string | null>(null)
 
@@ -333,52 +334,9 @@ export default function EvidencePage() {
                                     </div>
                                 </div>
                             ) : null}
-                        </div>
-                    </div>
-                </div>
-            </section>
 
-            {/* 证据条目（来自 evidence API） */}
-            <section style={{ marginBottom: 12 }}>
-                <div style={{ background: tokens.cardBg, padding: 14, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
-                    <div style={{ fontWeight: 800, marginBottom: 8 }}>证据条目</div>
-                    <div style={{ color: tokens.muted }}>
-                        {loadingEvidence ? (
-                            <div style={{ color: tokens.muted }}>加载中…</div>
-                        ) : evidenceRecords && evidenceRecords.length > 0 ? (
-                            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                                {evidenceRecords.map((ev: any, idx: number) => (
-                                    <li key={ev.evidence_id ?? ev.id ?? idx} style={{ padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
-                                        <div style={{ fontWeight: 600 }}>{ev.title || '未命名证据'}</div>
-                                        <div style={{ color: '#6b7280', fontSize: 13 }}>类型：{ev.evidence_type || '-'} • 关联资料：{ev.material_id || '-'} • 创建时间：{ev.created_at ? new Date(ev.created_at).toLocaleString() : '-'}</div>
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <div style={{ color: tokens.muted }}>暂无证据条目</div>
-                        )}
-                    </div>
-                </div>
-            </section>
+                            <div style={{ color: tokens.muted, fontSize: 12 }}>证据对象</div>
 
-            <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
-                {/* AI Chief */}
-                <div style={{ background: tokens.cardBg, padding: 14, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
-                    <div style={{ fontWeight: 800, fontSize: 16 }}>AI Chief</div>
-                    <div style={{ color: tokens.muted, marginTop: 6 }}>总览证据质量与风险</div>
-                    <div style={{ marginTop: 12 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <div style={{ color: tokens.muted }}>证据完整度</div>
-                            <div style={{ fontWeight: 800 }}>{globalScore}%</div>
-                        </div>
-                        <div style={{ marginTop: 8 }}>
-                            <ProgressBar value={globalScore} />
-                        </div>
-                        <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-                            <div style={{ padding: 8, borderRadius: 8, background: '#f1f5f9', flex: 1 }}>
-                                <div style={{ fontWeight: 700 }}>{evidencesCount}</div>
-                                <div style={{ color: tokens.muted, fontSize: 12 }}>证据对象</div>
-                            </div>
                             <div style={{ padding: 8, borderRadius: 8, background: '#fff8ed', flex: 1 }}>
                                 <div style={{ fontWeight: 700, color: '#b45309' }}>{highGapCount}</div>
                                 <div style={{ color: tokens.muted, fontSize: 12 }}>高风险缺口</div>
@@ -528,6 +486,6 @@ export default function EvidencePage() {
                 <button onClick={() => router.push(`/matters/${matterId}`)} style={{ padding: '8px 12px', borderRadius: 8, background: '#f1f5f9', border: 'none', color: tokens.text }}>返回案件</button>
                 <button onClick={() => alert('已保存')} style={{ padding: '8px 12px', borderRadius: 8, background: tokens.blue, border: 'none', color: '#fff' }}>保存</button>
             </div>
-        </main>
+        </main >
     )
 }
