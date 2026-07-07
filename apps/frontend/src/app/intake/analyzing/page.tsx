@@ -1,11 +1,25 @@
 
 "use client"
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function AnalyzingPage() {
   const router = useRouter()
+
+  const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; size: number; type?: string; upload_time: string }>>([])
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('lawdesk_intake_uploaded_files')
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed)) setUploadedFiles(parsed)
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [])
 
   const steps = [
     { label: '提取案件事实', done: true },
@@ -46,11 +60,23 @@ export default function AnalyzingPage() {
           </div>
 
           <div style={{ width: 420, background: '#fff', padding: 18, borderRadius: 8, border: '1px solid #eef2ff' }}>
-            <div style={{ fontWeight: 700, marginBottom: 10 }}>AI 实时日志</div>
-            <div style={{ fontFamily: 'monospace', fontSize: 13, color: '#111827' }}>
-              {logs.map((l, i) => (
-                <div key={i} style={{ padding: '6px 0', borderBottom: '1px solid #f1f5f9' }}>{l}</div>
-              ))}
+            <div style={{ fontWeight: 700, marginBottom: 10 }}>已上传资料</div>
+            <div style={{ fontSize: 13, color: '#111827' }}>
+              {uploadedFiles && uploadedFiles.length > 0 ? (
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  {uploadedFiles.map((f, i) => (
+                    <li key={i} style={{ padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                      <div style={{ fontWeight: 600 }}>{f.name}</div>
+                      <div style={{ color: '#6b7280', fontSize: 12 }}>{f.type || '-'} • {(f.size / 1024).toFixed(1)} KB • {new Date(f.upload_time).toLocaleString()}</div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div style={{ color: '#6b7280' }}>
+                  <div style={{ marginBottom: 8 }}>尚未接收到案件资料</div>
+                  <button onClick={() => router.push('/intake')} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: '#111827', color: '#fff', fontWeight: 700 }}>返回上传资料</button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -68,7 +94,7 @@ export default function AnalyzingPage() {
                 try {
                   const analysis = { title: '张三诉李四民间借贷纠纷', matter_type: '民间借贷纠纷', summary: 'AI 识别到民间借贷要件，建议接案。' }
                   sessionStorage.setItem('intake_analysis', JSON.stringify(analysis))
-                } catch (e) {}
+                } catch (e) { }
                 router.push('/intake/report')
               }}
               style={{ padding: '10px 14px', borderRadius: 8, background: '#2563eb', color: '#fff', border: 'none' }}

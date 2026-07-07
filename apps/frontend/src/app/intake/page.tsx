@@ -74,7 +74,7 @@ export default function IntakePage() {
           <div>
             <div style={{ fontWeight: 600, marginBottom: 6 }}>案件资料</div>
 
-            <Uploader matterId={derivedMatterId || undefined} onUploaded={(saved) => { setFiles(saved); setReceivedConfirmed(true); }} />
+            <Uploader matterId={derivedMatterId || undefined} onUploaded={(saved) => { setFiles(saved); setReceivedConfirmed(true); try { sessionStorage.setItem('lawdesk_intake_uploaded_files', JSON.stringify(saved || [])) } catch (e) { } }} />
 
             {receivedConfirmed && files.length > 0 && (
               <div style={{ marginTop: 12, padding: 12, borderRadius: 8, border: '1px solid #f1f5f9', background: '#ffffff', color: '#111827' }}>
