@@ -139,6 +139,10 @@ Documentation includes:
 
 Documentation is the source of truth.
 
+Architecture 文档入口：
+
+- [LawDesk Legal Reasoning Model V1.0](docs/architecture/lawdesk-legal-reasoning-model-v1.md)
+
 ---
 
 # Domain Model
