@@ -165,14 +165,45 @@ export default function DocumentWorkspacePage() {
             <div style={{ background: lawdesk.cardBg, padding: 12, borderRadius: lawdesk.radius, border: `1px solid ${lawdesk.border}` }}>
               <div style={{ fontWeight: 800, color: lawdesk.text }}>全部文书（按阶段）</div>
               <div style={{ marginTop: 8, color: lawdesk.muted }}>
-                {Object.entries(categories).map(([cat, list]) => (
-                  <div key={cat} style={{ marginBottom: 8 }}>
-                    <div style={{ fontWeight: 700 }}>{cat}</div>
+                {/* Prefer backend navigation.by_type when available, otherwise keep existing categories mock */}
+                {Array.isArray(documentsWorkspace?.navigation?.by_type) ? (
+                  documentsWorkspace.navigation.by_type.map((it: any) => (
+                    <div key={it.key} style={{ marginBottom: 8 }}>
+                      <div style={{ fontWeight: 700 }}>{it.label}</div>
+                      <ul style={{ marginTop: 6, color: lawdesk.muted }}>
+                        <li>{it.count ?? 0} 项</li>
+                      </ul>
+                    </div>
+                  ))
+                ) : (
+                  Object.entries(categories).map(([cat, list]) => (
+                    <div key={cat} style={{ marginBottom: 8 }}>
+                      <div style={{ fontWeight: 700 }}>{cat}</div>
+                      <ul style={{ marginTop: 6, color: lawdesk.muted }}>
+                        {list.map((it) => <li key={it}>{it}</li>)}
+                      </ul>
+                    </div>
+                  ))
+                )}
+
+                {/* Render by_status and by_version if provided by backend (non-intrusive) */}
+                {Array.isArray(documentsWorkspace?.navigation?.by_status) ? (
+                  <div style={{ marginTop: 8 }}>
+                    <div style={{ fontWeight: 700 }}>按状态</div>
                     <ul style={{ marginTop: 6, color: lawdesk.muted }}>
-                      {list.map((it) => <li key={it}>{it}</li>)}
+                      {documentsWorkspace.navigation.by_status.map((s: any) => <li key={s.key}>{s.label} ({s.count ?? 0})</li>)}
                     </ul>
                   </div>
-                ))}
+                ) : null}
+
+                {Array.isArray(documentsWorkspace?.navigation?.by_version) ? (
+                  <div style={{ marginTop: 8 }}>
+                    <div style={{ fontWeight: 700 }}>按版本</div>
+                    <ul style={{ marginTop: 6, color: lawdesk.muted }}>
+                      {documentsWorkspace.navigation.by_version.map((v: any) => <li key={v.key}>{v.label} ({v.count ?? 0})</li>)}
+                    </ul>
+                  </div>
+                ) : null}
               </div>
             </div>
           ) : null}
