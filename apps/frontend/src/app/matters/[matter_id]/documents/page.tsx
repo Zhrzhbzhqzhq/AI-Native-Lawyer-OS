@@ -63,6 +63,10 @@ export default function DocumentWorkspacePage() {
   const realDocumentList: any[] = Array.isArray(documentsWorkspace?.document_list) ? (documentsWorkspace!.document_list as any[]) : []
   const realDocumentListOrFallback = realDocumentList.length ? realDocumentList : recommended.map((r) => ({ document_id: r.id, title: r.title, document_type: '', status: 'recommended', version: '', updated_at: null, content_uri: null, stars: r.stars }))
 
+  // realDocumentSummary: map workspace summary
+  const realDocumentSummary: any = documentsWorkspace?.summary ?? null
+  const realDocumentSummaryOrFallback = realDocumentSummary ? realDocumentSummary : { total: 0, completed: 0, draft: 0, need_review: 0, missing: 0 }
+
   const categories: Record<string, string[]> = {
     '起诉阶段': ['民事起诉状', '证据目录', '保全申请书'],
     '答辩阶段': ['答辩状', '举证意见'],
@@ -92,9 +96,11 @@ export default function DocumentWorkspacePage() {
           <div style={{ flex: 1, minWidth: 220 }}>
             <div style={{ fontWeight: 800, color: lawdesk.text }}>研究成果</div>
             <div style={{ marginTop: 8, color: lawdesk.muted }}>
-              <div>✓ 已检索案例（18）</div>
-              <div>✓ 已整理法条（6）</div>
-              <div>✓ 已提炼裁判规则（9）</div>
+              <div>✓ 文书总数（{realDocumentSummaryOrFallback.total}）</div>
+              <div>✓ 已完成（{realDocumentSummaryOrFallback.completed}）</div>
+              <div>✓ 草稿（{realDocumentSummaryOrFallback.draft}）</div>
+              <div>✓ 待审（{realDocumentSummaryOrFallback.need_review}）</div>
+              <div>✓ 缺失（{realDocumentSummaryOrFallback.missing}）</div>
             </div>
           </div>
 
