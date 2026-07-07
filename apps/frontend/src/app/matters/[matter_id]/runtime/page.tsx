@@ -228,6 +228,35 @@ export default function RuntimeDashboardPage() {
     return list.slice(0, 4)
   })()
 
+  // derive next actions from runtime_next_step, runtime_plan.steps, runtime_actions
+  let realNextActions: string[] = []
+  try {
+    if (runtime) {
+      const rn = runtime.runtime_next_step || runtime.runtimeNextStep || null
+      if (rn) {
+        if (typeof rn === 'string') realNextActions.push(rn)
+        else if (typeof rn === 'object') realNextActions.push(rn.description || rn.title || JSON.stringify(rn))
+      }
+
+      const rpSteps = Array.isArray(runtime.runtime_plan?.steps) ? runtime.runtime_plan.steps.map((s: any) => String(s)) : (Array.isArray(runtime.runtimePlan?.steps) ? runtime.runtimePlan.steps.map((s: any) => String(s)) : [])
+      realNextActions = [...realNextActions, ...rpSteps]
+
+      if (Array.isArray(runtime.runtime_actions)) {
+        const pending = runtime.runtime_actions
+          .filter((a: any) => !doneStatuses.includes(String(a?.status || a?.execution_status || a?.state || '').toUpperCase()))
+          .map((a: any) => normalizeTitle(a))
+        realNextActions = [...realNextActions, ...pending]
+      }
+
+      // dedupe and limit
+      realNextActions = Array.from(new Set(realNextActions)).filter(Boolean).slice(0, 4)
+    }
+  } catch (e) {
+    realNextActions = []
+  }
+
+  const realNextActionsOrFallback = realNextActions.length ? realNextActions : nextActions
+
   const waitingForLawyer = (() => {
     const fromToday = (Array.isArray(today) ? today : [])
       .filter((item: any) => waitingStatuses.includes(String(item?.status || item?.execution_status || item?.state || '').toUpperCase()))
@@ -295,7 +324,7 @@ export default function RuntimeDashboardPage() {
 
         <section style={{ background: tokens.cardBg, padding: tokens.spacing, borderRadius: tokens.radius, border: `1px solid ${tokens.border}`, boxShadow: tokens.shadow }}>
           <SectionTitle zh="下一步计划" en="Next Actions" />
-          {nextActions.length > 0 ? nextActions.map((item: string, index: number) => (
+          {realNextActionsOrFallback.length > 0 ? realNextActionsOrFallback.map((item: string, index: number) => (
             <div key={`${item}-${index}`} style={{ marginBottom: 8, color: tokens.text }}>• {item}</div>
           )) : <div style={{ color: tokens.muted }}>暂无下一步计划。</div>}
         </section>
