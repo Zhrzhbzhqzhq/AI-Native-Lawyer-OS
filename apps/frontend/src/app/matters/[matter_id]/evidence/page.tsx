@@ -359,10 +359,11 @@ export default function EvidencePage() {
                 <div style={{ marginTop: 12 }}>
                     <div style={{ fontWeight: 700 }}>{(data as any)?.proofGoal ?? fallbackWorkspace.proofGoal}</div>
                     <div style={{ marginTop: 8 }}>
-                        {(data as any)?.evidences?.map((e: any) => (
+                        {(data as any)?.evidences?.map((e: any, idx: number) => (
                             <div key={e.id} style={{ padding: 8, borderRadius: 8, marginBottom: 8, background: selectedEvidenceId === e.id ? '#eef6ff' : '#fff' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                     <div style={{ cursor: 'pointer' }} onClick={() => setSelectedEvidenceId(e.id)}>
+                                        <div style={{ fontSize: 12, color: tokens.muted, marginBottom: 4 }}>证据 {idx + 1}</div>
                                         <div style={{ fontWeight: 700, color: selectedEvidenceId === e.id ? tokens.blue : tokens.text }}>{e.title}</div>
                                         <div style={{ color: tokens.muted, fontSize: 12 }}>{e.date}</div>
                                     </div>
