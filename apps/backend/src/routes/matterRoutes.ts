@@ -1168,6 +1168,23 @@ export async function matterRoutes(app: FastifyInstance) {
     }
   })
 
+  // Update evidence status
+  app.patch('/matters/:matter_id/evidence/:evidence_id/status', async (request, reply) => {
+    const { matter_id, evidence_id } = request.params as any
+    const payload = request.body as any
+    const allowed = ['active', 'pending', 'accepted', 'weak', 'rejected']
+    if (!payload || typeof payload.status !== 'string') return reply.code(400).send({ error: 'status required' })
+    if (!allowed.includes(String(payload.status))) return reply.code(400).send({ error: 'invalid_status' })
+    try {
+      const updated = await evidenceService.updateStatus(matter_id, evidence_id, String(payload.status))
+      return reply.code(200).send(updated)
+    } catch (err: any) {
+      if (String(err.message) === 'evidence_not_found') return reply.code(404).send({ error: 'evidence_not_found' })
+      if (String(err.message) === 'invalid_status') return reply.code(400).send({ error: 'invalid_status' })
+      return reply.code(500).send({ error: 'update_failed', detail: err?.message || String(err) })
+    }
+  })
+
   app.post('/matters/:id/timeline', async (request, reply) => {
     const { id } = request.params as any;
     const payload = request.body as any;

@@ -40,6 +40,13 @@ export class EvidenceRepository {
       data: { description },
     });
   }
+
+  async updateStatusByEvidenceId(evidence_id: string, status: string) {
+    return this.prisma.evidence.update({
+      where: { evidence_id },
+      data: { status },
+    });
+  }
 }
 
 export default EvidenceRepository;

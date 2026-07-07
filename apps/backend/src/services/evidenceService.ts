@@ -25,6 +25,17 @@ export class EvidenceService {
 
     return this.repo.updateDescriptionByEvidenceId(evidence_id, description)
   }
+
+  async updateStatus(matter_id: string, evidence_id: string, status: string) {
+    const allowed = ['active', 'pending', 'accepted', 'weak', 'rejected']
+    if (!allowed.includes(String(status))) throw new Error('invalid_status')
+
+    const existingList = await this.repo.findByMatterId(matter_id)
+    const exists = Array.isArray(existingList) && existingList.some((e: any) => String(e.evidence_id) === String(evidence_id))
+    if (!exists) throw new Error('evidence_not_found')
+
+    return this.repo.updateStatusByEvidenceId(evidence_id, String(status))
+  }
 }
 
 export default EvidenceService;
