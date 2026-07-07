@@ -7,6 +7,7 @@ import Uploader from './uploader/Uploader'
 export default function IntakePage() {
   const router = useRouter()
   const [caseName, setCaseName] = useState('')
+  const [matterId, setMatterId] = useState('')
   const [client, setClient] = useState('')
   const [opponent, setOpponent] = useState('')
   const [caseType, setCaseType] = useState('')
@@ -47,10 +48,15 @@ export default function IntakePage() {
             <input value={caseType} onChange={(e) => setCaseType(e.target.value)} placeholder="例如：民间借贷 / 合同 / 劳动" style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e6eef6', marginTop: 6 }} />
           </label>
 
+          <label style={{ display: 'block' }}>
+            <div style={{ fontWeight: 600 }}>关联案件ID（可选）</div>
+            <input value={matterId} onChange={(e) => setMatterId(e.target.value)} placeholder="已有 matter_id 则填写以直接保存到案件" style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e6eef6', marginTop: 6 }} />
+          </label>
+
           <div>
             <div style={{ fontWeight: 600, marginBottom: 6 }}>案件资料</div>
 
-            <Uploader onUploaded={(saved) => setFiles(saved)} />
+            <Uploader matterId={matterId || undefined} onUploaded={(saved) => setFiles(saved)} />
 
             {files.length > 0 && (
               <div style={{ marginTop: 12, border: '1px solid #f1f5f9', borderRadius: 8, background: '#fafafa', padding: 8 }}>

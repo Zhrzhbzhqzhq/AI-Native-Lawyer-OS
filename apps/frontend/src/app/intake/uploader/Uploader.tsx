@@ -4,7 +4,7 @@ import React, { useCallback, useState } from 'react'
 
 type UploadedFile = { name: string; size: number; type?: string; upload_time: string }
 
-export default function Uploader({ onUploaded }: { onUploaded?: (files: UploadedFile[]) => void }) {
+export default function Uploader({ onUploaded, matterId }: { onUploaded?: (files: UploadedFile[]) => void; matterId?: string | null }) {
     const [files, setFiles] = useState<File[]>([])
     const [uploading, setUploading] = useState(false)
     const [uploaded, setUploaded] = useState<UploadedFile[]>([])
@@ -33,6 +33,7 @@ export default function Uploader({ onUploaded }: { onUploaded?: (files: Uploaded
         try {
             const fd = new FormData()
             files.forEach((f) => fd.append('files', f, f.name))
+            if (matterId) fd.append('matter_id', String(matterId))
 
             const res = await fetch('/api/uploads', { method: 'POST', body: fd })
             if (!res.ok) throw new Error('upload failed')
