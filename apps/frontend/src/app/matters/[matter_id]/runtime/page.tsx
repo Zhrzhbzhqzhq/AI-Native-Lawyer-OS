@@ -308,6 +308,38 @@ export default function RuntimeDashboardPage() {
     return (fromActions.length > 0 ? fromActions : fallback).slice(0, 8)
   })()
 
+  // derive recent activity from runtime in priority: logs, events, timeline, runtime_actions, today_queue
+  let realRecentActivity: Array<{ time: string; title: string }> = []
+  try {
+    if (runtime) {
+      const logs = Array.isArray(runtime.logs) ? runtime.logs : (Array.isArray(runtime.log) ? runtime.log : [])
+      const events = Array.isArray(runtime.events) ? runtime.events : []
+      const timeline = Array.isArray(runtime.timeline) ? runtime.timeline : []
+      const rActions = Array.isArray(runtime.runtime_actions) ? runtime.runtime_actions : []
+      const rToday = Array.isArray(runtime.today_queue) ? runtime.today_queue : []
+
+      const mapItem = (it: any) => ({ time: getTimeText(it), title: normalizeTitle(it) })
+
+      if (logs.length) {
+        realRecentActivity = logs.map(mapItem).slice(0, 8)
+      } else if (events.length) {
+        realRecentActivity = events.map(mapItem).slice(0, 8)
+      } else if (timeline.length) {
+        realRecentActivity = timeline.map(mapItem).slice(0, 8)
+      } else if (rActions.length) {
+        realRecentActivity = rActions.map(mapItem).slice(0, 8)
+      } else if (rToday.length) {
+        realRecentActivity = rToday.map(mapItem).slice(0, 8)
+      } else {
+        realRecentActivity = []
+      }
+    }
+  } catch (e) {
+    realRecentActivity = []
+  }
+
+  const realRecentActivityOrFallback = realRecentActivity.length ? realRecentActivity : recentActivity
+
   const firstToday = Array.isArray(today) && today.length > 0 ? today[0] : null
   const firstType = firstToday ? mapWorkType(firstToday) : null
   const firstRoute = firstType ? routeForType(firstType, params.matter_id) : `/matters/${params.matter_id}`
@@ -371,7 +403,7 @@ export default function RuntimeDashboardPage() {
       <section style={{ marginTop: 14, background: tokens.cardBg, padding: tokens.spacing, borderRadius: tokens.radius, border: `1px solid ${tokens.border}`, boxShadow: tokens.shadow }}>
         <SectionTitle zh="最近工作记录" en="Recent Activity" />
         <div style={{ display: 'grid', gap: 8 }}>
-          {recentActivity.length > 0 ? recentActivity.map((item: any, index: number) => (
+          {realRecentActivityOrFallback.length > 0 ? realRecentActivityOrFallback.map((item: any, index: number) => (
             <div key={`${item.time}-${item.title}-${index}`} style={{ color: tokens.text }}>
               <span style={{ color: tokens.muted, marginRight: 10 }}>{item.time}</span>
               <span>{item.title}</span>
