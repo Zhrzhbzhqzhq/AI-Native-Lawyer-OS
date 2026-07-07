@@ -228,6 +228,9 @@ export default function MatterWorkspacePage() {
   const params = useParams() as { matter_id: string }
   const router = useRouter()
 
+  const [materials, setMaterials] = useState<any[]>([])
+  const [loadingMaterials, setLoadingMaterials] = useState(true)
+
   // Minimal monochrome four-card layout — M122 final
   const caseName = '张三诉李四民间借贷纠纷'
   const client = '张三'
@@ -240,6 +243,33 @@ export default function MatterWorkspacePage() {
     padding: 20,
     borderRadius: 12,
   }
+
+  useEffect(() => {
+    let mounted = true
+    async function load() {
+      setLoadingMaterials(true)
+      try {
+        const API = (process.env.NEXT_PUBLIC_API_BASE_URL as string) || 'http://localhost:4000'
+        const res = await fetch(`${API}/matters/${encodeURIComponent(params.matter_id)}/materials`)
+        if (!mounted) return
+        if (!res.ok) {
+          setMaterials([])
+          setLoadingMaterials(false)
+          return
+        }
+        const data = await res.json().catch(() => [])
+        if (!mounted) return
+        setMaterials(Array.isArray(data) ? data : [])
+      } catch (e) {
+        console.error('load materials failed', e)
+        if (mounted) setMaterials([])
+      } finally {
+        if (mounted) setLoadingMaterials(false)
+      }
+    }
+    if (params?.matter_id) load()
+    return () => { mounted = false }
+  }, [params?.matter_id])
 
   const primaryBtn: React.CSSProperties = {
     background: '#111827',
@@ -263,6 +293,34 @@ export default function MatterWorkspacePage() {
 
   return (
     <main style={{ padding: 32, background: '#ffffff', color: '#0f172a', minHeight: '80vh' }}>
+      {/* 案件资料区域 */}
+      <section style={{ marginBottom: 24 }}>
+        <div style={{ background: '#fff', border: '1px solid #e6e7eb', padding: 20, borderRadius: 12 }}>
+          <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 8 }}>案件资料</div>
+          <div style={{ color: '#374151' }}>
+            {loadingMaterials ? (
+              <div style={{ color: '#64748b' }}>加载中…</div>
+            ) : materials && materials.length > 0 ? (
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {materials.map((m: any, i: number) => {
+                  const filename = m.title || m.name || (m.storage_uri ? m.storage_uri.split('/').pop() : '未知文件')
+                  const filetype = m.material_type || m.type || (m.storage_uri ? (m.storage_uri.split('.').pop() || '-') : '-')
+                  const size = m.size || m.file_size || '-'
+                  const time = m.created_at || m.updated_at || null
+                  return (
+                    <li key={m.material_id ?? i} style={{ padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                      <div style={{ fontWeight: 600 }}>{filename}</div>
+                      <div style={{ color: '#6b7280', fontSize: 13 }}>{filetype} • {typeof size === 'number' ? `${(size / 1024).toFixed(1)} KB` : size} • {time ? new Date(time).toLocaleString() : '-'}</div>
+                    </li>
+                  )
+                })}
+              </ul>
+            ) : (
+              <div style={{ color: '#6b7280' }}>暂无案件资料</div>
+            )}
+          </div>
+        </div>
+      </section>
       {/* Card 1: 案件概况 */}
       <section style={{ marginBottom: 24 }}>
         <div style={{ ...cardStyle }}>
