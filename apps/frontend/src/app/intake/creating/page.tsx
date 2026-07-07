@@ -38,9 +38,9 @@ export default function CreatingPage() {
         <main style={{ padding: 24 }}>
             <div style={{ maxWidth: 720, margin: '0 auto' }}>
                 <h2 style={{ marginTop: 0 }}>案件整理中</h2>
-                <div style={{ color: '#64748b', marginBottom: 12 }}>AI 正在整理案件（模拟）——此为 V1 骨架。</div>
+                <div style={{ color: '#64748b', marginBottom: 12 }}>正在整理案件，请稍候。</div>
 
-                <div style={{ background: '#fff', border: '1px solid #e6eef6', borderRadius: 8, padding: 16 }}>
+                <div style={{ background: '#fff', border: '1px solid #e6e7eb', borderRadius: 8, padding: 16 }}>
                     <ol style={{ margin: 0, paddingLeft: 18 }}>
                         {steps.map((s, i) => (
                             <li key={s} style={{ marginBottom: 10, color: i < index ? '#0f172a' : '#64748b' }}>
@@ -53,7 +53,7 @@ export default function CreatingPage() {
                         {done ? (
                             <div>
                                 <div style={{ marginBottom: 12 }}>整理完成。</div>
-                                <button onClick={() => router.push('/matters')} style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: '#2563eb', color: '#fff' }}>进入案件列表</button>
+                                <button onClick={() => router.push('/matters')} style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: '#111827', color: '#fff' }}>进入案件列表</button>
                             </div>
                         ) : (
                             <div style={{ color: '#64748b' }}>处理中，请稍候…</div>
