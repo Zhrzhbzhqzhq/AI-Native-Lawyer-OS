@@ -135,6 +135,92 @@ export default function ExecutionWorkspacePage() {
 
   const realExecutionAdviceOrFallback = realExecutionAdvice || '下一步建议律师补强执行依据、确认被执行人财产线索、准备执行申请材料。'
 
+  // derive asset clues from runtime snapshot and related runtime fields
+  let realAssetClues: Array<{ name: string; status: string }> = []
+  try {
+    if (runtime) {
+      const sf = runtime.snapshot_facts
+      if (sf) {
+        // accounts
+        if (sf.accounts && Array.isArray(sf.accounts)) {
+          const cnt = sf.accounts.length
+          realAssetClues.push({ name: '银行账户', status: cnt ? `发现 ${cnt} 条疑似账户` : '未发现' })
+        }
+
+        // vehicles
+        if (sf.vehicles && Array.isArray(sf.vehicles)) {
+          const cnt = sf.vehicles.length
+          realAssetClues.push({ name: '车辆信息', status: cnt ? `发现 ${cnt} 辆相关车辆` : '未发现' })
+        }
+
+        // real estate / properties
+        if (sf.real_estate && Array.isArray(sf.real_estate)) {
+          const cnt = sf.real_estate.length
+          realAssetClues.push({ name: '不动产', status: cnt ? `发现 ${cnt} 处不动产` : '未发现' })
+        }
+
+        // business / equity
+        if (sf.companies && Array.isArray(sf.companies)) {
+          const cnt = sf.companies.length
+          realAssetClues.push({ name: '工商/股权', status: cnt ? `发现 ${cnt} 条工商线索` : '未发现' })
+        }
+
+        // payment flows hints
+        if (sf.payment_flows && (Array.isArray(sf.payment_flows) || typeof sf.payment_flows === 'number')) {
+          const cnt = Array.isArray(sf.payment_flows) ? sf.payment_flows.length : sf.payment_flows
+          realAssetClues.push({ name: '微信/支付宝流水', status: cnt ? `发现 ${cnt} 条流水线索` : '未发现' })
+        }
+
+        // generic clues count
+        if (sf.clues && Array.isArray(sf.clues)) {
+          const cnt = sf.clues.length
+          realAssetClues.push({ name: '其他线索', status: cnt ? `共 ${cnt} 条` : '无' })
+        }
+      }
+
+      // runtime actions / works: look for investigations or asset-related tasks
+      const actions = runtime.runtime_actions || runtime.runtime_works || []
+      if (actions && Array.isArray(actions)) {
+        const assetActions = actions.filter((a: any) => {
+          const t = String(a.type || a.action_type || a.name || '').toLowerCase()
+          return t.includes('asset') || t.includes('account') || t.includes('property') || t.includes('investig') || t.includes('clue') || t.includes('trace')
+        })
+        if (assetActions.length) {
+          assetActions.forEach((a: any, idx: number) => {
+            const label = a.name || a.action_id || a.type || `资产任务 ${idx + 1}`
+            const status = a.status || a.state || a.execution_status || '进行中'
+            realAssetClues.push({ name: String(label), status: String(status) })
+          })
+        }
+      }
+
+      // runtime_plan may contain planned investigations
+      if (runtime.runtime_plan && typeof runtime.runtime_plan === 'object') {
+        const rp = runtime.runtime_plan
+        if (rp.asset_focus) {
+          realAssetClues.push({ name: '计划中的资产调查', status: rp.asset_focus })
+        }
+        if (rp.next_actions && Array.isArray(rp.next_actions)) {
+          rp.next_actions.filter((na: any) => String(na).toLowerCase().includes('account') || String(na).toLowerCase().includes('asset')).slice(0, 3).forEach((na: any, i: number) => {
+            realAssetClues.push({ name: `计划动作 ${i + 1}`, status: String(na) })
+          })
+        }
+      }
+
+      // dedupe by name keeping first status
+      const seen = new Set<string>()
+      realAssetClues = realAssetClues.filter((it) => {
+        if (seen.has(it.name)) return false
+        seen.add(it.name)
+        return true
+      })
+    }
+  } catch (e) {
+    realAssetClues = []
+  }
+
+  const realAssetCluesOrFallback = realAssetClues.length ? realAssetClues : assetClues
+
   return (
     <main style={{ padding: 24, background: theme.pageBg }}>
       <div style={{ padding: 20, borderRadius: 16, background: theme.cardBg, border: `1px solid ${theme.border}`, boxShadow: '0 8px 24px rgba(2,6,23,0.04)' }}>
@@ -159,7 +245,7 @@ export default function ExecutionWorkspacePage() {
         <section style={{ background: theme.cardBg, padding: 16, borderRadius: 12, border: `1px solid ${theme.border}` }}>
           <TwoLineTitle zh="财产线索" en="Asset Clues" size="md" />
           <div style={{ marginTop: 10, display: 'grid', gap: 10 }}>
-            {assetClues.map((it) => (
+            {realAssetCluesOrFallback.map((it) => (
               <div key={it.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 8, borderBottom: `1px solid ${theme.border}` }}>
                 <div style={{ color: theme.text, fontWeight: 600 }}>{it.name}</div>
                 <div style={{ color: theme.muted }}>{it.status}</div>
