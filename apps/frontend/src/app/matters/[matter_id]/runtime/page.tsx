@@ -44,6 +44,12 @@ export default function RuntimeDashboardPage() {
     async function load() {
       setLoading(true)
       setNotice(null)
+      // For demo matter, skip runtime fetch and use empty local state
+      if (params.matter_id === 'demo-001') {
+        setRuntime(null)
+        setLoading(false)
+        return
+      }
       try {
         const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000'
         const res = await fetch(`${API}/matters/${params.matter_id}/runtime`)
