@@ -10,10 +10,14 @@ export default function IntakePage() {
   const [opponent, setOpponent] = useState('')
   const [caseType, setCaseType] = useState('')
   const [files, setFiles] = useState<string[]>([])
+  const [showMockFiles, setShowMockFiles] = useState(false)
 
-  function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
-    const list = Array.from(e.target.files || [])
-    setFiles(list.map((f) => f.name))
+  const mockFiles = ['微信聊天记录.pdf', '转账记录.pdf', '借条照片.jpg']
+
+  function handleClickUploadArea() {
+    // Simulate adding files locally for V1
+    setFiles(mockFiles)
+    setShowMockFiles(true)
   }
 
   function handleStart() {
@@ -28,8 +32,7 @@ export default function IntakePage() {
   return (
     <main style={{ padding: 24 }}>
       <div style={{ maxWidth: 760, margin: '0 auto' }}>
-        <h2 style={{ marginTop: 0 }}>新建案件 V1</h2>
-        <div style={{ color: '#64748b', marginBottom: 12 }}>本页面为 V1 骨架：不连接 AI、不上传到后端。</div>
+        <h2 style={{ marginTop: 0 }}>新建案件</h2>
 
         <div style={{ display: 'grid', gap: 12 }}>
           <label style={{ display: 'block' }}>
@@ -53,9 +56,40 @@ export default function IntakePage() {
           </label>
 
           <div>
-            <div style={{ fontWeight: 600, marginBottom: 6 }}>上传案件资料（仅列名）</div>
-            <input type="file" multiple onChange={handleFiles} />
-            <div style={{ marginTop: 8, color: '#64748b' }}>{files.length ? files.join(', ') : '未选中文件'}</div>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>案件资料</div>
+
+            <div
+              role="button"
+              onClick={handleClickUploadArea}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleClickUploadArea() }}
+              tabIndex={0}
+              style={{
+                border: '1px dashed #e6e7eb',
+                borderRadius: 8,
+                padding: 18,
+                cursor: 'pointer',
+                color: '#111827',
+                background: '#ffffff'
+              }}
+            >
+              <div style={{ fontWeight: 600 }}>拖拽案件资料到这里</div>
+              <div style={{ marginTop: 6, color: '#6b7280' }}>或点击添加资料</div>
+              <div style={{ marginTop: 8, color: '#6b7280', fontSize: 13 }}>支持 PDF、Word、图片、录音、视频、压缩包</div>
+            </div>
+
+            {showMockFiles && files.length > 0 && (
+              <div style={{ marginTop: 12, border: '1px solid #f1f5f9', borderRadius: 8, background: '#fafafa' }}>
+                <ul style={{ listStyle: 'none', padding: 12, margin: 0 }}>
+                  {files.map((f, i) => (
+                    <li key={i} style={{ padding: '8px 6px', borderBottom: i < files.length - 1 ? '1px solid #f1f5f9' : 'none', color: '#111827' }}>{f}</li>
+                  ))}
+                </ul>
+                <div style={{ padding: 12, borderTop: '1px solid #f1f5f9', textAlign: 'center' }}>
+                  <button onClick={() => { /* keep local mock flow */ setShowMockFiles(true) }} style={{ background: 'transparent', border: 'none', color: '#111827', fontWeight: 600, cursor: 'pointer' }}>继续添加资料</button>
+                </div>
+              </div>
+            )}
+
           </div>
 
           <div style={{ marginTop: 12 }}>
