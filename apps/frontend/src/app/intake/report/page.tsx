@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 export default function ReportPage() {
   const router = useRouter()
   const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; size: number; type?: string; upload_time: string }>>([])
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   useEffect(() => {
     try {
@@ -105,66 +107,90 @@ export default function ReportPage() {
         {/* 底部按钮 */}
         <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center', gap: 12 }}>
           <button onClick={() => router.push('/matters')} style={{ background: '#111827', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: 8, fontWeight: 700 }}>开始办案</button>
-          <button
-            onClick={async () => {
-              try {
-                const raw = sessionStorage.getItem('lawdesk_intake_uploaded_files')
-                const uploaded = raw ? JSON.parse(raw) : []
-                const API = (process.env.NEXT_PUBLIC_API_BASE_URL as string) || 'http://localhost:4000'
-                const newMatterId = `m-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
-                const title = caseTitle || '新案件'
-
-                // create matter
-                const res = await fetch(`${API}/matters`, {
-                  method: 'POST',
-                  headers: { 'content-type': 'application/json' },
-                  body: JSON.stringify({ matter_id: newMatterId, title }),
-                })
-                if (!res.ok) {
-                  // try to parse existing response
-                  const err = await res.json().catch(() => ({}))
-                  console.error('create matter failed', err)
-                }
-                // create materials
-                for (const f of (Array.isArray(uploaded) ? uploaded : [])) {
-                  try {
-                    const material_id = `mat-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
-                    const payload = {
-                      material_id,
-                      title: f.name || 'unnamed',
-                      material_type: 'uploaded',
-                      source: 'client',
-                      storage_uri: f.storage_uri || '',
-                      status: 'active',
-                    }
-                    await fetch(`${API}/matters/${encodeURIComponent(newMatterId)}/materials`, {
-                      method: 'POST',
-                      headers: { 'content-type': 'application/json' },
-                      body: JSON.stringify(payload),
-                    })
-                  } catch (e) {
-                    console.error('create material failed', e)
-                  }
-                }
-
-                // clear intake session data
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            {errorMessage ? (
+              <div style={{ color: '#111827', background: '#fff', border: '1px solid #f1f5f9', padding: '10px 14px', borderRadius: 8, maxWidth: 640, textAlign: 'center' }}>{errorMessage}</div>
+            ) : null}
+            <button
+              onClick={async () => {
+                if (isProcessing) return
+                setErrorMessage(null)
+                setIsProcessing(true)
                 try {
-                  sessionStorage.removeItem('lawdesk_intake_uploaded_files')
-                  sessionStorage.removeItem('new_matter_draft')
-                  sessionStorage.removeItem('intake_analysis')
-                } catch (e) { }
+                  const raw = sessionStorage.getItem('lawdesk_intake_uploaded_files')
+                  const uploaded = raw ? JSON.parse(raw) : []
+                  const API = (process.env.NEXT_PUBLIC_API_BASE_URL as string) || 'http://localhost:4000'
+                  const newMatterId = `m-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+                  const title = caseTitle || '新案件'
 
-                router.push(`/matters/${encodeURIComponent(newMatterId)}`)
-              } catch (e) {
-                console.error(e)
-                // fallback: navigate to matters
-                router.push('/matters')
-              }
-            }}
-            style={{ background: '#fff', color: '#111827', border: '1px solid #e6eef6', padding: '12px 20px', borderRadius: 8, fontWeight: 700 }}
-          >
-            确认接案
-          </button>
+                  // create matter
+                  const res = await fetch(`${API}/matters`, {
+                    method: 'POST',
+                    headers: { 'content-type': 'application/json' },
+                    body: JSON.stringify({ matter_id: newMatterId, title }),
+                  })
+                  if (!res.ok) {
+                    setErrorMessage('创建案件失败，请稍后重试')
+                    setIsProcessing(false)
+                    return
+                  }
+
+                  // create materials
+                  let materialError = false
+                  for (const f of (Array.isArray(uploaded) ? uploaded : [])) {
+                    try {
+                      const material_id = `mat-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+                      const payload = {
+                        material_id,
+                        title: f.name || 'unnamed',
+                        material_type: 'uploaded',
+                        source: 'client',
+                        storage_uri: f.storage_uri || '',
+                        status: 'active',
+                      }
+                      const mr = await fetch(`${API}/matters/${encodeURIComponent(newMatterId)}/materials`, {
+                        method: 'POST',
+                        headers: { 'content-type': 'application/json' },
+                        body: JSON.stringify(payload),
+                      })
+                      if (!mr.ok) {
+                        materialError = true
+                        console.error('create material failed', await mr.text().catch(() => ''))
+                        break
+                      }
+                    } catch (e) {
+                      materialError = true
+                      console.error('create material failed', e)
+                      break
+                    }
+                  }
+
+                  if (materialError) {
+                    setErrorMessage('案件已创建，但资料归档失败，请稍后重试')
+                    setIsProcessing(false)
+                    return
+                  }
+
+                  // all succeeded
+                  try {
+                    sessionStorage.removeItem('lawdesk_intake_uploaded_files')
+                    sessionStorage.removeItem('new_matter_draft')
+                    sessionStorage.removeItem('intake_analysis')
+                  } catch (e) { }
+
+                  router.push(`/matters/${encodeURIComponent(newMatterId)}`)
+                } catch (e) {
+                  console.error(e)
+                  setErrorMessage('创建案件失败，请稍后重试')
+                  setIsProcessing(false)
+                }
+              }}
+              disabled={isProcessing}
+              style={{ background: isProcessing ? '#f3f4f6' : '#fff', color: '#111827', border: '1px solid #e6eef6', padding: '12px 20px', borderRadius: 8, fontWeight: 700, cursor: isProcessing ? 'default' : 'pointer' }}
+            >
+              {isProcessing ? '正在创建案件' : '确认接案'}
+            </button>
+          </div>
         </div>
       </div>
     </main>
