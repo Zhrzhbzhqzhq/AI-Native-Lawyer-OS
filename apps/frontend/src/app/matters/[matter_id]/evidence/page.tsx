@@ -78,6 +78,10 @@ export default function EvidencePage() {
     const convertedMaterialIds = useMemo(() => new Set((evidenceRecords || []).map((e: any) => e.material_id).filter(Boolean)), [evidenceRecords])
     const [convertingMaterialId, setConvertingMaterialId] = useState<string | null>(null)
     const [conversionError, setConversionError] = useState<string | null>(null)
+    const [editingEvidenceId, setEditingEvidenceId] = useState<string | null>(null)
+    const [editingDescription, setEditingDescription] = useState<string>('')
+    const [savingDescription, setSavingDescription] = useState<boolean>(false)
+    const [saveDescriptionError, setSaveDescriptionError] = useState<string | null>(null)
 
     // derive selected evidence from current data
     const selectedEvidence = (data?.evidences || []).find((e) => e.id === selectedEvidenceId) || (data?.evidences && data.evidences[0]) || fallbackWorkspace.evidences[0]
@@ -360,12 +364,54 @@ export default function EvidencePage() {
                         <div style={{ fontWeight: 700 }}>{(data as any)?.proofGoal ?? fallbackWorkspace.proofGoal}</div>
                         <div style={{ marginTop: 8 }}>
                             {(data as any)?.evidences?.map((e: any) => (
-                                <div key={e.id} onClick={() => setSelectedEvidenceId(e.id)} style={{ padding: 8, borderRadius: 8, cursor: 'pointer', marginBottom: 8, background: selectedEvidenceId === e.id ? '#eef6ff' : '#fff' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <div style={{ fontWeight: 700, color: selectedEvidenceId === e.id ? tokens.blue : tokens.text }}>{e.title}</div>
-                                        <div style={{ color: tokens.muted, fontSize: 12 }}>{e.date}</div>
+                                <div key={e.id} style={{ padding: 8, borderRadius: 8, marginBottom: 8, background: selectedEvidenceId === e.id ? '#eef6ff' : '#fff' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <div style={{ cursor: 'pointer' }} onClick={() => setSelectedEvidenceId(e.id)}>
+                                            <div style={{ fontWeight: 700, color: selectedEvidenceId === e.id ? tokens.blue : tokens.text }}>{e.title}</div>
+                                            <div style={{ color: tokens.muted, fontSize: 12 }}>{e.date}</div>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <div style={{ color: tokens.muted, fontSize: 13 }}>{e.type} • 强度 {e.strength}%</div>
+                                        </div>
                                     </div>
-                                    <div style={{ color: tokens.muted, fontSize: 13, marginTop: 6 }}>{e.type} • 强度 {e.strength}%</div>
+
+                                    <div style={{ marginTop: 8 }}>
+                                        {editingEvidenceId === e.id ? (
+                                            <div>
+                                                <textarea value={editingDescription} onChange={(ev) => setEditingDescription(ev.target.value)} style={{ width: '100%', minHeight: 80, padding: 8, borderRadius: 6, border: '1px solid #e6e7eb', resize: 'vertical' }} />
+                                                <div style={{ marginTop: 8, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                                                    <button onClick={() => { setEditingEvidenceId(null); setEditingDescription(''); setSaveDescriptionError(null) }} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', border: '1px solid #e6e7eb' }}>取消</button>
+                                                    <button disabled={savingDescription} onClick={async () => {
+                                                        setSaveDescriptionError(null)
+                                                        setSavingDescription(true)
+                                                        try {
+                                                            const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
+                                                            const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence/${encodeURIComponent(e.id)}`
+                                                            const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description: editingDescription }) })
+                                                            if (!res.ok) throw new Error(`status:${res.status}`)
+                                                            // refresh evidence list
+                                                            try { await fetchEvidence() } catch (err) { }
+                                                            // simplest: reload workspace to reflect updated description in tree
+                                                            window.location.reload()
+                                                        } catch (err) {
+                                                            console.error('save description failed', err)
+                                                            setSaveDescriptionError('保存备注失败，请稍后重试')
+                                                        } finally {
+                                                            setSavingDescription(false)
+                                                        }
+                                                    }} style={{ padding: '6px 10px', borderRadius: 6, background: '#111827', color: '#fff', border: 'none' }}>{savingDescription ? '保存中…' : '保存备注'}</button>
+                                                </div>
+                                                {saveDescriptionError ? <div style={{ color: '#b91c1c', marginTop: 6 }}>{saveDescriptionError}</div> : null}
+                                            </div>
+                                        ) : (
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <div style={{ color: tokens.muted }}>{e.notes && String(e.notes).trim().length > 0 ? e.notes : '暂无备注'}</div>
+                                                <div>
+                                                    <button onClick={() => { setEditingEvidenceId(e.id); setEditingDescription(e.notes || '') }} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', border: '1px solid #e6e7eb' }}>编辑备注</button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                         </div>
