@@ -69,6 +69,8 @@ export default function EvidencePage() {
     const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
     const [selectedEvidenceId, setSelectedEvidenceId] = useState<string>(fallbackWorkspace.evidences[0].id)
+    const [materials, setMaterials] = useState<any[]>([])
+    const [loadingMaterials, setLoadingMaterials] = useState<boolean>(true)
 
     // derive selected evidence from current data
     const selectedEvidence = (data?.evidences || []).find((e) => e.id === selectedEvidenceId) || (data?.evidences && data.evidences[0]) || fallbackWorkspace.evidences[0]
@@ -142,6 +144,33 @@ export default function EvidencePage() {
         return () => { cancelled = true }
     }, [matterId])
 
+    // load materials for this matter (real uploaded files)
+    useEffect(() => {
+        let cancelled = false
+        async function loadMaterials() {
+            setLoadingMaterials(true)
+            try {
+                const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
+                const url = `${base}/matters/${encodeURIComponent(matterId)}/materials`
+                const res = await fetch(url)
+                if (!res.ok) {
+                    setMaterials([])
+                    setLoadingMaterials(false)
+                    return
+                }
+                const data = await res.json().catch(() => [])
+                if (!cancelled) setMaterials(Array.isArray(data) ? data : [])
+            } catch (e) {
+                console.error('load materials failed', e)
+                if (!cancelled) setMaterials([])
+            } finally {
+                if (!cancelled) setLoadingMaterials(false)
+            }
+        }
+        if (matterId) loadMaterials()
+        return () => { cancelled = true }
+    }, [matterId])
+
     // reconcile selectedEvidenceId when data.evidences change
     useEffect(() => {
         const evidences = (data as any)?.evidences || []
@@ -192,6 +221,35 @@ export default function EvidencePage() {
                     <button onClick={() => alert('上传证据')} style={{ padding: '8px 12px', borderRadius: 8, background: tokens.blue, color: '#fff', border: 'none' }}>上传证据</button>
                 </div>
             </header>
+
+            {/* 案件资料列表（来自 materials） */}
+            <section style={{ marginBottom: 12 }}>
+                <div style={{ background: tokens.cardBg, padding: 14, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+                    <div style={{ fontWeight: 800, marginBottom: 8 }}>案件资料</div>
+                    <div style={{ color: tokens.muted }}>
+                        {loadingMaterials ? (
+                            <div style={{ color: tokens.muted }}>加载中…</div>
+                        ) : materials && materials.length > 0 ? (
+                            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                                {materials.map((m: any, i: number) => {
+                                    const filename = m.title || m.name || (m.storage_uri ? m.storage_uri.split('/').pop() : '未知文件')
+                                    const filetype = m.material_type || m.type || (m.storage_uri ? (m.storage_uri.split('.').pop() || '-') : '-')
+                                    const size = m.size || m.file_size || '-'
+                                    const time = m.created_at || m.updated_at || null
+                                    return (
+                                        <li key={m.material_id ?? i} style={{ padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                                            <div style={{ fontWeight: 600 }}>{filename}</div>
+                                            <div style={{ color: '#6b7280', fontSize: 13 }}>{filetype} • {typeof size === 'number' ? `${(size / 1024).toFixed(1)} KB` : size} • {time ? new Date(time).toLocaleString() : '-'}</div>
+                                        </li>
+                                    )
+                                })}
+                            </ul>
+                        ) : (
+                            <div style={{ color: tokens.muted }}>暂无案件资料</div>
+                        )}
+                    </div>
+                </div>
+            </section>
 
             <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
                 {/* AI Chief */}
