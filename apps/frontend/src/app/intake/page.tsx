@@ -12,6 +12,7 @@ export default function IntakePage() {
   const [caseType, setCaseType] = useState('')
   const [files, setFiles] = useState<Array<{ name: string; size: number; type?: string; upload_time: string }>>([])
   const [derivedMatterId, setDerivedMatterId] = useState<string | null>(null)
+  const [receivedConfirmed, setReceivedConfirmed] = useState(false)
 
   useEffect(() => {
     try {
@@ -73,9 +74,20 @@ export default function IntakePage() {
           <div>
             <div style={{ fontWeight: 600, marginBottom: 6 }}>案件资料</div>
 
-            <Uploader matterId={derivedMatterId || undefined} onUploaded={(saved) => setFiles(saved)} />
+            <Uploader matterId={derivedMatterId || undefined} onUploaded={(saved) => { setFiles(saved); setReceivedConfirmed(true); }} />
 
-            {files.length > 0 && (
+            {receivedConfirmed && files.length > 0 && (
+              <div style={{ marginTop: 12, padding: 12, borderRadius: 8, border: '1px solid #f1f5f9', background: '#ffffff', color: '#111827' }}>
+                <div style={{ fontWeight: 700, marginBottom: 6 }}>资料已接收</div>
+                <div style={{ color: '#6b7280', marginBottom: 8 }}>已上传文件：{files.length} 个</div>
+                <div style={{ color: '#6b7280', marginBottom: 12 }}>最近上传时间：{files.length > 0 ? new Date(files.reduce((a, b) => (new Date(a.upload_time) > new Date(b.upload_time) ? a : b)).upload_time).toLocaleString() : '-'}</div>
+                <div style={{ textAlign: 'right' }}>
+                  <button onClick={() => router.push('/intake/analyzing')} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: '#111827', color: '#fff', fontWeight: 700 }}>开始整理案件资料</button>
+                </div>
+              </div>
+            )}
+
+            {!receivedConfirmed && files.length > 0 && (
               <div style={{ marginTop: 12, border: '1px solid #f1f5f9', borderRadius: 8, background: '#fafafa', padding: 8 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 110px 160px', gap: 8, padding: '8px 12px', fontWeight: 700, color: '#111827' }}>
                   <div>文件名</div>
