@@ -82,6 +82,8 @@ export default function EvidencePage() {
     const [editingDescription, setEditingDescription] = useState<string>('')
     const [savingDescription, setSavingDescription] = useState<boolean>(false)
     const [saveDescriptionError, setSaveDescriptionError] = useState<string | null>(null)
+    const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
+    const [statusErrorById, setStatusErrorById] = useState<Record<string, string>>({})
 
     // derive selected evidence from current data
     const selectedEvidence = (data?.evidences || []).find((e) => e.id === selectedEvidenceId) || (data?.evidences && data.evidences[0]) || fallbackWorkspace.evidences[0]
@@ -376,6 +378,55 @@ export default function EvidencePage() {
                                     </div>
 
                                     <div style={{ marginTop: 8 }}>
+                                        {/* status display & selector */}
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                                            {(() => {
+                                                const rec = evidenceRecords && evidenceRecords.find((r: any) => String(r.evidence_id) === String(e.id))
+                                                const currentStatus = rec && typeof rec.status === 'string' ? rec.status : 'active'
+                                                const statusLabels: Record<string, string> = {
+                                                    active: '待处理',
+                                                    pending: '待核验',
+                                                    accepted: '已采用',
+                                                    weak: '证据较弱',
+                                                    rejected: '暂不采用',
+                                                }
+                                                const allowed = ['active', 'pending', 'accepted', 'weak', 'rejected']
+                                                return (
+                                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                                        <div style={{ color: tokens.muted, fontSize: 13 }}>状态：</div>
+                                                        <select
+                                                            value={currentStatus}
+                                                            disabled={Boolean(updatingStatusId)}
+                                                            onChange={async (ev) => {
+                                                                const newStatus = ev.target.value
+                                                                setStatusErrorById((s) => ({ ...s, [e.id]: '' }))
+                                                                setUpdatingStatusId(e.id)
+                                                                try {
+                                                                    const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
+                                                                    const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence/${encodeURIComponent(e.id)}/status`
+                                                                    const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) })
+                                                                    if (!res.ok) throw new Error(`status:${res.status}`)
+                                                                    // refresh evidence list
+                                                                    try { await fetchEvidence() } catch (err) { }
+                                                                    // reload workspace to reflect status in tree mapping
+                                                                    window.location.reload()
+                                                                } catch (err) {
+                                                                    console.error('update status failed', err)
+                                                                    setStatusErrorById((s) => ({ ...s, [e.id]: '更新证据状态失败，请稍后重试' }))
+                                                                } finally {
+                                                                    setUpdatingStatusId(null)
+                                                                }
+                                                            }}
+                                                            style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #e6e7eb', background: '#fff', color: '#111827' }}
+                                                        >
+                                                            {allowed.map((k) => (
+                                                                <option key={k} value={k}>{statusLabels[k] || k}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                )
+                                            })()}
+                                        </div>
                                         {editingEvidenceId === e.id ? (
                                             <div>
                                                 <textarea value={editingDescription} onChange={(ev) => setEditingDescription(ev.target.value)} style={{ width: '100%', minHeight: 80, padding: 8, borderRadius: 6, border: '1px solid #e6e7eb', resize: 'vertical' }} />
