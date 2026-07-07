@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Uploader from './uploader/Uploader'
 
 export default function IntakePage() {
   const router = useRouter()
@@ -10,15 +11,6 @@ export default function IntakePage() {
   const [opponent, setOpponent] = useState('')
   const [caseType, setCaseType] = useState('')
   const [files, setFiles] = useState<string[]>([])
-  const [showMockFiles, setShowMockFiles] = useState(false)
-
-  const mockFiles = ['微信聊天记录.pdf', '转账记录.pdf', '借条照片.jpg']
-
-  function handleClickUploadArea() {
-    // Simulate adding files locally for V1
-    setFiles(mockFiles)
-    setShowMockFiles(true)
-  }
 
   function handleStart() {
     // For V1: no backend. Save lightweight draft to sessionStorage and return to matters.
@@ -58,35 +50,15 @@ export default function IntakePage() {
           <div>
             <div style={{ fontWeight: 600, marginBottom: 6 }}>案件资料</div>
 
-            <div
-              role="button"
-              onClick={handleClickUploadArea}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleClickUploadArea() }}
-              tabIndex={0}
-              style={{
-                border: '1px dashed #e6e7eb',
-                borderRadius: 8,
-                padding: 18,
-                cursor: 'pointer',
-                color: '#111827',
-                background: '#ffffff'
-              }}
-            >
-              <div style={{ fontWeight: 600 }}>拖拽案件资料到这里</div>
-              <div style={{ marginTop: 6, color: '#6b7280' }}>或点击添加资料</div>
-              <div style={{ marginTop: 8, color: '#6b7280', fontSize: 13 }}>支持 PDF、Word、图片、录音、视频、压缩包</div>
-            </div>
+            <Uploader onUploaded={(saved) => setFiles(saved.map((s) => s.name))} />
 
-            {showMockFiles && files.length > 0 && (
+            {files.length > 0 && (
               <div style={{ marginTop: 12, border: '1px solid #f1f5f9', borderRadius: 8, background: '#fafafa' }}>
                 <ul style={{ listStyle: 'none', padding: 12, margin: 0 }}>
                   {files.map((f, i) => (
                     <li key={i} style={{ padding: '8px 6px', borderBottom: i < files.length - 1 ? '1px solid #f1f5f9' : 'none', color: '#111827' }}>{f}</li>
                   ))}
                 </ul>
-                <div style={{ padding: 12, borderTop: '1px solid #f1f5f9', textAlign: 'center' }}>
-                  <button onClick={() => { /* keep local mock flow */ setShowMockFiles(true) }} style={{ background: 'transparent', border: 'none', color: '#111827', fontWeight: 600, cursor: 'pointer' }}>继续添加资料</button>
-                </div>
               </div>
             )}
 
