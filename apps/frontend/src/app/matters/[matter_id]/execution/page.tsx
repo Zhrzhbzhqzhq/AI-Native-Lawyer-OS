@@ -29,6 +29,7 @@ export default function ExecutionWorkspacePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [runtime, setRuntime] = useState<any | null>(null)
+  const [executionRows, setExecutionRows] = useState<any[] | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -36,17 +37,34 @@ export default function ExecutionWorkspacePage() {
       setError(null)
       try {
         const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000'
-        const resRuntime = await fetch(`${API}/matters/${params.matter_id}/runtime`).catch(()=>null)
+        const resRuntime = await fetch(`${API}/matters/${params.matter_id}/runtime`).catch(() => null)
         if (resRuntime && resRuntime.ok) {
-          try { setRuntime(await resRuntime.json()) } catch(e){ setRuntime(null) }
+          try { setRuntime(await resRuntime.json()) } catch (e) { setRuntime(null) }
         }
-      } catch (e:any) {
+      } catch (e: any) {
         setError(e?.message || 'Failed')
       } finally {
         setLoading(false)
       }
     }
     load()
+  }, [params.matter_id])
+
+  useEffect(() => {
+    async function loadExecution() {
+      try {
+        const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000'
+        const res = await fetch(`${API}/matters/${params.matter_id}/execution`).catch(() => null)
+        if (res && res.ok) {
+          try { const json = await res.json(); setExecutionRows(Array.isArray(json) ? json : []) } catch (e) { setExecutionRows([]) }
+        } else {
+          setExecutionRows([])
+        }
+      } catch (e) {
+        setExecutionRows([])
+      }
+    }
+    loadExecution()
   }, [params.matter_id])
 
   if (loading) return <main style={{ padding: 24 }}><div>正在加载执行工作区...</div></main>
@@ -60,6 +78,10 @@ export default function ExecutionWorkspacePage() {
     { label: '执行依据', value: '待确认' },
     { label: '完成度', value: '0%' },
   ]
+
+  // Map backend execution rows to UI shape and provide fallback
+  const realExecutionStatus: any[] = Array.isArray(executionRows) ? executionRows.map((r) => ({ label: String(r.action_id || r.queue_id || ''), value: String(r.execution_status || '') })) : []
+  const realExecutionStatusOrFallback = realExecutionStatus.length ? realExecutionStatus : executionStatus
 
   const assetClues = [
     { name: '银行账户', status: '待核查' },
@@ -88,7 +110,7 @@ export default function ExecutionWorkspacePage() {
         <section style={{ background: theme.cardBg, padding: 16, borderRadius: 12, border: `1px solid ${theme.border}` }}>
           <TwoLineTitle zh="执行状态" en="Execution Status" size="md" />
           <div style={{ marginTop: 10, display: 'grid', gap: 10 }}>
-            {executionStatus.map((it) => (
+            {realExecutionStatusOrFallback.map((it) => (
               <div key={it.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 8, borderBottom: `1px solid ${theme.border}` }}>
                 <div style={{ color: theme.muted }}>{it.label}</div>
                 <div style={{ color: theme.text, fontWeight: 600 }}>{it.value}</div>
