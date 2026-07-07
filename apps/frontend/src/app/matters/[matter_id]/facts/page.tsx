@@ -22,6 +22,9 @@ export default function FactsWorkspace() {
 
     const [facts, setFacts] = useState<any[]>([])
     const [loadingFacts, setLoadingFacts] = useState<boolean>(true)
+    const [selectedFactId, setSelectedFactId] = useState<string | null>(null)
+    const [factEvidences, setFactEvidences] = useState<any[]>([])
+    const [loadingFactEvidences, setLoadingFactEvidences] = useState<boolean>(false)
 
     const [showCreate, setShowCreate] = useState<boolean>(false)
     const [newTitle, setNewTitle] = useState<string>('')
@@ -56,6 +59,24 @@ export default function FactsWorkspace() {
             setFacts([])
         } finally {
             setLoadingFacts(false)
+        }
+    }
+
+    async function fetchFactEvidences(factId: string | null) {
+        if (!factId) {
+            setFactEvidences([])
+            return
+        }
+        setLoadingFactEvidences(true)
+        try {
+            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/facts/${encodeURIComponent(factId)}/evidence`)
+            if (!res.ok) throw new Error('加载关联证据失败')
+            const json = await res.json()
+            setFactEvidences(Array.isArray(json) ? json : [])
+        } catch (e) {
+            setFactEvidences([])
+        } finally {
+            setLoadingFactEvidences(false)
         }
     }
 
@@ -167,13 +188,42 @@ export default function FactsWorkspace() {
                                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                                     {facts.map((f: any) => (
                                         <li key={f.fact_id} style={{ padding: 10, borderBottom: '1px solid #f3f6f9' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, cursor: 'pointer' }} onClick={async () => { setSelectedFactId(f.fact_id); await fetchFactEvidences(f.fact_id) }}>
                                                 <div>
                                                     <div style={{ fontWeight: 700 }}>{f.title}</div>
                                                     <div style={{ color: tokens.muted, fontSize: 12 }}>{f.status || 'draft'}</div>
                                                 </div>
                                                 <div style={{ color: tokens.muted, fontSize: 12 }}>{f.created_at ? new Date(f.created_at).toLocaleString() : ''}</div>
                                             </div>
+
+                                            {/* Expanded area when selected */}
+                                            {selectedFactId === f.fact_id ? (
+                                                <div style={{ marginTop: 8, padding: 8, borderRadius: 6, background: '#fafafa' }}>
+                                                    <div style={{ fontWeight: 700, marginBottom: 6 }}>事实说明</div>
+                                                    <div style={{ color: tokens.muted, marginBottom: 8 }}>{f.description || '—'}</div>
+
+                                                    <div style={{ fontWeight: 700, marginBottom: 6 }}>关联证据</div>
+                                                    {loadingFactEvidences ? (
+                                                        <div style={{ color: tokens.muted }}>加载中…</div>
+                                                    ) : factEvidences.length === 0 ? (
+                                                        <div style={{ color: tokens.muted }}>暂无关联证据</div>
+                                                    ) : (
+                                                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                                                            {factEvidences.map((ev: any) => (
+                                                                <li key={ev.evidence_id} style={{ padding: '6px 0' }}>
+                                                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                                                        <div style={{ color: '#10b981', fontWeight: 700 }}>✓</div>
+                                                                        <div>
+                                                                            <div style={{ fontWeight: 700 }}>{ev.title || ev.evidence_id}</div>
+                                                                            <div style={{ color: tokens.muted, fontSize: 12 }}>{ev.status || ''}</div>
+                                                                        </div>
+                                                                    </div>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    )}
+                                                </div>
+                                            ) : null}
                                         </li>
                                     ))}
                                 </ul>

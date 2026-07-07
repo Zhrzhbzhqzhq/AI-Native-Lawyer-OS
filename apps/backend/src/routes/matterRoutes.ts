@@ -1222,6 +1222,24 @@ export async function matterRoutes(app: FastifyInstance) {
     }
   });
 
+  // List evidence attached to a fact
+  app.get('/matters/:matter_id/facts/:fact_id/evidence', async (request, reply) => {
+    const { matter_id, fact_id } = request.params as any;
+    try {
+      // validate fact belongs to matter
+      const fact = await factService.getFact(fact_id);
+      if (!fact) return reply.code(404).send({ error: 'fact_not_found' });
+      if (String(fact.matter_id) !== String(matter_id)) return reply.code(400).send({ error: 'fact_mismatch' });
+
+      const list = await factService.listFactEvidence(fact_id);
+      // map to minimal shape
+      const mapped = Array.isArray(list) ? list.map((r: any) => ({ evidence_id: r.evidence?.evidence_id || r.evidence_id, title: r.evidence?.title || '', status: r.evidence?.status || '' })) : [];
+      return reply.code(200).send(mapped);
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'failed', detail: err?.message || String(err) });
+    }
+  });
+
   app.patch('/matters/:matter_id/facts/:fact_id', async (request, reply) => {
     const { fact_id } = request.params as any;
     const payload = request.body as any || {};
