@@ -251,6 +251,218 @@ export default function EvidencePage() {
     const evidencesCount = Array.isArray((data as any)?.evidences) ? (data as any).evidences.length : fallbackWorkspace.evidences.length
     const highGapCount = Array.isArray((data as any)?.gaps) ? ((data as any).gaps.filter((g: any) => String(g.impact || '').toLowerCase() === '高' || String(g.impact || '').toLowerCase() === 'high').length) : (fallbackWorkspace.gaps.filter((g: any) => g.impact === '高').length)
 
+    // render helpers (keep inside component to access state/handlers)
+    const renderMaterialsSection = () => {
+        return (
+            <div style={{ background: tokens.cardBg, padding: 14, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+                <div style={{ fontWeight: 800, marginBottom: 8 }}>案件资料</div>
+                <div style={{ color: tokens.muted }}>
+                    {loadingMaterials ? (
+                        <div style={{ color: tokens.muted }}>加载中…</div>
+                    ) : materials && materials.length > 0 ? (
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                            {materials.map((m: any, i: number) => {
+                                const filename = m.title || m.name || (m.storage_uri ? m.storage_uri.split('/').pop() : '未知文件')
+                                const filetype = m.material_type || m.type || (m.storage_uri ? (m.storage_uri.split('.').pop() || '-') : '-')
+                                const size = m.size || m.file_size || '-'
+                                const time = m.created_at || m.updated_at || null
+                                return (
+                                    <li key={m.material_id ?? i} style={{ padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div>
+                                                <div style={{ fontWeight: 600 }}>{filename}</div>
+                                                <div style={{ color: '#6b7280', fontSize: 13 }}>{filetype} • {typeof size === 'number' ? `${(size / 1024).toFixed(1)} KB` : size} • {time ? new Date(time).toLocaleString() : '-'}</div>
+                                            </div>
+                                            <div>
+                                                <button
+                                                    onClick={async () => {
+                                                        setConversionError(null)
+                                                        if (!m || !m.material_id) return
+                                                        setConvertingMaterialId(m.material_id)
+                                                        try {
+                                                            const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
+                                                            const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence`
+                                                            const body = {
+                                                                material_id: m.material_id,
+                                                                title: m.title || (m.storage_uri ? m.storage_uri.split('/').pop() : '未命名文件'),
+                                                                evidence_type: 'material',
+                                                            }
+                                                            const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+                                                            if (!res.ok) throw new Error(`status:${res.status}`)
+                                                            // refresh data locally
+                                                            try { await fetchEvidence() } catch (err) { }
+                                                            try { await fetchMaterials() } catch (err) { }
+                                                        } catch (e) {
+                                                            console.error('convert failed', e)
+                                                            setConversionError('转为证据失败，请稍后重试')
+                                                        } finally {
+                                                            setConvertingMaterialId(null)
+                                                        }
+                                                    }}
+                                                    disabled={convertingMaterialId === m.material_id}
+                                                    style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff', color: '#111827', cursor: convertingMaterialId === m.material_id ? 'not-allowed' : 'pointer' }}
+                                                >
+                                                    {convertingMaterialId === m.material_id ? '转换中…' : '转为证据'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </li>
+                                )
+                            })}
+                        </ul>
+                    ) : (
+                        <div style={{ color: tokens.muted }}>暂无案件资料</div>
+                    )}
+                    {conversionError ? <div style={{ color: '#b91c1c', marginTop: 8 }}>{conversionError}</div> : null}
+                    <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                        {materialsConfirmed ? (
+                            <div style={{ color: '#111827', border: '1px solid #f1f5f9', padding: '8px 12px', borderRadius: 8 }}>已确认资料接收完成</div>
+                        ) : (
+                            <button onClick={() => setMaterialsConfirmed(true)} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff', color: '#111827', fontWeight: 700 }}>资料接收完成</button>
+                        )}
+
+                        {materialsConfirmed ? (
+                            <div style={{ width: '100%', maxWidth: 720, background: '#fff', border: '1px solid #e6e7eb', padding: 14, borderRadius: 8 }}>
+                                <div style={{ fontWeight: 800, marginBottom: 6 }}>下一步：证据整理</div>
+                                <div style={{ color: tokens.muted, marginBottom: 10 }}>将已接收资料进入证据整理阶段</div>
+                                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                    <button onClick={() => setShowOrganizeNotice(true)} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff', color: '#111827', fontWeight: 700 }}>开始证据整理</button>
+                                    {showOrganizeNotice ? <div style={{ color: '#6b7280' }}>证据整理功能将在下一步接入</div> : null}
+                                </div>
+                            </div>
+                        ) : null}
+
+                        <div style={{ color: tokens.muted, fontSize: 12 }}>证据对象</div>
+
+                        <div style={{ padding: 8, borderRadius: 8, background: '#fff8ed', flex: 1 }}>
+                            <div style={{ fontWeight: 700, color: '#b45309' }}>{highGapCount}</div>
+                            <div style={{ color: tokens.muted, fontSize: 12 }}>高风险缺口</div>
+                        </div>
+                    </div>
+                    <div style={{ marginTop: 12 }}>
+                        <div style={{ fontWeight: 700 }}>阻塞点</div>
+                        <div style={{ color: tokens.muted, marginTop: 6 }}>{((data as any)?.missing_evidence && (data as any).missing_evidence[0]?.title) || (selectedAiSummary && ((selectedAiSummary as any).risks || [])[0]) || '无'}</div>
+
+                        <div style={{ fontWeight: 700, marginTop: 8 }}>建议下一步</div>
+                        <div style={{ color: tokens.muted, marginTop: 6 }}>{((data as any)?.evidence_next_steps && (data as any).evidence_next_steps[0]?.title) || (selectedAiSummary && ((selectedAiSummary as any).recommendations || [])[0]) || '请律师补强证据'}</div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    const renderEvidenceRecordsSection = () => {
+        return (
+            <div style={{ background: tokens.cardBg, padding: 14, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+                <div style={{ fontWeight: 800 }}>Evidence Tree</div>
+                <div style={{ color: tokens.muted, marginTop: 6 }}>证据对象（非文件）按证明目标组织</div>
+                <div style={{ marginTop: 12 }}>
+                    <div style={{ fontWeight: 700 }}>{(data as any)?.proofGoal ?? fallbackWorkspace.proofGoal}</div>
+                    <div style={{ marginTop: 8 }}>
+                        {(data as any)?.evidences?.map((e: any) => (
+                            <div key={e.id} style={{ padding: 8, borderRadius: 8, marginBottom: 8, background: selectedEvidenceId === e.id ? '#eef6ff' : '#fff' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <div style={{ cursor: 'pointer' }} onClick={() => setSelectedEvidenceId(e.id)}>
+                                        <div style={{ fontWeight: 700, color: selectedEvidenceId === e.id ? tokens.blue : tokens.text }}>{e.title}</div>
+                                        <div style={{ color: tokens.muted, fontSize: 12 }}>{e.date}</div>
+                                    </div>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div style={{ color: tokens.muted, fontSize: 13 }}>{e.type} • 强度 {e.strength}%</div>
+                                    </div>
+                                </div>
+
+                                <div style={{ marginTop: 8 }}>
+                                    {/* status display & selector */}
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                                        {(() => {
+                                            const rec = evidenceRecords && evidenceRecords.find((r: any) => String(r.evidence_id) === String(e.id))
+                                            const currentStatus = rec && typeof rec.status === 'string' ? rec.status : 'active'
+                                            const statusLabels: Record<string, string> = {
+                                                active: '待处理',
+                                                pending: '待核验',
+                                                accepted: '已采用',
+                                                weak: '证据较弱',
+                                                rejected: '暂不采用',
+                                            }
+                                            const allowed = ['active', 'pending', 'accepted', 'weak', 'rejected']
+                                            return (
+                                                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                                    <div style={{ color: tokens.muted, fontSize: 13 }}>状态：</div>
+                                                    <select
+                                                        value={currentStatus}
+                                                        disabled={Boolean(updatingStatusId)}
+                                                        onChange={async (ev) => {
+                                                            const newStatus = ev.target.value
+                                                            setStatusErrorById((s) => ({ ...s, [e.id]: '' }))
+                                                            setUpdatingStatusId(e.id)
+                                                            try {
+                                                                const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
+                                                                const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence/${encodeURIComponent(e.id)}/status`
+                                                                const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) })
+                                                                if (!res.ok) throw new Error(`status:${res.status}`)
+                                                                // refresh evidence list
+                                                                try { await fetchEvidence() } catch (err) { }
+                                                            } catch (err) {
+                                                                console.error('update status failed', err)
+                                                                setStatusErrorById((s) => ({ ...s, [e.id]: '更新证据状态失败，请稍后重试' }))
+                                                            } finally {
+                                                                setUpdatingStatusId(null)
+                                                            }
+                                                        }}
+                                                        style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #e6e7eb', background: '#fff', color: '#111827' }}
+                                                    >
+                                                        {allowed.map((k) => (
+                                                            <option key={k} value={k}>{statusLabels[k] || k}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            )
+                                        })()}
+                                    </div>
+                                    {editingEvidenceId === e.id ? (
+                                        <div>
+                                            <textarea value={editingDescription} onChange={(ev) => setEditingDescription(ev.target.value)} style={{ width: '100%', minHeight: 80, padding: 8, borderRadius: 6, border: '1px solid #e6e7eb', resize: 'vertical' }} />
+                                            <div style={{ marginTop: 8, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                                                <button onClick={() => { setEditingEvidenceId(null); setEditingDescription(''); setSaveDescriptionError(null) }} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', border: '1px solid #e6e7eb' }}>取消</button>
+                                                <button disabled={savingDescription} onClick={async () => {
+                                                    setSaveDescriptionError(null)
+                                                    setSavingDescription(true)
+                                                    try {
+                                                        const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
+                                                        const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence/${encodeURIComponent(e.id)}`
+                                                        const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description: editingDescription }) })
+                                                        if (!res.ok) throw new Error(`status:${res.status}`)
+                                                        // refresh evidence list and exit edit mode
+                                                        try { await fetchEvidence() } catch (err) { }
+                                                        setEditingEvidenceId(null)
+                                                        setEditingDescription('')
+                                                    } catch (err) {
+                                                        console.error('save description failed', err)
+                                                        setSaveDescriptionError('保存备注失败，请稍后重试')
+                                                    } finally {
+                                                        setSavingDescription(false)
+                                                    }
+                                                }} style={{ padding: '6px 10px', borderRadius: 6, background: '#111827', color: '#fff', border: 'none' }}>{savingDescription ? '保存中…' : '保存备注'}</button>
+                                            </div>
+                                            {saveDescriptionError ? <div style={{ color: '#b91c1c', marginTop: 6 }}>{saveDescriptionError}</div> : null}
+                                        </div>
+                                    ) : (
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div style={{ color: tokens.muted }}>{e.notes && String(e.notes).trim().length > 0 ? e.notes : '暂无备注'}</div>
+                                            <div>
+                                                <button onClick={() => { setEditingEvidenceId(e.id); setEditingDescription(e.notes || '') }} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', border: '1px solid #e6e7eb' }}>编辑备注</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <main style={{ minHeight: '80vh', padding: 20, background: tokens.pageBg, fontFamily: 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial' }}>
             <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -266,209 +478,8 @@ export default function EvidencePage() {
 
             {/* 案件资料列表（来自 materials） */}
             <section style={{ marginBottom: 12 }}>
-                <div style={{ background: tokens.cardBg, padding: 14, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
-                    <div style={{ fontWeight: 800, marginBottom: 8 }}>案件资料</div>
-                    <div style={{ color: tokens.muted }}>
-                        {loadingMaterials ? (
-                            <div style={{ color: tokens.muted }}>加载中…</div>
-                        ) : materials && materials.length > 0 ? (
-                            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                                {materials.map((m: any, i: number) => {
-                                    const filename = m.title || m.name || (m.storage_uri ? m.storage_uri.split('/').pop() : '未知文件')
-                                    const filetype = m.material_type || m.type || (m.storage_uri ? (m.storage_uri.split('.').pop() || '-') : '-')
-                                    const size = m.size || m.file_size || '-'
-                                    const time = m.created_at || m.updated_at || null
-                                    return (
-                                        <li key={m.material_id ?? i} style={{ padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <div>
-                                                    <div style={{ fontWeight: 600 }}>{filename}</div>
-                                                    <div style={{ color: '#6b7280', fontSize: 13 }}>{filetype} • {typeof size === 'number' ? `${(size / 1024).toFixed(1)} KB` : size} • {time ? new Date(time).toLocaleString() : '-'}</div>
-                                                </div>
-                                                <div>
-                                                    <button
-                                                        onClick={async () => {
-                                                            setConversionError(null)
-                                                            if (!m || !m.material_id) return
-                                                            setConvertingMaterialId(m.material_id)
-                                                            try {
-                                                                const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-                                                                const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence`
-                                                                const body = {
-                                                                    material_id: m.material_id,
-                                                                    title: m.title || (m.storage_uri ? m.storage_uri.split('/').pop() : '未命名文件'),
-                                                                    evidence_type: 'material',
-                                                                }
-                                                                const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-                                                                if (!res.ok) throw new Error(`status:${res.status}`)
-                                                                // refresh data locally
-                                                                try { await fetchEvidence() } catch (err) { }
-                                                                try { await fetchMaterials() } catch (err) { }
-                                                            } catch (e) {
-                                                                console.error('convert failed', e)
-                                                                setConversionError('转为证据失败，请稍后重试')
-                                                            } finally {
-                                                                setConvertingMaterialId(null)
-                                                            }
-                                                        }}
-                                                        disabled={convertingMaterialId === m.material_id}
-                                                        style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff', color: '#111827', cursor: convertingMaterialId === m.material_id ? 'not-allowed' : 'pointer' }}
-                                                    >
-                                                        {convertingMaterialId === m.material_id ? '转换中…' : '转为证据'}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </li>
-                                    )
-                                })}
-                            </ul>
-                        ) : (
-                            <div style={{ color: tokens.muted }}>暂无案件资料</div>
-                        )}
-                        {conversionError ? <div style={{ color: '#b91c1c', marginTop: 8 }}>{conversionError}</div> : null}
-                        <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-                            {materialsConfirmed ? (
-                                <div style={{ color: '#111827', border: '1px solid #f1f5f9', padding: '8px 12px', borderRadius: 8 }}>已确认资料接收完成</div>
-                            ) : (
-                                <button onClick={() => setMaterialsConfirmed(true)} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff', color: '#111827', fontWeight: 700 }}>资料接收完成</button>
-                            )}
-
-                            {materialsConfirmed ? (
-                                <div style={{ width: '100%', maxWidth: 720, background: '#fff', border: '1px solid #e6e7eb', padding: 14, borderRadius: 8 }}>
-                                    <div style={{ fontWeight: 800, marginBottom: 6 }}>下一步：证据整理</div>
-                                    <div style={{ color: tokens.muted, marginBottom: 10 }}>将已接收资料进入证据整理阶段</div>
-                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                        <button onClick={() => setShowOrganizeNotice(true)} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff', color: '#111827', fontWeight: 700 }}>开始证据整理</button>
-                                        {showOrganizeNotice ? <div style={{ color: '#6b7280' }}>证据整理功能将在下一步接入</div> : null}
-                                    </div>
-                                </div>
-                            ) : null}
-
-                            <div style={{ color: tokens.muted, fontSize: 12 }}>证据对象</div>
-
-                            <div style={{ padding: 8, borderRadius: 8, background: '#fff8ed', flex: 1 }}>
-                                <div style={{ fontWeight: 700, color: '#b45309' }}>{highGapCount}</div>
-                                <div style={{ color: tokens.muted, fontSize: 12 }}>高风险缺口</div>
-                            </div>
-                        </div>
-                        <div style={{ marginTop: 12 }}>
-                            <div style={{ fontWeight: 700 }}>阻塞点</div>
-                            <div style={{ color: tokens.muted, marginTop: 6 }}>{((data as any)?.missing_evidence && (data as any).missing_evidence[0]?.title) || (selectedAiSummary && ((selectedAiSummary as any).risks || [])[0]) || '无'}</div>
-
-                            <div style={{ fontWeight: 700, marginTop: 8 }}>建议下一步</div>
-                            <div style={{ color: tokens.muted, marginTop: 6 }}>{((data as any)?.evidence_next_steps && (data as any).evidence_next_steps[0]?.title) || (selectedAiSummary && ((selectedAiSummary as any).recommendations || [])[0]) || '请律师补强证据'}</div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Evidence Tree */}
-                <div style={{ background: tokens.cardBg, padding: 14, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
-                    <div style={{ fontWeight: 800 }}>Evidence Tree</div>
-                    <div style={{ color: tokens.muted, marginTop: 6 }}>证据对象（非文件）按证明目标组织</div>
-                    <div style={{ marginTop: 12 }}>
-                        <div style={{ fontWeight: 700 }}>{(data as any)?.proofGoal ?? fallbackWorkspace.proofGoal}</div>
-                        <div style={{ marginTop: 8 }}>
-                            {(data as any)?.evidences?.map((e: any) => (
-                                <div key={e.id} style={{ padding: 8, borderRadius: 8, marginBottom: 8, background: selectedEvidenceId === e.id ? '#eef6ff' : '#fff' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                        <div style={{ cursor: 'pointer' }} onClick={() => setSelectedEvidenceId(e.id)}>
-                                            <div style={{ fontWeight: 700, color: selectedEvidenceId === e.id ? tokens.blue : tokens.text }}>{e.title}</div>
-                                            <div style={{ color: tokens.muted, fontSize: 12 }}>{e.date}</div>
-                                        </div>
-                                        <div style={{ textAlign: 'right' }}>
-                                            <div style={{ color: tokens.muted, fontSize: 13 }}>{e.type} • 强度 {e.strength}%</div>
-                                        </div>
-                                    </div>
-
-                                    <div style={{ marginTop: 8 }}>
-                                        {/* status display & selector */}
-                                        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                                            {(() => {
-                                                const rec = evidenceRecords && evidenceRecords.find((r: any) => String(r.evidence_id) === String(e.id))
-                                                const currentStatus = rec && typeof rec.status === 'string' ? rec.status : 'active'
-                                                const statusLabels: Record<string, string> = {
-                                                    active: '待处理',
-                                                    pending: '待核验',
-                                                    accepted: '已采用',
-                                                    weak: '证据较弱',
-                                                    rejected: '暂不采用',
-                                                }
-                                                const allowed = ['active', 'pending', 'accepted', 'weak', 'rejected']
-                                                return (
-                                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                                        <div style={{ color: tokens.muted, fontSize: 13 }}>状态：</div>
-                                                        <select
-                                                            value={currentStatus}
-                                                            disabled={Boolean(updatingStatusId)}
-                                                            onChange={async (ev) => {
-                                                                const newStatus = ev.target.value
-                                                                setStatusErrorById((s) => ({ ...s, [e.id]: '' }))
-                                                                setUpdatingStatusId(e.id)
-                                                                try {
-                                                                    const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-                                                                    const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence/${encodeURIComponent(e.id)}/status`
-                                                                    const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) })
-                                                                    if (!res.ok) throw new Error(`status:${res.status}`)
-                                                                    // refresh evidence list
-                                                                    try { await fetchEvidence() } catch (err) { }
-                                                                } catch (err) {
-                                                                    console.error('update status failed', err)
-                                                                    setStatusErrorById((s) => ({ ...s, [e.id]: '更新证据状态失败，请稍后重试' }))
-                                                                } finally {
-                                                                    setUpdatingStatusId(null)
-                                                                }
-                                                            }}
-                                                            style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #e6e7eb', background: '#fff', color: '#111827' }}
-                                                        >
-                                                            {allowed.map((k) => (
-                                                                <option key={k} value={k}>{statusLabels[k] || k}</option>
-                                                            ))}
-                                                        </select>
-                                                    </div>
-                                                )
-                                            })()}
-                                        </div>
-                                        {editingEvidenceId === e.id ? (
-                                            <div>
-                                                <textarea value={editingDescription} onChange={(ev) => setEditingDescription(ev.target.value)} style={{ width: '100%', minHeight: 80, padding: 8, borderRadius: 6, border: '1px solid #e6e7eb', resize: 'vertical' }} />
-                                                <div style={{ marginTop: 8, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                                                    <button onClick={() => { setEditingEvidenceId(null); setEditingDescription(''); setSaveDescriptionError(null) }} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', border: '1px solid #e6e7eb' }}>取消</button>
-                                                    <button disabled={savingDescription} onClick={async () => {
-                                                        setSaveDescriptionError(null)
-                                                        setSavingDescription(true)
-                                                        try {
-                                                            const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-                                                            const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence/${encodeURIComponent(e.id)}`
-                                                            const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description: editingDescription }) })
-                                                            if (!res.ok) throw new Error(`status:${res.status}`)
-                                                            // refresh evidence list and exit edit mode
-                                                            try { await fetchEvidence() } catch (err) { }
-                                                            setEditingEvidenceId(null)
-                                                            setEditingDescription('')
-                                                        } catch (err) {
-                                                            console.error('save description failed', err)
-                                                            setSaveDescriptionError('保存备注失败，请稍后重试')
-                                                        } finally {
-                                                            setSavingDescription(false)
-                                                        }
-                                                    }} style={{ padding: '6px 10px', borderRadius: 6, background: '#111827', color: '#fff', border: 'none' }}>{savingDescription ? '保存中…' : '保存备注'}</button>
-                                                </div>
-                                                {saveDescriptionError ? <div style={{ color: '#b91c1c', marginTop: 6 }}>{saveDescriptionError}</div> : null}
-                                            </div>
-                                        ) : (
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <div style={{ color: tokens.muted }}>{e.notes && String(e.notes).trim().length > 0 ? e.notes : '暂无备注'}</div>
-                                                <div>
-                                                    <button onClick={() => { setEditingEvidenceId(e.id); setEditingDescription(e.notes || '') }} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', border: '1px solid #e6e7eb' }}>编辑备注</button>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
+                {renderMaterialsSection()}
+                {renderEvidenceRecordsSection()}
 
                 {/* Proof Map */}
                 <div style={{ background: tokens.cardBg, padding: 14, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
