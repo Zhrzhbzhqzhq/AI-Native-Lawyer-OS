@@ -237,6 +237,30 @@ export default function ResearchWorkspacePage() {
   }, { cases: 0, laws: 0, interpretations: 0, rules: 0, opposing: 0, risks: 0 })
 
   const realAnalysisSummaryOrFallback = Object.keys(realAnalysisSummary).length ? realAnalysisSummary : analysisSummary
+
+  const realLegalOpinion = (researches || []).find((r: any) => {
+    const cat = String(r?.category || r?.research_category || '').toLowerCase()
+    return cat.includes('opinion') || /法律意见|法律意见书|legal opinion/.test(String(r?.title || r?.summary || ''))
+  })
+
+  // Prioritize fields: lawyer_conclusion, ai_analysis, ai_summary, version
+  const realLegalOpinionOrFallback = (() => {
+    if (!realLegalOpinion) return legalOpinion
+    const cands = [
+      realLegalOpinion.lawyer_conclusion,
+      realLegalOpinion.ai_analysis,
+      realLegalOpinion.ai_summary,
+      realLegalOpinion.version,
+      realLegalOpinion.content,
+      realLegalOpinion.summary,
+      realLegalOpinion.result,
+      realLegalOpinion.text,
+    ]
+    for (const v of cands) {
+      if (v !== undefined && v !== null && String(v).trim() !== '') return String(v)
+    }
+    return legalOpinion
+  })()
   useEffect(() => {
     const el = logContainerRef.current
     if (el) el.scrollTop = el.scrollHeight
@@ -726,10 +750,10 @@ export default function ResearchWorkspacePage() {
           {(phase === 'phase2' || phase === 'done') && (
             <div ref={legalOpinionRef} style={{ background: lawdesk.cardBg, padding: 12, borderRadius: lawdesk.radius, border: `1px solid ${lawdesk.border}` }}>
               <div style={{ fontWeight: 800, color: lawdesk.text }}>Legal Opinion</div>
-              {legalOpinion ? (
+              {realLegalOpinionOrFallback ? (
                 <div style={{ marginTop: 8 }}>
                   <div style={{ fontWeight: 700, marginBottom: 6 }}>法律意见</div>
-                  <div style={{ color: lawdesk.muted }}>{legalOpinion}</div>
+                  <div style={{ color: lawdesk.muted }}>{realLegalOpinionOrFallback}</div>
                 </div>
               ) : (
                 <div style={{ marginTop: 8, color: lawdesk.muted }}>等待 AI 分析。分析完成后这里将自动生成：• 法律意见 • 风险分析 • 起诉建议</div>
