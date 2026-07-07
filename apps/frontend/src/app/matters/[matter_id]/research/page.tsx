@@ -261,6 +261,34 @@ export default function ResearchWorkspacePage() {
     }
     return legalOpinion
   })()
+
+  const realNextActions: NextAction[] = (researches || []).flatMap((r: any) => {
+    const src = r?.next_actions || r?.ai_next_actions || r?.ai_tasks || r?.actions || r?.tasks
+    const out: NextAction[] = []
+    if (!src) {
+      // also consider top-level status as a simple action
+      if (r && (r.status || r.title || r.summary)) {
+        out.push({ id: String(r?.id || r?.research_id || Math.random()), title: String(r?.title || r?.summary || r?.status || ''), successRate: Number(r?.confidence || 0), eta: String(r?.eta || '') })
+      }
+      return out
+    }
+    const list = Array.isArray(src) ? src : [src]
+    for (const a of list) {
+      try {
+        out.push({
+          id: String(a?.id || a?.action_id || a?.task_id || a?.name || Math.random()),
+          title: String(a?.title || a?.name || a?.task || a?.action || a?.summary || a?.description || ''),
+          successRate: Number(a?.successRate || a?.success_rate || a?.success || a?.confidence || 0) || 0,
+          eta: a?.eta ? String(a.eta) : (a?.estimated_minutes ? `${a.estimated_minutes} 分钟` : String(a?.duration || '')),
+        })
+      } catch (e) {
+        // ignore
+      }
+    }
+    return out
+  })
+
+  const realNextActionsOrFallback: NextAction[] = realNextActions.length > 0 ? realNextActions : nextActions
   useEffect(() => {
     const el = logContainerRef.current
     if (el) el.scrollTop = el.scrollHeight
@@ -814,9 +842,9 @@ export default function ResearchWorkspacePage() {
             <div style={{ background: lawdesk.cardBg, padding: 12, borderRadius: lawdesk.radius, border: `1px solid ${lawdesk.border}` }}>
               <div style={{ fontWeight: 800, color: lawdesk.text }}>AI Next Actions</div>
               <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {nextActions.length === 0 ? (
+                {realNextActionsOrFallback.length === 0 ? (
                   <div style={{ color: lawdesk.muted }}>AI 将根据分析结果，自动推荐下一步工作。</div>
-                ) : nextActions.slice(0, 3).map((n) => (
+                ) : realNextActionsOrFallback.slice(0, 3).map((n) => (
                   <div key={n.id} style={{ border: `1px solid ${lawdesk.border}`, padding: 10, borderRadius: 8, background: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <div style={{ fontWeight: 700 }}>{n.title}</div>
