@@ -212,7 +212,7 @@ function formatWaitingForDisplay(value: any): string {
   return '无'
 }
 
-function TimelineNode({ idx, title, state }: { idx: number; title: string; state: 'done'|'current'|'future' }) {
+function TimelineNode({ idx, title, state }: { idx: number; title: string; state: 'done' | 'current' | 'future' }) {
   const color = state === 'done' ? tokens.blue : state === 'current' ? '#0ea5a4' : '#cbd5e1'
   return (
     <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
@@ -266,131 +266,65 @@ export default function MatterWorkspacePage() {
     </div>
   )
 
+  // Simplified, monochrome Matter Home focused on "What should I do now"
+  const clientName = '张三'
+  const status = '进行中'
+
   return (
-    <main style={{ padding: 28, background: tokens.pageBg, color: tokens.text }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-        <div style={{ display: 'flex', gap: 18, alignItems: 'center' }}>
+    <main style={{ padding: 32, background: '#ffffff', color: '#0f172a', minHeight: '80vh' }}>
+      {/* Top: 案件概况 */}
+      <section style={{ marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={{ fontSize: 20, fontWeight: 900 }}>{mock.title}</div>
-            <div style={{ marginTop: 6, color: tokens.muted }}>★★★★★</div>
+            <div style={{ fontSize: 20, fontWeight: 800 }}>{mock.title}</div>
+            <div style={{ marginTop: 6, color: '#6b7280' }}>委托人：{clientName}</div>
           </div>
-          <div style={{ color: tokens.muted }}>当前阶段：<span style={{ fontWeight: 800 }}>{mock.currentStage}</span></div>
-          <div style={{ color: tokens.muted }}>AI 已工作 {mock.aiWorkedMinutes} min</div>
-          <div style={{ color: tokens.muted }}>AI Confidence {mock.aiConfidence}%</div>
-        </div>
-
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => alert('继续推进（模拟）')} style={{ background: tokens.blue, color: '#fff', border: 'none', padding: '8px 14px', borderRadius: 8, fontWeight: 700 }}>继续推进</button>
-          <button onClick={() => alert('更多（模拟）')} style={{ background: '#fff', color: tokens.text, border: `1px solid ${tokens.border}`, padding: '8px 12px', borderRadius: 8 }}>更多</button>
-        </div>
-      </div>
-
-      {/* AI Area: two columns */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-        <div style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 16 }}>
-          <div style={{ fontWeight: 900 }}>AI Chief</div>
-          <div style={{ marginTop: 10 }}>
-            <div style={{ fontWeight: 700 }}>当前判断</div>
-            <div style={{ marginTop: 6, color: tokens.muted }}>本案具备初步起诉条件，但缺少完整银行流水。</div>
-          </div>
-          <div style={{ marginTop: 10 }}>
-            <div style={{ fontWeight: 700 }}>阻塞点</div>
-            <div style={{ marginTop: 6, color: tokens.muted }}>缺少银行流水</div>
-          </div>
-          <div style={{ marginTop: 10 }}>
-            <div style={{ fontWeight: 700 }}>下一步</div>
-            <div style={{ marginTop: 6, color: tokens.muted }}>律师补强证据后开始法律检索</div>
-          </div>
-          <div style={{ marginTop: 10 }}>
-            <div style={{ fontWeight: 700 }}>等待律师</div>
-            <ul style={{ marginTop: 6, color: tokens.muted }}>
-              <li>上传银行流水</li>
-              <li>确认诉请</li>
-            </ul>
+          <div style={{ textAlign: 'right', color: '#6b7280' }}>
+            <div>当前阶段：<span style={{ fontWeight: 700, color: '#111827' }}>{mock.currentStage}</span></div>
+            <div style={{ marginTop: 6 }}>案件状态：<span style={{ fontWeight: 700 }}>{status}</span></div>
           </div>
         </div>
+      </section>
 
-        <div style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 16 }}>
-          <div style={{ fontWeight: 900 }}>AI Timeline</div>
-          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {mock.aiTimeline.map((it) => (
-              <div key={it.t} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                <div style={{ width: 56, color: tokens.muted }}>{it.t}</div>
-                <div style={{ height: 8, width: 8, borderRadius: '50%', background: tokens.blue }} />
-                <div style={{ fontWeight: 700 }}>{it.text}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 20 }}>
+        {/* 主区域：AI 今天建议（固定 mock 文案） */}
+        <div>
+          <div style={{ background: '#fff', border: '1px solid #e6e7eb', padding: 20, borderRadius: 12, minHeight: 220 }}>
+            <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 12 }}>AI 今天建议</div>
+            <div style={{ color: '#374151', lineHeight: 1.8 }}>
+              <div style={{ fontWeight: 700, marginBottom: 8 }}>今天建议完成：</div>
+              <ol style={{ marginLeft: 18 }}>
+                <li>上传银行流水</li>
+                <li>上传微信聊天记录</li>
+                <li>整理借款时间线</li>
+              </ol>
 
-      {/* Workspace cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
-        {mock.workspaces.map((w) => (
-          <div key={w.key} style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 16, height: 120, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <div style={{ fontWeight: 800 }}>{w.title}</div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ color: tokens.muted }}>{w.status}</div>
-              <div style={{ width: 120 }}><ProgressBar value={w.progress} /></div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button onClick={() => alert(`进入 ${w.title}（模拟）`)} style={{ border: `1px solid ${tokens.blue}`, background: '#fff', color: tokens.blue, padding: '6px 12px', borderRadius: 8 }}>进入</button>
+              <div style={{ marginTop: 12, fontWeight: 700 }}>预计耗时：</div>
+              <div style={{ marginTop: 6 }}>25 分钟</div>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 12 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* AI Discovery */}
-          <div style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 16 }}>
-            <div style={{ fontWeight: 900 }}>AI 最近发现</div>
-            <ul style={{ marginTop: 8 }}>
-              {mock.discoveries.map((d) => (
-                <li key={d}>✓ {d}</li>
-              ))}
+        {/* 侧栏：当前资料 + 下一步 */}
+        <aside style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ background: '#fff', border: '1px solid #e6e7eb', padding: 16, borderRadius: 12 }}>
+            <div style={{ fontWeight: 800, marginBottom: 10 }}>当前资料</div>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#374151' }}>
+              <li style={{ marginBottom: 8 }}>✓ 客户信息</li>
+              <li style={{ marginBottom: 8 }}>✓ 委托合同</li>
+              <li style={{ marginBottom: 8 }}>□ 银行流水</li>
+              <li style={{ marginBottom: 8 }}>□ 微信聊天</li>
+              <li style={{ marginBottom: 8 }}>□ 借条</li>
+              <li style={{ marginBottom: 8 }}>□ 录音</li>
             </ul>
           </div>
 
-          {/* Lawyer Todo */}
-          <div style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 16 }}>
-            <div style={{ fontWeight: 900 }}>律师今日待办</div>
-            <ol style={{ marginTop: 8 }}>
-              {mock.lawyerTodo.map((t) => (
-                <li key={t}>{t}</li>
-              ))}
-            </ol>
-          </div>
-        </div>
-
-        <aside style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* AI Confidence */}
-          <div style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 16 }}>
-            <div style={{ fontWeight: 900 }}>AI Confidence</div>
-            <div style={{ marginTop: 12, display: 'grid', gap: 8 }}>
-              {mock.confidences.map((c) => (
-                <div key={c.k}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <div style={{ color: tokens.muted }}>{c.k}</div>
-                    <div style={{ fontWeight: 800 }}>{c.v}%</div>
-                  </div>
-                  <div style={{ marginTop: 6 }}><ProgressBar value={c.v} /></div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Roadmap */}
-          <div style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 16 }}>
-            <div style={{ fontWeight: 900 }}>案件推进路线</div>
-            <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {mock.roadmap.map((s, idx) => (
-                <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: s === mock.currentStage ? tokens.blue : '#cbd5e1' }} />
-                  <div style={{ fontWeight: s === mock.currentStage ? 800 : 500, color: s === mock.currentStage ? tokens.blue : tokens.text }}>{s}</div>
-                </div>
-              ))}
+          <div style={{ background: '#fff', border: '1px solid #e6e7eb', padding: 16, borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ fontWeight: 800 }}>下一步</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button onClick={() => router.push(`/matters/${params.matter_id}/documents`)} style={{ background: tokens.blue, color: '#fff', border: 'none', padding: '10px 14px', borderRadius: 8, fontWeight: 700 }}>上传资料</button>
+              <button onClick={() => router.push(`/matters/${params.matter_id}/research`)} style={{ background: '#fff', color: '#111827', border: `1px solid #d1d5db`, padding: '10px 14px', borderRadius: 8 }}>法律检索</button>
+              <button onClick={() => router.push(`/matters/${params.matter_id}/documents`)} style={{ background: '#fff', color: '#111827', border: `1px solid #d1d5db`, padding: '10px 14px', borderRadius: 8 }}>生成文书</button>
             </div>
           </div>
         </aside>
