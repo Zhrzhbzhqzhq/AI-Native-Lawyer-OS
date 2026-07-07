@@ -1,97 +1,75 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useRouter } from 'next/navigation'
-
-type Draft = {
-  caseName?: string
-  client?: string
-  opponent?: string
-  caseType?: string
-  files?: string[]
-}
 
 export default function ReportPage() {
   const router = useRouter()
-  const [draft, setDraft] = useState<Draft | null>(null)
 
-  useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem('new_matter_draft')
-      if (raw) setDraft(JSON.parse(raw))
-      else setDraft(null)
-    } catch (e) {
-      setDraft(null)
-    }
-  }, [])
-
-  const summary = draft ? (
-    <div>
-      <div style={{ fontWeight: 700 }}>{draft.caseName || '未命名案件'}</div>
-      <div style={{ color: '#64748b', marginTop: 6 }}>{draft.caseType || '未知类型'}</div>
-      <div style={{ marginTop: 8 }}>委托人：{draft.client || '未填写'}</div>
-      <div>对方当事人：{draft.opponent || '未填写'}</div>
-    </div>
-  ) : (
-    <div>无摘要数据。</div>
-  )
-
-  const timeline = draft ? (
-    <ol>
-      <li>立案准备 — {new Date().toLocaleDateString()}</li>
-      <li>证据收集 — 预计 3 天</li>
-      <li>起草文书 — 预计 5 天</li>
-    </ol>
-  ) : (
-    <div>无时间线。</div>
-  )
-
-  const evidence = draft && draft.files && draft.files.length ? (
-    <ul>
-      {draft.files.map((f, i) => <li key={i}>{f}</li>)}
-    </ul>
-  ) : (
-    <div>无上传文件记录。</div>
-  )
-
-  const todos = (
-    <ul>
-      <li>收集银行流水</li>
-      <li>确认诉讼请求与证据清单</li>
-      <li>安排证人证言采集</li>
-    </ul>
-  )
+  // Mock content per M120.4 requirements
+  const caseTitle = '张三诉李四 民间借贷纠纷'
+  const clientName = '张三'
 
   return (
-    <main style={{ padding: 24 }}>
-      <div style={{ maxWidth: 900, margin: '0 auto' }}>
-        <h2 style={{ marginTop: 0 }}>案件已整理完成</h2>
-        <div style={{ color: '#64748b', marginBottom: 12 }}>以下为本次整理的汇总（模拟）。</div>
+    <main style={{ padding: 28, background: '#ffffff', color: '#111827', minHeight: '80vh' }}>
+      <div style={{ maxWidth: 980, margin: '0 auto' }}>
+        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>案件已准备就绪</h1>
+        <div style={{ marginTop: 8, color: '#6b7280' }}>AI 已完成案件初始化，你现在可以开始办案。</div>
 
-        <div style={{ display: 'grid', gap: 16 }}>
-          <section style={{ background: '#fff', border: '1px solid #e6eef6', padding: 14, borderRadius: 8 }}>
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>1. 案件摘要</div>
-            {summary}
-          </section>
+        {/* 第一块：AI 已完成 */}
+        <section style={{ marginTop: 24, background: '#fff', border: '1px solid #e6e7eb', padding: 20, borderRadius: 10 }}>
+          <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 10 }}>AI 已完成</div>
+          <ul style={{ margin: 0, paddingLeft: 18, color: '#111827', lineHeight: 1.8 }}>
+            <li>✓ 建立案件</li>
+            <li>✓ 整理案件资料</li>
+            <li>✓ 建立案件摘要</li>
+            <li>✓ 建立时间线</li>
+            <li>✓ 建立证据目录</li>
+            <li>✓ 建立待办事项</li>
+          </ul>
+        </section>
 
-          <section style={{ background: '#fff', border: '1px solid #e6eef6', padding: 14, borderRadius: 8 }}>
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>2. 时间线</div>
-            {timeline}
-          </section>
-
-          <section style={{ background: '#fff', border: '1px solid #e6eef6', padding: 14, borderRadius: 8 }}>
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>3. 证据目录</div>
-            {evidence}
-          </section>
-
-          <section style={{ background: '#fff', border: '1px solid #e6eef6', padding: 14, borderRadius: 8 }}>
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>4. 待办事项</div>
-            {todos}
-          </section>
-
-          <div style={{ marginTop: 8 }}>
-            <button onClick={() => router.push('/matters')} style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: '#2563eb', color: '#fff' }}>进入案件列表</button>
+        {/* 第二块：AI 建议下一步 */}
+        <section style={{ marginTop: 20, background: '#fff', border: '1px solid #e6e7eb', padding: 20, borderRadius: 10 }}>
+          <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 10 }}>AI 建议下一步</div>
+          <div style={{ color: '#111827', lineHeight: 1.8 }}>
+            <div style={{ fontWeight: 700 }}>今天建议：</div>
+            <ol style={{ marginTop: 8, paddingLeft: 18 }}>
+              <li>上传银行流水</li>
+              <li>上传微信聊天记录</li>
+              <li>补充借条</li>
+            </ol>
+            <div style={{ marginTop: 12, fontWeight: 700 }}>预计耗时：</div>
+            <div style={{ marginTop: 6 }}>20 分钟</div>
           </div>
+        </section>
+
+        {/* 第三块：案件摘要 */}
+        <section style={{ marginTop: 20, background: '#fff', border: '1px solid #e6e7eb', padding: 20, borderRadius: 10 }}>
+          <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 10 }}>案件摘要</div>
+          <div style={{ color: '#374151', lineHeight: 1.8 }}>
+            <p>张三称其于 2024 年向李四出借人民币 100,000 元，双方通过微信达成借款意向，支付记录显示张三曾向李四转账。客户提供了部分聊天记录与转账截图。</p>
+            <p>经初步整理，证据链显示借款事实成立，但缺少明确的借条与完整银行流水以证明全部转账细节。建议优先补全银行流水并固定被告身份信息。</p>
+            <p>基于现有材料，建议立案准备并同步整理证据目录，随后开展法律检索以确定诉讼请求及管辖法院，最后生成起诉材料。</p>
+          </div>
+        </section>
+
+        {/* 第四块：当前资料 Checklist */}
+        <section style={{ marginTop: 20, background: '#fff', border: '1px solid #e6e7eb', padding: 20, borderRadius: 10 }}>
+          <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 10 }}>当前资料</div>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#111827', lineHeight: 1.8 }}>
+            <li>✓ 客户信息</li>
+            <li>✓ 委托合同</li>
+            <li>□ 银行流水</li>
+            <li>□ 微信聊天记录</li>
+            <li>□ 借条</li>
+            <li>□ 录音</li>
+          </ul>
+        </section>
+
+        {/* 底部按钮 */}
+        <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center' }}>
+          <button onClick={() => router.push('/matters')} style={{ background: '#111827', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: 8, fontWeight: 700 }}>开始办案</button>
         </div>
       </div>
     </main>
