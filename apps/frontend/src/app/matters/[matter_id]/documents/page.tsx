@@ -67,6 +67,21 @@ export default function DocumentWorkspacePage() {
   const realDocumentSummary: any = documentsWorkspace?.summary ?? null
   const realDocumentSummaryOrFallback = realDocumentSummary ? realDocumentSummary : { total: 0, completed: 0, draft: 0, need_review: 0, missing: 0 }
 
+  // realSelectedDocument: map selected_document from workspace
+  const realSelectedDocument: any = documentsWorkspace?.selected_document ?? null
+  const realSelectedDocumentOrFallback = realSelectedDocument ? realSelectedDocument : {
+    document_id: 'mock-d1',
+    title: '民事起诉状（示例）',
+    document_type: 'complaint',
+    status: 'draft',
+    version: 'v1',
+    updated_at: null,
+    ai_summary: { status: 'rule_based', score: 50, completeness: 'low', strengths: [], risks: [], recommendations: [] },
+    lawyer_notes: { status: 'read_only', message: 'Lawyer notes coming soon' },
+    related_materials: [],
+    related_evidence: [],
+  }
+
   const categories: Record<string, string[]> = {
     '起诉阶段': ['民事起诉状', '证据目录', '保全申请书'],
     '答辩阶段': ['答辩状', '举证意见'],
@@ -290,6 +305,34 @@ export default function DocumentWorkspacePage() {
                                 setDraftContent((d) => d.replace(/^【AI Draft V1[^】]*】\s*(（本为模拟草稿）\s*)?/, '').replace(/^\s+/, ''))
                                 setCurrentStep(4)
                               }} style={{ padding: '8px 12px', borderRadius: 6, background: '#f1f5f9', border: 'none' }}>确认进入最终编辑</button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Selected Document Card: display selected document metadata and AI/Lawyer notes (read-only) */}
+                        {step.id === 2 && (
+                          <div>
+                            <div style={{ fontWeight: 700 }}>第二步｜AI起草初稿（选中文书预览）</div>
+                            <div style={{ marginTop: 8, color: lawdesk.muted }}>
+                              <div style={{ fontWeight: 700 }}>{realSelectedDocumentOrFallback.title}</div>
+                              <div style={{ marginTop: 6 }}>{realSelectedDocumentOrFallback.document_type} · {realSelectedDocumentOrFallback.status} · {realSelectedDocumentOrFallback.version}</div>
+                              <div style={{ marginTop: 8, color: lawdesk.muted }}>最后更新时间：{realSelectedDocumentOrFallback.updated_at || '—'}</div>
+
+                              <div style={{ marginTop: 10 }}>
+                                <div style={{ fontWeight: 700 }}>AI 分析</div>
+                                <div style={{ marginTop: 6, color: lawdesk.muted }}>{realSelectedDocumentOrFallback.ai_summary ? (`得分：${realSelectedDocumentOrFallback.ai_summary.score} 完成度：${realSelectedDocumentOrFallback.ai_summary.completeness}`) : '无'}</div>
+                              </div>
+
+                              <div style={{ marginTop: 10 }}>
+                                <div style={{ fontWeight: 700 }}>律师备注</div>
+                                <div style={{ marginTop: 6, color: lawdesk.muted }}>{realSelectedDocumentOrFallback.lawyer_notes ? realSelectedDocumentOrFallback.lawyer_notes.message : '无'}</div>
+                              </div>
+
+                              <div style={{ marginTop: 10 }}>
+                                <div style={{ fontWeight: 700 }}>相关材料 / 证据</div>
+                                <div style={{ marginTop: 6, color: lawdesk.muted }}>{(Array.isArray(realSelectedDocumentOrFallback.related_materials) && realSelectedDocumentOrFallback.related_materials.length) ? realSelectedDocumentOrFallback.related_materials.map((m: any) => m.title || m.material_id).join(', ') : '无'}</div>
+                                <div style={{ marginTop: 6, color: lawdesk.muted }}>{(Array.isArray(realSelectedDocumentOrFallback.related_evidence) && realSelectedDocumentOrFallback.related_evidence.length) ? realSelectedDocumentOrFallback.related_evidence.map((e: any) => e.title || e.evidence_id).join(', ') : ''}</div>
+                              </div>
                             </div>
                           </div>
                         )}
