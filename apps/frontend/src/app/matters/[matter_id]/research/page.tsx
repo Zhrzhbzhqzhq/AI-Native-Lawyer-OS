@@ -212,6 +212,31 @@ export default function ResearchWorkspacePage() {
     risks: number
     loading?: boolean
   } | null>(null)
+
+  const realAnalysisSummary = (researches || []).reduce((acc: any, r: any) => {
+    try {
+      const cat = String(r?.category || r?.research_category || '').toLowerCase()
+      if (cat.includes('analysis') || cat.includes('summary') || /分析|汇总/.test(String(r?.title || ''))) {
+        const cases = Number(r?.cases || r?.cases_count || r?.case_count || 0)
+        const laws = Number(r?.laws || r?.laws_count || r?.law_count || 0)
+        const interpretations = Number(r?.interpretations || r?.interpretations_count || 0)
+        const rules = Number(r?.rules || r?.rules_count || 0)
+        const opposing = Number(r?.opposing || r?.opposing_count || 0)
+        const risks = Number(r?.risks || r?.risks_count || 0)
+        return {
+          cases: acc.cases + (isNaN(cases) ? 0 : cases),
+          laws: acc.laws + (isNaN(laws) ? 0 : laws),
+          interpretations: acc.interpretations + (isNaN(interpretations) ? 0 : interpretations),
+          rules: acc.rules + (isNaN(rules) ? 0 : rules),
+          opposing: acc.opposing + (isNaN(opposing) ? 0 : opposing),
+          risks: acc.risks + (isNaN(risks) ? 0 : risks),
+        }
+      }
+    } catch (e) { }
+    return acc
+  }, { cases: 0, laws: 0, interpretations: 0, rules: 0, opposing: 0, risks: 0 })
+
+  const realAnalysisSummaryOrFallback = Object.keys(realAnalysisSummary).length ? realAnalysisSummary : analysisSummary
   useEffect(() => {
     const el = logContainerRef.current
     if (el) el.scrollTop = el.scrollHeight
@@ -679,18 +704,18 @@ export default function ResearchWorkspacePage() {
             <div ref={analysisSummaryRef} style={{ background: lawdesk.cardBg, padding: 12, borderRadius: lawdesk.radius, border: `1px solid ${lawdesk.border}` }}>
               <div style={{ fontWeight: 800, color: lawdesk.text }}>AI 分析结果</div>
               <div style={{ marginTop: 8 }}>
-                {analysisSummary == null ? (
+                {realAnalysisSummaryOrFallback == null ? (
                   <div style={{ color: lawdesk.muted }}>AI 将在分析完成后汇总：• 案例数量 • 法条数量 • 裁判规则 • 风险提示</div>
-                ) : analysisSummary.loading ? (
+                ) : realAnalysisSummaryOrFallback.loading ? (
                   <div style={{ color: lawdesk.muted }}>分析中……</div>
                 ) : (
                   <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-                    <div style={{ padding: 10, background: '#fff', border: `1px solid ${lawdesk.border}`, borderRadius: 8 }}>案例：<div style={{ fontWeight: 800, marginTop: 6 }}>{analysisSummary.cases}</div></div>
-                    <div style={{ padding: 10, background: '#fff', border: `1px solid ${lawdesk.border}`, borderRadius: 8 }}>法条：<div style={{ fontWeight: 800, marginTop: 6 }}>{analysisSummary.laws}</div></div>
-                    <div style={{ padding: 10, background: '#fff', border: `1px solid ${lawdesk.border}`, borderRadius: 8 }}>司法解释：<div style={{ fontWeight: 800, marginTop: 6 }}>{analysisSummary.interpretations}</div></div>
-                    <div style={{ padding: 10, background: '#fff', border: `1px solid ${lawdesk.border}`, borderRadius: 8 }}>裁判规则：<div style={{ fontWeight: 800, marginTop: 6 }}>{analysisSummary.rules}</div></div>
-                    <div style={{ padding: 10, background: '#fff', border: `1px solid ${lawdesk.border}`, borderRadius: 8 }}>相反观点：<div style={{ fontWeight: 800, marginTop: 6 }}>{analysisSummary.opposing}</div></div>
-                    <div style={{ padding: 10, background: '#fff', border: `1px solid ${lawdesk.border}`, borderRadius: 8 }}>风险提示：<div style={{ fontWeight: 800, marginTop: 6 }}>{analysisSummary.risks}</div></div>
+                    <div style={{ padding: 10, background: '#fff', border: `1px solid ${lawdesk.border}`, borderRadius: 8 }}>案例：<div style={{ fontWeight: 800, marginTop: 6 }}>{realAnalysisSummaryOrFallback.cases}</div></div>
+                    <div style={{ padding: 10, background: '#fff', border: `1px solid ${lawdesk.border}`, borderRadius: 8 }}>法条：<div style={{ fontWeight: 800, marginTop: 6 }}>{realAnalysisSummaryOrFallback.laws}</div></div>
+                    <div style={{ padding: 10, background: '#fff', border: `1px solid ${lawdesk.border}`, borderRadius: 8 }}>司法解释：<div style={{ fontWeight: 800, marginTop: 6 }}>{realAnalysisSummaryOrFallback.interpretations}</div></div>
+                    <div style={{ padding: 10, background: '#fff', border: `1px solid ${lawdesk.border}`, borderRadius: 8 }}>裁判规则：<div style={{ fontWeight: 800, marginTop: 6 }}>{realAnalysisSummaryOrFallback.rules}</div></div>
+                    <div style={{ padding: 10, background: '#fff', border: `1px solid ${lawdesk.border}`, borderRadius: 8 }}>相反观点：<div style={{ fontWeight: 800, marginTop: 6 }}>{realAnalysisSummaryOrFallback.opposing}</div></div>
+                    <div style={{ padding: 10, background: '#fff', border: `1px solid ${lawdesk.border}`, borderRadius: 8 }}>风险提示：<div style={{ fontWeight: 800, marginTop: 6 }}>{realAnalysisSummaryOrFallback.risks}</div></div>
                   </div>
                 )}
               </div>
