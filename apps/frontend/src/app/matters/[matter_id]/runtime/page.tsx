@@ -257,12 +257,43 @@ export default function RuntimeDashboardPage() {
 
   const realNextActionsOrFallback = realNextActions.length ? realNextActions : nextActions
 
+
+
   const waitingForLawyer = (() => {
     const fromToday = (Array.isArray(today) ? today : [])
       .filter((item: any) => waitingStatuses.includes(String(item?.status || item?.execution_status || item?.state || '').toUpperCase()))
       .map((item: any) => normalizeTitle(item))
     return Array.from(new Set([...fromToday, ...waitingHintsByDecision(decision?.code)])).slice(0, 4)
   })()
+
+  // derive waiting-for-lawyer items from runtime (decision, next_step, assignments, actions)
+  let realWaitingForLawyer: string[] = []
+  try {
+    if (runtime) {
+      const rdCode = runtime.runtime_decision?.code || runtime.runtimeDecision?.code || ''
+      const hints = waitingHintsByDecision(rdCode)
+
+      const actionsArr = Array.isArray(runtime.runtime_actions) ? runtime.runtime_actions : []
+      const waitingFromActions = actionsArr
+        .filter((a: any) => waitingStatuses.includes(String(a?.status || a?.execution_status || a?.state || '').toUpperCase()) || String(a?.status || '').toLowerCase().includes('waiting_lawyer'))
+        .map((a: any) => normalizeTitle(a))
+
+      const assignments = Array.isArray(runtime.runtime_assignments) ? runtime.runtime_assignments : []
+      const waitingFromAssignments = assignments
+        .filter((as: any) => {
+          const txt = String(as?.task || as?.note || as?.title || as?.instruction || as?.role || '').toLowerCase()
+          return txt.includes('lawyer') || txt.includes('confirm') || txt.includes('approve') || txt.includes('authorize') || txt.includes('signature') || txt.includes('确认') || txt.includes('上传') || txt.includes('选择')
+        })
+        .map((as: any) => String(as?.title || as?.task || as?.instruction || as?.name || normalizeTitle(as)))
+
+      // include waiting hints from decision mapping
+      realWaitingForLawyer = Array.from(new Set([...(waitingFromActions || []), ...(waitingFromAssignments || []), ...(hints || [])])).filter(Boolean).slice(0, 6)
+    }
+  } catch (e) {
+    realWaitingForLawyer = []
+  }
+
+  const realWaitingForLawyerOrFallback = realWaitingForLawyer.length ? realWaitingForLawyer : waitingForLawyer
 
   const recentActivity = (() => {
     const fromActions = (Array.isArray(actions) ? actions : []).map((item: any) => ({
@@ -331,7 +362,7 @@ export default function RuntimeDashboardPage() {
 
         <section style={{ background: tokens.cardBg, padding: tokens.spacing, borderRadius: tokens.radius, border: `1px solid ${tokens.border}`, boxShadow: tokens.shadow }}>
           <SectionTitle zh="等待律师" en="Waiting for Lawyer" />
-          {waitingForLawyer.length > 0 ? waitingForLawyer.map((item: string, index: number) => (
+          {realWaitingForLawyerOrFallback.length > 0 ? realWaitingForLawyerOrFallback.map((item: string, index: number) => (
             <div key={`${item}-${index}`} style={{ marginBottom: 8, color: tokens.text }}>• {item}</div>
           )) : <div style={{ color: tokens.muted }}>当前无需律师补充动作。</div>}
         </section>
