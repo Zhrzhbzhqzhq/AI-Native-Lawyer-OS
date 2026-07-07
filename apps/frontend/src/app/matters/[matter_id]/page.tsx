@@ -228,103 +228,93 @@ export default function MatterWorkspacePage() {
   const params = useParams() as { matter_id: string }
   const router = useRouter()
 
-  // Mock workspace data for M92
-  const mock = {
-    title: '张三诉李四民间借贷纠纷',
-    priorityStars: 5,
-    currentStage: '证据整理',
-    aiWorkedMinutes: 42,
-    aiConfidence: 82,
-    aiTimeline: [
-      { t: '09:10', text: 'OCR' },
-      { t: '09:12', text: '分类' },
-      { t: '09:15', text: 'Proof Map' },
-      { t: '09:18', text: '缺口分析' },
-      { t: '09:22', text: '等待律师' },
-    ],
-    workspaces: [
-      { key: 'evidence', title: 'Evidence Workspace', status: '等待补证', progress: 42 },
-      { key: 'research', title: 'Research Workspace', status: '未开始', progress: 10 },
-      { key: 'document', title: 'Document Workspace', status: '未开始', progress: 5 },
-      { key: 'execution', title: 'Execution Workspace', status: '未开始', progress: 0 },
-    ],
-    discoveries: ['借条真实', '微信聊天完整', '缺少银行流水', '建议申请保全'],
-    lawyerTodo: ['上传银行流水', '确认诉请', '联系客户', '是否申请保全'],
-    confidences: [
-      { k: '总体', v: 82 },
-      { k: '证据完整度', v: 64 },
-      { k: '法律依据', v: 58 },
-      { k: '文书准备', v: 30 },
-      { k: '起诉可行性', v: 70 },
-    ],
-    roadmap: ['咨询', '接案', '证据整理', '法律检索', '文书生成', '起诉', '庭审', '执行', '结案'],
+  // Minimal monochrome four-card layout — M122 final
+  const caseName = '张三诉李四民间借贷纠纷'
+  const client = '张三'
+  const stage = '证据整理'
+  const status = '进行中'
+
+  const cardStyle: React.CSSProperties = {
+    background: '#fff',
+    border: '1px solid #e6e7eb',
+    padding: 20,
+    borderRadius: 12,
   }
 
-  const ProgressBar = ({ value }: { value: number }) => (
-    <div style={{ background: '#e6eef6', borderRadius: 8, height: 10, width: '100%' }}>
-      <div style={{ width: `${Math.max(0, Math.min(100, value))}%`, height: '100%', background: tokens.blue, borderRadius: 8 }} />
-    </div>
-  )
+  const primaryBtn: React.CSSProperties = {
+    background: '#111827',
+    color: '#ffffff',
+    border: 'none',
+    padding: '10px 14px',
+    borderRadius: 8,
+    fontWeight: 700,
+    cursor: 'pointer',
+  }
 
-  // Simplified, monochrome Matter Home focused on "What should I do now"
-  const clientName = '张三'
-  const status = '进行中'
+  const secondaryBtn: React.CSSProperties = {
+    background: '#fff',
+    color: '#111827',
+    border: '1px solid #e6e7eb',
+    padding: '10px 14px',
+    borderRadius: 8,
+    fontWeight: 700,
+    cursor: 'pointer',
+  }
 
   return (
     <main style={{ padding: 32, background: '#ffffff', color: '#0f172a', minHeight: '80vh' }}>
-      {/* Top: 案件概况 */}
+      {/* Card 1: 案件概况 */}
       <section style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ fontSize: 20, fontWeight: 800 }}>{mock.title}</div>
-            <div style={{ marginTop: 6, color: '#6b7280' }}>委托人：{clientName}</div>
-          </div>
-          <div style={{ textAlign: 'right', color: '#6b7280' }}>
-            <div>当前阶段：<span style={{ fontWeight: 700, color: '#111827' }}>{mock.currentStage}</span></div>
-            <div style={{ marginTop: 6 }}>案件状态：<span style={{ fontWeight: 700 }}>{status}</span></div>
+        <div style={{ ...cardStyle }}>
+          <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 8 }}>案件概况</div>
+          <div style={{ color: '#374151', lineHeight: 1.8 }}>
+            <div>案件名称：{caseName}</div>
+            <div>委托人：{client}</div>
+            <div>案件阶段：{stage}</div>
+            <div>案件状态：{status}</div>
           </div>
         </div>
       </section>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 20 }}>
-        {/* 主区域：AI 今天建议（固定 mock 文案） */}
+        {/* Card 2: 下一步建议 (视觉中心) */}
         <div>
-          <div style={{ background: '#fff', border: '1px solid #e6e7eb', padding: 20, borderRadius: 12, minHeight: 220 }}>
-            <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 12 }}>AI 今天建议</div>
+          <div style={{ ...cardStyle, minHeight: 300, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 12 }}>下一步建议</div>
             <div style={{ color: '#374151', lineHeight: 1.8 }}>
-              <div style={{ fontWeight: 700, marginBottom: 8 }}>今天建议完成：</div>
+              <div style={{ fontWeight: 700, marginBottom: 8 }}>建议今天完成：</div>
               <ol style={{ marginLeft: 18 }}>
-                <li>上传银行流水</li>
-                <li>上传微信聊天记录</li>
-                <li>整理借款时间线</li>
+                <li>① 上传银行流水</li>
+                <li>② 上传微信聊天记录</li>
+                <li>③ 补充借条</li>
               </ol>
 
               <div style={{ marginTop: 12, fontWeight: 700 }}>预计耗时：</div>
-              <div style={{ marginTop: 6 }}>25 分钟</div>
+              <div style={{ marginTop: 6 }}>20 分钟</div>
             </div>
           </div>
         </div>
 
-        {/* 侧栏：当前资料 + 下一步 */}
+        {/* Right column: Card 3 (当前资料) and Card 4 (开始今天工作) */}
         <aside style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ background: '#fff', border: '1px solid #e6e7eb', padding: 16, borderRadius: 12 }}>
+          <div style={{ ...cardStyle }}>
             <div style={{ fontWeight: 800, marginBottom: 10 }}>当前资料</div>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#374151' }}>
-              <li style={{ marginBottom: 8 }}>✓ 客户信息</li>
+              <li style={{ marginBottom: 8 }}>✓ 客户资料</li>
               <li style={{ marginBottom: 8 }}>✓ 委托合同</li>
               <li style={{ marginBottom: 8 }}>□ 银行流水</li>
-              <li style={{ marginBottom: 8 }}>□ 微信聊天</li>
+              <li style={{ marginBottom: 8 }}>□ 微信聊天记录</li>
               <li style={{ marginBottom: 8 }}>□ 借条</li>
               <li style={{ marginBottom: 8 }}>□ 录音</li>
             </ul>
           </div>
 
-          <div style={{ background: '#fff', border: '1px solid #e6e7eb', padding: 16, borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ fontWeight: 800 }}>下一步</div>
+          <div style={{ ...cardStyle }}>
+            <div style={{ fontWeight: 800, marginBottom: 12 }}>开始今天工作</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <button onClick={() => router.push(`/matters/${params.matter_id}/documents`)} style={{ background: tokens.blue, color: '#fff', border: 'none', padding: '10px 14px', borderRadius: 8, fontWeight: 700 }}>上传资料</button>
-              <button onClick={() => router.push(`/matters/${params.matter_id}/research`)} style={{ background: '#fff', color: '#111827', border: `1px solid #d1d5db`, padding: '10px 14px', borderRadius: 8 }}>法律检索</button>
-              <button onClick={() => router.push(`/matters/${params.matter_id}/documents`)} style={{ background: '#fff', color: '#111827', border: `1px solid #d1d5db`, padding: '10px 14px', borderRadius: 8 }}>生成文书</button>
+              <button onClick={() => router.push(`/matters/${params.matter_id}/documents`)} style={primaryBtn}>上传资料</button>
+              <button onClick={() => router.push(`/matters/${params.matter_id}/research`)} style={secondaryBtn}>法律检索</button>
+              <button onClick={() => router.push(`/matters/${params.matter_id}/documents`)} style={secondaryBtn}>生成文书</button>
             </div>
           </div>
         </aside>
