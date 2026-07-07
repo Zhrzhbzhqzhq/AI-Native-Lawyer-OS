@@ -33,6 +33,13 @@ export class EvidenceRepository {
     };
     return this.prisma.evidence.create({ data: payload as any });
   }
+
+  async updateDescriptionByEvidenceId(evidence_id: string, description: string) {
+    return this.prisma.evidence.update({
+      where: { evidence_id },
+      data: { description },
+    });
+  }
 }
 
 export default EvidenceRepository;

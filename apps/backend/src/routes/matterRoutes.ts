@@ -1154,6 +1154,20 @@ export async function matterRoutes(app: FastifyInstance) {
     }
   })
 
+  // Update evidence description (lawyer notes)
+  app.patch('/matters/:matter_id/evidence/:evidence_id', async (request, reply) => {
+    const { matter_id, evidence_id } = request.params as any
+    const payload = request.body as any
+    if (!payload || typeof payload.description !== 'string') return reply.code(400).send({ error: 'description required' })
+    try {
+      const updated = await evidenceService.updateDescription(matter_id, evidence_id, String(payload.description))
+      return reply.code(200).send(updated)
+    } catch (err: any) {
+      if (String(err.message) === 'evidence_not_found') return reply.code(404).send({ error: 'evidence_not_found' })
+      return reply.code(500).send({ error: 'update_failed', detail: err?.message || String(err) })
+    }
+  })
+
   app.post('/matters/:id/timeline', async (request, reply) => {
     const { id } = request.params as any;
     const payload = request.body as any;

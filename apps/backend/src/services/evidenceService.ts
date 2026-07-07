@@ -16,6 +16,15 @@ export class EvidenceService {
     const payload = { ...data, matter_id } as any;
     return this.repo.create(payload as any);
   }
+
+  async updateDescription(matter_id: string, evidence_id: string, description: string) {
+    // verify existence and matter_id match by fetching the evidence first
+    const existingList = await this.repo.findByMatterId(matter_id)
+    const exists = Array.isArray(existingList) && existingList.some((e: any) => String(e.evidence_id) === String(evidence_id))
+    if (!exists) throw new Error('evidence_not_found')
+
+    return this.repo.updateDescriptionByEvidenceId(evidence_id, description)
+  }
 }
 
 export default EvidenceService;
