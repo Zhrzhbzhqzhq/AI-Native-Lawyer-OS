@@ -162,6 +162,33 @@ export default function RuntimeDashboardPage() {
     return [head, ...runningFromToday, ...fromPlan].filter(Boolean).slice(0, 3)
   })()
 
+  // derive current activity from runtime_decision, runtime_next_step, runtime_plan
+  let realCurrentActivity: string[] = []
+  try {
+    if (runtime) {
+      const rd = runtime.runtime_decision || runtime.runtimeDecision || null
+      const rn = runtime.runtime_next_step || runtime.runtimeNextStep || null
+      const rp = runtime.runtime_plan || runtime.runtimePlan || null
+
+      const head = rd ? mapDecision(rd.code || rd?.action || rd?.code) : ''
+
+      let nextStepText = ''
+      if (rn) {
+        if (typeof rn === 'string') nextStepText = rn
+        else if (typeof rn === 'object') nextStepText = rn.description || rn.title || JSON.stringify(rn)
+      }
+
+      const planSteps: string[] = Array.isArray(rp?.steps) ? rp.steps.slice(0, 2).map((s: any) => String(s)) : []
+
+      // build activity list: decision label, runtime next step, then plan steps
+      realCurrentActivity = [head, nextStepText, ...planSteps].filter(Boolean).slice(0, 3)
+    }
+  } catch (e) {
+    realCurrentActivity = []
+  }
+
+  const realCurrentActivityOrFallback = realCurrentActivity.length ? realCurrentActivity : currentActivity
+
   const todaysProgress = (() => {
     const doneFromToday = (Array.isArray(today) ? today : [])
       .filter((item: any) => doneStatuses.includes(String(item?.status || item?.execution_status || item?.state || '').toUpperCase()))
@@ -246,7 +273,7 @@ export default function RuntimeDashboardPage() {
       <div style={{ marginTop: 16, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
         <section style={{ background: tokens.cardBg, padding: tokens.spacing, borderRadius: tokens.radius, border: `1px solid ${tokens.border}`, boxShadow: tokens.shadow }}>
           <SectionTitle zh="AI 当前工作" en="Current Activity" />
-          {currentActivity.length > 0 ? currentActivity.map((item: string, index: number) => (
+          {realCurrentActivityOrFallback.length > 0 ? realCurrentActivityOrFallback.map((item: string, index: number) => (
             <div key={`${item}-${index}`} style={{ marginBottom: 8, color: tokens.text }}>• {item}</div>
           )) : <div style={{ color: tokens.muted }}>暂无进行中的工作。</div>}
           <div style={{ marginTop: 10 }}>
