@@ -338,23 +338,7 @@ export default function ExecutionWorkspacePage() {
           <div style={{ color: theme.text, marginTop: 12, lineHeight: 1.65 }}>
             {realExecutionAdviceOrFallback}
           </div>
-          <div style={{ marginTop: 14 }}>
-            <a
-              href={`/matters/${params.matter_id}/runtime`}
-              style={{
-                display: 'inline-block',
-                padding: '8px 12px',
-                borderRadius: 8,
-                textDecoration: 'none',
-                color: '#ffffff',
-                background: theme.blue,
-                border: `1px solid ${theme.blue}`,
-                fontWeight: 600,
-              }}
-            >
-              查看执行上下文
-            </a>
-          </div>
+          {/* Runtime entry hidden in V1 showcase; link removed to avoid automatic runtime requests */}
         </section>
 
         <section style={{ background: theme.cardBg, padding: 16, borderRadius: 12, border: `1px solid ${theme.border}` }}>

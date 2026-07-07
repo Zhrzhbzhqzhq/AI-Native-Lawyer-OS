@@ -33,7 +33,7 @@ export default function MatterLayout({ children, params }: { children: React.Rea
     { key: 'research', zh: '法律检索', en: 'Legal Research', href: `${base}/research` },
     { key: 'documents', zh: '文书工作区', en: 'Document Workspace', href: `${base}/documents` },
     { key: 'execution', zh: '执行工作区', en: 'Execution Workspace', href: `${base}/execution` },
-    { key: 'runtime', zh: 'AI 工作中心', en: 'AI Runtime', href: `${base}/runtime` },
+    // Note: Runtime entry hidden in V1 showcase to avoid exposing AI runtime page
   ]
 
   return (
