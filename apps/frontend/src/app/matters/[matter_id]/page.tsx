@@ -318,6 +318,9 @@ export default function MatterWorkspacePage() {
             ) : (
               <div style={{ color: '#6b7280' }}>暂无案件资料</div>
             )}
+            <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center' }}>
+              <button onClick={() => router.push(`/matters/${params.matter_id}/evidence`)} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff', color: '#111827', fontWeight: 700 }}>查看资料</button>
+            </div>
           </div>
         </div>
       </section>
