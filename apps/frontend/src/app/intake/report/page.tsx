@@ -103,8 +103,68 @@ export default function ReportPage() {
         </section>
 
         {/* 底部按钮 */}
-        <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center' }}>
+        <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center', gap: 12 }}>
           <button onClick={() => router.push('/matters')} style={{ background: '#111827', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: 8, fontWeight: 700 }}>开始办案</button>
+          <button
+            onClick={async () => {
+              try {
+                const raw = sessionStorage.getItem('lawdesk_intake_uploaded_files')
+                const uploaded = raw ? JSON.parse(raw) : []
+                const API = (process.env.NEXT_PUBLIC_API_BASE_URL as string) || 'http://localhost:4000'
+                const newMatterId = `m-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+                const title = caseTitle || '新案件'
+
+                // create matter
+                const res = await fetch(`${API}/matters`, {
+                  method: 'POST',
+                  headers: { 'content-type': 'application/json' },
+                  body: JSON.stringify({ matter_id: newMatterId, title }),
+                })
+                if (!res.ok) {
+                  // try to parse existing response
+                  const err = await res.json().catch(() => ({}))
+                  console.error('create matter failed', err)
+                }
+                // create materials
+                for (const f of (Array.isArray(uploaded) ? uploaded : [])) {
+                  try {
+                    const material_id = `mat-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+                    const payload = {
+                      material_id,
+                      title: f.name || 'unnamed',
+                      material_type: 'uploaded',
+                      source: 'client',
+                      storage_uri: f.storage_uri || '',
+                      status: 'active',
+                    }
+                    await fetch(`${API}/matters/${encodeURIComponent(newMatterId)}/materials`, {
+                      method: 'POST',
+                      headers: { 'content-type': 'application/json' },
+                      body: JSON.stringify(payload),
+                    })
+                  } catch (e) {
+                    console.error('create material failed', e)
+                  }
+                }
+
+                // clear intake session data
+                try {
+                  sessionStorage.removeItem('lawdesk_intake_uploaded_files')
+                  sessionStorage.removeItem('new_matter_draft')
+                  sessionStorage.removeItem('intake_analysis')
+                } catch (e) { }
+
+                router.push(`/matters/${encodeURIComponent(newMatterId)}`)
+              } catch (e) {
+                console.error(e)
+                // fallback: navigate to matters
+                router.push('/matters')
+              }
+            }}
+            style={{ background: '#fff', color: '#111827', border: '1px solid #e6eef6', padding: '12px 20px', borderRadius: 8, fontWeight: 700 }}
+          >
+            确认接案
+          </button>
         </div>
       </div>
     </main>
