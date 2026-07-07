@@ -221,6 +221,85 @@ export default function ExecutionWorkspacePage() {
 
   const realAssetCluesOrFallback = realAssetClues.length ? realAssetClues : assetClues
 
+  // derive execution materials from runtime (runtime_works, runtime_actions, snapshot_facts, documents, evidence)
+  let realExecutionMaterials: string[] = []
+  try {
+    if (runtime) {
+      const works = Array.isArray(runtime.runtime_works) ? runtime.runtime_works : (Array.isArray(runtime.runtime_actions) ? runtime.runtime_actions : [])
+
+      // Inspect works/actions for material-related hints
+      works.forEach((w: any) => {
+        const t = String(w.type || w.name || w.action_type || '').toLowerCase()
+        const title = w.title || w.name || w.document_name || w.type || w.action_id || ''
+        if (t.includes('judg') || String(title).toLowerCase().includes('判决') || String(title).toLowerCase().includes('裁判')) {
+          realExecutionMaterials.push('判决书')
+        }
+        if (t.includes('application') || String(title).toLowerCase().includes('申请')) {
+          realExecutionMaterials.push('执行申请书')
+        }
+        if (t.includes('investig') || t.includes('invest') || String(title).toLowerCase().includes('调查')) {
+          realExecutionMaterials.push('财产调查材料')
+        }
+        if (t.includes('bank') || t.includes('flow') || String(title).toLowerCase().includes('流水')) {
+          realExecutionMaterials.push('银行流水')
+        }
+        if (t.includes('clue') || String(title).toLowerCase().includes('线索')) {
+          realExecutionMaterials.push('财产线索')
+        }
+        if (t.includes('id') || String(title).toLowerCase().includes('身份') || String(title).toLowerCase().includes('身份证')) {
+          realExecutionMaterials.push('身份信息')
+        }
+        if (t.includes('check') || String(title).toLowerCase().includes('查控') || String(title).toLowerCase().includes('查封')) {
+          realExecutionMaterials.push('查控申请')
+        }
+      })
+
+      // snapshot_facts may include documents/evidence counts or named items
+      const sf = runtime.snapshot_facts || {}
+      if (sf.documents && Array.isArray(sf.documents)) {
+        sf.documents.forEach((d: any) => {
+          const name = String(d.title || d.name || d.type || '')
+          if (name.toLowerCase().includes('判决') || name.toLowerCase().includes('裁判')) realExecutionMaterials.push('判决书')
+          if (name.toLowerCase().includes('申请')) realExecutionMaterials.push('执行申请书')
+        })
+      }
+      if (sf.evidence && Array.isArray(sf.evidence)) {
+        sf.evidence.forEach((e: any) => {
+          const name = String(e.type || e.title || e.name || '')
+          if (name.toLowerCase().includes('流水') || name.toLowerCase().includes('银行')) realExecutionMaterials.push('银行流水')
+          if (name.toLowerCase().includes('线索') || name.toLowerCase().includes('线索')) realExecutionMaterials.push('财产线索')
+        })
+      }
+
+      // runtime.documents / runtime.evidence at top-level
+      if (Array.isArray(runtime.documents)) {
+        runtime.documents.forEach((d: any) => {
+          const title = String(d.title || d.name || '')
+          if (title.toLowerCase().includes('判决') || title.toLowerCase().includes('裁判')) realExecutionMaterials.push('判决书')
+        })
+      }
+      if (Array.isArray(runtime.evidence)) {
+        runtime.evidence.forEach((e: any) => {
+          const t = String(e.type || e.title || e.name || '')
+          if (t.toLowerCase().includes('流水') || t.toLowerCase().includes('银行')) realExecutionMaterials.push('银行流水')
+        })
+      }
+
+      // generic hints: if any bank/account clues exist in snapshot_facts
+      if ((sf.accounts && sf.accounts.length) || (sf.payment_flows && sf.payment_flows.length)) realExecutionMaterials.push('银行流水')
+      if ((sf.real_estate && sf.real_estate.length) || (sf.properties && sf.properties.length)) realExecutionMaterials.push('财产线索')
+
+      // always include basic expected materials if nothing specific found
+      // dedupe and keep ordering
+      const dedup = Array.from(new Set(realExecutionMaterials))
+      realExecutionMaterials = dedup
+    }
+  } catch (e) {
+    realExecutionMaterials = []
+  }
+
+  const realExecutionMaterialsOrFallback = realExecutionMaterials.length ? realExecutionMaterials : executionMaterials
+
   return (
     <main style={{ padding: 24, background: theme.pageBg }}>
       <div style={{ padding: 20, borderRadius: 16, background: theme.cardBg, border: `1px solid ${theme.border}`, boxShadow: '0 8px 24px rgba(2,6,23,0.04)' }}>
@@ -281,7 +360,7 @@ export default function ExecutionWorkspacePage() {
         <section style={{ background: theme.cardBg, padding: 16, borderRadius: 12, border: `1px solid ${theme.border}` }}>
           <TwoLineTitle zh="执行材料" en="Execution Materials" size="md" />
           <div style={{ marginTop: 10, display: 'grid', gap: 10 }}>
-            {executionMaterials.map((it) => (
+            {realExecutionMaterialsOrFallback.map((it) => (
               <div key={it} style={{ paddingBottom: 8, borderBottom: `1px solid ${theme.border}`, color: theme.text, fontWeight: 600 }}>
                 {it}
               </div>
