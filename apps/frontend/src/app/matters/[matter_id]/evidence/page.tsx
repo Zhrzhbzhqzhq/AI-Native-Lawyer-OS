@@ -72,6 +72,7 @@ export default function EvidencePage() {
     const [materials, setMaterials] = useState<any[]>([])
     const [loadingMaterials, setLoadingMaterials] = useState<boolean>(true)
     const [materialsConfirmed, setMaterialsConfirmed] = useState<boolean>(false)
+    const [showOrganizeNotice, setShowOrganizeNotice] = useState<boolean>(false)
 
     // derive selected evidence from current data
     const selectedEvidence = (data?.evidences || []).find((e) => e.id === selectedEvidenceId) || (data?.evidences && data.evidences[0]) || fallbackWorkspace.evidences[0]
@@ -248,12 +249,23 @@ export default function EvidencePage() {
                         ) : (
                             <div style={{ color: tokens.muted }}>暂无案件资料</div>
                         )}
-                        <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center' }}>
+                        <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
                             {materialsConfirmed ? (
                                 <div style={{ color: '#111827', border: '1px solid #f1f5f9', padding: '8px 12px', borderRadius: 8 }}>已确认资料接收完成</div>
                             ) : (
                                 <button onClick={() => setMaterialsConfirmed(true)} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff', color: '#111827', fontWeight: 700 }}>资料接收完成</button>
                             )}
+
+                            {materialsConfirmed ? (
+                                <div style={{ width: '100%', maxWidth: 720, background: '#fff', border: '1px solid #e6e7eb', padding: 14, borderRadius: 8 }}>
+                                    <div style={{ fontWeight: 800, marginBottom: 6 }}>下一步：证据整理</div>
+                                    <div style={{ color: tokens.muted, marginBottom: 10 }}>将已接收资料进入证据整理阶段</div>
+                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                        <button onClick={() => setShowOrganizeNotice(true)} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff', color: '#111827', fontWeight: 700 }}>开始证据整理</button>
+                                        {showOrganizeNotice ? <div style={{ color: '#6b7280' }}>证据整理功能将在下一步接入</div> : null}
+                                    </div>
+                                </div>
+                            ) : null}
                         </div>
                     </div>
                 </div>
