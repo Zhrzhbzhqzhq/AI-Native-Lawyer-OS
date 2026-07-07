@@ -351,7 +351,7 @@ export default function EvidencePage() {
                     <div style={{ marginTop: 12 }}>
                         <div style={{ fontSize: 22, fontWeight: 800 }}>{selectedAiSummary && typeof selectedAiSummary.score === 'number' ? selectedAiSummary.score : globalScore}%</div>
                         <div style={{ marginTop: 8 }}><ProgressBar value={selectedAiSummary && typeof selectedAiSummary.score === 'number' ? selectedAiSummary.score : globalScore} /></div>
-                        <div style={{ marginTop: 10, color: tokens.muted }}>说明：分数基于证据完整度、可靠性与可验证性（示例计算）。</div>
+                        <div style={{ marginTop: 10, color: tokens.muted }}>说明：分数基于证据完整度、可靠性与可验证性。</div>
                     </div>
                 </div>
             </section>

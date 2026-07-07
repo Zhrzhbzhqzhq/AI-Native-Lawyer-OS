@@ -71,7 +71,7 @@ export default function DocumentWorkspacePage() {
   const realSelectedDocument: any = documentsWorkspace?.selected_document ?? null
   const realSelectedDocumentOrFallback = realSelectedDocument ? realSelectedDocument : {
     document_id: 'mock-d1',
-    title: '民事起诉状（示例）',
+    title: '民事起诉状',
     document_type: 'complaint',
     status: 'draft',
     version: 'v1',
@@ -85,8 +85,8 @@ export default function DocumentWorkspacePage() {
   // realMissingDocuments: map workspace missing_documents
   const realMissingDocuments: any[] = Array.isArray(documentsWorkspace?.missing_documents) ? (documentsWorkspace!.missing_documents as any[]) : []
   const realMissingDocumentsOrFallback = realMissingDocuments.length ? realMissingDocuments : [
-    { title: '银行流水（示例）', reason: '缺少完整银行流水，无法核验交易时间线', priority: 'high' },
-    { title: '借据原件（示例）', reason: '缺少借据原件，证据链不完整', priority: 'medium' },
+    { title: '银行流水', reason: '缺少完整银行流水，无法核验交易时间线', priority: 'high' },
+    { title: '借据原件', reason: '缺少借据原件，证据链不完整', priority: 'medium' },
   ]
 
   const categories: Record<string, string[]> = {
@@ -308,7 +308,7 @@ export default function DocumentWorkspacePage() {
                               <div style={{ fontWeight: 700 }}>律师授权本次使用资料</div>
                               <div style={{ marginTop: 6, color: lawdesk.muted }}>请选择允许 AI 使用的案件材料。</div>
                               <ul style={{ marginTop: 6, color: lawdesk.muted }}>
-                                <li>微信聊天记录（示例）</li>
+                                <li>微信聊天记录</li>
                                 <li>部分银行转账截图</li>
                                 <li>客户陈述笔录（草稿）</li>
                               </ul>
