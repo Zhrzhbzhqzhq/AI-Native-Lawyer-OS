@@ -179,6 +179,28 @@ export default function EvidencePage() {
         }
     }
 
+    // fetch materials (GET /matters/:matter_id/materials)
+    async function fetchMaterials() {
+        setLoadingMaterials(true)
+        try {
+            const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
+            const url = `${base}/matters/${encodeURIComponent(matterId)}/materials`
+            const res = await fetch(url)
+            if (!res.ok) {
+                setMaterials([])
+                setLoadingMaterials(false)
+                return
+            }
+            const data = await res.json().catch(() => [])
+            setMaterials(Array.isArray(data) ? data : [])
+        } catch (e) {
+            console.error('load materials failed', e)
+            setMaterials([])
+        } finally {
+            setLoadingMaterials(false)
+        }
+    }
+
     useEffect(() => {
         if (!matterId) return
         fetchEvidence()
@@ -187,27 +209,7 @@ export default function EvidencePage() {
     // load materials for this matter (real uploaded files)
     useEffect(() => {
         let cancelled = false
-        async function loadMaterials() {
-            setLoadingMaterials(true)
-            try {
-                const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-                const url = `${base}/matters/${encodeURIComponent(matterId)}/materials`
-                const res = await fetch(url)
-                if (!res.ok) {
-                    setMaterials([])
-                    setLoadingMaterials(false)
-                    return
-                }
-                const data = await res.json().catch(() => [])
-                if (!cancelled) setMaterials(Array.isArray(data) ? data : [])
-            } catch (e) {
-                console.error('load materials failed', e)
-                if (!cancelled) setMaterials([])
-            } finally {
-                if (!cancelled) setLoadingMaterials(false)
-            }
-        }
-        if (matterId) loadMaterials()
+        if (matterId) fetchMaterials()
         return () => { cancelled = true }
     }, [matterId])
 
@@ -299,8 +301,9 @@ export default function EvidencePage() {
                                                                 }
                                                                 const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
                                                                 if (!res.ok) throw new Error(`status:${res.status}`)
-                                                                // refresh page data simply by reloading
-                                                                window.location.reload()
+                                                                // refresh data locally
+                                                                try { await fetchEvidence() } catch (err) { }
+                                                                try { await fetchMaterials() } catch (err) { }
                                                             } catch (e) {
                                                                 console.error('convert failed', e)
                                                                 setConversionError('转为证据失败，请稍后重试')
@@ -408,8 +411,6 @@ export default function EvidencePage() {
                                                                     if (!res.ok) throw new Error(`status:${res.status}`)
                                                                     // refresh evidence list
                                                                     try { await fetchEvidence() } catch (err) { }
-                                                                    // reload workspace to reflect status in tree mapping
-                                                                    window.location.reload()
                                                                 } catch (err) {
                                                                     console.error('update status failed', err)
                                                                     setStatusErrorById((s) => ({ ...s, [e.id]: '更新证据状态失败，请稍后重试' }))
@@ -440,10 +441,10 @@ export default function EvidencePage() {
                                                             const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence/${encodeURIComponent(e.id)}`
                                                             const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description: editingDescription }) })
                                                             if (!res.ok) throw new Error(`status:${res.status}`)
-                                                            // refresh evidence list
+                                                            // refresh evidence list and exit edit mode
                                                             try { await fetchEvidence() } catch (err) { }
-                                                            // simplest: reload workspace to reflect updated description in tree
-                                                            window.location.reload()
+                                                            setEditingEvidenceId(null)
+                                                            setEditingDescription('')
                                                         } catch (err) {
                                                             console.error('save description failed', err)
                                                             setSaveDescriptionError('保存备注失败，请稍后重试')
