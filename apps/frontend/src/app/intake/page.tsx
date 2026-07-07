@@ -1,17 +1,37 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Uploader from './uploader/Uploader'
 
 export default function IntakePage() {
   const router = useRouter()
   const [caseName, setCaseName] = useState('')
-  const [matterId, setMatterId] = useState('')
   const [client, setClient] = useState('')
   const [opponent, setOpponent] = useState('')
   const [caseType, setCaseType] = useState('')
   const [files, setFiles] = useState<Array<{ name: string; size: number; type?: string; upload_time: string }>>([])
+  const [derivedMatterId, setDerivedMatterId] = useState<string | null>(null)
+
+  useEffect(() => {
+    try {
+      const draft = sessionStorage.getItem('new_matter_draft')
+      if (draft) {
+        const obj = JSON.parse(draft || '{}')
+        if (obj && obj.matter_id) {
+          setDerivedMatterId(String(obj.matter_id))
+          return
+        }
+      }
+      const analysis = sessionStorage.getItem('intake_analysis')
+      if (analysis) {
+        const a = JSON.parse(analysis || '{}')
+        if (a && a.matter_id) setDerivedMatterId(String(a.matter_id))
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [])
 
   function handleStart() {
     // For V1: no backend. Save lightweight draft to sessionStorage and return to matters.
@@ -48,15 +68,12 @@ export default function IntakePage() {
             <input value={caseType} onChange={(e) => setCaseType(e.target.value)} placeholder="例如：民间借贷 / 合同 / 劳动" style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e6eef6', marginTop: 6 }} />
           </label>
 
-          <label style={{ display: 'block' }}>
-            <div style={{ fontWeight: 600 }}>关联案件ID（可选）</div>
-            <input value={matterId} onChange={(e) => setMatterId(e.target.value)} placeholder="已有 matter_id 则填写以直接保存到案件" style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e6eef6', marginTop: 6 }} />
-          </label>
+          {/* 手动填写 Matter ID 已移除 — matter_id 应来自当前 intake 流程状态（若存在） */}
 
           <div>
             <div style={{ fontWeight: 600, marginBottom: 6 }}>案件资料</div>
 
-            <Uploader matterId={matterId || undefined} onUploaded={(saved) => setFiles(saved)} />
+            <Uploader matterId={derivedMatterId || undefined} onUploaded={(saved) => setFiles(saved)} />
 
             {files.length > 0 && (
               <div style={{ marginTop: 12, border: '1px solid #f1f5f9', borderRadius: 8, background: '#fafafa', padding: 8 }}>
