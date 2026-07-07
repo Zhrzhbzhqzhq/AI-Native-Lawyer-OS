@@ -82,6 +82,13 @@ export default function DocumentWorkspacePage() {
     related_evidence: [],
   }
 
+  // realMissingDocuments: map workspace missing_documents
+  const realMissingDocuments: any[] = Array.isArray(documentsWorkspace?.missing_documents) ? (documentsWorkspace!.missing_documents as any[]) : []
+  const realMissingDocumentsOrFallback = realMissingDocuments.length ? realMissingDocuments : [
+    { title: '银行流水（示例）', reason: '缺少完整银行流水，无法核验交易时间线', priority: 'high' },
+    { title: '借据原件（示例）', reason: '缺少借据原件，证据链不完整', priority: 'medium' },
+  ]
+
   const categories: Record<string, string[]> = {
     '起诉阶段': ['民事起诉状', '证据目录', '保全申请书'],
     '答辩阶段': ['答辩状', '举证意见'],
@@ -140,6 +147,19 @@ export default function DocumentWorkspacePage() {
         </div>
 
         <div style={{ marginTop: 12, color: lawdesk.muted }}>这些研究成果将自动用于：起诉状 / 证据目录 / 代理词 / 庭审提纲</div>
+
+        {/* Missing Documents Card: show backend missing_documents when available, otherwise fallback mock */}
+        <div style={{ marginTop: 12, color: lawdesk.muted }}>
+          <div style={{ fontWeight: 700 }}>缺失文书</div>
+          <div style={{ marginTop: 6 }}>
+            {realMissingDocumentsOrFallback.map((m: any, idx: number) => (
+              <div key={idx} style={{ marginTop: 6 }}>
+                <div style={{ fontWeight: 700 }}>{m.title}</div>
+                <div style={{ color: lawdesk.muted }}>{m.reason}{m.priority ? ` · 优先级：${m.priority}` : ''}</div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
           {/* Remove '开始起草' button per spec */}
