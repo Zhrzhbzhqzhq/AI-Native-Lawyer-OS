@@ -367,6 +367,29 @@ export async function intakeRoutes(app: FastifyInstance) {
       const matter_id = `m-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
       const created = await matterService.create({ matter_id, title, description: caseSummary, matter_type: String(payload.matter_type || '') })
 
+      // create a Material for the case summary so AI evidence can be attached
+      const materialService = new MaterialService(prisma)
+      let summary_material_id = ''
+      let createdSummaryMaterial: any = null
+      try {
+        const trimmed = String(caseSummary || '').trim()
+        if (trimmed.length > 0) {
+          summary_material_id = `mat-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+          // reuse existing service to create a real Material; title and type per requirement
+          createdSummaryMaterial = await materialService.createForMatter(matter_id, {
+            material_id: summary_material_id,
+            title: '案件事实摘要',
+            material_type: 'text',
+            source: 'ai',
+            storage_uri: '',
+            status: 'active',
+          })
+        }
+      } catch (err) {
+        // if material creation fails, record but continue (evidence will be skipped)
+        try { console.error('create summary material error', err) } catch (_) { }
+      }
+
       // run AI pipeline
       const AIPipelineService = (await import('../services/ai/AIPipelineService')).default
       const pipeline = new AIPipelineService()
@@ -431,12 +454,17 @@ export async function intakeRoutes(app: FastifyInstance) {
           }
 
           if (!material_id) {
-            try {
-              aiErrors.push(`evidence skipped: missing material_id (${String(title).slice(0, 120)})`)
-            } catch (_) {
-              aiErrors.push('evidence skipped: missing material_id')
+            // if we created a summary material above, attach evidence to it
+            if (summary_material_id) {
+              material_id = summary_material_id
+            } else {
+              try {
+                aiErrors.push(`evidence skipped: missing material_id (${String(title).slice(0, 120)})`)
+              } catch (_) {
+                aiErrors.push('evidence skipped: missing material_id')
+              }
+              continue
             }
-            continue
           }
 
           const evidence_id = `ev-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
