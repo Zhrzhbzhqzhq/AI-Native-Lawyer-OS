@@ -1,545 +1,291 @@
 "use client"
-import React, { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import React, { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
 
-const lawdesk = {
-  pageBg: '#f4f7fb',
-  cardBg: '#ffffff',
-  border: '#e6eef6',
+const tokens = {
+  pageBg: '#ffffff',
+  cardBg: '#fafafa',
+  border: '#e6e6e6',
   text: '#0f172a',
-  muted: '#64748b',
-  blue: '#2563eb',
+  muted: '#6b7280',
   radius: 8,
 }
 
-export default function DocumentWorkspacePage() {
-  // Minimal mock state for the workflow
-  const [currentStep, setCurrentStep] = useState<number>(1) // 1..5
-  const [showAllDocs, setShowAllDocs] = useState(false)
-  const docTypes = ['民事起诉状', '答辩状', '代理词', '上诉状', '执行申请书']
-  const [selectedDocType, setSelectedDocType] = useState<string>(docTypes[0])
-  const [supplementNotes, setSupplementNotes] = useState<string>('请确认证据时间线并补充完整银行流水。')
+export default function DocumentsWorkspace() {
+  const params = useParams() as { matter_id?: string }
+  const matterId = params?.matter_id || 'demo-001'
 
-  // Draft state
-  const [isDrafting, setIsDrafting] = useState(false)
-  const [draftContent, setDraftContent] = useState<string>('')
-  const [draftVersion, setDraftVersion] = useState<number>(0)
+  // Left: Arguments
+  const [argumentsList, setArgumentsList] = useState<any[]>([])
+  const [loadingArgs, setLoadingArgs] = useState<boolean>(true)
+  const [issueQuery, setIssueQuery] = useState<string>('')
+  const [selectedArgId, setSelectedArgId] = useState<string | null>(null)
 
-  // Concept review (Step3)
-  const [reviewComments, setReviewComments] = useState<string[]>([])
-  const [newComment, setNewComment] = useState<string>('')
+  // Right: Documents
+  const [documents, setDocuments] = useState<any[]>([])
+  const [loadingDocs, setLoadingDocs] = useState<boolean>(true)
+  const [selectedDocId, setSelectedDocId] = useState<string | null>(null)
 
-  // Final edit state (Step4)
-  const [finalContent, setFinalContent] = useState<string>('')
-  const [approved, setApproved] = useState(false)
-  const params = useParams()
-  const router = useRouter()
-  const matterId = (params as any)?.matter_id || (params as any)?.id || ''
+  // Create / Edit dialog state
+  const [showCreate, setShowCreate] = useState(false)
+  const [newTitle, setNewTitle] = useState('')
+  const [newType, setNewType] = useState('')
+  const [newContent, setNewContent] = useState('')
+  const [newStatus, setNewStatus] = useState('draft')
+  const [creating, setCreating] = useState(false)
 
-  const recommended = [
-    { id: 'd1', stars: 5, title: '民事起诉状（推荐）' },
-    { id: 'd2', stars: 4, title: '证据目录' },
-    { id: 'd3', stars: 4, title: '财产保全申请书' },
-    { id: 'd4', stars: 3, title: '财产调查令申请' },
-  ]
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingPatch, setEditingPatch] = useState<any>({})
+  const [savingEdit, setSavingEdit] = useState(false)
 
-  // Documents workspace fetched from backend (read-only)
-  const [documentsWorkspace, setDocumentsWorkspace] = useState<any | null>(null)
+  const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
+
+  async function fetchArguments() {
+    setLoadingArgs(true)
+    try {
+      const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/arguments`)
+      if (!res.ok) throw new Error('加载议题失败')
+      const json = await res.json()
+      setArgumentsList(Array.isArray(json) ? json : [])
+    } catch (e) {
+      setArgumentsList([])
+    } finally {
+      setLoadingArgs(false)
+    }
+  }
+
+  async function fetchDocuments() {
+    setLoadingDocs(true)
+    try {
+      const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/documents`)
+      if (!res.ok) throw new Error('加载文书失败')
+      const json = await res.json()
+      setDocuments(Array.isArray(json) ? json : [])
+    } catch (e) {
+      setDocuments([])
+    } finally {
+      setLoadingDocs(false)
+    }
+  }
 
   useEffect(() => {
     if (!matterId) return
-    const url = `/matters/${matterId}/documents/workspace`
-    fetch(url).then((res) => {
-      if (!res.ok) return null
-      return res.json()
-    }).then((json) => {
-      if (json) setDocumentsWorkspace(json)
-    }).catch(() => {
-      // keep null on error (fallback to mocks)
-    })
+    fetchArguments()
+    fetchDocuments()
   }, [matterId])
 
-  // realDocumentList: map backend items to expected shape
-  const realDocumentList: any[] = Array.isArray(documentsWorkspace?.document_list) ? (documentsWorkspace!.document_list as any[]) : []
-  const realDocumentListOrFallback = realDocumentList.length ? realDocumentList : recommended.map((r) => ({ document_id: r.id, title: r.title, document_type: '', status: 'recommended', version: '', updated_at: null, content_uri: null, stars: r.stars }))
+  const filteredArgs = argumentsList.filter((it) => String(it.title || '').toLowerCase().includes(issueQuery.trim().toLowerCase()))
 
-  // realDocumentSummary: map workspace summary
-  const realDocumentSummary: any = documentsWorkspace?.summary ?? null
-  const realDocumentSummaryOrFallback = realDocumentSummary ? realDocumentSummary : { total: 0, completed: 0, draft: 0, need_review: 0, missing: 0 }
-
-  // realSelectedDocument: map selected_document from workspace
-  const realSelectedDocument: any = documentsWorkspace?.selected_document ?? null
-  const realSelectedDocumentOrFallback = realSelectedDocument ? realSelectedDocument : {
-    document_id: 'mock-d1',
-    title: '民事起诉状',
-    document_type: 'complaint',
-    status: 'draft',
-    version: 'v1',
-    updated_at: null,
-    ai_summary: { status: 'rule_based', score: 50, completeness: 'low', strengths: [], risks: [], recommendations: [] },
-    lawyer_notes: { status: 'read_only', message: 'Lawyer notes coming soon' },
-    related_materials: [],
-    related_evidence: [],
+  function openDoc(docId: string) {
+    setSelectedDocId(docId)
+    setEditingId(null)
+    setEditingPatch({})
   }
 
-  // realMissingDocuments: map workspace missing_documents
-  const realMissingDocuments: any[] = Array.isArray(documentsWorkspace?.missing_documents) ? (documentsWorkspace!.missing_documents as any[]) : []
-  const realMissingDocumentsOrFallback = realMissingDocuments.length ? realMissingDocuments : [
-    { title: '银行流水', reason: '缺少完整银行流水，无法核验交易时间线', priority: 'high' },
-    { title: '借据原件', reason: '缺少借据原件，证据链不完整', priority: 'medium' },
-  ]
-
-  const categories: Record<string, string[]> = {
-    '起诉阶段': ['民事起诉状', '证据目录', '保全申请书'],
-    '答辩阶段': ['答辩状', '举证意见'],
-    '庭审阶段': ['庭审笔录', '庭审要点清单'],
-    '执行阶段': ['执行申请书', '财产线索清单'],
-    '其他文书': ['函件', '律师函']
+  function startEdit(doc: any) {
+    setEditingId(doc.document_id)
+    setEditingPatch({ title: doc.title || '', document_type: doc.document_type || '', content: doc.content || '', status: doc.status || 'draft' })
   }
 
-  const timelineSteps = [
-    { id: 1, title: '第一步｜律师确认本次使用资料' },
-    { id: 2, title: '第二步｜AI起草初稿' },
-    { id: 3, title: '第三步｜第一次预览（提出修改意见）' },
-    { id: 4, title: '第四步｜最终编辑' },
-    { id: 5, title: '第五步｜文书定稿' },
-  ]
+  async function saveEdit(docId: string) {
+    setSavingEdit(true)
+    try {
+      const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/documents/${encodeURIComponent(docId)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editingPatch) })
+      if (!res.ok) { const txt = await res.text().catch(() => ''); throw new Error(`保存失败 ${res.status} ${txt}`) }
+      await fetchDocuments()
+      setEditingId(null)
+      if (selectedDocId === docId) openDoc(docId)
+    } catch (e: any) {
+      console.error(e)
+    } finally {
+      setSavingEdit(false)
+    }
+  }
+
+  async function deleteDoc(docId: string) {
+    try {
+      const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/documents/${encodeURIComponent(docId)}`, { method: 'DELETE' })
+      if (!res.ok) { const txt = await res.text().catch(() => ''); throw new Error(`删除失败 ${res.status} ${txt}`) }
+      await fetchDocuments()
+      if (selectedDocId === docId) setSelectedDocId(null)
+    } catch (e: any) {
+      console.error(e)
+    }
+  }
+
+  async function createDocument() {
+    if (!newTitle || newTitle.trim().length === 0) return
+    setCreating(true)
+    try {
+      const payload: any = { title: newTitle.trim(), document_type: newType || '', content: newContent || '', status: newStatus || 'draft' }
+      const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/documents`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      if (!res.ok) { const txt = await res.text().catch(() => ''); throw new Error(`创建失败 ${res.status} ${txt}`) }
+      await fetchDocuments()
+      setShowCreate(false)
+      setNewTitle(''); setNewType(''); setNewContent(''); setNewStatus('draft')
+    } catch (e: any) {
+      console.error(e)
+    } finally { setCreating(false) }
+  }
 
   return (
-    <main style={{ padding: 20, background: lawdesk.pageBg, minHeight: '80vh' }}>
-      <div style={{ padding: 16, borderRadius: 12, background: lawdesk.cardBg, border: `1px solid ${lawdesk.border}`, marginBottom: 12 }}>
-        <h2 style={{ margin: 0 }}>文书工作区</h2>
-        <div style={{ marginTop: 6, color: lawdesk.muted }}>AI 起草 · 律师审阅 · 律师定稿</div>
-      </div>
+    <div style={{ padding: 16, background: tokens.pageBg, minHeight: '100vh' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <div style={{ display: 'flex', gap: 16 }}>
+          {/* Left: Arguments list */}
+          <div style={{ flex: 1 }}>
+            <div style={{ background: tokens.cardBg, padding: 12, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontWeight: 800 }}>论点（Arguments）</div>
+                <div style={{ color: tokens.muted }}>{loadingArgs ? '加载中…' : `${argumentsList.length} 条`}</div>
+              </div>
 
-      {/* AI 已接收案件研究成果：文书工作区交接卡片（两列展示） */}
-      <div style={{ marginTop: 12, background: lawdesk.cardBg, padding: 12, borderRadius: lawdesk.radius, border: `1px solid ${lawdesk.border}` }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
-          <div style={{ flex: 1, minWidth: 220 }}>
-            <div style={{ fontWeight: 800, color: lawdesk.text }}>研究成果</div>
-            <div style={{ marginTop: 8, color: lawdesk.muted }}>
-              <div>✓ 文书总数（{realDocumentSummaryOrFallback.total}）</div>
-              <div>✓ 已完成（{realDocumentSummaryOrFallback.completed}）</div>
-              <div>✓ 草稿（{realDocumentSummaryOrFallback.draft}）</div>
-              <div>✓ 待审（{realDocumentSummaryOrFallback.need_review}）</div>
-              <div>✓ 缺失（{realDocumentSummaryOrFallback.missing}）</div>
+              <div style={{ marginTop: 8 }}>
+                <input placeholder="搜索论点" value={issueQuery} onChange={(e) => setIssueQuery(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
+              </div>
+
+              <div style={{ marginTop: 12 }}>
+                {loadingArgs ? <div style={{ color: tokens.muted }}>加载论点中…</div> : filteredArgs.length === 0 ? <div style={{ color: tokens.muted }}>暂无论点</div> : (
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {filteredArgs.map((it: any) => {
+                      const isSel = selectedArgId === it.argument_id
+                      return (
+                        <li key={it.argument_id} onClick={() => setSelectedArgId((s) => s === it.argument_id ? null : it.argument_id)} style={{ padding: 8, borderBottom: '1px solid #f1f1f1', cursor: 'pointer', background: isSel ? '#f3f4f6' : 'transparent', borderLeft: isSel ? '3px solid #111' : '3px solid transparent' }}>
+                          <div style={{ fontWeight: 700 }}>{it.title}</div>
+                          <div style={{ color: tokens.muted, fontSize: 12 }}>{it.status || 'draft'}</div>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                )}
+              </div>
             </div>
           </div>
 
-          <div style={{ flex: 1, minWidth: 220 }}>
-            <div style={{ fontWeight: 800, color: lawdesk.text }}>已生成成果</div>
-            <div style={{ marginTop: 8, color: lawdesk.muted }}>
-              {/* Use backend ai_analysis when available, otherwise show static bullets */}
-              {documentsWorkspace?.ai_analysis ? (
-                <div>
-                  <div style={{ fontWeight: 700 }}>{documentsWorkspace.ai_analysis.title || 'AI 分析'}</div>
-                  <div style={{ marginTop: 6 }}>{documentsWorkspace.ai_analysis.message || documentsWorkspace.ai_analysis.summary || JSON.stringify(documentsWorkspace.ai_analysis)}</div>
-                </div>
+          {/* Right: Documents CRUD */}
+          <div style={{ width: 520 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <div style={{ fontWeight: 800 }}>文书（Documents）</div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => setShowCreate(true)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>新建文书</button>
+              </div>
+            </div>
+
+            <div style={{ background: tokens.cardBg, padding: 12, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+              {loadingDocs ? (
+                <div style={{ color: tokens.muted }}>加载文书中…</div>
+              ) : documents.length === 0 ? (
+                <div style={{ color: tokens.muted }}>暂无文书</div>
               ) : (
-                <div>
-                  <div>✓ Proof Map</div>
-                  <div>✓ Litigation Plan</div>
-                  <div>✓ AI 法律意见</div>
-                </div>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  {documents.map((doc: any) => (
+                    <li key={doc.document_id} style={{ padding: 10, borderBottom: '1px solid #f3f3f3' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                        <div style={{ cursor: 'pointer' }} onClick={() => openDoc(doc.document_id)}>
+                          <div style={{ fontWeight: 700 }}>{doc.title}</div>
+                          <div style={{ color: tokens.muted, fontSize: 12 }}>{doc.document_type || ''} · {doc.status || 'draft'}</div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button onClick={() => startEdit(doc)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #e6eef6', background: '#fff', fontSize: 12 }}>编辑</button>
+                          <button onClick={() => deleteDoc(doc.document_id)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #fee2e2', background: '#fff', color: '#b91c1c', fontSize: 12 }}>删除</button>
+                        </div>
+                      </div>
+
+                      {selectedDocId === doc.document_id ? (
+                        <div style={{ marginTop: 8, padding: 8, borderRadius: 6, background: '#fff' }}>
+                          <div style={{ fontWeight: 700, marginBottom: 6 }}>{doc.title}</div>
+                          <div style={{ color: tokens.muted, marginBottom: 8 }}>类型：{doc.document_type || '—'}</div>
+                          <div style={{ fontWeight: 700, marginBottom: 6 }}>正文</div>
+                          <div style={{ color: tokens.muted, whiteSpace: 'pre-wrap' }}>{doc.content || '—'}</div>
+                          <div style={{ marginTop: 8, fontWeight: 700 }}>状态</div>
+                          <div style={{ color: tokens.muted }}>{doc.status || 'draft'}</div>
+                        </div>
+                      ) : null}
+
+                      {editingId === doc.document_id ? (
+                        <div style={{ marginTop: 8, padding: 8, borderRadius: 6, background: '#fff' }}>
+                          <div style={{ fontWeight: 700, marginBottom: 6 }}>编辑文书</div>
+                          <div style={{ marginBottom: 8 }}>
+                            <input value={editingPatch.title || ''} onChange={(e) => setEditingPatch((p: any) => ({ ...p, title: e.target.value }))} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
+                          </div>
+                          <div style={{ marginBottom: 8 }}>
+                            <input value={editingPatch.document_type || ''} onChange={(e) => setEditingPatch((p: any) => ({ ...p, document_type: e.target.value }))} placeholder="类型" style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
+                          </div>
+                          <div style={{ marginBottom: 8 }}>
+                            <textarea value={editingPatch.content || ''} onChange={(e) => setEditingPatch((p: any) => ({ ...p, content: e.target.value }))} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6', minHeight: 120 }} />
+                          </div>
+                          <div style={{ marginBottom: 8 }}>
+                            <select value={editingPatch.status || 'draft'} onChange={(e) => setEditingPatch((p: any) => ({ ...p, status: e.target.value }))} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }}>
+                              <option value="draft">draft</option>
+                              <option value="completed">completed</option>
+                              <option value="need_review">need_review</option>
+                              <option value="archived">archived</option>
+                            </select>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                            <button onClick={() => setEditingId(null)} style={{ padding: '6px 10px', borderRadius: 6 }}>取消</button>
+                            <button onClick={() => saveEdit(doc.document_id)} disabled={savingEdit} style={{ padding: '6px 10px', borderRadius: 6, background: '#111', color: '#fff' }}>{savingEdit ? '保存中…' : '保存'}</button>
+                          </div>
+                        </div>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
           </div>
         </div>
 
-        <div style={{ marginTop: 12, color: lawdesk.muted }}>这些研究成果将自动用于：起诉状 / 证据目录 / 代理词 / 庭审提纲</div>
-
-        {/* Missing Documents Card: show backend missing_documents when available, otherwise fallback mock */}
-        <div style={{ marginTop: 12, color: lawdesk.muted }}>
-          <div style={{ fontWeight: 700 }}>缺失文书</div>
-          <div style={{ marginTop: 6 }}>
-            {realMissingDocumentsOrFallback.map((m: any, idx: number) => (
-              <div key={idx} style={{ marginTop: 6 }}>
-                <div style={{ fontWeight: 700 }}>{m.title}</div>
-                <div style={{ color: lawdesk.muted }}>{m.reason}{m.priority ? ` · 优先级：${m.priority}` : ''}</div>
+        {/* Create dialog */}
+        {showCreate ? (
+          <div style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 560, background: '#fff', borderRadius: 8, padding: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontWeight: 800 }}>新建文书</div>
+                <div><button onClick={() => { setShowCreate(false) }} style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}>关闭</button></div>
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Document Next Steps: use backend document_next_steps when available, otherwise local fallback */}
-        <div style={{ marginTop: 12, color: lawdesk.muted }}>
-          <div style={{ fontWeight: 700 }}>后续建议</div>
-          <div style={{ marginTop: 6 }}>
-            {Array.isArray(documentsWorkspace?.document_next_steps) && documentsWorkspace!.document_next_steps.length ? (
-              documentsWorkspace!.document_next_steps.map((s: any, idx: number) => (
-                <div key={idx} style={{ marginTop: 6 }}>
-                  <div style={{ fontWeight: 700 }}>{s.title}</div>
-                  <div style={{ color: lawdesk.muted }}>{s.description}{s.priority ? ` · 优先级：${s.priority}` : ''}</div>
-                </div>
-              ))
-            ) : (
-              <div>
-                <div style={{ marginTop: 6 }}>
-                  <div style={{ fontWeight: 700 }}>补充银行流水</div>
-                  <div style={{ color: lawdesk.muted }}>请客户提供近12个月完整银行流水 · 优先级：高</div>
-                </div>
-                <div style={{ marginTop: 6 }}>
-                  <div style={{ fontWeight: 700 }}>补齐借据原件</div>
-                  <div style={{ color: lawdesk.muted }}>联系客户确认借据原件位置并扫描上传 · 优先级：中</div>
-                </div>
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontWeight: 700, marginBottom: 6 }}>标题</div>
+                <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
               </div>
-            )}
-          </div>
-        </div>
 
-        <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-          {/* Remove '开始起草' button per spec */}
-          <button style={{ padding: '8px 12px', borderRadius: 6, background: '#f1f5f9', color: lawdesk.muted, border: 'none' }}>查看研究详情</button>
-        </div>
-      </div>
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontWeight: 700, marginBottom: 6 }}>类型（可选）</div>
+                <input value={newType} onChange={(e) => setNewType(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
+              </div>
 
-      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-        {/* Left column */}
-        <div style={{ width: 220, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div id="doc-workflow" style={{ background: lawdesk.cardBg, padding: 12, borderRadius: lawdesk.radius, border: `1px solid ${lawdesk.border}` }}>
-            <div style={{ fontWeight: 800, color: lawdesk.text }}>文书类型</div>
-            <div style={{ marginTop: 6, color: lawdesk.muted }}>请选择本次需要起草的法律文书。</div>
-            <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {realDocumentListOrFallback.map((r) => (
-                <div key={r.document_id || r.id} style={{ padding: 10, background: '#fff', borderRadius: 8, border: `1px solid ${lawdesk.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ fontWeight: 700 }}>{(r.stars ? ('★'.repeat(r.stars) + '☆'.repeat(5 - r.stars)) : '')} {r.title}</div>
-                    <div style={{ color: lawdesk.muted, fontSize: 12 }}>{r.document_type || r.status || ''}</div>
-                  </div>
-                  <div>
-                    <button style={{ padding: '6px 10px', borderRadius: 6, background: lawdesk.blue, color: '#fff', border: 'none' }}>选择</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop: 12, textAlign: 'center' }}>
-              <button onClick={() => setShowAllDocs((s) => !s)} style={{ padding: '8px 12px', borderRadius: 6, background: '#f1f5f9', color: lawdesk.text, border: 'none' }}>{showAllDocs ? '收起' : '查看全部文书'}</button>
-            </div>
-          </div>
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontWeight: 700, marginBottom: 6 }}>正文</div>
+                <textarea value={newContent} onChange={(e) => setNewContent(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6', minHeight: 160 }} />
+              </div>
 
-          {showAllDocs ? (
-            <div style={{ background: lawdesk.cardBg, padding: 12, borderRadius: lawdesk.radius, border: `1px solid ${lawdesk.border}` }}>
-              <div style={{ fontWeight: 800, color: lawdesk.text }}>全部文书（按阶段）</div>
-              <div style={{ marginTop: 8, color: lawdesk.muted }}>
-                {/* Prefer backend navigation.by_type when available, otherwise keep existing categories mock */}
-                {Array.isArray(documentsWorkspace?.navigation?.by_type) ? (
-                  documentsWorkspace.navigation.by_type.map((it: any) => (
-                    <div key={it.key} style={{ marginBottom: 8 }}>
-                      <div style={{ fontWeight: 700 }}>{it.label}</div>
-                      <ul style={{ marginTop: 6, color: lawdesk.muted }}>
-                        <li>{it.count ?? 0} 项</li>
-                      </ul>
-                    </div>
-                  ))
-                ) : (
-                  Object.entries(categories).map(([cat, list]) => (
-                    <div key={cat} style={{ marginBottom: 8 }}>
-                      <div style={{ fontWeight: 700 }}>{cat}</div>
-                      <ul style={{ marginTop: 6, color: lawdesk.muted }}>
-                        {list.map((it) => <li key={it}>{it}</li>)}
-                      </ul>
-                    </div>
-                  ))
-                )}
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontWeight: 700, marginBottom: 6 }}>状态</div>
+                <select value={newStatus} onChange={(e) => setNewStatus(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }}>
+                  <option value="draft">draft</option>
+                  <option value="completed">completed</option>
+                  <option value="need_review">need_review</option>
+                  <option value="archived">archived</option>
+                </select>
+              </div>
 
-                {/* Render by_status and by_version if provided by backend (non-intrusive) */}
-                {Array.isArray(documentsWorkspace?.navigation?.by_status) ? (
-                  <div style={{ marginTop: 8 }}>
-                    <div style={{ fontWeight: 700 }}>按状态</div>
-                    <ul style={{ marginTop: 6, color: lawdesk.muted }}>
-                      {documentsWorkspace.navigation.by_status.map((s: any) => <li key={s.key}>{s.label} ({s.count ?? 0})</li>)}
-                    </ul>
-                  </div>
-                ) : null}
-
-                {Array.isArray(documentsWorkspace?.navigation?.by_version) ? (
-                  <div style={{ marginTop: 8 }}>
-                    <div style={{ fontWeight: 700 }}>按版本</div>
-                    <ul style={{ marginTop: 6, color: lawdesk.muted }}>
-                      {documentsWorkspace.navigation.by_version.map((v: any) => <li key={v.key}>{v.label} ({v.count ?? 0})</li>)}
-                    </ul>
-                  </div>
-                ) : null}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
+                <button onClick={() => { setShowCreate(false) }} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff' }}>取消</button>
+                <button onClick={() => createDocument()} disabled={creating} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: '#111', color: '#fff' }}>{creating ? '保存中…' : '保存'}</button>
               </div>
             </div>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
 
-        {/* Right column */}
-        <div style={{ flex: 1 }}>
-          <div style={{ background: lawdesk.cardBg, padding: 12, borderRadius: lawdesk.radius, border: `1px solid ${lawdesk.border}` }}>
-            <div style={{ fontWeight: 800, color: lawdesk.text }}>当前文书工作流</div>
-            <div style={{ marginTop: 8, color: lawdesk.muted }}>六步流程 · 当前步骤展开，已完成折叠，未开始灰色。</div>
-
-            <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {timelineSteps.map((step) => {
-                const done = step.id < currentStep
-                const active = step.id === currentStep
-                const notStarted = step.id > currentStep
-                return (
-                  <div key={step.id} style={{ padding: 12, background: '#fff', borderRadius: 8, border: `1px solid ${lawdesk.border}`, opacity: notStarted ? 0.6 : 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: 18, background: done ? '#e6f0ff' : active ? lawdesk.blue : '#eef2f6', color: active ? '#fff' : lawdesk.text, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>{step.id}</div>
-                        <div>
-                          <div style={{ fontWeight: 700 }}>{step.title}</div>
-                          <div style={{ color: lawdesk.muted, fontSize: 13 }}>{active ? '进行中' : done ? '已完成' : '未开始'}</div>
-                        </div>
-                      </div>
-                      <div>
-                        {active ? <button style={{ padding: '6px 10px', borderRadius: 6, background: lawdesk.blue, color: '#fff', border: 'none' }}>查看</button> : null}
-                      </div>
-                    </div>
-
-                    {/* Expanded content only for current step */}
-                    {active ? (
-                      <div style={{ marginTop: 10 }}>
-                        {step.id === 1 && (
-                          <div>
-                            <div style={{ marginBottom: 8 }}>
-                              <div style={{ fontWeight: 700 }}>选择文书类型</div>
-                              <div style={{ fontSize: 13, color: '#6b7280', marginTop: 6 }}>已自动继承案件研究成果（案例、法条、裁判规则、诉讼路线）。</div>
-                              <select value={selectedDocType} onChange={(e) => setSelectedDocType(e.target.value)} style={{ marginTop: 6, padding: 8, borderRadius: 6, border: `1px solid ${lawdesk.border}`, width: 260 }}>
-                                {docTypes.map((d) => <option key={d} value={d}>{d}</option>)}
-                              </select>
-                            </div>
-
-                            <div style={{ marginTop: 8 }}>
-                              <div style={{ fontWeight: 700 }}>律师授权本次使用资料</div>
-                              <div style={{ marginTop: 6, color: lawdesk.muted }}>请选择允许 AI 使用的案件材料。</div>
-                              <ul style={{ marginTop: 6, color: lawdesk.muted }}>
-                                <li>微信聊天记录</li>
-                                <li>部分银行转账截图</li>
-                                <li>客户陈述笔录（草稿）</li>
-                              </ul>
-                            </div>
-
-                            <div style={{ marginTop: 8 }}>
-                              <div style={{ fontWeight: 700 }}>律师补充说明（可选）</div>
-                              <textarea value={supplementNotes} onChange={(e) => setSupplementNotes(e.target.value)} style={{ width: '100%', minHeight: 80, marginTop: 6, padding: 8, borderRadius: 6, border: `1px solid ${lawdesk.border}` }} />
-                            </div>
-
-                            <div style={{ marginTop: 12 }}>
-                              <button onClick={async () => {
-                                // start AI drafting simulation
-                                setIsDrafting(true)
-                                setCurrentStep(2)
-                                setDraftContent('')
-                                setDraftVersion(0)
-                                await new Promise(r => setTimeout(r, 900))
-                                setDraftContent(`【${selectedDocType}】\n\n主要事实：双方于某日发生借贷行为……\n证据目录：微信聊天、部分转账截图`)
-                                setDraftVersion(1)
-                                setIsDrafting(false)
-                                // automatically advance to concept review
-                                setCurrentStep(3)
-                              }} style={{ padding: '8px 12px', borderRadius: 6, background: lawdesk.blue, color: '#fff', border: 'none' }}>授权 AI 起草</button>
-                            </div>
-                          </div>
-                        )}
-
-                        {step.id === 2 && (
-                          <div>
-                            {isDrafting ? (
-                              <div style={{ color: lawdesk.muted }}>AI 正在起草……</div>
-                            ) : (
-                              <div>
-                                <div style={{ fontWeight: 700 }}>第二步｜AI起草初稿</div>
-                                <div style={{ marginTop: 8, whiteSpace: 'pre-wrap', color: lawdesk.muted }}>{draftContent}</div>
-                                <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-                                  <button onClick={() => setCurrentStep(1)} style={{ padding: '8px 12px', borderRadius: 6, background: '#f1f5f9', color: lawdesk.text, border: 'none' }}>返回上一步</button>
-                                  <button onClick={() => setCurrentStep(3)} style={{ padding: '8px 12px', borderRadius: 6, background: lawdesk.blue, color: '#fff', border: 'none' }}>进入第一次预览</button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {step.id === 3 && (
-                          <div>
-                            <div style={{ fontWeight: 700 }}>第三步｜第一次预览（提出修改意见）</div>
-                            <textarea value={draftContent} readOnly style={{ width: '100%', minHeight: 160, marginTop: 8, padding: 8, borderRadius: 6, border: `1px solid ${lawdesk.border}`, background: '#fafafa' }} />
-
-                            <div style={{ marginTop: 10 }}>
-                              <div style={{ fontWeight: 700 }}>告诉 AI 如何修改</div>
-                              <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-                                <input value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="例如：增加微信聊天分析；增加最高院案例；删除违约金请求；完善诉讼请求" style={{ flex: 1, padding: 8, borderRadius: 6, border: `1px solid ${lawdesk.border}` }} />
-                                <button onClick={() => { if (newComment.trim()) { setReviewComments((p) => [...p, newComment.trim()]); setNewComment('') } }} style={{ padding: '8px 12px', borderRadius: 6, background: '#f1f5f9', border: 'none' }}>添加意见</button>
-                              </div>
-                              <div style={{ marginTop: 8 }}>
-                                {reviewComments.length === 0 ? <div style={{ color: lawdesk.muted }}>暂无审稿意见</div> : (
-                                  <ul style={{ color: lawdesk.muted }}>
-                                    {reviewComments.map((c, i) => (<li key={i}>{c}</li>))}
-                                  </ul>
-                                )}
-                              </div>
-                            </div>
-
-                            <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-                              <button onClick={() => setCurrentStep(2)} style={{ padding: '8px 12px', borderRadius: 6, background: '#f1f5f9', color: lawdesk.text, border: 'none' }}>返回上一步</button>
-                              <button onClick={async () => {
-                                // Simulate AI updating draft based on comments
-                                if (reviewComments.length === 0) return
-                                setIsDrafting(true)
-                                await new Promise(r => setTimeout(r, 700))
-                                const added = '\n\n【AI 修改记录】\n' + reviewComments.map((c, i) => `- ${c}`).join('\n')
-                                setDraftContent((d) => d + added)
-                                setDraftVersion((v) => v + 1)
-                                setReviewComments([])
-                                setIsDrafting(false)
-                              }} style={{ padding: '8px 12px', borderRadius: 6, background: lawdesk.blue, color: '#fff', border: 'none' }}>AI 根据意见修改</button>
-
-                              <button onClick={() => {
-                                setDraftContent((d) => d.replace(/^【[^】]*】\s*/, '').replace(/^\s+/, ''))
-                                setCurrentStep(4)
-                              }} style={{ padding: '8px 12px', borderRadius: 6, background: '#f1f5f9', border: 'none' }}>确认进入最终编辑</button>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Selected Document Card: display selected document metadata and AI/Lawyer notes (read-only) */}
-                        {step.id === 2 && (
-                          <div>
-                            <div style={{ fontWeight: 700 }}>第二步｜AI起草初稿（选中文书预览）</div>
-                            <div style={{ marginTop: 8, color: lawdesk.muted }}>
-                              <div style={{ fontWeight: 700 }}>{realSelectedDocumentOrFallback.title}</div>
-                              <div style={{ marginTop: 6 }}>{realSelectedDocumentOrFallback.document_type} · {realSelectedDocumentOrFallback.status} · {realSelectedDocumentOrFallback.version}</div>
-                              <div style={{ marginTop: 8, color: lawdesk.muted }}>最后更新时间：{realSelectedDocumentOrFallback.updated_at || '—'}</div>
-
-                              <div style={{ marginTop: 10 }}>
-                                <div style={{ fontWeight: 700 }}>AI 分析</div>
-                                <div style={{ marginTop: 6, color: lawdesk.muted }}>{realSelectedDocumentOrFallback.ai_summary ? (`得分：${realSelectedDocumentOrFallback.ai_summary.score} 完成度：${realSelectedDocumentOrFallback.ai_summary.completeness}`) : '无'}</div>
-                              </div>
-
-                              <div style={{ marginTop: 10 }}>
-                                <div style={{ fontWeight: 700 }}>律师备注</div>
-                                <div style={{ marginTop: 6, color: lawdesk.muted }}>{realSelectedDocumentOrFallback.lawyer_notes ? realSelectedDocumentOrFallback.lawyer_notes.message : '无'}</div>
-                              </div>
-
-                              <div style={{ marginTop: 10 }}>
-                                <div style={{ fontWeight: 700 }}>相关材料 / 证据</div>
-                                <div style={{ marginTop: 6, color: lawdesk.muted }}>{(Array.isArray(realSelectedDocumentOrFallback.related_materials) && realSelectedDocumentOrFallback.related_materials.length) ? realSelectedDocumentOrFallback.related_materials.map((m: any) => m.title || m.material_id).join(', ') : '无'}</div>
-                                <div style={{ marginTop: 6, color: lawdesk.muted }}>{(Array.isArray(realSelectedDocumentOrFallback.related_evidence) && realSelectedDocumentOrFallback.related_evidence.length) ? realSelectedDocumentOrFallback.related_evidence.map((e: any) => e.title || e.evidence_id).join(', ') : ''}</div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {step.id === 4 && (
-                          <div>
-                            <div style={{ fontWeight: 800, fontSize: 16 }}>第四步｜最终编辑</div>
-                            <div style={{ marginTop: 8, color: lawdesk.muted }}>
-                              AI 已完成修改。
-                              <br />请律师进行最终审核。
-                              <br />本阶段所有修改均由律师直接完成，AI 不会再次自动修改正文。
-                            </div>
-
-                            {/* Word-style toolbar (single row) */}
-                            <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center', borderBottom: `1px solid ${lawdesk.border}`, paddingBottom: 8 }}>
-                              <button onClick={() => { if (finalContent) setDraftContent(finalContent) }} style={{ padding: '6px 10px', borderRadius: 6, background: '#f1f5f9', border: 'none' }}>保存</button>
-                              <button onClick={() => { /* noop undo UI */ }} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', border: `1px solid ${lawdesk.border}` }}>撤销</button>
-                              <button onClick={() => { /* noop redo UI */ }} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', border: `1px solid ${lawdesk.border}` }}>恢复</button>
-
-                              <select defaultValue="宋体" style={{ padding: '6px 8px', borderRadius: 6, border: `1px solid ${lawdesk.border}` }}>
-                                <option>宋体</option>
-                                <option>仿宋</option>
-                                <option>黑体</option>
-                                <option>Times New Roman</option>
-                              </select>
-                              <select defaultValue="14" style={{ padding: '6px 8px', borderRadius: 6, border: `1px solid ${lawdesk.border}` }}>
-                                <option>12</option>
-                                <option>14</option>
-                                <option>16</option>
-                                <option>18</option>
-                              </select>
-
-                              <button style={{ padding: '6px 8px', borderRadius: 6, border: `1px solid ${lawdesk.border}` }}>B</button>
-                              <button style={{ padding: '6px 8px', borderRadius: 6, border: `1px solid ${lawdesk.border}` }}>U</button>
-
-                              <button style={{ padding: '6px 8px', borderRadius: 6, border: `1px solid ${lawdesk.border}` }}>左对齐</button>
-                              <button style={{ padding: '6px 8px', borderRadius: 6, border: `1px solid ${lawdesk.border}` }}>居中</button>
-                              <button style={{ padding: '6px 8px', borderRadius: 6, border: `1px solid ${lawdesk.border}` }}>右对齐</button>
-
-                              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12 }}>
-                                <button onClick={() => {
-                                  const content = finalContent || draftContent
-                                  const blob = new Blob([content], { type: 'application/msword' })
-                                  const url = URL.createObjectURL(blob)
-                                  const a = document.createElement('a')
-                                  a.href = url
-                                  a.download = `${selectedDocType.replace(/\s+/g, '_')}_Final.doc`
-                                  a.click()
-                                  URL.revokeObjectURL(url)
-                                }} style={{ padding: '6px 10px', borderRadius: 6, background: '#f1f5f9', border: 'none' }}>导出 Word</button>
-
-                                <button onClick={() => { const w = window.open(); if (w) { w.document.write('<pre>' + (finalContent || draftContent) + '</pre>'); w.document.close(); w.print(); } }} style={{ padding: '6px 10px', borderRadius: 6, background: '#f1f5f9', border: 'none' }}>打印</button>
-
-                                <div style={{ textAlign: 'right', color: lawdesk.muted }}>
-                                  <div style={{ color: '#10b981', fontWeight: 700 }}>● 已保存</div>
-                                  <div style={{ fontSize: 12 }}>11:42 · 100% · 第 1 页</div>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Word-style A4 page centered with margins */}
-                            <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center', background: '#f4f7fb', padding: 16 }}>
-                              <div style={{ width: 794, minHeight: 1123, height: 'auto', background: '#fff', boxShadow: '0 6px 18px rgba(15,23,42,0.06)', padding: 64, border: `1px solid ${lawdesk.border}`, overflow: 'auto' }}>
-                                <div contentEditable suppressContentEditableWarning onInput={(e) => setFinalContent((e.target as HTMLDivElement).innerText)} style={{ outline: 'none', minHeight: 400, color: lawdesk.text, fontSize: 15, lineHeight: '1.8', textAlign: 'left', fontFamily: 'serif' }}>
-                                  <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 16, textAlign: 'center' }}>民事起诉状</div>
-                                  <div style={{ whiteSpace: 'pre-wrap' }}>{finalContent || draftContent || `原告：\n被告：\n案由：民间借贷纠纷\n\n诉讼请求：\n1. \n2. \n3. \n\n事实与理由：\n……\n\n证据目录：\n1. \n2. \n3. \n\n此致\nXX人民法院\n\n具状人：\n\n日期：`}</div>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Bottom action buttons: unified set */}
-                            <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-                              <button onClick={() => setCurrentStep(3)} style={{ padding: '8px 12px', borderRadius: 6, background: '#f1f5f9', color: lawdesk.text, border: 'none' }}>← 返回上一步</button>
-                              <button onClick={() => { if (finalContent) setDraftContent(finalContent) }} style={{ padding: '8px 12px', borderRadius: 6, background: '#10b981', color: '#fff', border: 'none' }}>保存</button>
-                              <button onClick={() => {
-                                const content = finalContent || draftContent
-                                const blob = new Blob([content], { type: 'application/msword' })
-                                const url = URL.createObjectURL(blob)
-                                const a = document.createElement('a')
-                                a.href = url
-                                a.download = `${selectedDocType.replace(/\s+/g, '_')}_Final.doc`
-                                a.click()
-                                URL.revokeObjectURL(url)
-                              }} style={{ padding: '8px 12px', borderRadius: 6, background: '#f1f5f9', border: 'none' }}>导出 Word</button>
-                              <button onClick={() => { setApproved(true); setCurrentStep(5); }} style={{ padding: '8px 12px', borderRadius: 6, background: lawdesk.blue, color: '#fff', border: 'none' }}>确认定稿</button>
-                            </div>
-                          </div>
-                        )}
-
-                        {step.id === 5 && (
-                          <div>
-                            <div style={{ fontWeight: 800 }}>第五步｜文书定稿</div>
-                            <div style={{ marginTop: 6, color: lawdesk.muted }}>版本：Final · 生成时间：2026-07-06</div>
-                            <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-                              <button onClick={() => setCurrentStep(4)} style={{ padding: '8px 12px', borderRadius: 6, background: '#f1f5f9', color: lawdesk.text, border: 'none' }}>← 返回上一步</button>
-                              <button onClick={() => {
-                                const blob = new Blob([draftContent], { type: 'application/msword' })
-                                const url = URL.createObjectURL(blob)
-                                const a = document.createElement('a')
-                                a.href = url
-                                a.download = `${selectedDocType.replace(/\s+/g, '_')}_Final.doc`
-                                a.click()
-                                URL.revokeObjectURL(url)
-                              }} style={{ padding: '8px 12px', borderRadius: 6, background: '#0ea5a0', color: '#fff', border: 'none' }}>导出 Word</button>
-                              <button onClick={() => {
-                                if (matterId) router.push(`/matters/${matterId}/evidence`)
-                              }} style={{ padding: '8px 12px', borderRadius: 6, background: '#f1f5f9', color: lawdesk.text, border: 'none' }}>进入证据工作区</button>
-                              <button onClick={() => {/* noop view */ }} style={{ padding: '8px 12px', borderRadius: 6, background: lawdesk.blue, color: '#fff', border: 'none' }}>完成</button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ) : null}
-                  </div>
-                )
-              })}
-            </div>
+        {/* AI placeholder */}
+        <div style={{ maxWidth: 1200, margin: '12px auto 0', display: 'flex', justifyContent: 'flex-end' }}>
+          <div style={{ width: 520, background: '#fff', borderRadius: tokens.radius, padding: 12, border: `1px solid ${tokens.border}`, color: tokens.muted }}>
+            <div style={{ fontWeight: 700, marginBottom: 6 }}>AI 建议</div>
+            <div>（暂未启用）</div>
           </div>
         </div>
       </div>
-    </main>
+    </div>
   )
 }
