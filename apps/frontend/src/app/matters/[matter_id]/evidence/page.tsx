@@ -14,38 +14,13 @@ const tokens = {
 }
 
 const mock = {
-    proofGoal: '借贷关系成立',
-    evidences: [
-        { id: 'e1', title: '借条（签字）', type: '文书', date: '2025-11-02', strength: 90, notes: '原件在客户处' },
-        { id: 'e2', title: '银行转账记录', type: '银行凭证', date: '2025-11-03', strength: 95, notes: '截屏，有交易流水' },
-        { id: 'e3', title: '微信聊天截图', type: '社交记录', date: '2025-11-04', strength: 60, notes: '部分关键内容已删除' },
-        { id: 'e4', title: '催收短信', type: '通信', date: '2026-01-12', strength: 50, notes: '可作为补强' },
-    ],
-    proofMap: {
-        nodes: [
-            { id: 'n1', label: '借款合意' },
-            { id: 'n2', label: '资金交付' },
-            { id: 'n3', label: '未归还' },
-        ],
-        links: [
-            ['n1', 'n2'],
-            ['n2', 'n3'],
-        ],
-    },
-    gaps: [
-        { id: 'g1', title: '缺原始银行流水', impact: '高' },
-        { id: 'g2', title: '借条签字原件未拍照', impact: '中' },
-    ],
-    discoveries: [
-        { id: 'd1', text: 'AI 发现付款备注显示“借款”字样，支持资金交付。', confidence: 0.88 },
-        { id: 'd2', text: '疑似第三方资金流转，应核实账户归属。', confidence: 0.62 },
-    ],
-    timeline: [
-        { id: 't1', text: '2025-11-02 借条签署', time: '2025-11-02' },
-        { id: 't2', text: '2025-11-03 转账发生', time: '2025-11-03' },
-        { id: 't3', text: '2026-01-12 客户发起催收', time: '2026-01-12' },
-    ],
-    score: 78,
+    proofGoal: '',
+    evidences: [],
+    proofMap: { nodes: [], links: [] },
+    gaps: [],
+    discoveries: [],
+    timeline: [],
+    score: 0,
 }
 
 function ProgressBar({ value, color = tokens.blue, height = 10 }: { value: number; color?: string; height?: number }) {
@@ -61,14 +36,14 @@ export default function EvidencePage() {
     const router = useRouter()
     const matterId = params?.matter_id || 'demo-001'
 
-    // fallback workspace (used initially and on fetch failure)
+    // minimal empty workspace
     const fallbackWorkspace = mock
 
     const [data, setData] = useState<typeof mock>(fallbackWorkspace)
     const [loading, setLoading] = useState<boolean>(true)
     const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-    const [selectedEvidenceId, setSelectedEvidenceId] = useState<string>(fallbackWorkspace.evidences[0].id)
+    const [selectedEvidenceId, setSelectedEvidenceId] = useState<string>('')
     const [materials, setMaterials] = useState<any[]>([])
     const [loadingMaterials, setLoadingMaterials] = useState<boolean>(true)
     const [materialsConfirmed, setMaterialsConfirmed] = useState<boolean>(false)
@@ -89,7 +64,7 @@ export default function EvidencePage() {
     const [analyzing, setAnalyzing] = useState<boolean>(false)
 
     // derive selected evidence from current data
-    const selectedEvidence = (data?.evidences || []).find((e) => e.id === selectedEvidenceId) || (data?.evidences && data.evidences[0]) || fallbackWorkspace.evidences[0]
+    const selectedEvidence = (Array.isArray((data as any)?.evidences) ? (data as any).evidences.find((e: any) => e.id === selectedEvidenceId) : undefined) || (Array.isArray((data as any)?.evidences) && (data as any).evidences[0]) || null
 
     useEffect(() => {
         let cancelled = false
@@ -150,8 +125,25 @@ export default function EvidencePage() {
                 }
             } catch (err: any) {
                 if (!cancelled) {
-                    setData(fallbackWorkspace)
-                    setErrorMsg('已加载示例数据')
+                    // on failure, attempt to use evidence API directly (no mock fallback)
+                    try {
+                        const recs = await fetchEvidence()
+                        // build minimal mapped data from fetched evidence
+                        const mappedFromRecords = {
+                            proofGoal: '',
+                            evidences: (recs || []).map((e: any, idx: number) => ({ id: e.evidence_id || e.evidenceId || `ev-${idx}`, title: e.title || e.description || `证据 ${idx + 1}`, type: e.evidence_type || '', date: e.updated_at || e.created_at || '', strength: e.relevance ? 70 : 50, notes: e.description || '' })),
+                            proofMap: { nodes: [], links: [] },
+                            gaps: [],
+                            discoveries: [],
+                            timeline: [],
+                            score: 0,
+                        }
+                        setData(mappedFromRecords as any)
+                        if (mappedFromRecords.evidences.length > 0) setSelectedEvidenceId(mappedFromRecords.evidences[0].id)
+                    } catch (e) {
+                        setData(fallbackWorkspace)
+                        setErrorMsg('暂无证据数据')
+                    }
                     setLoading(false)
                 }
             }
@@ -170,13 +162,16 @@ export default function EvidencePage() {
             if (!res.ok) {
                 setEvidenceRecords([])
                 setLoadingEvidence(false)
-                return
+                return []
             }
             const d = await res.json().catch(() => [])
-            setEvidenceRecords(Array.isArray(d) ? d : [])
+            const arr = Array.isArray(d) ? d : []
+            setEvidenceRecords(arr)
+            return arr
         } catch (e) {
             console.error('load evidence failed', e)
             setEvidenceRecords([])
+            return []
         } finally {
             setLoadingEvidence(false)
         }

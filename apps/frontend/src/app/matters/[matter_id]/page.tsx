@@ -230,6 +230,7 @@ export default function MatterWorkspacePage() {
 
   const [materials, setMaterials] = useState<any[]>([])
   const [loadingMaterials, setLoadingMaterials] = useState(true)
+  const [evidenceCount, setEvidenceCount] = useState<number>(0)
 
   // Minimal monochrome four-card layout — M122 final
   const caseName = '张三诉李四民间借贷纠纷'
@@ -260,6 +261,16 @@ export default function MatterWorkspacePage() {
         const data = await res.json().catch(() => [])
         if (!mounted) return
         setMaterials(Array.isArray(data) ? data : [])
+        // fetch evidence count
+        try {
+          const r2 = await fetch(`${API}/matters/${encodeURIComponent(params.matter_id)}/evidence`)
+          if (r2.ok) {
+            const ed = await r2.json().catch(() => [])
+            if (Array.isArray(ed)) setEvidenceCount(ed.length)
+          }
+        } catch (e) {
+          // ignore
+        }
       } catch (e) {
         console.error('load materials failed', e)
         if (mounted) setMaterials([])
@@ -333,6 +344,10 @@ export default function MatterWorkspacePage() {
             <div>委托人：{client}</div>
             <div>案件阶段：{stage}</div>
             <div>案件状态：{status}</div>
+            <div style={{ marginTop: 8, display: 'flex', gap: 12 }}>
+              <SummaryCard title="Materials" value={materials.length} />
+              <SummaryCard title="Evidence" value={evidenceCount} />
+            </div>
           </div>
         </div>
       </section>
