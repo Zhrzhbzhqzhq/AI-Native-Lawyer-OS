@@ -46,7 +46,26 @@ export function buildFactPrompt(_context: any) {
 }
 
 export function buildIssuePrompt(_context: any) {
-    return 'analyze_issues'
+    return `你是一名中国资深诉讼律师。
+
+下面是案件已经确认的事实。
+
+请提炼案件真正需要解决的争议焦点。
+
+返回 JSON：
+
+[
+ {
+     "title":"",
+     "description":""
+ }
+]
+
+争议焦点数量控制在 3~8 个。
+
+不要解释。
+不要 Markdown。
+只返回 JSON。`
 }
 
 export function buildLawPrompt(_context: any) {

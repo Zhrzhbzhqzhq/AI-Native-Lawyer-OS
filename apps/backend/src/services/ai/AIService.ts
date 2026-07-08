@@ -143,20 +143,48 @@ export class AIService {
         const facts = await this.prisma.fact.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } as any })
 
         const context = await this.contextBuilder.buildMatterContext(matter_id)
-        const promptPack = {
-            task: buildIssuePrompt(context),
+        const issuePrompt = buildIssuePrompt(context)
+        const promptPack: any = {
+            task: 'analyze_issues',
             matter_id,
             facts: facts.map((f: any) => ({ title: f.title || '', description: f.description || '', status: f.status || '' })),
             context_pack: context,
+            user_prompt: issuePrompt,
             created_at: new Date().toISOString(),
         }
 
         try {
             const resp = await this.adapter.generate(promptPack)
-            // adapter may return structured issues under resp.response.issues or resp.response.suggestions
-            const issues = resp && resp.response && (Array.isArray(resp.response.issues) ? resp.response.issues : (Array.isArray(resp.response.suggestions) ? resp.response.suggestions : null))
+            // Try multiple response shapes: resp.response.issues, resp.response.suggestions,
+            // or MiniMax-style resp.response.choices[0].message.content (stringified JSON)
+            let issues: any = null
+            if (resp && resp.response) {
+                if (Array.isArray(resp.response.issues)) issues = resp.response.issues
+                else if (Array.isArray(resp.response.suggestions)) issues = resp.response.suggestions
+                else if (Array.isArray(resp.response)) issues = resp.response
+                else if (resp.response.choices && Array.isArray(resp.response.choices) && resp.response.choices[0] && resp.response.choices[0].message && typeof resp.response.choices[0].message.content === 'string') {
+                    const txt = resp.response.choices[0].message.content
+                    try {
+                        const parsed = JSON.parse(txt)
+                        if (Array.isArray(parsed)) issues = parsed
+                    } catch (e) {
+                        const m = txt.match(/\[\s*\{[\s\S]*\}\s*\]/)
+                        if (m && m[0]) {
+                            try {
+                                const parsed = JSON.parse(m[0])
+                                if (Array.isArray(parsed)) issues = parsed
+                            } catch (_e) {
+                                // ignore
+                            }
+                        }
+                    }
+                }
+            }
+
             if (Array.isArray(issues)) {
-                return issues.map((it: any) => ({ title: String(it.title || it.name || ''), description: String(it.description || it.reason || '') }))
+                // enforce max 8 as requested; model instructed to return 3-8
+                const limited = issues.slice(0, 8)
+                return limited.map((it: any) => ({ title: String(it.title || it.name || ''), description: String(it.description || it.reason || '') }))
             }
         } catch (e) {
             // ignore and fallback below
