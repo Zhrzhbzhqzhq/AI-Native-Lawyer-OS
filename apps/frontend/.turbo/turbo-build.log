@@ -2,33 +2,48 @@
 > @lawdesk/frontend@1.0.0 build /Users/qingzhang/Desktop/AI-Native-Lawyer-OS/apps/frontend
 > next build
 
-  [1m[38;2;173;127;168m▲ Next.js 14.2.5[39m[22m
+  ▲ Next.js 14.2.5
   - Environments: .env.local
 
- [37m[1m [22m[39m Creating an optimized production build ...
- [32m[1m✓[22m[39m Compiled successfully
-[?25l [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G[?25h [37m[1m [22m[39m Linting and checking validity of types     [32m[1m✓[22m[39m Linting and checking validity of types 
-[?25l [37m[1m [22m[39m Collecting page data  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting page data  [36m..[39m[2K[1G[?25h [37m[1m [22m[39m Collecting page data     [32m[1m✓[22m[39m Collecting page data 
-[?25l [37m[1m [22m[39m Generating static pages (0/6)  [36m[    ][39m[2K[1G[?25h [32m[1m✓[22m[39m Generating static pages (6/6)
-[?25l [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[?25l [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G[?25h [37m[1m [22m[39m Collecting build traces     [32m[1m✓[22m[39m Collecting build traces 
-[2K[1G[?25h [37m[1m [22m[39m Finalizing page optimization     [32m[1m✓[22m[39m Finalizing page optimization 
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/12) ...
+   Generating static pages (3/12) 
+   Generating static pages (6/12) 
+   Generating static pages (9/12) 
+ ✓ Generating static pages (12/12)
+   Finalizing page optimization ...
+   Collecting build traces ...
 
-[4mRoute (app)[24m                              [4mSize[24m     [4mFirst Load JS[24m
-┌ ○ /                                    145 B          [37m[1m87.2 kB[22m[39m
-├ ○ /_not-found                          874 B          [37m[1m87.9 kB[22m[39m
-├ ○ /intake                              3.9 kB         [37m[1m90.9 kB[22m[39m
-├ ○ /matters                             1.56 kB        [37m[1m88.6 kB[22m[39m
-├ ƒ /matters/[matter_id]                 1.74 kB        [37m[1m88.8 kB[22m[39m
-├ ƒ /matters/[matter_id]/documents       1.55 kB        [37m[1m88.6 kB[22m[39m
-├ ƒ /matters/[matter_id]/evidence        2.17 kB        [37m[1m89.2 kB[22m[39m
-└ ƒ /matters/[matter_id]/runtime         145 B          [37m[1m87.2 kB[22m[39m
-+ First Load JS shared by all            [37m[1m87 kB[22m[39m
-  ├ chunks/753-9c1050b8c60bc8ed.js       31.5 kB
-  ├ chunks/abf17911-66951ae7a2f899bd.js  53.7 kB
-  └ other shared chunks (total)          1.86 kB
+Route (app)                              Size     First Load JS
+┌ ○ /                                    141 B          87.2 kB
+├ ○ /_not-found                          874 B            88 kB
+├ ƒ /api/uploads                         0 B                0 B
+├ ○ /dev/ai-health                       2 kB           89.1 kB
+├ ○ /dev/ai-playground                   1.61 kB        88.7 kB
+├ ○ /intake                              2.65 kB        89.7 kB
+├ ○ /intake/analyzing                    1.56 kB        88.7 kB
+├ ○ /intake/creating                     975 B          88.1 kB
+├ ○ /intake/report                       2.6 kB         89.7 kB
+├ ○ /matters                             3.11 kB        90.2 kB
+├ ƒ /matters/[matter_id]                 2.05 kB        89.1 kB
+├ ƒ /matters/[matter_id]/arguments       4.21 kB        91.3 kB
+├ ƒ /matters/[matter_id]/documents       4.11 kB        91.2 kB
+├ ƒ /matters/[matter_id]/evidence        7.52 kB        94.6 kB
+├ ƒ /matters/[matter_id]/execution       3.39 kB        90.5 kB
+├ ƒ /matters/[matter_id]/facts           4.02 kB        91.1 kB
+├ ƒ /matters/[matter_id]/issues          4.11 kB        91.2 kB
+├ ƒ /matters/[matter_id]/laws            4.08 kB        91.2 kB
+├ ƒ /matters/[matter_id]/research        9.51 kB        96.6 kB
+└ ƒ /matters/[matter_id]/runtime         3.85 kB        90.9 kB
++ First Load JS shared by all            87.1 kB
+  ├ chunks/753-ba12648efa050a9d.js       31.5 kB
+  ├ chunks/abf17911-144c52c924fd678b.js  53.7 kB
+  └ other shared chunks (total)          1.92 kB
 
 
 ○  (Static)   prerendered as static content
 ƒ  (Dynamic)  server-rendered on demand
 
-[?25h

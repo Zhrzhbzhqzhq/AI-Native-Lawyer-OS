@@ -17,7 +17,8 @@ export class MiniMaxAdapter implements LlmAdapter {
     // 3. MINIMAX_REGION -> 'cn' uses https://api.minimaxi.com/v1, 'global' uses https://api.minimax.io/v1
     // 4. default to global
     if (process.env.MINIMAX_BASE_URL && process.env.MINIMAX_BASE_URL.trim() !== '') {
-      this.baseUrl = process.env.MINIMAX_BASE_URL
+      // sanitize whitespace/newlines from env
+      this.baseUrl = process.env.MINIMAX_BASE_URL.replace(/\s+/g, '').trim()
     } else if (this.authMode === 'token_plan' && process.env.MINIMAX_TOKEN_BASE_URL && process.env.MINIMAX_TOKEN_BASE_URL.trim() !== '') {
       this.baseUrl = process.env.MINIMAX_TOKEN_BASE_URL
     } else {

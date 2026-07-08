@@ -35,12 +35,23 @@ export default function IntakePage() {
   }, [])
 
   function handleStart() {
-    // For V1: no backend. Save lightweight draft to sessionStorage and return to matters.
-    try {
-      const draft = { caseName, client, opponent, caseType, files }
-      sessionStorage.setItem('new_matter_draft', JSON.stringify(draft))
-    } catch (e) { }
-    router.push('/intake/creating')
+    // For V2: call backend AI create endpoint, then redirect to creating page
+    (async () => {
+      try {
+        const base = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'
+        const res = await fetch(`${base}/intake/ai-create-matter`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: caseName, client_name: client, opponent_name: opponent, matter_type: caseType }) })
+        if (res.status === 201) {
+          const data = await res.json()
+          try { sessionStorage.setItem('intake_analysis', JSON.stringify(data)) } catch (e) { }
+          router.push('/intake/creating')
+          return
+        }
+      } catch (e) {
+        // fallback to local draft
+        try { const draft = { caseName, client, opponent, caseType, files }; sessionStorage.setItem('new_matter_draft', JSON.stringify(draft)) } catch (e) { }
+      }
+      router.push('/intake/creating')
+    })()
   }
 
   return (

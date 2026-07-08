@@ -1,2 +1,5 @@
 {"timestamp":"2026-07-08T15:12:53.268Z","module":"TEST","provider":"minimax","model":"MiniMax-M3","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":123}
 {"timestamp":"2026-07-08T16:21:52.245Z","module":"Facts","provider":"minimax","model":"MiniMax-M3","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":39827}
+{"timestamp":"2026-07-08T16:40:27.568Z","module":"Facts","provider":"minimax","model":"MiniMax-M3","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":10310}
+{"timestamp":"2026-07-08T16:47:14.775Z","module":"Facts","provider":"minimax","model":"MiniMax-M3","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":11962}
+{"timestamp":"2026-07-08T17:13:06.467Z","module":"Facts","provider":"minimax","model":"MiniMax-M3","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":10293}
