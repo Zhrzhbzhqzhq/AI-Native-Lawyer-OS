@@ -32,6 +32,8 @@ export class MiniMaxAdapter implements LlmAdapter {
   }
 
   async generate(promptPack: any) {
+    const promptVersion = process.env.PROMPT_VERSION || 'v1'
+
     // If no API key, signal fallback to mock via provider flag
     if (!this.apiKey) {
       return {
@@ -39,11 +41,15 @@ export class MiniMaxAdapter implements LlmAdapter {
         model: 'mock-lawdesk-v1',
         response: {},
         notes: 'MINIMAX_API_KEY missing, fallback to mock',
+        fallback: true,
+        prompt_version: promptVersion,
       }
     }
 
     const system_prompt = promptPack.system_prompt ?? promptPack.systemPrompt ?? ''
-    const user_prompt = promptPack.user_prompt ?? promptPack.userPrompt ?? ''
+    let user_prompt = promptPack.user_prompt ?? promptPack.userPrompt ?? ''
+    // Ensure prompt_version travels with the user prompt
+    user_prompt = `${user_prompt}\n\nPROMPT_VERSION: ${promptVersion}`
 
     const payload = {
       model: this.model,
@@ -56,9 +62,9 @@ export class MiniMaxAdapter implements LlmAdapter {
       thinking: { type: 'disabled' },
     }
 
-    const url = `${this.baseUrl.replace(/\/+$/,'')}/chat/completions`
+    const url = `${this.baseUrl.replace(/\/+$/, '')}/chat/completions`
 
-    const headers: Record<string,string> = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${this.apiKey}`,
     }
@@ -68,18 +74,107 @@ export class MiniMaxAdapter implements LlmAdapter {
     try {
       fetcher = (globalThis as any).fetch ?? (await import('node-fetch')).default
     } catch (_e) {
-      // fallback to global fetch if import not available; tests will stub network
       fetcher = (globalThis as any).fetch
     }
 
-    const resp = await fetcher(url, { method: 'POST', headers, body: JSON.stringify(payload) })
-    const json = await resp.json()
+    const timeoutMs = Number(process.env.AI_PROVIDER_TIMEOUT_MS || 45000)
+    const maxAttempts = 3
+    let attempt = 0
+    let lastError: any = null
+
+    const start = Date.now()
+    while (attempt < maxAttempts) {
+      attempt++
+      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null
+      const signal = controller ? (controller as any).signal : undefined
+      if (controller) setTimeout(() => controller.abort(), timeoutMs)
+
+      try {
+        const resp = await fetcher(url, { method: 'POST', headers, body: JSON.stringify(payload), signal })
+        const status = resp.status
+        const json = await resp.json()
+
+        // If non-ok and retryable status, retry
+        const retryableStatuses = [429, 502, 503, 504]
+        if (!resp.ok && retryableStatuses.includes(status)) {
+          if (attempt >= maxAttempts) {
+            // continue to return error below
+          } else {
+            await new Promise(r => setTimeout(r, 500 * attempt))
+            continue
+          }
+        }
+
+        // gather usage tokens if present
+        const usage = json && json.usage ? json.usage : (json && json.data && json.data.usage ? json.data.usage : null)
+        const duration = Date.now() - start
+
+        // log request
+        try {
+          const { logAIRequest } = await import('../services/ai/aiRuntimeLogger')
+          const contextSizes = (promptPack && promptPack.context_pack) ? {
+            materials: Array.isArray(promptPack.context_pack.materials) ? promptPack.context_pack.materials.length : 0,
+            evidence: Array.isArray(promptPack.context_pack.evidence) ? promptPack.context_pack.evidence.length : 0,
+            facts: Array.isArray(promptPack.context_pack.facts) ? promptPack.context_pack.facts.length : 0,
+            issues: Array.isArray(promptPack.context_pack.issues) ? promptPack.context_pack.issues.length : 0,
+            laws: Array.isArray(promptPack.context_pack.laws) ? promptPack.context_pack.laws.length : 0,
+            arguments: Array.isArray(promptPack.context_pack.arguments) ? promptPack.context_pack.arguments.length : 0,
+            documents: Array.isArray(promptPack.context_pack.documents) ? promptPack.context_pack.documents.length : 0,
+          } : {}
+          logAIRequest({ provider: 'minimax', model: this.model, matter_id: promptPack.matter_id, workspace: promptPack.task, duration_ms: duration, prompt_tokens: usage && usage.prompt_tokens ? usage.prompt_tokens : null, completion_tokens: usage && usage.completion_tokens ? usage.completion_tokens : (usage && usage.total_tokens ? usage.total_tokens : null), fallback: false, prompt_version: promptVersion, context_sizes: contextSizes })
+        } catch (_e) {
+          // ignore logger errors
+        }
+
+        return {
+          provider: 'minimax',
+          model: this.model,
+          response: json,
+          payload_sent: payload,
+          usage,
+          duration_ms: duration,
+          attempts: attempt,
+          prompt_version: promptVersion,
+        }
+      } catch (err: any) {
+        lastError = err
+        // Determine if retryable
+        const isAbort = err && err.name === 'AbortError'
+        const status = err && err.status
+        const retryableStatuses = [429, 502, 503, 504]
+        if (isAbort) {
+          // timeout -> consider as retryable until attempts exhausted
+          if (attempt >= maxAttempts) break
+          await new Promise(r => setTimeout(r, 500 * attempt))
+          continue
+        }
+
+        // If fetch returned non-OK, try to inspect status
+        if (err && err.response && err.response.status && retryableStatuses.includes(err.response.status)) {
+          if (attempt >= maxAttempts) break
+          await new Promise(r => setTimeout(r, 500 * attempt))
+          continue
+        }
+
+        // Non-retryable
+        break
+      }
+    }
+
+    try {
+      const { logAIRequest } = await import('../services/ai/aiRuntimeLogger')
+      logAIRequest({ provider: 'minimax', model: this.model, matter_id: promptPack && promptPack.matter_id, workspace: promptPack && promptPack.task, duration_ms: Date.now() - start, prompt_tokens: null, completion_tokens: null, fallback: true, prompt_version: promptVersion })
+    } catch (_e) {
+      // ignore
+    }
 
     return {
       provider: 'minimax',
       model: this.model,
-      response: json,
-      payload_sent: payload,
+      response: null,
+      error: lastError ? String(lastError) : 'unknown_error',
+      fallback: true,
+      prompt_version: promptVersion,
     }
   }
 }

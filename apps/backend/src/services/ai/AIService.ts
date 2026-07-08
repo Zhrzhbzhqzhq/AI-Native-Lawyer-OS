@@ -52,19 +52,11 @@ export class AIService {
                 else if (resp.response.choices && Array.isArray(resp.response.choices) && resp.response.choices[0] && resp.response.choices[0].message && typeof resp.response.choices[0].message.content === 'string') {
                     const txt = resp.response.choices[0].message.content
                     try {
-                        const parsed = JSON.parse(txt)
-                        if (Array.isArray(parsed)) suggestions = parsed
-                    } catch (e) {
-                        // try to extract JSON substring
-                        const m = txt.match(/\[\s*\{[\s\S]*\}\s*\]/)
-                        if (m && m[0]) {
-                            try {
-                                const parsed = JSON.parse(m[0])
-                                if (Array.isArray(parsed)) suggestions = parsed
-                            } catch (_e) {
-                                // ignore
-                            }
-                        }
+                        const { parseAIJson } = await import('./parseAIJson')
+                        const parsed = parseAIJson(txt)
+                        if (Array.isArray(parsed.data)) suggestions = parsed.data
+                    } catch (_e) {
+                        // ignore
                     }
                 }
             }
@@ -110,18 +102,11 @@ export class AIService {
                 else if (resp.response.choices && Array.isArray(resp.response.choices) && resp.response.choices[0] && resp.response.choices[0].message && typeof resp.response.choices[0].message.content === 'string') {
                     const txt = resp.response.choices[0].message.content
                     try {
-                        const parsed = JSON.parse(txt)
-                        if (Array.isArray(parsed)) facts = parsed
-                    } catch (e) {
-                        const m = txt.match(/\[\s*\{[\s\S]*\}\s*\]/)
-                        if (m && m[0]) {
-                            try {
-                                const parsed = JSON.parse(m[0])
-                                if (Array.isArray(parsed)) facts = parsed
-                            } catch (_e) {
-                                // ignore
-                            }
-                        }
+                        const { parseAIJson } = await import('./parseAIJson')
+                        const parsed = parseAIJson(txt)
+                        if (Array.isArray(parsed.data)) facts = parsed.data
+                    } catch (_e) {
+                        // ignore
                     }
                 }
             }
@@ -165,18 +150,11 @@ export class AIService {
                 else if (resp.response.choices && Array.isArray(resp.response.choices) && resp.response.choices[0] && resp.response.choices[0].message && typeof resp.response.choices[0].message.content === 'string') {
                     const txt = resp.response.choices[0].message.content
                     try {
-                        const parsed = JSON.parse(txt)
-                        if (Array.isArray(parsed)) issues = parsed
-                    } catch (e) {
-                        const m = txt.match(/\[\s*\{[\s\S]*\}\s*\]/)
-                        if (m && m[0]) {
-                            try {
-                                const parsed = JSON.parse(m[0])
-                                if (Array.isArray(parsed)) issues = parsed
-                            } catch (_e) {
-                                // ignore
-                            }
-                        }
+                        const { parseAIJson } = await import('./parseAIJson')
+                        const parsed = parseAIJson(txt)
+                        if (Array.isArray(parsed.data)) issues = parsed.data
+                    } catch (_e) {
+                        // ignore
                     }
                 }
             }
@@ -197,7 +175,7 @@ export class AIService {
 
     // analyzeLaws: reads issues under the matter and asks adapter to suggest applicable laws
     async analyzeLaws(matter_id: string) {
-        const issues = await this.prisma.issue.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } as any })
+        let issues = await this.prisma.issue.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } as any })
 
         const context = await this.contextBuilder.buildMatterContext(matter_id)
         const userPrompt = buildLawPrompt(context)
@@ -222,18 +200,11 @@ export class AIService {
                 else if (resp.response.choices && Array.isArray(resp.response.choices) && resp.response.choices[0] && resp.response.choices[0].message && typeof resp.response.choices[0].message.content === 'string') {
                     const txt = resp.response.choices[0].message.content
                     try {
-                        const parsed = JSON.parse(txt)
-                        if (Array.isArray(parsed)) laws = parsed
-                    } catch (e) {
-                        const m = txt.match(/\[\s*\{[\s\S]*\}\s*\]/)
-                        if (m && m[0]) {
-                            try {
-                                const parsed = JSON.parse(m[0])
-                                if (Array.isArray(parsed)) laws = parsed
-                            } catch (_e) {
-                                // ignore
-                            }
-                        }
+                        const { parseAIJson } = await import('./parseAIJson')
+                        const parsed = parseAIJson(txt)
+                        if (Array.isArray(parsed.data)) issues = parsed.data
+                    } catch (_e) {
+                        // ignore
                     }
                 }
             }
@@ -254,7 +225,7 @@ export class AIService {
     async analyzeArguments(matter_id: string) {
         const context = await this.contextBuilder.buildMatterContext(matter_id)
         const facts = Array.isArray(context.facts) ? context.facts : []
-        const issues = Array.isArray(context.issues) ? context.issues : []
+        let issues = Array.isArray(context.issues) ? context.issues : []
         const laws = Array.isArray(context.laws) ? context.laws : []
 
         const userPrompt = buildArgumentPrompt(context)
@@ -282,18 +253,11 @@ export class AIService {
                 else if (resp.response.choices && Array.isArray(resp.response.choices) && resp.response.choices[0] && resp.response.choices[0].message && typeof resp.response.choices[0].message.content === 'string') {
                     const txt = resp.response.choices[0].message.content
                     try {
-                        const parsed = JSON.parse(txt)
-                        if (Array.isArray(parsed)) args = parsed
-                    } catch (e) {
-                        const m = txt.match(/\[\s*\{[\s\S]*\}\s*\]/)
-                        if (m && m[0]) {
-                            try {
-                                const parsed = JSON.parse(m[0])
-                                if (Array.isArray(parsed)) args = parsed
-                            } catch (_e) {
-                                // ignore
-                            }
-                        }
+                        const { parseAIJson } = await import('./parseAIJson')
+                        const parsed = parseAIJson(txt)
+                        if (Array.isArray(parsed.data)) args = parsed.data
+                    } catch (_e) {
+                        // ignore
                     }
                 }
             }
@@ -344,18 +308,11 @@ export class AIService {
                 else if (resp.response.choices && Array.isArray(resp.response.choices) && resp.response.choices[0] && resp.response.choices[0].message && typeof resp.response.choices[0].message.content === 'string') {
                     const txt = resp.response.choices[0].message.content
                     try {
-                        const parsed = JSON.parse(txt)
-                        if (Array.isArray(parsed)) docs = parsed
-                    } catch (e) {
-                        const m = txt.match(/\[\s*\{[\s\S]*\}\s*\]/)
-                        if (m && m[0]) {
-                            try {
-                                const parsed = JSON.parse(m[0])
-                                if (Array.isArray(parsed)) docs = parsed
-                            } catch (_e) {
-                                // ignore
-                            }
-                        }
+                        const { parseAIJson } = await import('./parseAIJson')
+                        const parsed = parseAIJson(txt)
+                        if (Array.isArray(parsed.data)) docs = parsed.data
+                    } catch (_e) {
+                        // ignore
                     }
                 }
             }

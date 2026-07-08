@@ -38,13 +38,11 @@ export class PlannerRuntime {
       let text = resp?.content?.[0]?.text ?? resp?.completion ?? resp?.text ?? null
       if (text && String(text).trim().length > 0) {
         const ts = String(text)
-        // If text contains a fenced ```json block, extract inner JSON
-        const fenced = ts.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)
-        const candidate = fenced ? fenced[1] : ts
-        // try parse as JSON structured output
         try {
-          const parsed = JSON.parse(candidate)
-          const source = parsed.recommended_actions || parsed.next_steps || parsed.lawyer_actions || parsed
+          const { parseAIJson } = await import('../services/ai/parseAIJson')
+          const parsedWrapper = parseAIJson(ts)
+          const parsed = parsedWrapper.data || null
+          const source = parsed && (parsed.recommended_actions || parsed.next_steps || parsed.lawyer_actions) || parsed
           if (Array.isArray(source)) {
             recommended_actions = source.map((a: any, idx: number) => ({
               action: a.action || `action_${idx}`,
@@ -52,7 +50,6 @@ export class PlannerRuntime {
               reason: a.reason || parsed.summary || '',
             }))
           } else if (parsed && typeof parsed === 'object' && (parsed.action || parsed.title)) {
-            // single action object
             recommended_actions.push({ action: parsed.action || 'create_task', title: parsed.title || String(parsed || ''), reason: parsed.reason || parsed.summary || '' })
           }
         } catch (_e) {
@@ -60,7 +57,7 @@ export class PlannerRuntime {
           const lines = ts.split(/\r?\n/).map(s => s.trim()).filter(Boolean)
           for (const ln of lines) {
             if (/^[-*]\s*(create_task|draft_document|assign_task|create_research)/i.test(ln)) {
-              const parts = ln.replace(/^[-*]\s*/,'').split(/:\s*/)
+              const parts = ln.replace(/^[-*]\s*/, '').split(/:\s*/)
               recommended_actions.push({ action: parts[0].toLowerCase(), title: parts[1] || ln, reason: '' })
             }
           }
