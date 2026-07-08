@@ -35,6 +35,9 @@ export default function LawsWorkspace() {
     const [editingLawId, setEditingLawId] = useState<string | null>(null)
     const [editingPatch, setEditingPatch] = useState<any>({})
     const [savingEdit, setSavingEdit] = useState<boolean>(false)
+    // AI suggestions state
+    const [suggestions, setSuggestions] = useState<Array<{ title: string; citation?: string; description: string; id?: string }>>([])
+    const [analyzing, setAnalyzing] = useState<boolean>(false)
 
     const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
 
@@ -213,11 +216,63 @@ export default function LawsWorkspace() {
                     </div>
                 </div>
 
-                {/* AI placeholder area (仅占位，不接 AI) */}
+                {/* AI Suggestions area */}
                 <div style={{ maxWidth: 1200, margin: '12px auto 0', display: 'flex', justifyContent: 'flex-end' }}>
-                    <div style={{ width: 520, background: '#fff', borderRadius: tokens.radius, padding: 12, border: `1px solid ${tokens.border}`, color: tokens.muted }}>
-                        <div style={{ fontWeight: 700, marginBottom: 6 }}>AI 建议</div>
-                        <div>（暂未启用）</div>
+                    <div style={{ width: 520, background: '#fff', borderRadius: tokens.radius, padding: 12, border: `1px solid ${tokens.border}` }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ fontWeight: 700 }}>AI 建议</div>
+                            {suggestions && suggestions.length > 0 ? (
+                                <button onClick={async () => {
+                                    for (const s of suggestions.slice()) {
+                                        try {
+                                            const body: any = { title: s.title, citation: s.citation || '', description: s.description }
+                                            if (selectedIssueId) body.issue_id = selectedIssueId
+                                            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/laws`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+                                            if (!res.ok) throw new Error(`status:${res.status}`)
+                                        } catch (e) {
+                                            console.error('accept all laws failed', e)
+                                        }
+                                    }
+                                    try { await fetchLaws() } catch (e) { }
+                                    setSuggestions([])
+                                }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>全部接受</button>
+                            ) : null}
+                        </div>
+
+                        {suggestions && suggestions.length > 0 ? (
+                            <div style={{ marginTop: 10 }}>
+                                {suggestions.map((s) => (
+                                    <div key={s.id} style={{ padding: 10, borderRadius: 8, marginBottom: 8, background: '#fff', border: '1px solid #f1f5f9' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <div>
+                                                <div style={{ fontWeight: 700 }}>{s.title}</div>
+                                                <div style={{ color: tokens.muted, marginTop: 6 }}>{s.citation}</div>
+                                                <div style={{ color: tokens.muted, marginTop: 6 }}>{s.description}</div>
+                                            </div>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+                                                <button onClick={async () => {
+                                                    try {
+                                                        const body: any = { title: s.title, citation: s.citation || '', description: s.description }
+                                                        if (selectedIssueId) body.issue_id = selectedIssueId
+                                                        const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/laws`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+                                                        if (!res.ok) throw new Error(`status:${res.status}`)
+                                                        setSuggestions((prev) => prev.filter((x) => x.id !== s.id))
+                                                        try { await fetchLaws() } catch (e) { }
+                                                    } catch (e) {
+                                                        console.error('accept law failed', e)
+                                                        alert('创建法规失败，请稍后重试')
+                                                    }
+                                                }} style={{ padding: '6px 10px', borderRadius: 6, background: '#111827', color: '#fff', border: 'none' }}>接受</button>
+
+                                                <button onClick={() => setSuggestions((prev) => prev.filter((x) => x.id !== s.id))} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', color: '#111827', border: '1px solid #e6e7ef' }}>忽略</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div style={{ marginTop: 10, color: tokens.muted }}>AI 建议将显示在此处</div>
+                        )}
                     </div>
                 </div>
             </div>
