@@ -231,12 +231,21 @@ export default function MatterWorkspacePage() {
   const [materials, setMaterials] = useState<any[]>([])
   const [loadingMaterials, setLoadingMaterials] = useState(true)
   const [evidenceCount, setEvidenceCount] = useState<number>(0)
+  const [matterTitle, setMatterTitle] = useState<string>('')
+  const [matterStatus, setMatterStatus] = useState<string>('')
+  const [clientName, setClientName] = useState<string | null>(null)
+  const [counts, setCounts] = useState<{ materials: number; evidence: number; facts: number; issues: number; laws: number; arguments: number; documents: number }>({ materials: 0, evidence: 0, facts: 0, issues: 0, laws: 0, arguments: 0, documents: 0 })
+  const [facts, setFacts] = useState<any[]>([])
+  const [issues, setIssues] = useState<any[]>([])
+  const [laws, setLaws] = useState<any[]>([])
+  const [argumentsList, setArgumentsList] = useState<any[]>([])
+  const [documents, setDocuments] = useState<any[]>([])
 
-  // Minimal monochrome four-card layout — M122 final
-  const caseName = '张三诉李四民间借贷纠纷'
-  const client = '张三'
-  const stage = '证据整理'
-  const status = '进行中'
+  // Dynamic values populated from backend
+  const caseName = matterTitle || ''
+  const client = clientName ?? '未填写'
+  const stage = matterStatus || '进行中'
+  const status = matterStatus || '进行中'
 
   const cardStyle: React.CSSProperties = {
     background: '#fff',
@@ -247,38 +256,79 @@ export default function MatterWorkspacePage() {
 
   useEffect(() => {
     let mounted = true
-    async function load() {
+    async function loadAll() {
+      if (!params?.matter_id) return
       setLoadingMaterials(true)
+      const API = (process.env.NEXT_PUBLIC_API_BASE_URL as string) || 'http://localhost:4000'
+      const endpoints = {
+        matter: `${API}/matters/${encodeURIComponent(params.matter_id)}`,
+        materials: `${API}/matters/${encodeURIComponent(params.matter_id)}/materials`,
+        evidence: `${API}/matters/${encodeURIComponent(params.matter_id)}/evidence`,
+        facts: `${API}/matters/${encodeURIComponent(params.matter_id)}/facts`,
+        issues: `${API}/matters/${encodeURIComponent(params.matter_id)}/issues`,
+        laws: `${API}/matters/${encodeURIComponent(params.matter_id)}/laws`,
+        arguments: `${API}/matters/${encodeURIComponent(params.matter_id)}/arguments`,
+        documents: `${API}/matters/${encodeURIComponent(params.matter_id)}/documents`,
+      }
+
       try {
-        const API = (process.env.NEXT_PUBLIC_API_BASE_URL as string) || 'http://localhost:4000'
-        const res = await fetch(`${API}/matters/${encodeURIComponent(params.matter_id)}/materials`)
+        const settled = await Promise.allSettled(Object.values(endpoints).map((u) => fetch(u).catch((e) => null)))
         if (!mounted) return
-        if (!res.ok) {
-          setMaterials([])
-          setLoadingMaterials(false)
-          return
-        }
-        const data = await res.json().catch(() => [])
-        if (!mounted) return
-        setMaterials(Array.isArray(data) ? data : [])
-        // fetch evidence count
+
+        // matter
         try {
-          const r2 = await fetch(`${API}/matters/${encodeURIComponent(params.matter_id)}/evidence`)
-          if (r2.ok) {
-            const ed = await r2.json().catch(() => [])
-            if (Array.isArray(ed)) setEvidenceCount(ed.length)
+          const mResp = settled[0].status === 'fulfilled' && settled[0].value && settled[0].value.ok ? await (settled[0] as any).value.json() : null
+          if (mResp && typeof mResp === 'object') {
+            setMatterTitle(mResp.title || '')
+            setMatterStatus(mResp.status || '')
+            setClientName((mResp.client && (mResp.client.name || mResp.client)) || null)
           }
         } catch (e) {
           // ignore
         }
+
+        // helper to parse arrays
+        const parseArr = async (idx: number) => {
+          try {
+            const r = (settled[idx] as any).value
+            if (r && r.ok) {
+              const j = await r.json().catch(() => null)
+              return Array.isArray(j) ? j : []
+            }
+          } catch (e) { }
+          return []
+        }
+
+        const materialsArr = await parseArr(1)
+        const evidenceArr = await parseArr(2)
+        const factsArr = await parseArr(3)
+        const issuesArr = await parseArr(4)
+        const lawsArr = await parseArr(5)
+        const argsArr = await parseArr(6)
+        const docsArr = await parseArr(7)
+
+        if (!mounted) return
+        setMaterials(materialsArr)
+        setEvidenceCount(Array.isArray(evidenceArr) ? evidenceArr.length : 0)
+        setCounts({ materials: materialsArr.length, evidence: evidenceArr.length, facts: factsArr.length, issues: issuesArr.length, laws: lawsArr.length, arguments: argsArr.length, documents: docsArr.length })
+        setFacts(factsArr)
+        setIssues(issuesArr)
+        setLaws(lawsArr)
+        setArgumentsList(argsArr)
+        setDocuments(docsArr)
       } catch (e) {
-        console.error('load materials failed', e)
-        if (mounted) setMaterials([])
+        console.error('loadAll failed', e)
+        if (mounted) {
+          setMaterials([])
+          setEvidenceCount(0)
+          setCounts({ materials: 0, evidence: 0, facts: 0, issues: 0, laws: 0, arguments: 0, documents: 0 })
+        }
       } finally {
         if (mounted) setLoadingMaterials(false)
       }
     }
-    if (params?.matter_id) load()
+
+    loadAll()
     return () => { mounted = false }
   }, [params?.matter_id])
 

@@ -61,8 +61,8 @@ export default function MattersPage() {
     { matter_id: 'demo-010', title: '吴某劳动报酬纠纷', status: '结案整理', ai_status: 'AI正在整理结案材料', next_step: '案件归档', priority: '★☆☆☆☆' },
   ]
 
-  // For prototype: force using mockMatters for UI display (keep fetch logic intact)
-  const sourceMatters = mockMatters
+  // Use real backend results when available. Do not fall back to demo mocks.
+  const sourceMatters = matters && matters.length > 0 ? matters : []
   const priorityOrder: Record<string, number> = { '★★★★★': 5, '★★★★☆': 4, '★★★☆☆': 3, '★★☆☆☆': 2, '★☆☆☆☆': 1 }
   const enriched = sourceMatters.map((m, i) => ({
     ...m,

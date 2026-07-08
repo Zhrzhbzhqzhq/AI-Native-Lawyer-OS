@@ -18,10 +18,26 @@ export default function MatterLayout({ children, params }: { children: React.Rea
   const matterListHref = '/matters'
   const matterListActive = pathname === matterListHref || pathname === `${matterListHref}/`
   const matterId = String(params.matter_id || '')
+  const [matterName, setMatterName] = React.useState<string>(`Matter #${matterId}`)
 
-  const matterName = matterId === 'demo-001'
-    ? 'Idem DocUp Matter'
-    : `Matter #${matterId}`
+  React.useEffect(() => {
+    let mounted = true
+    const API = (process.env.NEXT_PUBLIC_API_BASE_URL as string) || 'http://localhost:4000'
+    async function load() {
+      try {
+        const res = await fetch(`${API}/matters/${encodeURIComponent(matterId)}`)
+        if (!mounted) return
+        if (!res.ok) return
+        const j = await res.json().catch(() => null)
+        if (!mounted) return
+        if (j && j.title) setMatterName(j.title)
+      } catch (e) {
+        // ignore - keep Matter #id
+      }
+    }
+    if (matterId) load()
+    return () => { mounted = false }
+  }, [matterId])
 
   const caseType = '未分类案件'
   const currentStage = '证据准备'
