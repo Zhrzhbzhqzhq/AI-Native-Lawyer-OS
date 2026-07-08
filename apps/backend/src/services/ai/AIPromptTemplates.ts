@@ -155,32 +155,35 @@ export function buildArgumentPrompt(_context: any) {
     const facts = Array.isArray(_context && _context.facts) ? _context.facts : []
     const issues = Array.isArray(_context && _context.issues) ? _context.issues : []
     const laws = Array.isArray(_context && _context.laws) ? _context.laws : []
-
     return `你是一名中国资深民商事诉讼律师。
 
-下面是已确认的案件事实：\n${JSON.stringify(facts, null, 2)}
+下面是已确认的案件事实：
+${JSON.stringify(facts, null, 2)}
 
-下面是争议焦点：\n${JSON.stringify(issues, null, 2)}
+下面是争议焦点：
+${JSON.stringify(issues, null, 2)}
 
-下面是可适用的法律依据：\n${JSON.stringify(laws, null, 2)}
+下面是可适用的法律依据：
+${JSON.stringify(laws, null, 2)}
 
-请基于上述事实、争议焦点与法律依据，组织能够支持原告诉讼请求的法律论证。
+任务：请围绕每一个重要争议焦点，组织可直接进入代理词、起诉状理由或庭审陈述的法律论证。
 
-返回 JSON：
+格式要求（严格）：
+1) 输出为 JSON 数组，元素最多 6 条，按重要性排序（最重要在前）。
+2) 每个论证对象必须包含字段：
+   {
+     "title": "",               // 论证标题
+     "description": "",         // 完整论证内容（可分点），必须引用具体事实要点并指出引用的法律依据
+     "conclusion": "",          // 法律结论
+     "issue_title": "",         // 对应争议焦点标题
+     "law_citations": []          // 引用的法律依据 citation 数组（例如：民法典 第667条）
+   }
+3) 每个论证必须对应一个争议焦点（use issue_title），必须引用至少一项法律依据（law_citations）并至少一条事实要点。
+4) 论证风格应接近律师代理词或庭审发言，结构清晰、要点分明，可直接用于起草文书或陈述。
+5) 严格禁止编造不存在的事实或法条；如引用法律请尽量使用具体 citation。
+6) 不要写成泛泛的 AI 文章，不要输出法律评价、建议、程序性内容、Markdown 或任何解释性文本。仅返回 JSON 数组。
 
-[
-    {
-        "title":"",
-        "description":"",
-        "conclusion":""
-    }
-]
-
-要求：
-
-不要 Markdown。
-不要解释。
-只返回 JSON.`
+只返回 JSON。`
 }
 
 export function buildDocumentPrompt(_context: any) {
