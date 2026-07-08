@@ -51,7 +51,7 @@ export default async function aiRoutes(app: FastifyInstance) {
             return reply.code(200).send(out)
         } catch (err: any) {
             const latency = Date.now() - start
-            return reply.code(500).send({ provider, model, base_url: baseUrl, has_api_key: hasApiKey, status: 'error', latency_ms: latency, raw_response: null, error: err?.message || String(err) })
+            return reply.code(500).send({ provider, model, base_url: baseUrlEnv, has_api_key: hasApiKey, status: 'error', latency_ms: latency, raw_response: null, error: err?.message || String(err) })
         }
     })
 }
