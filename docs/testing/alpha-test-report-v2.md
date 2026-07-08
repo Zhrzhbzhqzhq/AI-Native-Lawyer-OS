@@ -23,4 +23,3 @@
  - PATCH fact -> HTTP 404
  - PATCH evidence -> HTTP 404
  - PATCH document -> HTTP 404
- - DELETE argument -> HTTP 500
