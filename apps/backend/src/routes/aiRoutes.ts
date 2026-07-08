@@ -4,7 +4,7 @@ import MiniMaxAdapter from '../ai/minimaxAdapter'
 export default async function aiRoutes(app: FastifyInstance) {
     app.post('/ai/health-check', async (request, reply) => {
         const provider = process.env.AI_PROVIDER || 'minimax'
-        const baseUrlEnv = process.env.MINIMAX_BASE_URL
+        const baseUrlEnv = process.env.MINIMAX_BASE_URL?.replace(/\s+/g, "").trim()
         const model = process.env.MINIMAX_MODEL || 'MiniMax-M3'
         const hasApiKey = Boolean(process.env.MINIMAX_API_KEY)
 
