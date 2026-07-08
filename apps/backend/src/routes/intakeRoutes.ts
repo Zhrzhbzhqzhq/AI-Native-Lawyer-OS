@@ -417,17 +417,30 @@ export async function intakeRoutes(app: FastifyInstance) {
           let evidence_type = 'AI推荐证据'
           let description = ''
           let relevance = 'AI intake pipeline'
+          let material_id = ''
           if (typeof e === 'string') {
             title = e
             description = e
+            // string items have no material_id -> skip per new policy
           } else if (e && typeof e === 'object') {
             title = String(e.title || e.name || JSON.stringify(e))
             description = String(e.description || e.proof_purpose || e.title || JSON.stringify(e))
             if (typeof e.evidence_type === 'string') evidence_type = e.evidence_type
             if (typeof e.relevance === 'string') relevance = e.relevance
+            if (typeof e.material_id === 'string' && String(e.material_id).trim().length > 0) material_id = String(e.material_id)
           }
+
+          if (!material_id) {
+            try {
+              aiErrors.push(`evidence skipped: missing material_id (${String(title).slice(0, 120)})`)
+            } catch (_) {
+              aiErrors.push('evidence skipped: missing material_id')
+            }
+            continue
+          }
+
           const evidence_id = `ev-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
-          await evidenceService.createForMatter(matter_id, { evidence_id, material_id: '', title: String(title), evidence_type, description, relevance, status: 'active' })
+          await evidenceService.createForMatter(matter_id, { evidence_id, material_id, title: String(title), evidence_type, description, relevance, status: 'active' })
           createdCounts.evidence_count++
         }
 
