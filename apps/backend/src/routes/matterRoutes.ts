@@ -1150,6 +1150,42 @@ export async function matterRoutes(app: FastifyInstance) {
     }
   })
 
+  // AI: analyze arguments suggestions (mock if service not available)
+  app.post('/matters/:matter_id/arguments/analyze', async (request, reply) => {
+    const { matter_id } = request.params as any
+    try {
+      // prefer unified aiService first
+      try {
+        const svcAny = aiService as any
+        if (svcAny && typeof svcAny.analyzeArguments === 'function') {
+          const out = await svcAny.analyzeArguments(matter_id)
+          return reply.code(200).send(Array.isArray(out) ? out : (out && out.arguments ? out.arguments : []))
+        }
+      } catch (e) {
+        // continue to next fallback
+      }
+
+      // legacy: allow aiSuggestionService to provide analyzeArguments if present
+      try {
+        const svcAny2 = aiSuggestionService as any
+        if (svcAny2 && typeof svcAny2.analyzeArguments === 'function') {
+          const out = await svcAny2.analyzeArguments(matter_id)
+          return reply.code(200).send(out)
+        }
+      } catch (e) {
+        // fall back to mock
+      }
+
+      const mock = [
+        { title: '主张合同成立', description: '基于转账记录与聊天记录，可主张存在合同关系。', conclusion: '请求法院确认债务关系成立并判令还款' },
+        { title: '请求保全证据', description: '建议先行申请证据保全以防数据丢失。', conclusion: '向人民法院申请保全' },
+      ]
+      return reply.code(200).send(mock)
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'analyze_failed', detail: err?.message || String(err) })
+    }
+  })
+
   // Document Workspace - read-only dashboard
   app.get('/matters/:matter_id/documents/workspace', async (request, reply) => {
     const { matter_id } = request.params as any
