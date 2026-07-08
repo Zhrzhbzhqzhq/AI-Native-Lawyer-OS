@@ -27,7 +27,9 @@ export class AIContextBuilder {
         const issues = await issueService.listIssues(matter_id).catch(() => [])
         const laws = await lawService.listLaws(matter_id).catch(() => [])
 
-        const argumentsList = await p.argument.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } }).catch(() => [])
+        const ArgumentService = (await import('../argumentService')).default || (await import('../argumentService')).ArgumentService
+        const argumentService = new ArgumentService(p)
+        const argumentsList = await argumentService.listArguments(matter_id).catch(() => [])
         const documents = await p.document.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } }).catch(() => [])
 
         return {

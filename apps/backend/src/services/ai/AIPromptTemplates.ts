@@ -132,7 +132,40 @@ export function buildArgumentPrompt(_context: any) {
 }
 
 export function buildDocumentPrompt(_context: any) {
-    return 'generate_documents'
+    const facts = Array.isArray(_context && _context.facts) ? _context.facts : []
+    const issues = Array.isArray(_context && _context.issues) ? _context.issues : []
+    const laws = Array.isArray(_context && _context.laws) ? _context.laws : []
+    const argumentsList = Array.isArray(_context && _context.arguments) ? _context.arguments : []
+
+    return `你是一名中国资深民商事诉讼律师。
+
+下面提供：
+
+案件事实：\n${JSON.stringify(facts, null, 2)}
+
+争议焦点：\n${JSON.stringify(issues, null, 2)}
+
+法律依据：\n${JSON.stringify(laws, null, 2)}
+
+法律论证：\n${JSON.stringify(argumentsList, null, 2)}
+
+请生成适合当前案件的法律文书建议。例如：起诉状、答辩状、代理词、庭审提纲、执行申请书等。
+
+返回 JSON：
+
+[
+    {
+        "title":"",
+        "document_type":"",
+        "content":""
+    }
+]
+
+要求：
+
+不要 Markdown。
+不要解释。
+只返回 JSON.`
 }
 
 export default {

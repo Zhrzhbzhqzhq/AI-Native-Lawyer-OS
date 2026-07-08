@@ -319,21 +319,47 @@ export class AIService {
 
     // generateDocuments: reads arguments under the matter and asks adapter to suggest document drafts
     async generateDocuments(matter_id: string) {
-        const args = await this.prisma.argument.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } as any })
-
         const context = await this.contextBuilder.buildMatterContext(matter_id)
-        const promptPack = {
-            task: buildDocumentPrompt(context),
+        const args = Array.isArray(context.arguments) ? context.arguments : []
+
+        const userPrompt = buildDocumentPrompt(context)
+        const promptPack: any = {
+            task: 'generate_documents',
             matter_id,
             arguments: args.map((a: any) => ({ title: a.title || '', description: a.description || '', conclusion: a.conclusion || '', status: a.status || '' })),
             context_pack: context,
+            user_prompt: userPrompt,
             created_at: new Date().toISOString(),
         }
 
         try {
             const resp = await this.adapter.generate(promptPack)
-            // adapter may return structured documents under resp.response.documents or resp.response.suggestions
-            const docs = resp && resp.response && (Array.isArray(resp.response.documents) ? resp.response.documents : (Array.isArray(resp.response.suggestions) ? resp.response.suggestions : null))
+            // Try multiple shapes: resp.response.documents, resp.response.suggestions,
+            // or MiniMax-style resp.response.choices[0].message.content (stringified JSON)
+            let docs: any = null
+            if (resp && resp.response) {
+                if (Array.isArray(resp.response.documents)) docs = resp.response.documents
+                else if (Array.isArray(resp.response.suggestions)) docs = resp.response.suggestions
+                else if (Array.isArray(resp.response)) docs = resp.response
+                else if (resp.response.choices && Array.isArray(resp.response.choices) && resp.response.choices[0] && resp.response.choices[0].message && typeof resp.response.choices[0].message.content === 'string') {
+                    const txt = resp.response.choices[0].message.content
+                    try {
+                        const parsed = JSON.parse(txt)
+                        if (Array.isArray(parsed)) docs = parsed
+                    } catch (e) {
+                        const m = txt.match(/\[\s*\{[\s\S]*\}\s*\]/)
+                        if (m && m[0]) {
+                            try {
+                                const parsed = JSON.parse(m[0])
+                                if (Array.isArray(parsed)) docs = parsed
+                            } catch (_e) {
+                                // ignore
+                            }
+                        }
+                    }
+                }
+            }
+
             if (Array.isArray(docs)) {
                 return docs.map((d: any) => ({ title: String(d.title || ''), document_type: String(d.document_type || d.type || ''), content: String(d.content || d.body || ''), status: String(d.status || 'draft') }))
             }
