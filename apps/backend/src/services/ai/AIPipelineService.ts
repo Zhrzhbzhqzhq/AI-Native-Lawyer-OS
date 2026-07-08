@@ -67,21 +67,70 @@ export default class AIPipelineService {
 
             const parsed = parseAIJson(text)
             const normalized = parsed.ok ? normalizeParsed(parsed.data) : []
-            return { parsed: parsed.ok ? parsed.data : null, parsed_array: normalized, raw_text: text, parse_meta: parsed }
+
+            // If parsed succeeded but produced an empty array, treat as parse failure so callers don't silently accept []
+            const parse_meta: any = parsed.ok ? { ...parsed } : { ...parsed }
+            if (parsed.ok && Array.isArray(normalized) && normalized.length === 0) {
+                parse_meta.ok = false
+                parse_meta.error = parse_meta.error || 'empty parsed array'
+            }
+
+            return { parsed: parsed.ok ? parsed.data : null, parsed_array: normalized, raw_text: text, parse_meta }
         }
 
         const ev = await callStep('evidence', '请基于案件摘要，列出可能的证据项数组，返回 JSON 数组，例如:["转账记录","微信聊天记录"]')
-        steps.evidence = ev.parsed_array || (ev.raw_text ? [ev.raw_text] : [])
+        if (ev.parse_meta && ev.parse_meta.ok && Array.isArray(ev.parsed_array) && ev.parsed_array.length > 0) {
+            steps.evidence = ev.parsed_array
+        } else if (ev.raw_text && ev.raw_text.length > 0) {
+            steps.evidence = [ev.raw_text]
+        } else {
+            steps.evidence = []
+        }
+
         const fa = await callStep('facts', '请基于案件摘要，抽取关键事实（要点化），以 JSON 数组返回，例如:["借款时间","借款金额"]')
-        steps.facts = fa.parsed_array || (fa.raw_text ? [fa.raw_text] : [])
+        if (fa.parse_meta && fa.parse_meta.ok && Array.isArray(fa.parsed_array) && fa.parsed_array.length > 0) {
+            steps.facts = fa.parsed_array
+        } else if (fa.raw_text && fa.raw_text.length > 0) {
+            steps.facts = [fa.raw_text]
+        } else {
+            steps.facts = []
+        }
+
         const is = await callStep('issues', '请基于案件摘要，列出法律争议点（Issue）数组，返回 JSON 数组，例如:["是否构成借款合同","是否存在还款义务"]')
-        steps.issues = is.parsed_array || (is.raw_text ? [is.raw_text] : [])
+        if (is.parse_meta && is.parse_meta.ok && Array.isArray(is.parsed_array) && is.parsed_array.length > 0) {
+            steps.issues = is.parsed_array
+        } else if (is.raw_text && is.raw_text.length > 0) {
+            steps.issues = [is.raw_text]
+        } else {
+            steps.issues = []
+        }
+
         const la = await callStep('laws', '请基于案件摘要和争议点，列出可能适用的法律条文或法理，以 JSON 数组返回，例如:[{"code":"合同法第...","summary":"..."}]')
-        steps.laws = la.parsed_array || (la.raw_text ? [la.raw_text] : [])
+        if (la.parse_meta && la.parse_meta.ok && Array.isArray(la.parsed_array) && la.parsed_array.length > 0) {
+            steps.laws = la.parsed_array
+        } else if (la.raw_text && la.raw_text.length > 0) {
+            steps.laws = [la.raw_text]
+        } else {
+            steps.laws = []
+        }
+
         const ag = await callStep('arguments', '请基于事实和法律，草拟主要法律论点（要点），以 JSON 数组返回，例如:[{"side":"原告","point":"..."}]')
-        steps.arguments = ag.parsed_array || (ag.raw_text ? [ag.raw_text] : [])
+        if (ag.parse_meta && ag.parse_meta.ok && Array.isArray(ag.parsed_array) && ag.parsed_array.length > 0) {
+            steps.arguments = ag.parsed_array
+        } else if (ag.raw_text && ag.raw_text.length > 0) {
+            steps.arguments = [ag.raw_text]
+        } else {
+            steps.arguments = []
+        }
+
         const doc = await callStep('documents', '请基于案件摘要和论点，生成文书建议（例如 起诉状 标题和要点），以 JSON 数组返回，每项包含 "type" 和 "content" 字段')
-        steps.documents = doc.parsed_array || (doc.raw_text ? [{ type: 'raw', content: doc.raw_text }] : [])
+        if (doc.parse_meta && doc.parse_meta.ok && Array.isArray(doc.parsed_array) && doc.parsed_array.length > 0) {
+            steps.documents = doc.parsed_array
+        } else if (doc.raw_text && doc.raw_text.length > 0) {
+            steps.documents = [{ type: 'raw', content: doc.raw_text }]
+        } else {
+            steps.documents = []
+        }
 
         const validation: any = { evidence: undefined, facts: undefined, issues: undefined, laws: undefined, arguments: undefined, documents: undefined }
         try { validation.evidence = ev ? ev.parse_meta : undefined } catch (_) { }

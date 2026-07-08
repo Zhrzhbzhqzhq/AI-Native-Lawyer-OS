@@ -388,6 +388,26 @@ export async function intakeRoutes(app: FastifyInstance) {
       const documentService = new DocumentService(prisma)
 
       const createdCounts: any = { evidence_count: 0, facts_count: 0, issues_count: 0, laws_count: 0, arguments_count: 0, documents_count: 0 }
+      const aiErrors: string[] = []
+
+      // collect validation errors from AI pipeline
+      try {
+        const v = aiRes && aiRes.validation
+        if (v) {
+          const steps = ['evidence', 'facts', 'issues', 'laws', 'arguments', 'documents']
+          for (const s of steps) {
+            try {
+              const m = (v as any)[s]
+              if (m && m.ok === false) {
+                const err = String(m.error || 'parse_error')
+                let rawSnippet = ''
+                try { if (m.raw) rawSnippet = ` raw:${JSON.stringify(m.raw).slice(0, 200)}` } catch (_) { }
+                aiErrors.push(`${s}: ${err}${rawSnippet}`)
+              }
+            } catch (_) { }
+          }
+        }
+      } catch (_) { }
 
       try {
         // Evidence: map strings or objects to Evidence rows
@@ -479,14 +499,27 @@ export async function intakeRoutes(app: FastifyInstance) {
           createdCounts.documents_count++
         }
       } catch (e) {
-        // swallow individual create errors to avoid blocking overall creation
+        // record insert/persistence error (do not fully swallow)
         console.error('ai create writes error', e)
+        try { aiErrors.push(`persist_error: ${String((e as any).message || e)}`) } catch (_) { aiErrors.push('persist_error') }
       }
 
       const meta: any = { ai: createdCounts }
       if (aiRes && aiRes.fallback_used) meta.ai.fallback_used = true
       if (aiRes && aiRes.validation) meta.ai.validation = aiRes.validation
       if (aiRes && aiRes.error) meta.ai.error = aiRes.error
+      if (aiErrors.length > 0) meta.ai.errors = aiErrors
+
+      // if nothing persisted, surface a clear top-level error
+      try {
+        const total = (createdCounts.evidence_count || 0) + (createdCounts.facts_count || 0) + (createdCounts.issues_count || 0) + (createdCounts.documents_count || 0)
+        if (total === 0) {
+          meta.ai.error = meta.ai.error || 'AI pipeline produced no persistable records'
+          meta.ai.errors = Array.isArray(meta.ai.errors) ? meta.ai.errors : []
+          if (!meta.ai.errors.includes('AI pipeline produced no persistable records')) meta.ai.errors.push('AI pipeline produced no persistable records')
+        }
+      } catch (_) { }
+
       return reply.code(201).send({ matter_id, created: true, ...meta })
     } finally {
       try { await prisma.$disconnect() } catch (e) { }
