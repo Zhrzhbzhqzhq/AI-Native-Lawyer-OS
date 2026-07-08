@@ -1090,6 +1090,30 @@ export async function matterRoutes(app: FastifyInstance) {
     }
   })
 
+  // AI: analyze issues suggestions (mock if service not available)
+  app.post('/matters/:matter_id/issues/analyze', async (request, reply) => {
+    const { matter_id } = request.params as any
+    try {
+      try {
+        const svcAny = aiSuggestionService as any
+        if (svcAny && typeof svcAny.analyzeIssues === 'function') {
+          const out = await svcAny.analyzeIssues(matter_id)
+          return reply.code(200).send(out)
+        }
+      } catch (e) {
+        // fall back to mock
+      }
+
+      const mock = [
+        { title: '双方是否形成借款合同', description: '转账记录与聊天记录共同证明借贷合意。' },
+        { title: '借款是否已经超过诉讼时效', description: '需要进一步核查催款记录。' },
+      ]
+      return reply.code(200).send(mock)
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'analyze_failed', detail: err?.message || String(err) })
+    }
+  })
+
   // Document Workspace - read-only dashboard
   app.get('/matters/:matter_id/documents/workspace', async (request, reply) => {
     const { matter_id } = request.params as any
