@@ -18,6 +18,7 @@ export async function matterRoutes(app: FastifyInstance) {
   const matterContextService = new (await import('../services/matterContextService')).default(prisma);
   const promptBuilderService = new (await import('../services/promptBuilderService')).default(prisma);
   const aiSuggestionService = new (await import('../services/aiSuggestionService')).default(prisma);
+  const aiService = new (await import('../services/ai/AIService')).default(prisma);
   const lawService = new (await import('../services/lawService')).default(prisma);
   const argumentService = new (await import('../services/argumentService')).default(prisma);
   const objectGraphBuilder = new (await import('../runtime/objectGraphBuilder')).default(prisma);
@@ -1018,15 +1019,16 @@ export async function matterRoutes(app: FastifyInstance) {
   app.post('/matters/:matter_id/evidence/analyze', async (request, reply) => {
     const { matter_id } = request.params as any
     try {
-      // prefer aiSuggestionService if available
+      // prefer aiService (unified AI) if available
       try {
-        const svcAny = aiSuggestionService as any
+        const svcAny = aiService as any
         if (svcAny && typeof svcAny.analyzeEvidence === 'function') {
           const out = await svcAny.analyzeEvidence(matter_id)
-          return reply.code(200).send(out)
+          // ensure array shape for frontend compatibility
+          return reply.code(200).send(Array.isArray(out) ? out : (out && out.suggestions ? out.suggestions : []))
         }
       } catch (e) {
-        // fall back to mock
+        // fall back to other suggesters
       }
 
       // Mock suggestions (stable, deterministic)
