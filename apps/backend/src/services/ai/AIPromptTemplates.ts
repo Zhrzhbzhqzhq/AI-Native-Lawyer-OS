@@ -191,36 +191,50 @@ export function buildDocumentPrompt(_context: any) {
     const issues = Array.isArray(_context && _context.issues) ? _context.issues : []
     const laws = Array.isArray(_context && _context.laws) ? _context.laws : []
     const argumentsList = Array.isArray(_context && _context.arguments) ? _context.arguments : []
-
     return `你是一名中国资深民商事诉讼律师。
 
 下面提供：
 
-案件事实：\n${JSON.stringify(facts, null, 2)}
+案件事实：
+${JSON.stringify(facts, null, 2)}
 
-争议焦点：\n${JSON.stringify(issues, null, 2)}
+争议焦点：
+${JSON.stringify(issues, null, 2)}
 
-法律依据：\n${JSON.stringify(laws, null, 2)}
+法律依据：
+${JSON.stringify(laws, null, 2)}
 
-法律论证：\n${JSON.stringify(argumentsList, null, 2)}
+法律论证：
+${JSON.stringify(argumentsList, null, 2)}
 
-请生成适合当前案件的法律文书建议。例如：起诉状、答辩状、代理词、庭审提纲、执行申请书等。
+任务：请基于以上案件事实、争议焦点、法律依据与法律论证，生成可编辑的法律文书初稿，优先包含以下文书（按顺序优先生成）：
+1. 起诉状（诉状）
+2. 证据目录（清单）
+3. 代理词（庭审/答辩用）
+4. 庭审提纲
 
-返回 JSON：
-
+要求（严格）：
+1) 每份文书必须基于已有案件事实、争议焦点、法律依据和法律论证；
+2) content 必须为可编辑的正文（中文法律文书风格），而非空泛模板；
+3) 不要编造不存在的事实或不存在的法条；
+4) 最多返回 4 份文书，按律师当前最可能使用的顺序排列；
+5) 每份文书应尽量完整，包括文书应有的要素（例如起诉状应包含当事人、诉讼请求、事实与理由、证据列举等）；
+6) 严格不要输出法律意见性建议或程序性说明；
+7) 仅返回 JSON 数组，数组元素格式如下：
 [
     {
-        "title":"",
-        "document_type":"",
-        "content":""
+        "title": "",
+        "document_type": "", // 起诉状 / 证据目录 / 代理词 / 庭审提纲 / 其他
+        "content": ""        // 可编辑正文，中文
     }
 ]
 
-要求：
+严格要求：
+- 只返回合法 JSON 数组；
+- 不输出 Markdown、解释或正文外的任何内容；
+- content 应为可直接复制到文档编辑器继续修改的中文正文。
 
-不要 Markdown。
-不要解释。
-只返回 JSON.`
+只返回 JSON。`
 }
 
 export default {
