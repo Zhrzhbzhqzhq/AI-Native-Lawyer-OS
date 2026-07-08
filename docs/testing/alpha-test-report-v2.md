@@ -20,6 +20,3 @@
 ✅
 ✅
 \n发现的问题：
- - PATCH fact -> HTTP 404
- - PATCH evidence -> HTTP 404
- - PATCH document -> HTTP 404
