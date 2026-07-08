@@ -380,6 +380,10 @@ export default function MatterWorkspacePage() {
           </div>
         </aside>
       </div>
+      {/* 下一步 按钮 */}
+      <div style={{ padding: 24, background: '#ffffff', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'center' }}>
+        <button onClick={() => router.push(`/matters/${params.matter_id}/evidence`)} style={{ width: '720px', maxWidth: '90%', padding: '12px 16px', background: '#111827', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 800 }}>下一步：证据整理</button>
+      </div>
     </main>
   )
 }

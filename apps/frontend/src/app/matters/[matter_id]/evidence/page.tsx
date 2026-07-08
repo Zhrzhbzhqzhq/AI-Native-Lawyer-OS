@@ -596,6 +596,10 @@ export default function EvidencePage() {
                 <button onClick={() => router.push(`/matters/${matterId}`)} style={{ padding: '8px 12px', borderRadius: 8, background: '#f1f5f9', border: 'none', color: tokens.text }}>返回案件</button>
                 <button onClick={() => alert('已保存')} style={{ padding: '8px 12px', borderRadius: 8, background: tokens.blue, border: 'none', color: '#fff' }}>保存</button>
             </div>
+            {/* 下一步 按钮 */}
+            <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
+                <button onClick={() => router.push(`/matters/${matterId}/facts`)} style={{ width: 720, maxWidth: '90%', padding: '12px 16px', background: '#111827', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 800 }}>下一步：整理事实</button>
+            </div>
         </main >
     )
 }

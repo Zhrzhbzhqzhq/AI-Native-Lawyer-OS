@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 
 const tokens = {
     pageBg: '#f7fafc',
@@ -15,6 +15,7 @@ const tokens = {
 export default function FactsWorkspace() {
     const params = useParams() as { matter_id?: string }
     const matterId = params?.matter_id || 'demo-001'
+    const router = useRouter()
 
     const [evidences, setEvidences] = useState<any[]>([])
     const [loadingEvidences, setLoadingEvidences] = useState<boolean>(true)
@@ -286,6 +287,10 @@ export default function FactsWorkspace() {
                     </div>
                 ) : null}
 
+            </div>
+            {/* 下一步 按钮 */}
+            <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
+                <button onClick={() => router.push(`/matters/${matterId}/issues`)} style={{ width: 720, maxWidth: '90%', padding: '12px 16px', background: '#111827', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 800 }}>下一步：分析争议焦点</button>
             </div>
         </div>
     )

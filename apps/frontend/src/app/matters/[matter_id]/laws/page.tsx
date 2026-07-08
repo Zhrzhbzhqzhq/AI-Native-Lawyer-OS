@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 
 const tokens = {
     pageBg: '#ffffff',
@@ -14,6 +14,7 @@ const tokens = {
 export default function LawsWorkspace() {
     const params = useParams() as { matter_id?: string }
     const matterId = params?.matter_id || 'demo-001'
+    const router = useRouter()
 
     const [issues, setIssues] = useState<any[]>([])
     const [loadingIssues, setLoadingIssues] = useState<boolean>(true)
@@ -134,6 +135,10 @@ export default function LawsWorkspace() {
                                         })}
                                     </ul>
                                 )}
+                            </div>
+                            {/* 下一步 按钮 */}
+                            <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
+                                <button onClick={() => router.push(`/matters/${matterId}/arguments`)} style={{ width: 720, maxWidth: '90%', padding: '12px 16px', background: '#111827', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 800 }}>下一步：形成法律论证</button>
                             </div>
                         </div>
                     </div>

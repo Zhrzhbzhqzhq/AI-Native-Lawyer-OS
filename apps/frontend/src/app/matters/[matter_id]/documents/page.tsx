@@ -285,6 +285,10 @@ export default function DocumentsWorkspace() {
             <div>（暂未启用）</div>
           </div>
         </div>
+        {/* 办案主流程已完成 区域（不跳转） */}
+        <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
+          <div style={{ width: 720, maxWidth: '90%', padding: 16, borderRadius: 10, background: '#f3f4f6', color: '#111827', textAlign: 'center', fontWeight: 800 }}>办案主流程已完成</div>
+        </div>
       </div>
     </div>
   )
