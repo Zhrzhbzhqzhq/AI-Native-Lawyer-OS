@@ -88,18 +88,44 @@ export class AIService {
         const evidences = await this.prisma.evidence.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } as any })
 
         const context = await this.contextBuilder.buildMatterContext(matter_id)
-        const promptPack = {
-            task: buildFactPrompt(context),
+        const factPrompt = buildFactPrompt(context)
+        const promptPack: any = {
+            task: 'analyze_facts',
             matter_id,
             evidences: evidences.map((e: any) => ({ title: e.title || '', description: e.description || '', evidence_type: e.evidence_type || '', status: e.status || '' })),
             context_pack: context,
+            user_prompt: factPrompt,
             created_at: new Date().toISOString(),
         }
 
         try {
             const resp = await this.adapter.generate(promptPack)
-            // adapter may return structured facts under resp.response.facts or resp.response.suggestions
-            const facts = resp && resp.response && (Array.isArray(resp.response.facts) ? resp.response.facts : (Array.isArray(resp.response.suggestions) ? resp.response.suggestions : null))
+            // Try multiple response shapes: resp.response.facts, resp.response.suggestions,
+            // or MiniMax-style resp.response.choices[0].message.content (stringified JSON)
+            let facts: any = null
+            if (resp && resp.response) {
+                if (Array.isArray(resp.response.facts)) facts = resp.response.facts
+                else if (Array.isArray(resp.response.suggestions)) facts = resp.response.suggestions
+                else if (Array.isArray(resp.response)) facts = resp.response
+                else if (resp.response.choices && Array.isArray(resp.response.choices) && resp.response.choices[0] && resp.response.choices[0].message && typeof resp.response.choices[0].message.content === 'string') {
+                    const txt = resp.response.choices[0].message.content
+                    try {
+                        const parsed = JSON.parse(txt)
+                        if (Array.isArray(parsed)) facts = parsed
+                    } catch (e) {
+                        const m = txt.match(/\[\s*\{[\s\S]*\}\s*\]/)
+                        if (m && m[0]) {
+                            try {
+                                const parsed = JSON.parse(m[0])
+                                if (Array.isArray(parsed)) facts = parsed
+                            } catch (_e) {
+                                // ignore
+                            }
+                        }
+                    }
+                }
+            }
+
             if (Array.isArray(facts)) {
                 return facts.map((f: any) => ({ title: String(f.title || f.name || ''), description: String(f.description || f.reason || '') }))
             }

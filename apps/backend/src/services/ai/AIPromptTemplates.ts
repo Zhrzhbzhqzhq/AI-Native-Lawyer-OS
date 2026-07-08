@@ -25,7 +25,24 @@ export function buildEvidencePrompt(_context: any) {
 }
 
 export function buildFactPrompt(_context: any) {
-    return 'analyze_facts'
+    return `你是一名中国资深诉讼律师。
+
+下面是案件中已经确认的证据。
+
+请根据这些证据，提炼可以成立的案件事实。
+
+返回 JSON：
+
+[
+ {
+     "title":"",
+     "description":""
+ }
+]
+
+不要解释。
+不要 Markdown。
+只返回 JSON。`
 }
 
 export function buildIssuePrompt(_context: any) {
