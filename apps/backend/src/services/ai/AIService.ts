@@ -41,6 +41,33 @@ export class AIService {
         const fallback = materials.slice(0, 5).map((m: any) => ({ title: m.title || '未命名材料', reason: m.description || (m.storage_uri ? `来自 ${m.storage_uri}` : '材料可能包含有力证据'), evidence_type: m.material_type || '文书' }))
         return fallback
     }
+
+    // analyzeFacts: reads evidences under the matter and asks adapter to suggest facts
+    async analyzeFacts(matter_id: string) {
+        const evidences = await this.prisma.evidence.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } as any })
+
+        const promptPack = {
+            task: 'analyze_facts',
+            matter_id,
+            evidences: evidences.map((e: any) => ({ title: e.title || '', description: e.description || '', evidence_type: e.evidence_type || '', status: e.status || '' })),
+            created_at: new Date().toISOString(),
+        }
+
+        try {
+            const resp = await this.adapter.generate(promptPack)
+            // adapter may return structured facts under resp.response.facts or resp.response.suggestions
+            const facts = resp && resp.response && (Array.isArray(resp.response.facts) ? resp.response.facts : (Array.isArray(resp.response.suggestions) ? resp.response.suggestions : null))
+            if (Array.isArray(facts)) {
+                return facts.map((f: any) => ({ title: String(f.title || f.name || ''), description: String(f.description || f.reason || '') }))
+            }
+        } catch (e) {
+            // ignore and fallback below
+        }
+
+        // fallback: create simple fact suggestions from evidences
+        const fallbackFacts = evidences.slice(0, 5).map((e: any) => ({ title: e.title ? `关于：${e.title}` : '未命名事实', description: e.description || `基于证据类型 ${e.evidence_type || '未知'}（状态：${e.status || 'unknown'}）` }))
+        return fallbackFacts
+    }
 }
 
 export default AIService
