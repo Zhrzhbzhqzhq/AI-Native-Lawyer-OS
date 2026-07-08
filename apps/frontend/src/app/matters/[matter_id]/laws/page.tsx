@@ -17,6 +17,7 @@ export default function LawsWorkspace() {
 
     const [issues, setIssues] = useState<any[]>([])
     const [loadingIssues, setLoadingIssues] = useState<boolean>(true)
+    const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null)
 
     const [laws, setLaws] = useState<any[]>([])
     const [loadingLaws, setLoadingLaws] = useState<boolean>(true)
@@ -122,12 +123,15 @@ export default function LawsWorkspace() {
                             <div style={{ marginTop: 12 }}>
                                 {loadingIssues ? <div style={{ color: tokens.muted }}>加载议题中…</div> : issues.length === 0 ? <div style={{ color: tokens.muted }}>暂无议题</div> : (
                                     <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                                        {issues.map((it: any) => (
-                                            <li key={it.issue_id} style={{ padding: 8, borderBottom: '1px solid #f1f1f1', cursor: 'pointer' }} onClick={() => { /* no-op selection */ }}>
-                                                <div style={{ fontWeight: 700 }}>{it.title}</div>
-                                                <div style={{ color: tokens.muted, fontSize: 12 }}>{it.status || 'draft'}</div>
-                                            </li>
-                                        ))}
+                                        {issues.map((it: any) => {
+                                            const isSel = selectedIssueId === it.issue_id
+                                            return (
+                                                <li key={it.issue_id} onClick={() => setSelectedIssueId((s) => s === it.issue_id ? null : it.issue_id)} style={{ padding: 8, borderBottom: '1px solid #f1f1f1', cursor: 'pointer', background: isSel ? '#f3f4f6' : 'transparent', borderLeft: isSel ? '3px solid #111' : '3px solid transparent' }}>
+                                                    <div style={{ fontWeight: 700 }}>{it.title}</div>
+                                                    <div style={{ color: tokens.muted, fontSize: 12 }}>{it.status || 'draft'}</div>
+                                                </li>
+                                            )
+                                        })}
                                     </ul>
                                 )}
                             </div>
@@ -147,7 +151,7 @@ export default function LawsWorkspace() {
                             {loadingLaws ? (
                                 <div style={{ color: tokens.muted }}>加载法规中…</div>
                             ) : laws.length === 0 ? (
-                                <div style={{ color: tokens.muted }}>暂无法规</div>
+                                <div style={{ color: tokens.muted }}>暂无法律依据</div>
                             ) : (
                                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                                     {laws.map((law: any) => (
@@ -204,48 +208,56 @@ export default function LawsWorkspace() {
                     </div>
                 </div>
 
-                {showCreate ? (
-                    <div style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div style={{ width: 560, background: '#fff', borderRadius: 8, padding: 16 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ fontWeight: 800 }}>新建法规</div>
-                                <div><button onClick={() => { setShowCreate(false); setErrorMsg(null) }} style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}>关闭</button></div>
-                            </div>
+                {/* AI placeholder area (仅占位，不接 AI) */}
+                <div style={{ maxWidth: 1200, margin: '12px auto 0', display: 'flex', justifyContent: 'flex-end' }}>
+                    <div style={{ width: 520, background: '#fff', borderRadius: tokens.radius, padding: 12, border: `1px solid ${tokens.border}`, color: tokens.muted }}>
+                        <div style={{ fontWeight: 700, marginBottom: 6 }}>AI 建议</div>
+                        <div>（暂未启用）</div>
+                    </div>
+                </div>
+            </div>
 
-                            <div style={{ marginTop: 12 }}>
-                                <div style={{ fontWeight: 700, marginBottom: 6 }}>标题</div>
-                                <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
-                            </div>
+            {showCreate ? (
+                <div style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 560, background: '#fff', borderRadius: 8, padding: 16 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ fontWeight: 800 }}>新建法规</div>
+                            <div><button onClick={() => { setShowCreate(false); setErrorMsg(null) }} style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}>关闭</button></div>
+                        </div>
 
-                            <div style={{ marginTop: 12 }}>
-                                <div style={{ fontWeight: 700, marginBottom: 6 }}>引用（可选）</div>
-                                <input value={newCitation} onChange={(e) => setNewCitation(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
-                            </div>
+                        <div style={{ marginTop: 12 }}>
+                            <div style={{ fontWeight: 700, marginBottom: 6 }}>标题</div>
+                            <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
+                        </div>
 
-                            <div style={{ marginTop: 12 }}>
-                                <div style={{ fontWeight: 700, marginBottom: 6 }}>说明（可选）</div>
-                                <textarea value={newDescription} onChange={(e) => setNewDescription(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6', minHeight: 100 }} />
-                            </div>
+                        <div style={{ marginTop: 12 }}>
+                            <div style={{ fontWeight: 700, marginBottom: 6 }}>引用（可选）</div>
+                            <input value={newCitation} onChange={(e) => setNewCitation(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
+                        </div>
 
-                            <div style={{ marginTop: 12 }}>
-                                <div style={{ fontWeight: 700, marginBottom: 6 }}>关联议题（可选）</div>
-                                <select value={newIssueId || ''} onChange={(e) => setNewIssueId(e.target.value || undefined)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }}>
-                                    <option value="">不关联</option>
-                                    {issues.map((it: any) => <option key={it.issue_id} value={it.issue_id}>{it.title}</option>)}
-                                </select>
-                            </div>
+                        <div style={{ marginTop: 12 }}>
+                            <div style={{ fontWeight: 700, marginBottom: 6 }}>说明（可选）</div>
+                            <textarea value={newDescription} onChange={(e) => setNewDescription(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6', minHeight: 100 }} />
+                        </div>
 
-                            {errorMsg ? <div style={{ color: '#b91c1c', marginTop: 8 }}>{errorMsg}</div> : null}
+                        <div style={{ marginTop: 12 }}>
+                            <div style={{ fontWeight: 700, marginBottom: 6 }}>关联议题（可选）</div>
+                            <select value={newIssueId || ''} onChange={(e) => setNewIssueId(e.target.value || undefined)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }}>
+                                <option value="">不关联</option>
+                                {issues.map((it: any) => <option key={it.issue_id} value={it.issue_id}>{it.title}</option>)}
+                            </select>
+                        </div>
 
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
-                                <button onClick={() => { setShowCreate(false); setErrorMsg(null) }} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff' }}>取消</button>
-                                <button onClick={() => createLaw()} disabled={creating} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: '#111', color: '#fff' }}>{creating ? '保存中…' : '保存'}</button>
-                            </div>
+                        {errorMsg ? <div style={{ color: '#b91c1c', marginTop: 8 }}>{errorMsg}</div> : null}
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
+                            <button onClick={() => { setShowCreate(false); setErrorMsg(null) }} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff' }}>取消</button>
+                            <button onClick={() => createLaw()} disabled={creating} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: '#111', color: '#fff' }}>{creating ? '保存中…' : '保存'}</button>
                         </div>
                     </div>
-                ) : null}
+                </div>
+            ) : null}
 
-            </div>
         </div>
     )
 }
