@@ -4,9 +4,23 @@ import MiniMaxAdapter from '../ai/minimaxAdapter'
 export default async function aiRoutes(app: FastifyInstance) {
     app.post('/ai/health-check', async (request, reply) => {
         const provider = process.env.AI_PROVIDER || 'minimax'
-        const baseUrl = process.env.MINIMAX_BASE_URL || (process.env.MINIMAX_REGION === 'cn' ? 'https://api.minimaxi.com/v1' : 'https://api.minimax.io/v1')
+        const baseUrlEnv = process.env.MINIMAX_BASE_URL
         const model = process.env.MINIMAX_MODEL || 'MiniMax-M3'
-        const hasApiKey = !!process.env.MINIMAX_API_KEY
+        const hasApiKey = Boolean(process.env.MINIMAX_API_KEY)
+
+        // Debug prints for environment (safe: do not print API key value)
+        console.log('[ai/health-check] AI_PROVIDER=', process.env.AI_PROVIDER)
+        console.log('[ai/health-check] MINIMAX_BASE_URL=', process.env.MINIMAX_BASE_URL)
+        console.log('[ai/health-check] MINIMAX_MODEL=', process.env.MINIMAX_MODEL)
+        console.log('[ai/health-check] MINIMAX_API_KEY_PRESENT=', Boolean(process.env.MINIMAX_API_KEY))
+
+        // Validate required envs before attempting external requests
+        if (!baseUrlEnv || baseUrlEnv.trim() === '') {
+            return reply.code(400).send({ status: 'FAIL', error: 'MINIMAX_BASE_URL not configured' })
+        }
+        if (!hasApiKey) {
+            return reply.code(400).send({ status: 'FAIL', error: 'MINIMAX_API_KEY not configured' })
+        }
 
         // fixed prompt required by spec
         const system = 'You are a system assistant.'
