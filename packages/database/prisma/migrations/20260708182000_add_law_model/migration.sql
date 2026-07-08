@@ -1,4 +1,3 @@
--- Create laws table
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
@@ -16,8 +15,8 @@ CREATE TABLE IF NOT EXISTS "laws" (
   CONSTRAINT "uq_laws_law_id" UNIQUE ("law_id")
 );
 
-ALTER TABLE "laws" ADD CONSTRAINT IF NOT EXISTS "fk_laws_matter" FOREIGN KEY ("matter_id") REFERENCES "matters" ("matter_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "laws" ADD CONSTRAINT "fk_laws_matter" FOREIGN KEY ("matter_id") REFERENCES "matters" ("matter_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 CREATE INDEX IF NOT EXISTS "idx_laws_matter_id" ON "laws" ("matter_id");
 
-ALTER TABLE "laws" ADD CONSTRAINT IF NOT EXISTS "fk_laws_issue" FOREIGN KEY ("issue_id") REFERENCES "issues" ("issue_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "laws" ADD CONSTRAINT "fk_laws_issue" FOREIGN KEY ("issue_id") REFERENCES "issues" ("issue_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 CREATE INDEX IF NOT EXISTS "idx_laws_issue_id" ON "laws" ("issue_id");
