@@ -19,6 +19,7 @@ export async function matterRoutes(app: FastifyInstance) {
   const promptBuilderService = new (await import('../services/promptBuilderService')).default(prisma);
   const aiSuggestionService = new (await import('../services/aiSuggestionService')).default(prisma);
   const lawService = new (await import('../services/lawService')).default(prisma);
+  const argumentService = new (await import('../services/argumentService')).default(prisma);
   const objectGraphBuilder = new (await import('../runtime/objectGraphBuilder')).default(prisma);
   const contextBuilder = new (await import('../runtime/contextBuilder')).default(prisma);
   const promptRuntime = new (await import('../runtime/promptRuntime')).default(prisma);
@@ -1378,6 +1379,72 @@ export async function matterRoutes(app: FastifyInstance) {
       return reply.code(201).send(created);
     } catch (err: any) {
       return reply.code(500).send({ error: 'create_failed', detail: err?.message || String(err) });
+    }
+  });
+
+  // Arguments CRUD
+  app.post('/matters/:id/arguments', async (request, reply) => {
+    const { id } = request.params as any;
+    const payload = request.body as any || {};
+    const title = String(payload.title || '').trim();
+    if (!title) return reply.code(400).send({ error: 'title required' });
+    try {
+      const created = await argumentService.createArgument(id, { title, description: String(payload.description || ''), conclusion: String(payload.conclusion || ''), status: String(payload.status || 'draft'), issue_id: typeof payload.issue_id === 'string' ? String(payload.issue_id) : undefined });
+      return reply.code(201).send(created);
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'create_failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.get('/matters/:id/arguments', async (request, reply) => {
+    const { id } = request.params as any;
+    try {
+      const list = await argumentService.listArguments(id);
+      return reply.code(200).send(list);
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.get('/matters/:matter_id/arguments/:argument_id', async (request, reply) => {
+    const { matter_id, argument_id } = request.params as any;
+    try {
+      const arg = await argumentService.getArgument(argument_id);
+      if (!arg) return reply.code(404).send({ error: 'not_found' });
+      if (String(arg.matter_id) !== String(matter_id)) return reply.code(400).send({ error: 'argument_mismatch' });
+      return reply.code(200).send(arg);
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.patch('/matters/:matter_id/arguments/:argument_id', async (request, reply) => {
+    const { argument_id } = request.params as any;
+    const payload = request.body as any || {};
+    const patch: any = {};
+    if (typeof payload.title === 'string') patch.title = String(payload.title);
+    if (typeof payload.description === 'string') patch.description = String(payload.description);
+    if (typeof payload.conclusion === 'string') patch.conclusion = String(payload.conclusion);
+    if (typeof payload.status === 'string') patch.status = String(payload.status);
+    if (typeof payload.issue_id === 'string') patch.issue_id = String(payload.issue_id);
+    if (Object.keys(patch).length === 0) return reply.code(400).send({ error: 'nothing to update' });
+    try {
+      const updated = await argumentService.updateArgument(argument_id, patch);
+      return reply.code(200).send(updated);
+    } catch (err: any) {
+      if (String(err.message) === 'Not found') return reply.code(404).send({ error: 'not_found' });
+      return reply.code(500).send({ error: 'update_failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.delete('/matters/:matter_id/arguments/:argument_id', async (request, reply) => {
+    const { argument_id } = request.params as any;
+    try {
+      await argumentService.deleteArgument(argument_id);
+      return reply.code(204).send();
+    } catch (err: any) {
+      if (String(err.message) === 'Not found') return reply.code(404).send({ error: 'not_found' });
+      return reply.code(500).send({ error: 'delete_failed', detail: err?.message || String(err) });
     }
   });
 
