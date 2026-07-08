@@ -182,20 +182,51 @@ ${JSON.stringify(laws, null, 2)}
 
 任务：请围绕每一个重要争议焦点，组织可直接进入代理词、起诉状理由或庭审陈述的法律论证。
 
-格式要求（严格）：
-1) 输出为 JSON 数组，元素最多 6 条，按重要性排序（最重要在前）。
-2) 每个论证对象必须包含字段：
-   {
-     "title": "",               // 论证标题
-     "description": "",         // 完整论证内容（可分点），必须引用具体事实要点并指出引用的法律依据
-     "conclusion": "",          // 法律结论
-     "issue_title": "",         // 对应争议焦点标题
-     "law_citations": []          // 引用的法律依据 citation 数组（例如：民法典 第667条）
-   }
-3) 每个论证必须对应一个争议焦点（use issue_title），必须引用至少一项法律依据（law_citations）并至少一条事实要点。
-4) 论证风格应接近律师代理词或庭审发言，结构清晰、要点分明，可直接用于起草文书或陈述。
-5) 严格禁止编造不存在的事实或法条；如引用法律请尽量使用具体 citation。
-6) 不要写成泛泛的 AI 文章，不要输出法律评价、建议、程序性内容、Markdown 或任何解释性文本。仅返回 JSON 数组。
+任务：请围绕每一个重要争议焦点，组织可直接进入代理词、起诉状理由或庭审陈述的法律论证。
+
+严格推理与格式要求（必须遵守）：
+1) 每条 Argument 必须对应一个 'issue_title'（在返回项中以 'issue_title' 字段标明对应争议焦点）。
+2) 每条 Argument 必须至少引用一条已确认的事实（confirmed Fact）；在返回项中以 'fact_titles' 字段列出所引用的已确认事实标题数组。
+3) 不允许引用 'to_prove'（待证明）事实；若输入上下文包含 'to_prove' 事实，禁止在 'fact_titles' 中列出它们。
+4) 如引用 'disputed'（存在争议）事实，必须在对应论证中明确写明："该事实存在争议，需要结合证据进一步证明。"
+5) 每条 Argument 必须至少引用一条法律依据（'law_citations' 数组）。
+6) 推理必须遵循固定顺序且不得跳步：
+     ① Issue
+     ↓
+     ② Confirmed Facts
+     ↓
+     ③ Applicable Laws
+     ↓
+     ④ Legal Reasoning
+     ↓
+     ⑤ Conclusion
+     说明：不要在缺少事实或法律支持的情况下直接得出结论。
+7) 'conclusion' 必须能直接用于起诉状、代理词或庭审陈述（语言应简洁、结论性强）。
+8) 严禁编造事实或法条；不得输出 AI 风格的叙述或泛泛作文；不得跳过事实直接得出结论。
+
+返回 JSON（严格）格式：
+[
+    {
+        "title": "",
+        "issue_title": "",
+        "fact_titles": [],
+        "law_citations": [],
+        "description": "",  // 按顺序包含：Issue -> Confirmed Facts -> Applicable Laws -> Legal Reasoning
+        "conclusion": ""
+    }
+]
+
+字段说明：
+ - 'fact_titles'：引用的 confirmed Fact 标题数组（不得包含 to_prove）。
+ - 'law_citations'：引用的法律依据 citation 数组。
+
+严格要求：
+- 只返回合法的 JSON 数组；
+- 不输出 Markdown、解释或正文外的任何内容；
+ - 不引用 to_prove Facts；
+ - 每条 Argument 必须引用至少一条 confirmed Fact 和至少一条 law_citation；
+- 不得编造事实或法条；
+- 论证必须遵循规定的推理顺序。
 
 只返回 JSON。`
 }
