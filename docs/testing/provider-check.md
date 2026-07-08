@@ -46,3 +46,19 @@ Once those are set, `ProviderManager` will instantiate `MiniMaxAdapter` (or `Min
 - Environment variable names in `.env` use `AI_MODEL_PROVIDER` / `AI_MODEL_NAME` / `AI_API_KEY`, while code expects `AI_PROVIDER` and provider-specific vars (`MINIMAX_*`). This can cause confusion and fallback to mock.
 - No OpenAI adapter exists in `apps/backend/src/ai` despite `.env` defaulting to `openai` in the template.
 - `scripts/test-provider.ts` uses a mocked Prisma — for a full integration test a real DB connection and real matter_id are required.
+
+## Provider 配置说明（建议添加到 `.env`）
+
+- `AI_PROVIDER=mock|minimax`
+
+- `MINIMAX_API_KEY=` (required to use MiniMax)
+- `MINIMAX_BASE_URL=` (optional override)
+- `MINIMAX_MODEL=` (optional model name, default `MiniMax-M3`)
+
+说明：
+
+1. 默认：`AI_PROVIDER=mock`。系统在没有额外配置时使用 Mock adapter。
+2. 如果未配置 `MINIMAX_API_KEY`，必须继续使用 `mock`，并且不得关闭 fallback。不要更改 `AIService`。
+3. 只有当 `AI_PROVIDER=minimax` 且 `MINIMAX_API_KEY` 存在时，`ProviderManager` 才允许切换到 MiniMax（或 token_plan 模式下的 Anthropic 兼容适配器）。
+
+请将上述示例变量添加到 `.env.example` 并在部署环境中设置真实凭据以启用 MiniMax。
