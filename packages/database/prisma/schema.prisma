@@ -25,6 +25,7 @@ model Matter {
   facts           Fact[]
   issues          Issue[]
   laws            Law[]
+  arguments       Argument[]
   documents       Document[]
   tasks           Task[]
   timelines       Timeline[]
@@ -444,6 +445,7 @@ model Issue {
   matter     Matter    @relation(fields: [matter_id], references: [matter_id], onDelete: Restrict, onUpdate: Cascade)
   facts      IssueFact[]
   laws       Law[]
+  arguments  Argument[]
 
   @@index([matter_id], map: "idx_issues_matter_id")
   @@map("issues")
@@ -467,6 +469,26 @@ model Law {
   @@index([matter_id], map: "idx_laws_matter_id")
   @@index([issue_id], map: "idx_laws_issue_id")
   @@map("laws")
+}
+
+model Argument {
+  id          String   @id @default(uuid()) @db.Uuid
+  argument_id String   @unique
+  matter_id   String
+  issue_id    String?
+  title       String
+  description String?
+  conclusion  String?
+  status      String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  matter Matter   @relation(fields: [matter_id], references: [matter_id], onDelete: Restrict, onUpdate: Cascade)
+  issue  Issue?   @relation(fields: [issue_id], references: [issue_id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([matter_id], map: "idx_arguments_matter_id")
+  @@index([issue_id], map: "idx_arguments_issue_id")
+  @@map("arguments")
 }
 
 model IssueFact {
