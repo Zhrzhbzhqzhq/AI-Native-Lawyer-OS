@@ -47,36 +47,25 @@ export default function MattersPage() {
     setShowCreate(false)
   }
 
-  // mock data for lawyer-facing view (10 matters)
-  const mockMatters: Array<Matter & { ai_status?: string; next_step?: string; priority?: string }> = [
-    { matter_id: 'demo-001', title: '张三诉李四民间借贷纠纷', status: '证据准备', ai_status: '等待银行流水', next_step: '补强证据', priority: '★★★★★' },
-    { matter_id: 'demo-002', title: '北京XX公司买卖合同纠纷', status: '法律检索', ai_status: 'AI正在检索案例', next_step: '进入法律检索', priority: '★★★★☆' },
-    { matter_id: 'demo-003', title: '王某劳动争议', status: '法律检索', ai_status: 'AI正在检索案例', next_step: '进入法律检索', priority: '★★★★☆' },
-    { matter_id: 'demo-004', title: '刘某交通事故责任纠纷', status: '证据准备', ai_status: 'AI正在整理证据目录', next_step: '补强证据', priority: '★★★☆☆' },
-    { matter_id: 'demo-005', title: '赵某离婚纠纷', status: '文书起草', ai_status: 'AI正在生成起诉状', next_step: '起草起诉状', priority: '★★★☆☆' },
-    { matter_id: 'demo-006', title: '陈某建设工程合同纠纷', status: '庭审准备', ai_status: 'AI正在生成庭审提纲', next_step: '准备庭审', priority: '★★☆☆☆' },
-    { matter_id: 'demo-007', title: '李某股权转让纠纷', status: '接案', ai_status: 'AI等待律师确认', next_step: '确认诉讼请求', priority: '★★☆☆☆' },
-    { matter_id: 'demo-008', title: '孙某房屋买卖合同纠纷', status: '执行', ai_status: '等待执行反馈', next_step: '申请执行', priority: '★☆☆☆☆' },
-    { matter_id: 'demo-009', title: '周某执行异议之诉', status: '开庭', ai_status: '等待法院排期开庭', next_step: '准备庭审', priority: '★★★☆☆' },
-    { matter_id: 'demo-010', title: '吴某劳动报酬纠纷', status: '结案整理', ai_status: 'AI正在整理结案材料', next_step: '案件归档', priority: '★☆☆☆☆' },
-  ]
-
   // Use real backend results when available. Do not fall back to demo mocks.
   const sourceMatters = matters && matters.length > 0 ? matters : []
-  const priorityOrder: Record<string, number> = { '★★★★★': 5, '★★★★☆': 4, '★★★☆☆': 3, '★★☆☆☆': 2, '★☆☆☆☆': 1 }
-  const enriched = sourceMatters.map((m, i) => ({
-    ...m,
-    ai_status: (m as any).ai_status ?? '',
-    next_step: (m as any).next_step ?? '',
-    priority: (m as any).priority ?? '★★★☆☆'
-  }))
-  const displayMatters = enriched.sort((a, b) => (priorityOrder[b.priority as string] || 0) - (priorityOrder[a.priority as string] || 0)).slice(0, 10)
 
+  // UI-friendly list derived from backend matters
+  const displayMatters: Array<Matter & { ai_status?: string; next_step?: string; priority?: string }> = sourceMatters.map((m) => ({
+    matter_id: m.matter_id,
+    title: m.title || '未命名案件',
+    status: m.status || '未填写',
+    ai_status: (m as any).ai_status || '',
+    next_step: (m as any).next_step || '',
+    priority: (m as any).priority || '★★★☆☆'
+  }))
+
+  // basic dashboard stats derived from backend data
   const stats = {
-    inProgress: 18,
-    todayTodo: 4,
-    aiAdvancing: 6,
-    weekCourts: 2,
+    inProgress: displayMatters.length,
+    todayTodo: 0,
+    aiAdvancing: displayMatters.filter((d) => Boolean(d.ai_status)).length,
+    weekCourts: 0,
   }
 
   const aiSuggestion = {

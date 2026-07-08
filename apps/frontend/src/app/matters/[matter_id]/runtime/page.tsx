@@ -52,13 +52,19 @@ export default function RuntimeDashboardPage() {
       }
       try {
         const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000'
-        const res = await fetch(`${API}/matters/${params.matter_id}/runtime`)
-        if (!res.ok) throw new Error('failed to fetch runtime')
-        const body = await res.json()
-        setRuntime(body)
-      } catch {
-        setRuntime(createMockRuntime())
-        setNotice('已加载本地示例工作状态')
+        const res = await fetch(`${API}/matters/${params.matter_id}/runtime`).catch(() => null)
+        if (!res || !res.ok) {
+          // no runtime available — keep runtime null and surface notice
+          setRuntime(null)
+          setNotice('未检索到 AI Runtime 数据')
+        } else {
+          const body = await res.json()
+          setRuntime(body)
+          setNotice(null)
+        }
+      } catch (e) {
+        setRuntime(null)
+        setNotice('获取 AI Runtime 失败')
       } finally {
         setLoading(false)
       }

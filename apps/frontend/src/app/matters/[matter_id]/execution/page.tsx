@@ -87,22 +87,10 @@ export default function ExecutionWorkspacePage() {
 
   // Map backend execution rows to UI shape and provide fallback
   const realExecutionStatus: any[] = Array.isArray(executionRows) ? executionRows.map((r) => ({ label: String(r.action_id || r.queue_id || ''), value: String(r.execution_status || '') })) : []
-  const realExecutionStatusOrFallback = realExecutionStatus.length ? realExecutionStatus : executionStatus
 
-  const assetClues = [
-    { name: '银行账户', status: '待核查' },
-    { name: '车辆信息', status: '待核查' },
-    { name: '不动产', status: '待核查' },
-    { name: '微信/支付宝流水', status: '待核查' },
-    { name: '工商股权', status: '待核查' },
-  ]
 
-  const executionMaterials = [
-    '执行申请书',
-    '生效判决/调解书',
-    '送达证明',
-    '财产线索清单',
-  ]
+  // No demo fallbacks — empty arrays when backend provides nothing
+  const executionMaterials: string[] = []
 
   // derive execution advice from runtime snapshot when available
   const runtimeData: any = runtime || null
@@ -225,7 +213,7 @@ export default function ExecutionWorkspacePage() {
     realAssetClues = []
   }
 
-  const realAssetCluesOrFallback = realAssetClues.length ? realAssetClues : assetClues
+  const realAssetCluesOrFallback = realAssetClues
 
   // derive execution materials from runtime (runtime_works, runtime_actions, snapshot_facts, documents, evidence)
   let realExecutionMaterials: string[] = []
@@ -304,7 +292,7 @@ export default function ExecutionWorkspacePage() {
     realExecutionMaterials = []
   }
 
-  const realExecutionMaterialsOrFallback = realExecutionMaterials.length ? realExecutionMaterials : executionMaterials
+  const realExecutionMaterialsOrFallback = realExecutionMaterials
 
   return (
     <main style={{ padding: 24, background: theme.pageBg }}>
@@ -318,31 +306,35 @@ export default function ExecutionWorkspacePage() {
         <section style={{ background: theme.cardBg, padding: 16, borderRadius: 12, border: `1px solid ${theme.border}` }}>
           <TwoLineTitle zh="执行状态" en="Execution Status" size="md" />
           <div style={{ marginTop: 10, display: 'grid', gap: 10 }}>
-            {realExecutionStatusOrFallback.map((it) => (
+            {realExecutionStatus.length ? realExecutionStatus.map((it) => (
               <div key={it.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 8, borderBottom: `1px solid ${theme.border}` }}>
                 <div style={{ color: theme.muted }}>{it.label}</div>
                 <div style={{ color: theme.text, fontWeight: 600 }}>{it.value}</div>
               </div>
-            ))}
+            )) : (
+              <div style={{ color: theme.muted }}>暂无执行数据</div>
+            )}
           </div>
         </section>
 
         <section style={{ background: theme.cardBg, padding: 16, borderRadius: 12, border: `1px solid ${theme.border}` }}>
           <TwoLineTitle zh="财产线索" en="Asset Clues" size="md" />
           <div style={{ marginTop: 10, display: 'grid', gap: 10 }}>
-            {realAssetCluesOrFallback.map((it) => (
+            {realAssetCluesOrFallback && realAssetCluesOrFallback.length ? realAssetCluesOrFallback.map((it) => (
               <div key={it.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 8, borderBottom: `1px solid ${theme.border}` }}>
                 <div style={{ color: theme.text, fontWeight: 600 }}>{it.name}</div>
                 <div style={{ color: theme.muted }}>{it.status}</div>
               </div>
-            ))}
+            )) : (
+              <div style={{ color: theme.muted }}>暂无线索</div>
+            )}
           </div>
         </section>
 
         <section style={{ background: theme.cardBg, padding: 16, borderRadius: 12, border: `1px solid ${theme.border}` }}>
           <TwoLineTitle zh="AI 执行建议" en="AI Execution Advice" size="md" />
           <div style={{ color: theme.text, marginTop: 12, lineHeight: 1.65 }}>
-            {realExecutionAdviceOrFallback}
+            {runtime ? (realExecutionAdviceOrFallback) : '暂无运行数据'}
           </div>
           {/* Runtime entry hidden in V1 showcase; link removed to avoid automatic runtime requests */}
         </section>
@@ -350,11 +342,13 @@ export default function ExecutionWorkspacePage() {
         <section style={{ background: theme.cardBg, padding: 16, borderRadius: 12, border: `1px solid ${theme.border}` }}>
           <TwoLineTitle zh="执行材料" en="Execution Materials" size="md" />
           <div style={{ marginTop: 10, display: 'grid', gap: 10 }}>
-            {realExecutionMaterialsOrFallback.map((it) => (
+            {realExecutionMaterialsOrFallback && realExecutionMaterialsOrFallback.length ? realExecutionMaterialsOrFallback.map((it) => (
               <div key={it} style={{ paddingBottom: 8, borderBottom: `1px solid ${theme.border}`, color: theme.text, fontWeight: 600 }}>
                 {it}
               </div>
-            ))}
+            )) : (
+              <div style={{ color: theme.muted }}>暂无执行材料</div>
+            )}
           </div>
         </section>
       </div>
