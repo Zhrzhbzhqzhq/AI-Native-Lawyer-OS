@@ -58,6 +58,75 @@ export async function matterRoutes(app: FastifyInstance) {
     return list;
   });
 
+  // Documents CRUD (new style, consistent with other resources)
+  app.post('/matters/:matter_id/documents', async (request, reply) => {
+    const { matter_id } = request.params as any;
+    const payload = request.body as any || {};
+    const title = String(payload.title || '').trim();
+    if (!title) return reply.code(400).send({ error: 'title required' });
+    try {
+      const created = await documentService.createDocument(matter_id, { title, document_type: String(payload.document_type || ''), content_uri: typeof payload.content_uri === 'string' ? String(payload.content_uri) : undefined, content: typeof payload.content === 'string' ? String(payload.content) : undefined, status: String(payload.status || 'draft'), material_id: typeof payload.material_id === 'string' ? String(payload.material_id) : undefined, evidence_id: typeof payload.evidence_id === 'string' ? String(payload.evidence_id) : undefined, argument_id: typeof payload.argument_id === 'string' ? String(payload.argument_id) : undefined });
+      return reply.code(201).send(created);
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'create_failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.get('/matters/:matter_id/documents', async (request, reply) => {
+    const { matter_id } = request.params as any;
+    try {
+      const list = await documentService.listDocuments(matter_id);
+      return reply.code(200).send(list);
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.get('/matters/:matter_id/documents/:document_id', async (request, reply) => {
+    const { matter_id, document_id } = request.params as any;
+    try {
+      const doc = await documentService.getDocument(document_id);
+      if (!doc) return reply.code(404).send({ error: 'not_found' });
+      if (String(doc.matter_id) !== String(matter_id)) return reply.code(400).send({ error: 'document_mismatch' });
+      return reply.code(200).send(doc);
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.patch('/matters/:matter_id/documents/:document_id', async (request, reply) => {
+    const { document_id } = request.params as any;
+    const payload = request.body as any || {};
+    const patch: any = {};
+    if (typeof payload.title === 'string') patch.title = String(payload.title);
+    if (typeof payload.document_type === 'string') patch.document_type = String(payload.document_type);
+    if (typeof payload.status === 'string') patch.status = String(payload.status);
+    if (typeof payload.content_uri === 'string') patch.content_uri = String(payload.content_uri);
+    if (typeof payload.content === 'string') patch.content = String(payload.content);
+    if (typeof payload.material_id === 'string') patch.material_id = String(payload.material_id);
+    if (typeof payload.evidence_id === 'string') patch.evidence_id = String(payload.evidence_id);
+    if (typeof payload.argument_id === 'string') patch.argument_id = String(payload.argument_id);
+    if (Object.keys(patch).length === 0) return reply.code(400).send({ error: 'nothing to update' });
+    try {
+      const updated = await documentService.updateDocument(document_id, patch);
+      return reply.code(200).send(updated);
+    } catch (err: any) {
+      if (String(err.message) === 'Not found') return reply.code(404).send({ error: 'not_found' });
+      return reply.code(500).send({ error: 'update_failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.delete('/matters/:matter_id/documents/:document_id', async (request, reply) => {
+    const { document_id } = request.params as any;
+    try {
+      await documentService.deleteDocument(document_id);
+      return reply.code(204).send();
+    } catch (err: any) {
+      if (String(err.message) === 'Not found') return reply.code(404).send({ error: 'not_found' });
+      return reply.code(500).send({ error: 'delete_failed', detail: err?.message || String(err) });
+    }
+  });
+
   app.get('/matters/:id/tasks', async (request, reply) => {
     const { id } = request.params as any;
     const list = await taskService.listByMatter(id);
