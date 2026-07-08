@@ -1,0 +1,9 @@
+- Provider: minimax, Model: MiniMax-M3, Matter: alpha-1783512087, Duration: 1471ms, Fallback: no, PromptVersion: v1
+- Provider: minimax, Model: MiniMax-M3, Matter: alpha-1783512087, Duration: 11246ms, Fallback: no, PromptVersion: v1
+- Provider: minimax, Model: MiniMax-M3, Matter: alpha-1783512087, Duration: 1610ms, Fallback: no, PromptVersion: v1
+- Provider: minimax, Model: MiniMax-M3, Matter: alpha-1783513087, Duration: 1439ms, Fallback: no, PromptVersion: v1
+- Provider: minimax, Model: MiniMax-M3, Matter: alpha-1783513087, Duration: 8966ms, Fallback: no, PromptVersion: v1
+- Provider: minimax, Model: MiniMax-M3, Matter: alpha-1783513087, Duration: 1590ms, Fallback: no, PromptVersion: v1
+- Provider: minimax, Model: MiniMax-M3, Matter: alpha-1783523249, Duration: 15678ms, Fallback: no, PromptVersion: v1
+- Provider: minimax, Model: MiniMax-M3, Matter: alpha-1783523249, Duration: 17112ms, Fallback: no, PromptVersion: v1
+- Provider: minimax, Model: MiniMax-M3, Matter: alpha-1783523249, Duration: 6870ms, Fallback: no, PromptVersion: v1
