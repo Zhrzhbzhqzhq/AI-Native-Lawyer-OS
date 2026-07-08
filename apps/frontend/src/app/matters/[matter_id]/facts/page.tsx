@@ -215,7 +215,7 @@ export default function FactsWorkspace() {
                                         } finally {
                                             setAnalyzing(false)
                                         }
-                                    }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>{analyzing ? 'AI 正在整理事实…' : 'AI 整理事实'}</button>
+                                    }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>{analyzing ? 'AI 正在整理事实……' : 'AI 整理事实'}</button>
                                 </div>
                             </div>
                         </div>

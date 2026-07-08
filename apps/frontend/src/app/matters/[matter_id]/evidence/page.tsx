@@ -495,7 +495,7 @@ export default function EvidencePage() {
                             } finally {
                                 setAnalyzing(false)
                             }
-                        }} style={{ padding: '8px 12px', borderRadius: 8, background: '#fff', color: '#111827', border: '1px solid #e6e7eb', fontWeight: 700 }}>{analyzing ? 'AI 正在分析…' : 'AI 分析证据'}</button>
+                        }} style={{ padding: '8px 12px', borderRadius: 8, background: '#fff', color: '#111827', border: '1px solid #e6e7eb', fontWeight: 700 }}>{analyzing ? 'AI 正在分析……' : 'AI 分析证据'}</button>
                     </div>
                 </div>
             </header>

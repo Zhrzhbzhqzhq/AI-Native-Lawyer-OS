@@ -279,7 +279,7 @@ export default function IssuesWorkspace() {
                                     } finally {
                                         setAnalyzing(false)
                                     }
-                                }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>{analyzing ? 'AI 正在分析…' : 'AI 提炼争议焦点'}</button>
+                                }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>{analyzing ? 'AI 正在提炼争议焦点……' : 'AI 提炼争议焦点'}</button>
                             </div>
                         </div>
 

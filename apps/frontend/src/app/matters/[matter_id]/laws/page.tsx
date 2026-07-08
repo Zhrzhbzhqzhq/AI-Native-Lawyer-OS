@@ -152,6 +152,21 @@ export default function LawsWorkspace() {
                             <div style={{ fontWeight: 800 }}>法规（Laws）</div>
                             <div style={{ display: 'flex', gap: 8 }}>
                                 <button onClick={() => setShowCreate(true)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>新建法规</button>
+                                <button disabled={analyzing} onClick={async () => {
+                                    setAnalyzing(true)
+                                    try {
+                                        const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/laws/analyze`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                                        if (!res.ok) throw new Error(`status:${res.status}`)
+                                        const json = await res.json()
+                                        const s = Array.isArray(json) ? json.map((it: any, i: number) => ({ id: it.id || `s-${i}`, title: String(it.title || ''), citation: String(it.document_type || it.citation || ''), description: String(it.description || it.content || '') })) : []
+                                        setSuggestions(s)
+                                    } catch (e) {
+                                        console.error('laws analyze failed', e)
+                                        setSuggestions([])
+                                    } finally {
+                                        setAnalyzing(false)
+                                    }
+                                }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>{analyzing ? 'AI 正在推荐法律依据……' : 'AI 推荐法律依据'}</button>
                             </div>
                         </div>
 
