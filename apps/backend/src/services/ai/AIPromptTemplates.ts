@@ -69,7 +69,34 @@ export function buildIssuePrompt(_context: any) {
 }
 
 export function buildLawPrompt(_context: any) {
-    return 'analyze_laws'
+    return `你是一名中国资深民商事诉讼律师。
+
+下面是：
+
+案件事实
+争议焦点
+
+请推荐适用的：
+
+法律
+司法解释
+指导案例（如果适合）
+
+返回 JSON：
+
+[
+    {
+        "title":"",
+        "citation":"",
+        "description":""
+    }
+]
+
+要求：
+
+不要解释。
+不要 Markdown。
+只返回 JSON。`
 }
 
 export function buildArgumentPrompt(_context: any) {

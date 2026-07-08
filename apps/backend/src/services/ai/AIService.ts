@@ -200,18 +200,44 @@ export class AIService {
         const issues = await this.prisma.issue.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } as any })
 
         const context = await this.contextBuilder.buildMatterContext(matter_id)
-        const promptPack = {
-            task: buildLawPrompt(context),
+        const userPrompt = buildLawPrompt(context)
+        const promptPack: any = {
+            task: 'analyze_laws',
             matter_id,
             issues: issues.map((it: any) => ({ title: it.title || '', description: it.description || '', status: it.status || '', priority: it.priority || '' })),
             context_pack: context,
+            user_prompt: userPrompt,
             created_at: new Date().toISOString(),
         }
 
         try {
             const resp = await this.adapter.generate(promptPack)
-            // adapter may return structured laws under resp.response.laws or resp.response.suggestions
-            const laws = resp && resp.response && (Array.isArray(resp.response.laws) ? resp.response.laws : (Array.isArray(resp.response.suggestions) ? resp.response.suggestions : null))
+            // Try multiple response shapes: resp.response.laws, resp.response.suggestions,
+            // or MiniMax-style resp.response.choices[0].message.content (stringified JSON)
+            let laws: any = null
+            if (resp && resp.response) {
+                if (Array.isArray(resp.response.laws)) laws = resp.response.laws
+                else if (Array.isArray(resp.response.suggestions)) laws = resp.response.suggestions
+                else if (Array.isArray(resp.response)) laws = resp.response
+                else if (resp.response.choices && Array.isArray(resp.response.choices) && resp.response.choices[0] && resp.response.choices[0].message && typeof resp.response.choices[0].message.content === 'string') {
+                    const txt = resp.response.choices[0].message.content
+                    try {
+                        const parsed = JSON.parse(txt)
+                        if (Array.isArray(parsed)) laws = parsed
+                    } catch (e) {
+                        const m = txt.match(/\[\s*\{[\s\S]*\}\s*\]/)
+                        if (m && m[0]) {
+                            try {
+                                const parsed = JSON.parse(m[0])
+                                if (Array.isArray(parsed)) laws = parsed
+                            } catch (_e) {
+                                // ignore
+                            }
+                        }
+                    }
+                }
+            }
+
             if (Array.isArray(laws)) {
                 return laws.map((l: any) => ({ title: String(l.title || l.name || ''), citation: String(l.citation || l.ref || ''), description: String(l.description || l.reason || '') }))
             }
