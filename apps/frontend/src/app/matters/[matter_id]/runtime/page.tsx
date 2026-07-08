@@ -45,7 +45,7 @@ export default function RuntimeDashboardPage() {
       setLoading(true)
       setNotice(null)
       // For demo matter, skip runtime fetch and use empty local state
-      if (params.matter_id === 'demo-001') {
+      if (!params.matter_id) {
         setRuntime(null)
         setLoading(false)
         return

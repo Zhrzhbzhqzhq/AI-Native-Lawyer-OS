@@ -14,7 +14,7 @@ const tokens = {
 
 export default function IssuesWorkspace() {
     const params = useParams() as { matter_id?: string }
-    const matterId = params?.matter_id || 'demo-001'
+    const matterId = params?.matter_id || ''
     const router = useRouter()
 
     const [facts, setFacts] = useState<any[]>([])

@@ -34,7 +34,7 @@ function ProgressBar({ value, color = tokens.blue, height = 10 }: { value: numbe
 export default function EvidencePage() {
     const params = useParams() as { matter_id?: string }
     const router = useRouter()
-    const matterId = params?.matter_id || 'demo-001'
+    const matterId = params?.matter_id || ''
 
     // minimal empty workspace
     const fallbackWorkspace = mock

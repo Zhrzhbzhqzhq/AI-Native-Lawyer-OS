@@ -171,7 +171,7 @@ export default function MattersPage() {
 
             <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 12 }}>
               {displayMatters.map((m) => (
-                <div key={m.matter_id} style={{ background: '#fff', border: '1px solid #e6eef6', borderRadius: 12, padding: 16, height: 240, display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
+                <div key={m.matter_id} onClick={() => openMatterLink(m.matter_id)} style={{ background: '#fff', border: '1px solid #e6eef6', borderRadius: 12, padding: 16, height: 240, display: 'flex', flexDirection: 'column', boxSizing: 'border-box', cursor: 'pointer' }}>
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 800 }}>{m.priority}</div>
                     <div style={{ marginTop: 8, fontSize: 16, fontWeight: 700, lineHeight: '1.2', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.title}</div>
@@ -194,7 +194,7 @@ export default function MattersPage() {
 
                   <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
                     <button
-                      onClick={() => openMatterLink(m.matter_id)}
+                      onClick={(ev) => { ev.stopPropagation(); openMatterLink(m.matter_id) }}
                       onMouseEnter={(e) => (e.currentTarget.style.background = '#eff6ff')}
                       onMouseLeave={(e) => (e.currentTarget.style.background = '#fff')}
                       style={{

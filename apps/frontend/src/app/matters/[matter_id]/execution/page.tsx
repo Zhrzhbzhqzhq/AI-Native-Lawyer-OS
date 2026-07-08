@@ -36,7 +36,7 @@ export default function ExecutionWorkspacePage() {
       setLoading(true)
       setError(null)
       // For demo matter, skip runtime fetch and keep local fallback
-      if (params.matter_id === 'demo-001') {
+      if (!params.matter_id) {
         setRuntime(null)
         setLoading(false)
         return

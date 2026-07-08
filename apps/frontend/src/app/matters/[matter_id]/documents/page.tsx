@@ -13,7 +13,7 @@ const tokens = {
 
 export default function DocumentsWorkspace() {
   const params = useParams() as { matter_id?: string }
-  const matterId = params?.matter_id || 'demo-001'
+  const matterId = params?.matter_id || ''
 
   // Left: Arguments
   const [argumentsList, setArgumentsList] = useState<any[]>([])
