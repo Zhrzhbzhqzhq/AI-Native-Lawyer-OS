@@ -37,6 +37,9 @@ export default function ArgumentsWorkspace() {
     const [editingArgId, setEditingArgId] = useState<string | null>(null)
     const [editingPatch, setEditingPatch] = useState<any>({})
     const [savingEdit, setSavingEdit] = useState<boolean>(false)
+    // AI suggestions state
+    const [suggestions, setSuggestions] = useState<Array<{ title: string; description: string; conclusion?: string; id?: string }>>([])
+    const [analyzing, setAnalyzing] = useState<boolean>(false)
 
     const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
 
@@ -157,6 +160,21 @@ export default function ArgumentsWorkspace() {
                             <div style={{ fontWeight: 800 }}>论点（Arguments）</div>
                             <div style={{ display: 'flex', gap: 8 }}>
                                 <button onClick={() => setShowCreate(true)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>新建论点</button>
+                                <button disabled={analyzing} onClick={async () => {
+                                    setAnalyzing(true)
+                                    try {
+                                        const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/arguments/analyze`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                                        if (!res.ok) throw new Error(`status:${res.status}`)
+                                        const json = await res.json()
+                                        const s = Array.isArray(json) ? json.map((it: any, i: number) => ({ id: it.id || `s-${i}`, title: String(it.title || ''), description: String(it.description || ''), conclusion: String(it.conclusion || '') })) : []
+                                        setSuggestions(s)
+                                    } catch (e) {
+                                        console.error('arguments analyze failed', e)
+                                        setSuggestions([])
+                                    } finally {
+                                        setAnalyzing(false)
+                                    }
+                                }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>{analyzing ? 'AI 正在组织法律论证……' : 'AI 组织法律论证'}</button>
                             </div>
                         </div>
 
@@ -224,11 +242,64 @@ export default function ArgumentsWorkspace() {
                     </div>
                 </div>
 
-                {/* AI placeholder */}
+                {/* AI Suggestions area */}
                 <div style={{ maxWidth: 1200, margin: '12px auto 0', display: 'flex', justifyContent: 'flex-end' }}>
-                    <div style={{ width: 520, background: '#fff', borderRadius: tokens.radius, padding: 12, border: `1px solid ${tokens.border}`, color: tokens.muted }}>
-                        <div style={{ fontWeight: 700, marginBottom: 6 }}>AI 建议</div>
-                        <div>（暂未启用）</div>
+                    <div style={{ width: 520, background: '#fff', borderRadius: tokens.radius, padding: 12, border: `1px solid ${tokens.border}` }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ fontWeight: 700 }}>AI 建议</div>
+                            {suggestions && suggestions.length > 0 ? (
+                                <button onClick={async () => {
+                                    for (const s of suggestions.slice()) {
+                                        try {
+                                            const body: any = { title: s.title, description: s.description || '', conclusion: s.conclusion || '' }
+                                            if (selectedIssueId) body.issue_id = selectedIssueId
+                                            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/arguments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+                                            if (!res.ok) throw new Error(`status:${res.status}`)
+                                        } catch (e) {
+                                            console.error('accept all arguments failed', e)
+                                        }
+                                    }
+                                    try { await fetchArguments() } catch (e) { }
+                                    setSuggestions([])
+                                }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>全部接受</button>
+                            ) : null}
+                        </div>
+
+                        {suggestions && suggestions.length > 0 ? (
+                            <div style={{ marginTop: 10 }}>
+                                {suggestions.map((s) => (
+                                    <div key={s.id} style={{ padding: 10, borderRadius: 8, marginBottom: 8, background: '#fff', border: '1px solid #f1f5f9' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <div>
+                                                <div style={{ fontWeight: 700 }}>{s.title}</div>
+                                                <div style={{ color: tokens.muted, marginTop: 6 }}>{s.description}</div>
+                                                <div style={{ color: tokens.muted, marginTop: 6, fontWeight: 700 }}>结论</div>
+                                                <div style={{ color: tokens.muted, marginTop: 6 }}>{s.conclusion}</div>
+                                            </div>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+                                                <button onClick={async () => {
+                                                    try {
+                                                        const body: any = { title: s.title, description: s.description || '', conclusion: s.conclusion || '' }
+                                                        if (selectedIssueId) body.issue_id = selectedIssueId
+                                                        const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/arguments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+                                                        if (!res.ok) throw new Error(`status:${res.status}`)
+                                                        setSuggestions((prev) => prev.filter((x) => x.id !== s.id))
+                                                        try { await fetchArguments() } catch (e) { }
+                                                    } catch (e) {
+                                                        console.error('accept argument failed', e)
+                                                        alert('创建论点失败，请稍后重试')
+                                                    }
+                                                }} style={{ padding: '6px 10px', borderRadius: 6, background: '#111827', color: '#fff', border: 'none' }}>接受</button>
+
+                                                <button onClick={() => setSuggestions((prev) => prev.filter((x) => x.id !== s.id))} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', color: '#111827', border: '1px solid #e6e7ef' }}>忽略</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div style={{ marginTop: 10, color: tokens.muted }}>AI 建议将显示在此处</div>
+                        )}
                     </div>
                 </div>
 
