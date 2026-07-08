@@ -84,6 +84,9 @@ export default function EvidencePage() {
     const [saveDescriptionError, setSaveDescriptionError] = useState<string | null>(null)
     const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
     const [statusErrorById, setStatusErrorById] = useState<Record<string, string>>({})
+    // AI suggestions state
+    const [suggestions, setSuggestions] = useState<Array<{ title: string; reason: string; id?: string }>>([])
+    const [analyzing, setAnalyzing] = useState<boolean>(false)
 
     // derive selected evidence from current data
     const selectedEvidence = (data?.evidences || []).find((e) => e.id === selectedEvidenceId) || (data?.evidences && data.evidences[0]) || fallbackWorkspace.evidences[0]
@@ -473,7 +476,27 @@ export default function EvidencePage() {
                 </div>
 
                 <div>
-                    <button onClick={() => alert('上传证据')} style={{ padding: '8px 12px', borderRadius: 8, background: tokens.blue, color: '#fff', border: 'none' }}>上传证据</button>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <button onClick={() => alert('上传证据')} style={{ padding: '8px 12px', borderRadius: 8, background: tokens.blue, color: '#fff', border: 'none' }}>上传证据</button>
+                        <button disabled={analyzing} onClick={async () => {
+                            setAnalyzing(true)
+                            try {
+                                const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
+                                const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence/analyze`
+                                const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                                if (!res.ok) throw new Error(`status:${res.status}`)
+                                const json = await res.json()
+                                // normalize suggestions
+                                const s = Array.isArray(json) ? json.map((it: any, i: number) => ({ id: it.id || `s-${i}`, title: String(it.title || it.name || ''), reason: String(it.reason || it.description || '') })) : []
+                                setSuggestions(s)
+                            } catch (e) {
+                                console.error('analyze failed', e)
+                                setSuggestions([])
+                            } finally {
+                                setAnalyzing(false)
+                            }
+                        }} style={{ padding: '8px 12px', borderRadius: 8, background: '#fff', color: '#111827', border: '1px solid #e6e7eb', fontWeight: 700 }}>{analyzing ? 'AI 正在分析…' : 'AI 分析证据'}</button>
+                    </div>
                 </div>
             </header>
 
@@ -588,6 +611,71 @@ export default function EvidencePage() {
                         <div style={{ fontSize: 22, fontWeight: 800 }}>{selectedAiSummary && typeof selectedAiSummary.score === 'number' ? selectedAiSummary.score : globalScore}%</div>
                         <div style={{ marginTop: 8 }}><ProgressBar value={selectedAiSummary && typeof selectedAiSummary.score === 'number' ? selectedAiSummary.score : globalScore} /></div>
                         <div style={{ marginTop: 10, color: tokens.muted }}>说明：分数基于证据完整度、可靠性与可验证性。</div>
+                    </div>
+                    {/* AI Suggestions box */}
+                    <div style={{ marginTop: 12, borderTop: '1px solid #f1f5f9', paddingTop: 12 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ fontWeight: 800 }}>AI 建议</div>
+                            {suggestions && suggestions.length > 0 ? (
+                                <button onClick={async () => {
+                                    // accept all suggestions
+                                    for (const s of suggestions.slice()) {
+                                        try {
+                                            const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
+                                            const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence`
+                                            const body = { title: s.title, description: s.reason }
+                                            const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+                                            if (!res.ok) throw new Error(`status:${res.status}`)
+                                        } catch (e) {
+                                            console.error('accept all failed', e)
+                                        }
+                                    }
+                                    // refresh evidence list and clear suggestions
+                                    try { await fetchEvidence() } catch (e) { }
+                                    setSuggestions([])
+                                }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff', color: '#111827', fontWeight: 700 }}>全部接受</button>
+                            ) : null}
+                        </div>
+
+                        {suggestions && suggestions.length > 0 ? (
+                            <div style={{ marginTop: 10 }}>
+                                {suggestions.map((s) => (
+                                    <div key={s.id} style={{ padding: 10, borderRadius: 8, marginBottom: 8, background: '#fff', border: '1px solid #f1f5f9' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <div>
+                                                <div style={{ fontWeight: 700 }}>{s.title}</div>
+                                                <div style={{ color: tokens.muted, marginTop: 6 }}>{s.reason}</div>
+                                            </div>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+                                                <button onClick={async () => {
+                                                    // accept single suggestion -> create evidence
+                                                    try {
+                                                        const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
+                                                        const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence`
+                                                        const body = { title: s.title, description: s.reason }
+                                                        const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+                                                        if (!res.ok) throw new Error(`status:${res.status}`)
+                                                        // on success remove suggestion and refresh evidence list
+                                                        setSuggestions((prev) => prev.filter((x) => x.id !== s.id))
+                                                        try { await fetchEvidence() } catch (e) { }
+                                                    } catch (e) {
+                                                        console.error('accept failed', e)
+                                                        alert('创建证据失败，请稍后重试')
+                                                    }
+                                                }} style={{ padding: '6px 10px', borderRadius: 6, background: '#111827', color: '#fff', border: 'none' }}>接受</button>
+
+                                                <button onClick={() => {
+                                                    // ignore suggestion locally
+                                                    setSuggestions((prev) => prev.filter((x) => x.id !== s.id))
+                                                }} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', color: '#111827', border: '1px solid #e6e7eb' }}>忽略</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div style={{ marginTop: 10, color: tokens.muted }}>AI 建议将显示在此处</div>
+                        )}
                     </div>
                 </div>
             </section>
