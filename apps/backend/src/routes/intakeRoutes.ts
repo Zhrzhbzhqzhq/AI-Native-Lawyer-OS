@@ -444,7 +444,11 @@ export async function intakeRoutes(app: FastifyInstance) {
         console.error('ai create writes error', e)
       }
 
-      return reply.code(201).send({ matter_id, created: true, ai: createdCounts })
+      const meta: any = { ai: createdCounts }
+      if (aiRes && aiRes.fallback_used) meta.ai.fallback_used = true
+      if (aiRes && aiRes.validation) meta.ai.validation = aiRes.validation
+      if (aiRes && aiRes.error) meta.ai.error = aiRes.error
+      return reply.code(201).send({ matter_id, created: true, ...meta })
     } finally {
       try { await prisma.$disconnect() } catch (e) { }
     }
