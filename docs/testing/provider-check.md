@@ -62,3 +62,19 @@ Once those are set, `ProviderManager` will instantiate `MiniMaxAdapter` (or `Min
 3. 只有当 `AI_PROVIDER=minimax` 且 `MINIMAX_API_KEY` 存在时，`ProviderManager` 才允许切换到 MiniMax（或 token_plan 模式下的 Anthropic 兼容适配器）。
 
 请将上述示例变量添加到 `.env.example` 并在部署环境中设置真实凭据以启用 MiniMax。
+
+## MiniMax CN 订阅说明
+
+- 如果你购买了 MiniMax 的中国区（CN）订阅，请在本地 `.env` 中设置：
+
+	```
+	AI_PROVIDER=minimax
+	MINIMAX_BASE_URL=https://api.minimax.chat/v1
+	MINIMAX_MODEL=MiniMax-M3
+	MINIMAX_API_KEY=sk-cp-***  # 请仅在本地设置真实 Key，勿提交到仓库
+	```
+
+- 规则：
+	1. CN 订阅必须配置 `MINIMAX_BASE_URL=https://api.minimax.chat/v1` 才能正确路由到国内 endpoint。
+	2. 未配置 `MINIMAX_API_KEY` 时，系统应继续使用 `mock` 回退，不得关闭 fallback。
+	3. 不要在任何提交中包含真实 API Key；将真实 Key 存放在 `.env` 或安全的秘钥存储中。
