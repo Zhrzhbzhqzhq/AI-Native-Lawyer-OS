@@ -1,13 +1,16 @@
 import type { PrismaClient } from '@lawdesk/database'
 import ProviderManager from '../../ai/providerManager'
+import AIContextBuilder from './AIContextBuilder'
 
 export class AIService {
     prisma: PrismaClient
     adapter: any
+    contextBuilder: AIContextBuilder
 
     constructor(prisma: PrismaClient) {
         this.prisma = prisma
         this.adapter = ProviderManager.getAdapter()
+        this.contextBuilder = new AIContextBuilder(prisma)
     }
 
     // analyzeEvidence: reads materials under the matter and asks the adapter
@@ -16,11 +19,13 @@ export class AIService {
         // fetch materials
         const materials = await this.prisma.material.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } as any })
 
+        const context = await this.contextBuilder.buildMatterContext(matter_id)
         // build a simple promptPack for adapter
         const promptPack = {
             task: 'analyze_evidence',
             matter_id,
             materials: materials.map((m: any) => ({ title: m.title || '', description: m.description || '', ocr: m.ocr_text || '', text: m.content || m.text || '', material_type: m.material_type || '' })),
+            context_pack: context,
             created_at: new Date().toISOString(),
         }
 
@@ -46,10 +51,12 @@ export class AIService {
     async analyzeFacts(matter_id: string) {
         const evidences = await this.prisma.evidence.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } as any })
 
+        const context = await this.contextBuilder.buildMatterContext(matter_id)
         const promptPack = {
             task: 'analyze_facts',
             matter_id,
             evidences: evidences.map((e: any) => ({ title: e.title || '', description: e.description || '', evidence_type: e.evidence_type || '', status: e.status || '' })),
+            context_pack: context,
             created_at: new Date().toISOString(),
         }
 
@@ -73,10 +80,12 @@ export class AIService {
     async analyzeIssues(matter_id: string) {
         const facts = await this.prisma.fact.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } as any })
 
+        const context = await this.contextBuilder.buildMatterContext(matter_id)
         const promptPack = {
             task: 'analyze_issues',
             matter_id,
             facts: facts.map((f: any) => ({ title: f.title || '', description: f.description || '', status: f.status || '' })),
+            context_pack: context,
             created_at: new Date().toISOString(),
         }
 
@@ -100,10 +109,12 @@ export class AIService {
     async analyzeLaws(matter_id: string) {
         const issues = await this.prisma.issue.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } as any })
 
+        const context = await this.contextBuilder.buildMatterContext(matter_id)
         const promptPack = {
             task: 'analyze_laws',
             matter_id,
             issues: issues.map((it: any) => ({ title: it.title || '', description: it.description || '', status: it.status || '', priority: it.priority || '' })),
+            context_pack: context,
             created_at: new Date().toISOString(),
         }
 
@@ -128,11 +139,13 @@ export class AIService {
         const issues = await this.prisma.issue.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } as any })
         const laws = await this.prisma.law.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } as any })
 
+        const context = await this.contextBuilder.buildMatterContext(matter_id)
         const promptPack = {
             task: 'analyze_arguments',
             matter_id,
             issues: issues.map((it: any) => ({ title: it.title || '', description: it.description || '', status: it.status || '', priority: it.priority || '' })),
             laws: laws.map((l: any) => ({ title: l.title || '', citation: l.citation || '', description: l.description || '', status: l.status || '' })),
+            context_pack: context,
             created_at: new Date().toISOString(),
         }
 
@@ -163,10 +176,12 @@ export class AIService {
     async generateDocuments(matter_id: string) {
         const args = await this.prisma.argument.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } as any })
 
+        const context = await this.contextBuilder.buildMatterContext(matter_id)
         const promptPack = {
             task: 'generate_documents',
             matter_id,
             arguments: args.map((a: any) => ({ title: a.title || '', description: a.description || '', conclusion: a.conclusion || '', status: a.status || '' })),
+            context_pack: context,
             created_at: new Date().toISOString(),
         }
 
