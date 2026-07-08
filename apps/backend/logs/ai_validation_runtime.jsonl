@@ -1,1 +1,2 @@
 {"timestamp":"2026-07-08T15:12:53.268Z","module":"TEST","provider":"minimax","model":"MiniMax-M3","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":123}
+{"timestamp":"2026-07-08T16:21:52.245Z","module":"Facts","provider":"minimax","model":"MiniMax-M3","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":39827}

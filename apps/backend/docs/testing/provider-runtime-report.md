@@ -7,3 +7,14 @@
 - Provider: minimax, Model: MiniMax-M3, Matter: alpha-1783523249, Duration: 15678ms, Fallback: no, PromptVersion: v1
 - Provider: minimax, Model: MiniMax-M3, Matter: alpha-1783523249, Duration: 17112ms, Fallback: no, PromptVersion: v1
 - Provider: minimax, Model: MiniMax-M3, Matter: alpha-1783523249, Duration: 6870ms, Fallback: no, PromptVersion: v1
+- Provider: minimax, Model: MiniMax-M3, Matter: -, Duration: 1570ms, Fallback: no, PromptVersion: v1
+- Provider: minimax, Model: MiniMax-M3, Matter: -, Duration: 1378ms, Fallback: no, PromptVersion: v1
+- Provider: minimax, Model: MiniMax-M3, Matter: -, Duration: 2036ms, Fallback: no, PromptVersion: v1
+- Provider: minimax, Model: MiniMax-M3, Matter: -, Duration: 935ms, Fallback: no, PromptVersion: v1
+- Provider: minimax, Model: MiniMax-M3, Matter: -, Duration: 2404ms, Fallback: no, PromptVersion: v1
+- Provider: minimax, Model: MiniMax-M3, Matter: -, Duration: 1888ms, Fallback: no, PromptVersion: v1
+- Provider: minimax, Model: MiniMax-M3, Matter: -, Duration: 1433ms, Fallback: no, PromptVersion: v1
+- Provider: minimax, Model: MiniMax-M3, Matter: -, Duration: 1398ms, Fallback: no, PromptVersion: v1
+- Provider: minimax, Model: MiniMax-M3, Matter: alpha-1783527650, Duration: 9527ms, Fallback: no, PromptVersion: v1
+- Provider: minimax, Model: MiniMax-M3, Matter: alpha-1783527650, Duration: 39827ms, Fallback: no, PromptVersion: v1
+- Provider: minimax, Model: MiniMax-M3, Matter: alpha-1783527650, Duration: 4700ms, Fallback: no, PromptVersion: v1
