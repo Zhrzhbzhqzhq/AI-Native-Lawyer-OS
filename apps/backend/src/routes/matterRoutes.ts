@@ -1082,10 +1082,22 @@ export async function matterRoutes(app: FastifyInstance) {
   app.post('/matters/:matter_id/issues/analyze', async (request, reply) => {
     const { matter_id } = request.params as any
     try {
+      // prefer unified aiService first
       try {
-        const svcAny = aiSuggestionService as any
+        const svcAny = aiService as any
         if (svcAny && typeof svcAny.analyzeIssues === 'function') {
           const out = await svcAny.analyzeIssues(matter_id)
+          return reply.code(200).send(Array.isArray(out) ? out : (out && out.issues ? out.issues : []))
+        }
+      } catch (e) {
+        // continue to next fallback
+      }
+
+      // legacy: allow aiSuggestionService to provide analyzeIssues if present
+      try {
+        const svcAny2 = aiSuggestionService as any
+        if (svcAny2 && typeof svcAny2.analyzeIssues === 'function') {
+          const out = await svcAny2.analyzeIssues(matter_id)
           return reply.code(200).send(out)
         }
       } catch (e) {

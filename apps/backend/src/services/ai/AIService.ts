@@ -68,6 +68,33 @@ export class AIService {
         const fallbackFacts = evidences.slice(0, 5).map((e: any) => ({ title: e.title ? `关于：${e.title}` : '未命名事实', description: e.description || `基于证据类型 ${e.evidence_type || '未知'}（状态：${e.status || 'unknown'}）` }))
         return fallbackFacts
     }
+
+    // analyzeIssues: reads facts under the matter and asks adapter to suggest issues
+    async analyzeIssues(matter_id: string) {
+        const facts = await this.prisma.fact.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } as any })
+
+        const promptPack = {
+            task: 'analyze_issues',
+            matter_id,
+            facts: facts.map((f: any) => ({ title: f.title || '', description: f.description || '', status: f.status || '' })),
+            created_at: new Date().toISOString(),
+        }
+
+        try {
+            const resp = await this.adapter.generate(promptPack)
+            // adapter may return structured issues under resp.response.issues or resp.response.suggestions
+            const issues = resp && resp.response && (Array.isArray(resp.response.issues) ? resp.response.issues : (Array.isArray(resp.response.suggestions) ? resp.response.suggestions : null))
+            if (Array.isArray(issues)) {
+                return issues.map((it: any) => ({ title: String(it.title || it.name || ''), description: String(it.description || it.reason || '') }))
+            }
+        } catch (e) {
+            // ignore and fallback below
+        }
+
+        // fallback: synthesize issues from facts
+        const fallbackIssues = facts.slice(0, 5).map((f: any) => ({ title: f.title ? `需确认：${f.title}` : '需确认事实', description: f.description || '基于现有事实，需要进一步核查或法律认定' }))
+        return fallbackIssues
+    }
 }
 
 export default AIService
