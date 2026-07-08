@@ -1114,6 +1114,42 @@ export async function matterRoutes(app: FastifyInstance) {
     }
   })
 
+  // AI: analyze laws suggestions (mock if service not available)
+  app.post('/matters/:matter_id/laws/analyze', async (request, reply) => {
+    const { matter_id } = request.params as any
+    try {
+      // prefer unified aiService first
+      try {
+        const svcAny = aiService as any
+        if (svcAny && typeof svcAny.analyzeLaws === 'function') {
+          const out = await svcAny.analyzeLaws(matter_id)
+          return reply.code(200).send(Array.isArray(out) ? out : (out && out.laws ? out.laws : []))
+        }
+      } catch (e) {
+        // continue to next fallback
+      }
+
+      // legacy: allow aiSuggestionService to provide analyzeLaws if present
+      try {
+        const svcAny2 = aiSuggestionService as any
+        if (svcAny2 && typeof svcAny2.analyzeLaws === 'function') {
+          const out = await svcAny2.analyzeLaws(matter_id)
+          return reply.code(200).send(out)
+        }
+      } catch (e) {
+        // fall back to mock
+      }
+
+      const mock = [
+        { title: '合同法 - 债权转让', citation: '合同法 第X条', description: '债权转让相关规则，适用于借贷转移情形。' },
+        { title: '民法典 - 合同法部分', citation: '民法典 第Y条', description: '关于合同成立与履行的规则，可能适用于本案。' },
+      ]
+      return reply.code(200).send(mock)
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'analyze_failed', detail: err?.message || String(err) })
+    }
+  })
+
   // Document Workspace - read-only dashboard
   app.get('/matters/:matter_id/documents/workspace', async (request, reply) => {
     const { matter_id } = request.params as any

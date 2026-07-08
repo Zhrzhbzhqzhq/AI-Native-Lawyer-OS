@@ -95,6 +95,33 @@ export class AIService {
         const fallbackIssues = facts.slice(0, 5).map((f: any) => ({ title: f.title ? `需确认：${f.title}` : '需确认事实', description: f.description || '基于现有事实，需要进一步核查或法律认定' }))
         return fallbackIssues
     }
+
+    // analyzeLaws: reads issues under the matter and asks adapter to suggest applicable laws
+    async analyzeLaws(matter_id: string) {
+        const issues = await this.prisma.issue.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } as any })
+
+        const promptPack = {
+            task: 'analyze_laws',
+            matter_id,
+            issues: issues.map((it: any) => ({ title: it.title || '', description: it.description || '', status: it.status || '', priority: it.priority || '' })),
+            created_at: new Date().toISOString(),
+        }
+
+        try {
+            const resp = await this.adapter.generate(promptPack)
+            // adapter may return structured laws under resp.response.laws or resp.response.suggestions
+            const laws = resp && resp.response && (Array.isArray(resp.response.laws) ? resp.response.laws : (Array.isArray(resp.response.suggestions) ? resp.response.suggestions : null))
+            if (Array.isArray(laws)) {
+                return laws.map((l: any) => ({ title: String(l.title || l.name || ''), citation: String(l.citation || l.ref || ''), description: String(l.description || l.reason || '') }))
+            }
+        } catch (e) {
+            // ignore and fallback below
+        }
+
+        // fallback: suggest generic laws based on issues
+        const fallback = issues.slice(0, 5).map((it: any) => ({ title: it.title ? `可能适用法律：${it.title}` : '可能适用法律', citation: '', description: it.description || '根据现有问题，建议核查相关法律条文。' }))
+        return fallback
+    }
 }
 
 export default AIService
