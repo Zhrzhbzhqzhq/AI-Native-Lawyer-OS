@@ -52,11 +52,6 @@ export async function matterRoutes(app: FastifyInstance) {
     return list;
   });
 
-  app.get('/matters/:id/documents', async (request, reply) => {
-    const { id } = request.params as any;
-    const list = await documentService.listByMatter(id);
-    return list;
-  });
 
   // Documents CRUD (new style, consistent with other resources)
   app.post('/matters/:matter_id/documents', async (request, reply) => {
@@ -647,27 +642,6 @@ export async function matterRoutes(app: FastifyInstance) {
     }
   });
 
-  app.post('/matters/:id/documents', async (request, reply) => {
-    const { id } = request.params as any;
-    const payload = request.body as any;
-    if (!payload.document_id || !payload.title) return reply.code(400).send({ error: 'document_id and title required' });
-    try {
-      const created = await documentService.createForMatter(id, payload);
-      return reply.code(201).send(created);
-    } catch (err: any) {
-      return reply.code(500).send({ error: 'create failed', detail: err?.message || String(err) });
-    }
-  });
-
-  app.delete('/matters/:id/documents/:document_id', async (request, reply) => {
-    const { document_id } = request.params as any;
-    try {
-      await documentService.deleteByDocumentId(document_id);
-      return reply.code(204).send();
-    } catch (err: any) {
-      return reply.code(404).send({ error: 'Not found or delete failed', detail: err?.message || String(err) });
-    }
-  });
 
   app.post('/matters/:id/materials', async (request, reply) => {
     const { id } = request.params as any;
