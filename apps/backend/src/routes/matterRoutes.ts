@@ -1186,6 +1186,42 @@ export async function matterRoutes(app: FastifyInstance) {
     }
   })
 
+  // AI: generate document drafts (mock if service not available)
+  app.post('/matters/:matter_id/documents/analyze', async (request, reply) => {
+    const { matter_id } = request.params as any
+    try {
+      // prefer unified aiService first
+      try {
+        const svcAny = aiService as any
+        if (svcAny && typeof svcAny.generateDocuments === 'function') {
+          const out = await svcAny.generateDocuments(matter_id)
+          return reply.code(200).send(Array.isArray(out) ? out : (out && out.documents ? out.documents : []))
+        }
+      } catch (e) {
+        // continue to next fallback
+      }
+
+      // legacy: allow aiSuggestionService to provide generateDocuments if present
+      try {
+        const svcAny2 = aiSuggestionService as any
+        if (svcAny2 && typeof svcAny2.generateDocuments === 'function') {
+          const out = await svcAny2.generateDocuments(matter_id)
+          return reply.code(200).send(out)
+        }
+      } catch (e) {
+        // fall back to mock
+      }
+
+      const mock = [
+        { title: '证据目录', document_type: 'evidence_catalog', content: '证据目录示例内容', status: 'draft' },
+        { title: '起诉状草稿', document_type: 'complaint', content: '起诉状草稿示例内容', status: 'draft' },
+      ]
+      return reply.code(200).send(mock)
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'analyze_failed', detail: err?.message || String(err) })
+    }
+  })
+
   // Document Workspace - read-only dashboard
   app.get('/matters/:matter_id/documents/workspace', async (request, reply) => {
     const { matter_id } = request.params as any

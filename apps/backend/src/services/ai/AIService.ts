@@ -158,6 +158,33 @@ export class AIService {
         })
         return combined
     }
+
+    // generateDocuments: reads arguments under the matter and asks adapter to suggest document drafts
+    async generateDocuments(matter_id: string) {
+        const args = await this.prisma.argument.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } as any })
+
+        const promptPack = {
+            task: 'generate_documents',
+            matter_id,
+            arguments: args.map((a: any) => ({ title: a.title || '', description: a.description || '', conclusion: a.conclusion || '', status: a.status || '' })),
+            created_at: new Date().toISOString(),
+        }
+
+        try {
+            const resp = await this.adapter.generate(promptPack)
+            // adapter may return structured documents under resp.response.documents or resp.response.suggestions
+            const docs = resp && resp.response && (Array.isArray(resp.response.documents) ? resp.response.documents : (Array.isArray(resp.response.suggestions) ? resp.response.suggestions : null))
+            if (Array.isArray(docs)) {
+                return docs.map((d: any) => ({ title: String(d.title || ''), document_type: String(d.document_type || d.type || ''), content: String(d.content || d.body || ''), status: String(d.status || 'draft') }))
+            }
+        } catch (e) {
+            // ignore and fallback below
+        }
+
+        // fallback: synthesize simple document drafts from arguments
+        const fallback = args.slice(0, 5).map((a: any) => ({ title: a.title ? `草稿：${a.title}` : '文书草稿', document_type: 'complaint', content: a.description || a.conclusion || '基于现有论证生成文书草稿', status: 'draft' }))
+        return fallback
+    }
 }
 
 export default AIService
