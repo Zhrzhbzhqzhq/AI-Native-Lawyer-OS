@@ -29,18 +29,46 @@ export class AIService {
 
         const context = await this.contextBuilder.buildMatterContext(matter_id)
         // build a simple promptPack for adapter
-        const promptPack = {
-            task: buildEvidencePrompt(context),
+        const evidencePrompt = buildEvidencePrompt(context)
+        const promptPack: any = {
+            task: 'analyze_evidence',
             matter_id,
             materials: materials.map((m: any) => ({ title: m.title || '', description: m.description || '', ocr: m.ocr_text || '', text: m.content || m.text || '', material_type: m.material_type || '' })),
             context_pack: context,
+            // include the human-facing prompt so adapters that expect system/user prompts receive it
+            user_prompt: evidencePrompt,
             created_at: new Date().toISOString(),
         }
 
         try {
             const resp = await this.adapter.generate(promptPack)
             // adapter may return structured suggestions under resp.response.suggestions
-            const suggestions = (resp && resp.response && Array.isArray(resp.response.suggestions)) ? resp.response.suggestions : null
+            // Try multiple response shapes: resp.response.suggestions, resp.response array,
+            // or MiniMax-style resp.response.choices[0].message.content (stringified JSON)
+            let suggestions: any = null
+            if (resp && resp.response) {
+                if (Array.isArray(resp.response.suggestions)) suggestions = resp.response.suggestions
+                else if (Array.isArray(resp.response)) suggestions = resp.response
+                else if (resp.response.choices && Array.isArray(resp.response.choices) && resp.response.choices[0] && resp.response.choices[0].message && typeof resp.response.choices[0].message.content === 'string') {
+                    const txt = resp.response.choices[0].message.content
+                    try {
+                        const parsed = JSON.parse(txt)
+                        if (Array.isArray(parsed)) suggestions = parsed
+                    } catch (e) {
+                        // try to extract JSON substring
+                        const m = txt.match(/\[\s*\{[\s\S]*\}\s*\]/)
+                        if (m && m[0]) {
+                            try {
+                                const parsed = JSON.parse(m[0])
+                                if (Array.isArray(parsed)) suggestions = parsed
+                            } catch (_e) {
+                                // ignore
+                            }
+                        }
+                    }
+                }
+            }
+
             if (Array.isArray(suggestions)) {
                 // normalize suggestions to expected shape
                 return suggestions.map((s: any) => ({ title: String(s.title || s.name || ''), reason: String(s.reason || s.description || ''), evidence_type: String(s.evidence_type || s.type || '') }))

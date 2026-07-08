@@ -3,7 +3,25 @@
 // used by AIService when building the promptPack.
 
 export function buildEvidencePrompt(_context: any) {
-    return 'analyze_evidence'
+    return `你是一名中国资深诉讼律师。
+
+下面是案件资料。
+
+请识别哪些材料可以作为证据。
+
+返回 JSON：
+
+[
+ {
+     "title":"",
+     "description":"",
+     "evidence_type":""
+ }
+]
+
+不要解释。
+不要 Markdown。
+只返回 JSON。`
 }
 
 export function buildFactPrompt(_context: any) {
