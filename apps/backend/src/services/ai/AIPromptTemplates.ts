@@ -84,6 +84,8 @@ export function buildIssuePrompt(_context: any) {
 - 待证明事实
 - 存在争议事实
 
+注意：争议焦点只能建立在已确认事实（confirmed）和存在争议事实（disputed）之上；不得依据待证明事实（to_prove）生成争议焦点。待证明事实只能作为需要进一步举证的问题，不得作为争议焦点成立的依据。
+
 请据此提炼案件争议焦点。
 
 要求：
