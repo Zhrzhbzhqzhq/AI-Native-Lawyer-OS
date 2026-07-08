@@ -39,7 +39,7 @@ export default async function aiRoutes(app: FastifyInstance) {
             const out = {
                 provider: resp && resp.provider ? resp.provider : provider,
                 model: resp && resp.model ? resp.model : model,
-                base_url: adapter.baseUrl,
+                base_url: baseUrlEnv,
                 has_api_key: hasApiKey,
                 status: resp && resp.response ? 'ok' : (resp && resp.fallback ? 'fallback' : 'error'),
                 latency_ms: latency,
