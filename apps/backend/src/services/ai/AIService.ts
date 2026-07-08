@@ -52,6 +52,9 @@ export class AIService {
                 else if (resp.response.choices && Array.isArray(resp.response.choices) && resp.response.choices[0] && resp.response.choices[0].message && typeof resp.response.choices[0].message.content === 'string') {
                     const txt = resp.response.choices[0].message.content
                     try {
+                        console.error('===== MiniMax Raw Content =====')
+                        console.error(resp.response.choices[0].message.content)
+                        console.error('===============================')
                         const { parseAIJson } = await import('./parseAIJson')
                         const parsed = parseAIJson(txt)
                         if (Array.isArray(parsed.data)) suggestions = parsed.data
@@ -63,7 +66,13 @@ export class AIService {
 
             if (Array.isArray(suggestions)) {
                 // normalize suggestions to expected shape
-                return suggestions.map((s: any) => ({ title: String(s.title || s.name || ''), reason: String(s.reason || s.description || ''), evidence_type: String(s.evidence_type || s.type || '') }))
+                return suggestions.map((s: any) => {
+                    const title = String(s.title || s.name || '')
+                    const rawReason = (s.reason !== undefined && s.reason !== null) ? String(s.reason) : (s.description !== undefined && s.description !== null ? String(s.description) : '')
+                    const reason = rawReason ? rawReason.trim() : ''
+                    const evidence_type = String(s.evidence_type || s.type || '')
+                    return { title, reason, evidence_type }
+                })
             }
         } catch (e) {
             // fall through to material-derived suggestions
