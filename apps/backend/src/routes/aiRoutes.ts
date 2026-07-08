@@ -97,10 +97,23 @@ export default async function aiRoutes(app: FastifyInstance) {
             } catch (_e) {
                 text = ''
             }
-            // attempt JSON parse using shared parser
+
+            // If adapter returned an explicit error object, surface as parse failure
+            try {
+                const responseObj = resp && resp.response ? resp.response : null
+                if (responseObj && (responseObj.type === 'error' || responseObj.error)) {
+                    const errMessage = (responseObj.error && (responseObj.error.message || responseObj.error.msg)) || JSON.stringify(responseObj.error || responseObj)
+                    return { parsed: null, raw_text: text || JSON.stringify(responseObj), parse_meta: { ok: false, error: errMessage, raw: responseObj } }
+                }
+            } catch (_e) {
+                // ignore
+            }
+
+            // attempt JSON parse using shared parser on the assistant content (prefer message content)
             try {
                 const { default: parseAIJson } = await import('../services/ai/AIJsonParser')
-                const parsed = parseAIJson(resp && resp.response ? resp.response : (text || ''))
+                const contentToParse = (text && text.length > 0) ? text : (resp && resp.response ? resp.response : '')
+                const parsed = parseAIJson(contentToParse)
                 return { parsed: parsed.ok ? parsed.data : null, raw_text: text, parse_meta: parsed }
             } catch (_e) {
                 return { parsed: null, raw_text: text }
