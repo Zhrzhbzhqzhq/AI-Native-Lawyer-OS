@@ -1,6 +1,14 @@
 import type { PrismaClient } from '@lawdesk/database'
 import ProviderManager from '../../ai/providerManager'
 import AIContextBuilder from './AIContextBuilder'
+import {
+    buildEvidencePrompt,
+    buildFactPrompt,
+    buildIssuePrompt,
+    buildLawPrompt,
+    buildArgumentPrompt,
+    buildDocumentPrompt,
+} from './AIPromptTemplates'
 
 export class AIService {
     prisma: PrismaClient
@@ -22,7 +30,7 @@ export class AIService {
         const context = await this.contextBuilder.buildMatterContext(matter_id)
         // build a simple promptPack for adapter
         const promptPack = {
-            task: 'analyze_evidence',
+            task: buildEvidencePrompt(context),
             matter_id,
             materials: materials.map((m: any) => ({ title: m.title || '', description: m.description || '', ocr: m.ocr_text || '', text: m.content || m.text || '', material_type: m.material_type || '' })),
             context_pack: context,
@@ -53,7 +61,7 @@ export class AIService {
 
         const context = await this.contextBuilder.buildMatterContext(matter_id)
         const promptPack = {
-            task: 'analyze_facts',
+            task: buildFactPrompt(context),
             matter_id,
             evidences: evidences.map((e: any) => ({ title: e.title || '', description: e.description || '', evidence_type: e.evidence_type || '', status: e.status || '' })),
             context_pack: context,
@@ -82,7 +90,7 @@ export class AIService {
 
         const context = await this.contextBuilder.buildMatterContext(matter_id)
         const promptPack = {
-            task: 'analyze_issues',
+            task: buildIssuePrompt(context),
             matter_id,
             facts: facts.map((f: any) => ({ title: f.title || '', description: f.description || '', status: f.status || '' })),
             context_pack: context,
@@ -111,7 +119,7 @@ export class AIService {
 
         const context = await this.contextBuilder.buildMatterContext(matter_id)
         const promptPack = {
-            task: 'analyze_laws',
+            task: buildLawPrompt(context),
             matter_id,
             issues: issues.map((it: any) => ({ title: it.title || '', description: it.description || '', status: it.status || '', priority: it.priority || '' })),
             context_pack: context,
@@ -141,7 +149,7 @@ export class AIService {
 
         const context = await this.contextBuilder.buildMatterContext(matter_id)
         const promptPack = {
-            task: 'analyze_arguments',
+            task: buildArgumentPrompt(context),
             matter_id,
             issues: issues.map((it: any) => ({ title: it.title || '', description: it.description || '', status: it.status || '', priority: it.priority || '' })),
             laws: laws.map((l: any) => ({ title: l.title || '', citation: l.citation || '', description: l.description || '', status: l.status || '' })),
@@ -178,7 +186,7 @@ export class AIService {
 
         const context = await this.contextBuilder.buildMatterContext(matter_id)
         const promptPack = {
-            task: 'generate_documents',
+            task: buildDocumentPrompt(context),
             matter_id,
             arguments: args.map((a: any) => ({ title: a.title || '', description: a.description || '', conclusion: a.conclusion || '', status: a.status || '' })),
             context_pack: context,
