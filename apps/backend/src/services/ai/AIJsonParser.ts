@@ -13,6 +13,34 @@ function normalizeEscapes(s: string) {
     return s.replace(/\\n/g, '\n').replace(/\\r/g, '\r').replace(/\\t/g, '\t')
 }
 
+function escapeNewlinesInsideStrings(src: string) {
+    // convert actual newline characters that appear inside JSON string literals
+    // into escaped \n so JSON.parse can succeed when LLM outputs raw newlines inside strings
+    let out = ''
+    let inString = false
+    let escape = false
+    for (let i = 0; i < src.length; i++) {
+        const ch = src[i]
+        if (ch === '"' && !escape) {
+            inString = !inString
+            out += ch
+            continue
+        }
+        if (ch === '\\' && !escape) {
+            escape = true
+            out += ch
+            continue
+        }
+        if ((ch === '\n' || ch === '\r') && inString && !escape) {
+            out += '\\n'
+            continue
+        }
+        out += ch
+        escape = false
+    }
+    return out
+}
+
 function multiJSONParse(candidate: string, maxDepth = 4): { ok: boolean; value?: any } {
     let cur = candidate
     for (let i = 0; i < maxDepth; i++) {
@@ -76,6 +104,18 @@ export default function parseAIJson(input: unknown): ParseResult {
         const norm = normalizeEscapes(s)
         attempt = multiJSONParse(norm)
         if (attempt.ok) return { ok: true, data: attempt.value }
+
+        // 3b) Try escaping raw newlines inside string literals then parse
+        try {
+            const escapedNewlines = escapeNewlinesInsideStrings(s)
+            attempt = multiJSONParse(escapedNewlines)
+            if (attempt.ok) return { ok: true, data: attempt.value }
+            // also try normalizing escapes after fixing newlines
+            attempt = multiJSONParse(normalizeEscapes(escapedNewlines))
+            if (attempt.ok) return { ok: true, data: attempt.value }
+        } catch (_e) {
+            // ignore
+        }
 
         // 4) If wrapped as a JSON string, try JSON.parse once then multi-parse the result
         try {
