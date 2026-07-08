@@ -77,18 +77,52 @@ export function validateDocuments(result: any): ValidationResult {
     if (!Array.isArray(result)) {
         return { ok: false, errors: ['documents must be an array'] }
     }
-    // Check for at least one 起诉状 or 代理词
-    const hasRequired = result.some((d: any) => {
-        if (!d || typeof d !== 'object') return false
-        const docType = d.document_type || ''
-        const title = d.title || ''
-        const content = d.content || ''
-        if (typeof docType === 'string' && (docType.includes('起诉状') || docType.includes('代理词'))) return true
-        if (typeof title === 'string' && (title.includes('起诉状') || title.includes('代理词'))) return true
-        if (typeof content === 'string' && (content.includes('起诉状') || content.includes('代理词'))) return true
-        return false
+    // Must contain at least 2 documents and must include 起诉状 and 证据目录
+    if (result.length < 2) errors.push('at least 2 documents required')
+
+    const lowerContains = (s: any, keywords: string[]) => {
+        if (typeof s !== 'string') return false
+        const low = s
+        return keywords.some(k => low.includes(k))
+    }
+
+    let has_qs = false
+    let has_zj = false
+    const forbidden = [/……/, /待补充/, /某某/, /此处填写/, /模板/, /占位/]
+
+    result.forEach((d: any, idx: number) => {
+        if (!d || typeof d !== 'object') {
+            errors.push(`document[${idx}] must be an object`)
+            return
+        }
+        const docType = String(d.document_type || '')
+        const title = String(d.title || '')
+        const content = String(d.content || '')
+
+        if (lowerContains(docType + title + content, ['起诉状'])) has_qs = true
+        if (lowerContains(docType + title + content, ['证据目录', '证据清单'])) has_zj = true
+
+        if (!isNonEmptyString(d.title)) errors.push(`document[${idx}].title missing or empty`)
+        if (!isNonEmptyString(d.document_type)) errors.push(`document[${idx}].document_type missing or empty`)
+        if (!isNonEmptyString(d.content)) errors.push(`document[${idx}].content missing or empty`)
+        else {
+            if (d.content.trim().length < 300) errors.push(`document[${idx}].content must be at least 300 characters`)
+            // check forbidden placeholders
+            forbidden.forEach((re) => { if (re.test(d.content)) errors.push(`document[${idx}].content contains forbidden placeholder or template token`) })
+            // check required sections for 起诉状 and 证据目录 where applicable
+            if (lowerContains(docType + title, ['起诉状'])) {
+                if (!d.content.includes('诉讼请求')) errors.push(`document[${idx}].content must include 诉讼请求`)
+                if (!d.content.includes('事实与理由')) errors.push(`document[${idx}].content must include 事实与理由`)
+                if (!d.content.includes('证据')) errors.push(`document[${idx}].content should include 证据 or 证据清单`)
+            }
+            if (lowerContains(docType + title, ['证据目录', '证据清单'])) {
+                if (!d.content.includes('证明目的') && !d.content.includes('证明目的：')) errors.push(`document[${idx}].content for 证据目录 should include 证明目的 or explanation for each evidence item`)
+            }
+        }
     })
-    if (!hasRequired) errors.push('at least one document must be 起诉状 or 代理词')
+
+    if (!has_qs) errors.push('missing required document: 起诉状')
+    if (!has_zj) errors.push('missing required document: 证据目录')
     return { ok: errors.length === 0, errors }
 }
 
