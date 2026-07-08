@@ -1557,6 +1557,12 @@ export async function matterRoutes(app: FastifyInstance) {
   app.delete('/matters/:matter_id/arguments/:argument_id', async (request, reply) => {
     const { argument_id } = request.params as any;
     try {
+      // Nullify any documents referencing this argument to avoid FK constraint violations
+      try {
+        await prisma.document.updateMany({ where: { argument_id }, data: { argument_id: null } });
+      } catch (e) {
+        // ignore failures here and let deleteArgument surface meaningful errors
+      }
       await argumentService.deleteArgument(argument_id);
       return reply.code(204).send();
     } catch (err: any) {
