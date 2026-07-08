@@ -97,25 +97,11 @@ export default async function aiRoutes(app: FastifyInstance) {
             } catch (_e) {
                 text = ''
             }
-
-            // attempt JSON parse
+            // attempt JSON parse using shared parser
             try {
-                // strip ```json fences
-                const cleaned = (text || '').replace(/```json|```/g, '').trim()
-                const firstBrace = cleaned.indexOf('{')
-                const firstBracket = cleaned.indexOf('[')
-                let candidate = cleaned
-                if (firstBrace >= 0 && (firstBrace < firstBracket || firstBracket === -1)) {
-                    const start = cleaned.indexOf('{')
-                    const end = cleaned.lastIndexOf('}')
-                    if (start >= 0 && end > start) candidate = cleaned.substring(start, end + 1)
-                } else if (firstBracket >= 0) {
-                    const start = cleaned.indexOf('[')
-                    const end = cleaned.lastIndexOf(']')
-                    if (start >= 0 && end > start) candidate = cleaned.substring(start, end + 1)
-                }
-                const parsed = JSON.parse(candidate)
-                return { parsed, raw_text: text }
+                const { default: parseAIJson } = await import('../services/ai/AIJsonParser')
+                const parsed = parseAIJson(resp && resp.response ? resp.response : (text || ''))
+                return { parsed: parsed.ok ? parsed.data : null, raw_text: text, parse_meta: parsed }
             } catch (_e) {
                 return { parsed: null, raw_text: text }
             }
@@ -129,26 +115,27 @@ export default async function aiRoutes(app: FastifyInstance) {
             // facts
             const fa = await callStep('facts', '请基于案件摘要，抽取关键事实（要点化），以 JSON 数组返回，例如:["借款时间","借款金额"]')
             steps.facts = fa.parsed || (fa.raw_text ? [fa.raw_text] : [])
-            validation.facts = { parsed: Boolean(fa.parsed) }
+            validation.facts = fa.parse_meta || { parsed: Boolean(fa.parsed) }
 
             // issues
             const is = await callStep('issues', '请基于案件摘要，列出法律争议点（Issue）数组，返回 JSON 数组，例如:["是否构成借款合同","是否存在还款义务"]')
-            steps.issues = is.parsed || (is.raw_text ? [is.raw_text] : [])
+            steps.issues = is.parsed || (is.raw_text ? [is.raw_text] : []);
+            (validation as any).issues = is.parse_meta || { parsed: !!is.parsed }
 
             // laws
             const la = await callStep('laws', '请基于案件摘要和争议点，列出可能适用的法律条文或法理，以 JSON 数组返回，例如:[{"code":"合同法第...","summary":"..."}]')
             steps.laws = la.parsed || (la.raw_text ? [la.raw_text] : [])
-            validation.laws = { parsed: Boolean(la.parsed) }
+            validation.laws = la.parse_meta || { parsed: Boolean(la.parsed) }
 
             // arguments
             const ag = await callStep('arguments', '请基于事实和法律，草拟主要法律论点（要点），以 JSON 数组返回，例如:[{"side":"原告","point":"..."}]')
             steps.arguments = ag.parsed || (ag.raw_text ? [ag.raw_text] : [])
-            validation.arguments = { parsed: Boolean(ag.parsed) }
+            validation.arguments = ag.parse_meta || { parsed: Boolean(ag.parsed) }
 
             // documents
             const doc = await callStep('documents', '请基于案件摘要和论点，生成文书建议（例如 起诉状 标题和要点），以 JSON 数组返回，每项包含 "type" 和 "content" 字段')
             steps.documents = doc.parsed || (doc.raw_text ? [{ type: 'raw', content: doc.raw_text }] : [])
-            validation.documents = { parsed: Boolean(doc.parsed) }
+            validation.documents = doc.parse_meta || { parsed: Boolean(doc.parsed) }
 
             const totalLatency = Date.now() - startAll
 
