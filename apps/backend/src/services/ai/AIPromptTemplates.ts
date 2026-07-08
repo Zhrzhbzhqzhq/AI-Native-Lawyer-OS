@@ -36,23 +36,38 @@ export function buildEvidencePrompt(_context: any) {
 }
 
 export function buildFactPrompt(_context: any) {
-    return `你是一名中国资深诉讼律师。
+    return `你是一名中国资深民商事诉讼律师。
 
-下面是案件中已经确认的证据。
+下面是当前案件中已经整理的 Evidence（证据列表）。
 
-请根据这些证据，提炼可以成立的案件事实。
+请根据这些证据提炼案件事实，并将事实分为三类：
+
+1. 已确认事实（confirmed）
+- 有明确证据支持，可直接用于起诉状、代理词或庭审陈述。
+
+2. 待证明事实（to_prove）
+- 对案件重要，但目前证据不足，需要律师补充证据以证明该事实。
+
+3. 存在争议事实（disputed）
+- 对方可能否认或存在实质性争议，需要重点准备证明或反驳材料。
 
 返回 JSON：
 
 [
- {
-     "title":"",
-     "description":""
- }
+    {
+        "title": "",
+        "description": "",
+        "category": "confirmed | to_prove | disputed"
+    }
 ]
 
-不要解释。
-不要 Markdown。
+严格要求：
+- 只输出事实，不要输出法律评价或争议焦点。
+- 每条事实必须至少能对应到已给出的至少一项 Evidence（在 description 可简要指明对应证据或证据要点）。
+- 最多返回 12 条，按重要性排序（最重要在前）。
+- 仅返回合法 JSON 数组，不要返回任何解释、注释或 Markdown。
+    - 不要修改前端或 API，前端目前只显示 title 与 description，但请在返回对象中保留 category 供后续使用。
+
 只返回 JSON。`
 }
 
