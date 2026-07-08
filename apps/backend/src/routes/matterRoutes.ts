@@ -1066,6 +1066,30 @@ export async function matterRoutes(app: FastifyInstance) {
     }
   })
 
+  // AI: analyze facts suggestions (mock if service not available)
+  app.post('/matters/:matter_id/facts/analyze', async (request, reply) => {
+    const { matter_id } = request.params as any
+    try {
+      try {
+        const svcAny = aiSuggestionService as any
+        if (svcAny && typeof svcAny.analyzeFacts === 'function') {
+          const out = await svcAny.analyzeFacts(matter_id)
+          return reply.code(200).send(out)
+        }
+      } catch (e) {
+        // fall back to mock
+      }
+
+      const mock = [
+        { title: '借款事实', description: '2023-01-10，张三向李四转账100000元。' },
+        { title: '催收事实', description: '微信聊天记录显示张三多次催收。' },
+      ]
+      return reply.code(200).send(mock)
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'analyze_failed', detail: err?.message || String(err) })
+    }
+  })
+
   // Document Workspace - read-only dashboard
   app.get('/matters/:matter_id/documents/workspace', async (request, reply) => {
     const { matter_id } = request.params as any

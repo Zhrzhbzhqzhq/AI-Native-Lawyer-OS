@@ -33,6 +33,9 @@ export default function FactsWorkspace() {
     const [newDescription, setNewDescription] = useState<string>('')
     const [creating, setCreating] = useState<boolean>(false)
     const [errorMsg, setErrorMsg] = useState<string | null>(null)
+    // AI suggestions state
+    const [suggestions, setSuggestions] = useState<Array<{ title: string; description: string; id?: string }>>([])
+    const [analyzing, setAnalyzing] = useState<boolean>(false)
 
     const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
 
@@ -196,7 +199,24 @@ export default function FactsWorkspace() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                             <div style={{ fontWeight: 800 }}>事实（Facts）</div>
                             <div style={{ display: 'flex', gap: 8 }}>
-                                <button onClick={() => setShowCreate(true)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>根据所选证据创建事实</button>
+                                <div style={{ display: 'flex', gap: 8 }}>
+                                    <button onClick={() => setShowCreate(true)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>根据所选证据创建事实</button>
+                                    <button disabled={analyzing} onClick={async () => {
+                                        setAnalyzing(true)
+                                        try {
+                                            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/facts/analyze`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                                            if (!res.ok) throw new Error(`status:${res.status}`)
+                                            const json = await res.json()
+                                            const s = Array.isArray(json) ? json.map((it: any, i: number) => ({ id: it.id || `s-${i}`, title: String(it.title || ''), description: String(it.description || it.reason || '') })) : []
+                                            setSuggestions(s)
+                                        } catch (e) {
+                                            console.error('fact analyze failed', e)
+                                            setSuggestions([])
+                                        } finally {
+                                            setAnalyzing(false)
+                                        }
+                                    }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>{analyzing ? 'AI 正在整理事实…' : 'AI 整理事实'}</button>
+                                </div>
                             </div>
                         </div>
 
@@ -253,6 +273,60 @@ export default function FactsWorkspace() {
                                         </li>
                                     ))}
                                 </ul>
+                            )}
+                        </div>
+
+                        {/* AI Suggestions box */}
+                        <div style={{ marginTop: 12, background: tokens.cardBg, padding: 12, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ fontWeight: 800 }}>AI 建议</div>
+                                {suggestions && suggestions.length > 0 ? (
+                                    <button onClick={async () => {
+                                        // accept all suggestions
+                                        for (const s of suggestions.slice()) {
+                                            try {
+                                                const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/facts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: s.title, description: s.description }) })
+                                                if (!res.ok) throw new Error(`status:${res.status}`)
+                                            } catch (e) {
+                                                console.error('accept all facts failed', e)
+                                            }
+                                        }
+                                        try { await fetchFacts() } catch (e) { }
+                                        setSuggestions([])
+                                    }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>全部接受</button>
+                                ) : null}
+                            </div>
+
+                            {suggestions && suggestions.length > 0 ? (
+                                <div style={{ marginTop: 10 }}>
+                                    {suggestions.map((s) => (
+                                        <div key={s.id} style={{ padding: 10, borderRadius: 8, marginBottom: 8, background: '#fff', border: '1px solid #f1f5f9' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                <div>
+                                                    <div style={{ fontWeight: 700 }}>{s.title}</div>
+                                                    <div style={{ color: tokens.muted, marginTop: 6 }}>{s.description}</div>
+                                                </div>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+                                                    <button onClick={async () => {
+                                                        try {
+                                                            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/facts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: s.title, description: s.description }) })
+                                                            if (!res.ok) throw new Error(`status:${res.status}`)
+                                                            setSuggestions((prev) => prev.filter((x) => x.id !== s.id))
+                                                            try { await fetchFacts() } catch (e) { }
+                                                        } catch (e) {
+                                                            console.error('accept fact failed', e)
+                                                            alert('创建事实失败，请稍后重试')
+                                                        }
+                                                    }} style={{ padding: '6px 10px', borderRadius: 6, background: '#111827', color: '#fff', border: 'none' }}>接受</button>
+
+                                                    <button onClick={() => setSuggestions((prev) => prev.filter((x) => x.id !== s.id))} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', color: '#111827', border: '1px solid #e6e7ef' }}>忽略</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div style={{ marginTop: 10, color: tokens.muted }}>AI 建议将显示在此处</div>
                             )}
                         </div>
                     </div>
