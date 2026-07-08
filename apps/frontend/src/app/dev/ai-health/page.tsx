@@ -11,7 +11,8 @@ export default function AIHealthPage() {
         setError(null)
         setResult(null)
         try {
-            const res = await fetch('/ai/health-check', { method: 'POST' })
+            const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'
+            const res = await fetch(`${apiBase}/ai/health-check`, { method: 'POST' })
             const json = await res.json()
             setResult(json)
         } catch (e: any) {
