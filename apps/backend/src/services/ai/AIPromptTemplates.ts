@@ -100,7 +100,35 @@ export function buildLawPrompt(_context: any) {
 }
 
 export function buildArgumentPrompt(_context: any) {
-    return 'analyze_arguments'
+    const facts = Array.isArray(_context && _context.facts) ? _context.facts : []
+    const issues = Array.isArray(_context && _context.issues) ? _context.issues : []
+    const laws = Array.isArray(_context && _context.laws) ? _context.laws : []
+
+    return `你是一名中国资深民商事诉讼律师。
+
+下面是已确认的案件事实：\n${JSON.stringify(facts, null, 2)}
+
+下面是争议焦点：\n${JSON.stringify(issues, null, 2)}
+
+下面是可适用的法律依据：\n${JSON.stringify(laws, null, 2)}
+
+请基于上述事实、争议焦点与法律依据，组织能够支持原告诉讼请求的法律论证。
+
+返回 JSON：
+
+[
+    {
+        "title":"",
+        "description":"",
+        "conclusion":""
+    }
+]
+
+要求：
+
+不要 Markdown。
+不要解释。
+只返回 JSON.`
 }
 
 export function buildDocumentPrompt(_context: any) {

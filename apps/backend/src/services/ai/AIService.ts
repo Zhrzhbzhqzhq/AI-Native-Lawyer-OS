@@ -252,23 +252,52 @@ export class AIService {
 
     // analyzeArguments: reads issues and laws under the matter and asks adapter to suggest arguments
     async analyzeArguments(matter_id: string) {
-        const issues = await this.prisma.issue.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } as any })
-        const laws = await this.prisma.law.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } as any })
-
         const context = await this.contextBuilder.buildMatterContext(matter_id)
-        const promptPack = {
-            task: buildArgumentPrompt(context),
+        const facts = Array.isArray(context.facts) ? context.facts : []
+        const issues = Array.isArray(context.issues) ? context.issues : []
+        const laws = Array.isArray(context.laws) ? context.laws : []
+
+        const userPrompt = buildArgumentPrompt(context)
+        const promptPack: any = {
+            task: 'analyze_arguments',
             matter_id,
+            facts: facts.map((f: any) => ({ title: f.title || '', description: f.description || '', status: f.status || '' })),
             issues: issues.map((it: any) => ({ title: it.title || '', description: it.description || '', status: it.status || '', priority: it.priority || '' })),
             laws: laws.map((l: any) => ({ title: l.title || '', citation: l.citation || '', description: l.description || '', status: l.status || '' })),
             context_pack: context,
+            user_prompt: userPrompt,
             created_at: new Date().toISOString(),
         }
 
         try {
             const resp = await this.adapter.generate(promptPack)
             // adapter may return structured arguments under resp.response.arguments or resp.response.suggestions
-            const args = resp && resp.response && (Array.isArray(resp.response.arguments) ? resp.response.arguments : (Array.isArray(resp.response.suggestions) ? resp.response.suggestions : null))
+            // Parse multiple shapes: resp.response.arguments, resp.response.suggestions,
+            // or MiniMax-style resp.response.choices[0].message.content (stringified JSON)
+            let args: any = null
+            if (resp && resp.response) {
+                if (Array.isArray(resp.response.arguments)) args = resp.response.arguments
+                else if (Array.isArray(resp.response.suggestions)) args = resp.response.suggestions
+                else if (Array.isArray(resp.response)) args = resp.response
+                else if (resp.response.choices && Array.isArray(resp.response.choices) && resp.response.choices[0] && resp.response.choices[0].message && typeof resp.response.choices[0].message.content === 'string') {
+                    const txt = resp.response.choices[0].message.content
+                    try {
+                        const parsed = JSON.parse(txt)
+                        if (Array.isArray(parsed)) args = parsed
+                    } catch (e) {
+                        const m = txt.match(/\[\s*\{[\s\S]*\}\s*\]/)
+                        if (m && m[0]) {
+                            try {
+                                const parsed = JSON.parse(m[0])
+                                if (Array.isArray(parsed)) args = parsed
+                            } catch (_e) {
+                                // ignore
+                            }
+                        }
+                    }
+                }
+            }
+
             if (Array.isArray(args)) {
                 return args.map((a: any) => ({ title: String(a.title || a.name || ''), description: String(a.description || a.reason || ''), conclusion: String(a.conclusion || a.conclude || '') }))
             }

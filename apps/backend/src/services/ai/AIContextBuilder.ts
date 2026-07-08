@@ -1,4 +1,7 @@
 import type { PrismaClient } from '@lawdesk/database'
+import FactService from '../factService'
+import IssueService from '../issueService'
+import LawService from '../lawService'
 
 export class AIContextBuilder {
     prisma: PrismaClient
@@ -14,9 +17,16 @@ export class AIContextBuilder {
 
         const materials = await p.material.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } }).catch(() => [])
         const evidence = await p.evidence.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } }).catch(() => [])
-        const facts = await p.fact.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } }).catch(() => [])
-        const issues = await p.issue.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } }).catch(() => [])
-        const laws = await p.law.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } }).catch(() => [])
+
+        // Prefer service layer to fetch facts/issues/laws so any business logic is respected
+        const factService = new FactService(p)
+        const issueService = new IssueService(p)
+        const lawService = new LawService(p)
+
+        const facts = await factService.listFacts(matter_id).catch(() => [])
+        const issues = await issueService.listIssues(matter_id).catch(() => [])
+        const laws = await lawService.listLaws(matter_id).catch(() => [])
+
         const argumentsList = await p.argument.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } }).catch(() => [])
         const documents = await p.document.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } }).catch(() => [])
 
