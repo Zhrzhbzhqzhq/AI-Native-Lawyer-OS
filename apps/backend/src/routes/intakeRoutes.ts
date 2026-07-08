@@ -390,12 +390,24 @@ export async function intakeRoutes(app: FastifyInstance) {
       const createdCounts: any = { evidence_count: 0, facts_count: 0, issues_count: 0, laws_count: 0, arguments_count: 0, documents_count: 0 }
 
       try {
-        // Evidence: expect array of strings
+        // Evidence: map strings or objects to Evidence rows
         const evs = Array.isArray(aiRes.steps.evidence) ? aiRes.steps.evidence : []
         for (const e of evs.slice(0, 20)) {
-          const title = typeof e === 'string' ? e : (e.title || JSON.stringify(e))
+          let title = ''
+          let evidence_type = 'AI推荐证据'
+          let description = ''
+          let relevance = 'AI intake pipeline'
+          if (typeof e === 'string') {
+            title = e
+            description = e
+          } else if (e && typeof e === 'object') {
+            title = String(e.title || e.name || JSON.stringify(e))
+            description = String(e.description || e.proof_purpose || e.title || JSON.stringify(e))
+            if (typeof e.evidence_type === 'string') evidence_type = e.evidence_type
+            if (typeof e.relevance === 'string') relevance = e.relevance
+          }
           const evidence_id = `ev-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
-          await evidenceService.createForMatter(matter_id, { evidence_id, material_id: '', title: String(title), evidence_type: '', description: '', relevance: '' })
+          await evidenceService.createForMatter(matter_id, { evidence_id, material_id: '', title: String(title), evidence_type, description, relevance, status: 'active' })
           createdCounts.evidence_count++
         }
 
@@ -418,25 +430,52 @@ export async function intakeRoutes(app: FastifyInstance) {
         // Laws
         const laws = Array.isArray(aiRes.steps.laws) ? aiRes.steps.laws : []
         for (const l of laws.slice(0, 50)) {
-          const title = typeof l === 'string' ? l : (l.title || (l.code || JSON.stringify(l)))
-          await lawService.createLaw(matter_id, { title: String(title), citation: typeof l === 'object' && l.code ? String(l.code) : '' })
+          let title = ''
+          let citation = ''
+          if (typeof l === 'string') {
+            title = l
+            citation = l
+          } else if (l && typeof l === 'object') {
+            title = String(l.code || l.title || JSON.stringify(l))
+            citation = String(l.code || '')
+          }
+          await lawService.createLaw(matter_id, { title: String(title), citation })
           createdCounts.laws_count++
         }
 
         // Arguments
         const args = Array.isArray(aiRes.steps.arguments) ? aiRes.steps.arguments : []
         for (const a of args.slice(0, 50)) {
-          const title = typeof a === 'string' ? a : (a.title || JSON.stringify(a))
-          await argumentService.createArgument(matter_id, { title: String(title), description: typeof a === 'object' && a.point ? String(a.point) : '' })
+          let title = ''
+          let description = ''
+          if (typeof a === 'string') {
+            title = String(a).slice(0, 80)
+            description = String(a)
+          } else if (a && typeof a === 'object') {
+            const side = String(a.side || '')
+            const point = String(a.point || a.description || '')
+            title = side ? `${side}：法律论点` : (a.title || JSON.stringify(a))
+            description = point
+          }
+          await argumentService.createArgument(matter_id, { title: String(title), description: String(description) })
           createdCounts.arguments_count++
         }
 
         // Documents
         const docs = Array.isArray(aiRes.steps.documents) ? aiRes.steps.documents : []
         for (const d of docs.slice(0, 20)) {
-          const title = typeof d === 'string' ? d : (d.type ? `${d.type}` : (d.title || 'AI doc'))
-          const content = typeof d === 'string' ? d : (d.content || JSON.stringify(d))
-          await documentService.createForMatter(matter_id, { document_id: `doc-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`, title: String(title), document_type: 'draft', content_uri: '', version: 'v1', status: 'draft' })
+          let title = 'AI doc'
+          let document_type = 'draft'
+          let content = ''
+          if (typeof d === 'string') {
+            title = String(d).slice(0, 120)
+            content = d
+          } else if (d && typeof d === 'object') {
+            title = String(d.type || d.title || 'AI doc')
+            document_type = String(d.type || 'draft')
+            content = typeof d.content === 'string' ? d.content : JSON.stringify(d.content || d)
+          }
+          await documentService.createForMatter(matter_id, { document_id: `doc-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`, title: String(title), document_type: String(document_type), content_uri: '', version: 'v1', status: 'draft' })
           createdCounts.documents_count++
         }
       } catch (e) {
