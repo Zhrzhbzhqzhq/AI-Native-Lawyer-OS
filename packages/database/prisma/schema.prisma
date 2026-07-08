@@ -115,10 +115,12 @@ model Document {
   matter_id    String
   material_id  String?
   evidence_id  String?
+  argument_id  String?
   title        String
   document_type String
   version      String
-  content_uri  String
+  content_uri  String?
+  content      String?
   status       String
   created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
@@ -126,6 +128,7 @@ model Document {
   matter      Matter     @relation(fields: [matter_id], references: [matter_id], onDelete: Restrict, onUpdate: Cascade)
   material    Material?  @relation(fields: [material_id], references: [material_id], onDelete: Restrict, onUpdate: Cascade)
   evidence    Evidence?  @relation(fields: [evidence_id], references: [evidence_id], onDelete: Restrict, onUpdate: Cascade)
+  argument    Argument?  @relation(fields: [argument_id], references: [argument_id], onDelete: Restrict, onUpdate: Cascade)
   tasks       Task[]
   timelines   Timeline[]
   workflow_events WorkflowEvent[]
@@ -136,6 +139,7 @@ model Document {
   @@index([matter_id], map: "idx_documents_matter_id")
   @@index([material_id], map: "idx_documents_material_id")
   @@index([evidence_id], map: "idx_documents_evidence_id")
+  @@index([argument_id], map: "idx_documents_argument_id")
   @@map("documents")
 }
 
@@ -485,6 +489,7 @@ model Argument {
 
   matter Matter   @relation(fields: [matter_id], references: [matter_id], onDelete: Restrict, onUpdate: Cascade)
   issue  Issue?   @relation(fields: [issue_id], references: [issue_id], onDelete: Restrict, onUpdate: Cascade)
+  documents Document[]
 
   @@index([matter_id], map: "idx_arguments_matter_id")
   @@index([issue_id], map: "idx_arguments_issue_id")
