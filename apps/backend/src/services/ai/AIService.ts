@@ -9,6 +9,7 @@ import {
     buildArgumentPrompt,
     buildDocumentPrompt,
 } from './AIPromptTemplates'
+import AIOutputValidator from './AIOutputValidator'
 
 export class AIService {
     prisma: PrismaClient
@@ -121,7 +122,45 @@ export class AIService {
             }
 
             if (Array.isArray(facts)) {
-                return facts.map((f: any) => ({ title: String(f.title || f.name || ''), description: String(f.description || f.reason || '') }))
+                // Validate raw facts before mapping
+                let validation = AIOutputValidator.validateFacts(facts)
+                if (validation.ok) {
+                    console.log('AI Validation PASS: facts')
+                    return facts.map((f: any) => ({ title: String(f.title || f.name || ''), description: String(f.description || f.reason || ''), category: f.category, evidence_titles: f.evidence_titles }))
+                }
+                console.log('AI Validation FAIL: facts', validation.errors)
+                // Retry once
+                try {
+                    console.log('Retry #1: facts')
+                    const resp2 = await this.adapter.generate(promptPack)
+                    let facts2: any = null
+                    if (resp2 && resp2.response) {
+                        if (Array.isArray(resp2.response.facts)) facts2 = resp2.response.facts
+                        else if (Array.isArray(resp2.response.suggestions)) facts2 = resp2.response.suggestions
+                        else if (Array.isArray(resp2.response)) facts2 = resp2.response
+                        else if (resp2.response.choices && Array.isArray(resp2.response.choices) && resp2.response.choices[0] && resp2.response.choices[0].message && typeof resp2.response.choices[0].message.content === 'string') {
+                            const txt2 = resp2.response.choices[0].message.content
+                            try {
+                                const { parseAIJson } = await import('./parseAIJson')
+                                const parsed2 = parseAIJson(txt2)
+                                if (Array.isArray(parsed2.data)) facts2 = parsed2.data
+                            } catch (_e) {
+                                // ignore
+                            }
+                        }
+                    }
+                    if (Array.isArray(facts2)) {
+                        const validation2 = AIOutputValidator.validateFacts(facts2)
+                        if (validation2.ok) {
+                            console.log('AI Validation PASS: facts (retry)')
+                            return facts2.map((f: any) => ({ title: String(f.title || f.name || ''), description: String(f.description || f.reason || ''), category: f.category, evidence_titles: f.evidence_titles }))
+                        }
+                        console.log('AI Validation FAIL: facts (retry)', validation2.errors)
+                    }
+                } catch (_e) {
+                    // ignore
+                }
+                console.log('Fallback Used: facts')
             }
         } catch (e) {
             // ignore and fallback below
@@ -219,7 +258,45 @@ export class AIService {
             }
 
             if (Array.isArray(laws)) {
-                return laws.map((l: any) => ({ title: String(l.title || l.name || ''), citation: String(l.citation || l.ref || ''), description: String(l.description || l.reason || '') }))
+                // Validate laws before returning
+                let validation = AIOutputValidator.validateLaws(laws)
+                if (validation.ok) {
+                    console.log('AI Validation PASS: laws')
+                    return laws.map((l: any) => ({ title: String(l.title || l.name || ''), citation: String(l.citation || l.ref || ''), description: String(l.description || l.reason || ''), issue_title: l.issue_title }))
+                }
+                console.log('AI Validation FAIL: laws', validation.errors)
+                // Retry once
+                try {
+                    console.log('Retry #1: laws')
+                    const resp2 = await this.adapter.generate(promptPack)
+                    let laws2: any = null
+                    if (resp2 && resp2.response) {
+                        if (Array.isArray(resp2.response.laws)) laws2 = resp2.response.laws
+                        else if (Array.isArray(resp2.response.suggestions)) laws2 = resp2.response.suggestions
+                        else if (Array.isArray(resp2.response)) laws2 = resp2.response
+                        else if (resp2.response.choices && Array.isArray(resp2.response.choices) && resp2.response.choices[0] && resp2.response.choices[0].message && typeof resp2.response.choices[0].message.content === 'string') {
+                            const txt2 = resp2.response.choices[0].message.content
+                            try {
+                                const { parseAIJson } = await import('./parseAIJson')
+                                const parsed2 = parseAIJson(txt2)
+                                if (Array.isArray(parsed2.data)) laws2 = parsed2.data
+                            } catch (_e) {
+                                // ignore
+                            }
+                        }
+                    }
+                    if (Array.isArray(laws2)) {
+                        const validation2 = AIOutputValidator.validateLaws(laws2)
+                        if (validation2.ok) {
+                            console.log('AI Validation PASS: laws (retry)')
+                            return laws2.map((l: any) => ({ title: String(l.title || l.name || ''), citation: String(l.citation || l.ref || ''), description: String(l.description || l.reason || ''), issue_title: l.issue_title }))
+                        }
+                        console.log('AI Validation FAIL: laws (retry)', validation2.errors)
+                    }
+                } catch (_e) {
+                    // ignore
+                }
+                console.log('Fallback Used: laws')
             }
         } catch (e) {
             // ignore and fallback below
@@ -272,7 +349,44 @@ export class AIService {
             }
 
             if (Array.isArray(args)) {
-                return args.map((a: any) => ({ title: String(a.title || a.name || ''), description: String(a.description || a.reason || ''), conclusion: String(a.conclusion || a.conclude || '') }))
+                // Validate arguments before mapping
+                let validation = AIOutputValidator.validateArguments(args)
+                if (validation.ok) {
+                    console.log('AI Validation PASS: arguments')
+                    return args.map((a: any) => ({ title: String(a.title || a.name || ''), description: String(a.description || a.reason || ''), conclusion: String(a.conclusion || a.conclude || ''), issue_title: a.issue_title, fact_titles: a.fact_titles, law_citations: a.law_citations }))
+                }
+                console.log('AI Validation FAIL: arguments', validation.errors)
+                try {
+                    console.log('Retry #1: arguments')
+                    const resp2 = await this.adapter.generate(promptPack)
+                    let args2: any = null
+                    if (resp2 && resp2.response) {
+                        if (Array.isArray(resp2.response.arguments)) args2 = resp2.response.arguments
+                        else if (Array.isArray(resp2.response.suggestions)) args2 = resp2.response.suggestions
+                        else if (Array.isArray(resp2.response)) args2 = resp2.response
+                        else if (resp2.response.choices && Array.isArray(resp2.response.choices) && resp2.response.choices[0] && resp2.response.choices[0].message && typeof resp2.response.choices[0].message.content === 'string') {
+                            const txt2 = resp2.response.choices[0].message.content
+                            try {
+                                const { parseAIJson } = await import('./parseAIJson')
+                                const parsed2 = parseAIJson(txt2)
+                                if (Array.isArray(parsed2.data)) args2 = parsed2.data
+                            } catch (_e) {
+                                // ignore
+                            }
+                        }
+                    }
+                    if (Array.isArray(args2)) {
+                        const validation2 = AIOutputValidator.validateArguments(args2)
+                        if (validation2.ok) {
+                            console.log('AI Validation PASS: arguments (retry)')
+                            return args2.map((a: any) => ({ title: String(a.title || a.name || ''), description: String(a.description || a.reason || ''), conclusion: String(a.conclusion || a.conclude || ''), issue_title: a.issue_title, fact_titles: a.fact_titles, law_citations: a.law_citations }))
+                        }
+                        console.log('AI Validation FAIL: arguments (retry)', validation2.errors)
+                    }
+                } catch (_e) {
+                    // ignore
+                }
+                console.log('Fallback Used: arguments')
             }
         } catch (e) {
             // ignore and fallback below
@@ -327,7 +441,44 @@ export class AIService {
             }
 
             if (Array.isArray(docs)) {
-                return docs.map((d: any) => ({ title: String(d.title || ''), document_type: String(d.document_type || d.type || ''), content: String(d.content || d.body || ''), status: String(d.status || 'draft') }))
+                // Validate documents before returning
+                let validation = AIOutputValidator.validateDocuments(docs)
+                if (validation.ok) {
+                    console.log('AI Validation PASS: documents')
+                    return docs.map((d: any) => ({ title: String(d.title || ''), document_type: String(d.document_type || d.type || ''), content: String(d.content || d.body || ''), status: String(d.status || 'draft') }))
+                }
+                console.log('AI Validation FAIL: documents', validation.errors)
+                try {
+                    console.log('Retry #1: documents')
+                    const resp2 = await this.adapter.generate(promptPack)
+                    let docs2: any = null
+                    if (resp2 && resp2.response) {
+                        if (Array.isArray(resp2.response.documents)) docs2 = resp2.response.documents
+                        else if (Array.isArray(resp2.response.suggestions)) docs2 = resp2.response.suggestions
+                        else if (Array.isArray(resp2.response)) docs2 = resp2.response
+                        else if (resp2.response.choices && Array.isArray(resp2.response.choices) && resp2.response.choices[0] && resp2.response.choices[0].message && typeof resp2.response.choices[0].message.content === 'string') {
+                            const txt2 = resp2.response.choices[0].message.content
+                            try {
+                                const { parseAIJson } = await import('./parseAIJson')
+                                const parsed2 = parseAIJson(txt2)
+                                if (Array.isArray(parsed2.data)) docs2 = parsed2.data
+                            } catch (_e) {
+                                // ignore
+                            }
+                        }
+                    }
+                    if (Array.isArray(docs2)) {
+                        const validation2 = AIOutputValidator.validateDocuments(docs2)
+                        if (validation2.ok) {
+                            console.log('AI Validation PASS: documents (retry)')
+                            return docs2.map((d: any) => ({ title: String(d.title || ''), document_type: String(d.document_type || d.type || ''), content: String(d.content || d.body || ''), status: String(d.status || 'draft') }))
+                        }
+                        console.log('AI Validation FAIL: documents (retry)', validation2.errors)
+                    }
+                } catch (_e) {
+                    // ignore
+                }
+                console.log('Fallback Used: documents')
             }
         } catch (e) {
             // ignore and fallback below
