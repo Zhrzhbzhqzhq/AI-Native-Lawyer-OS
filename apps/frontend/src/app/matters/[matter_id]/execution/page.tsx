@@ -36,7 +36,7 @@ export default function ExecutionWorkspacePage() {
       setLoading(true)
       setError(null)
       // For demo matter, skip runtime fetch and keep local fallback
-      if (!params.matter_id) {
+      if (!params.matter_id || String(params.matter_id).startsWith('demo-')) {
         setRuntime(null)
         setLoading(false)
         return
@@ -58,6 +58,10 @@ export default function ExecutionWorkspacePage() {
 
   useEffect(() => {
     async function loadExecution() {
+      if (!params.matter_id || String(params.matter_id).startsWith('demo-')) {
+        setExecutionRows([])
+        return
+      }
       try {
         const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000'
         const res = await fetch(`${API}/matters/${params.matter_id}/execution`).catch(() => null)
