@@ -236,6 +236,9 @@ export async function matterRoutes(app: FastifyInstance) {
 
       return reply.code(200).send(snap);
     } catch (err: any) {
+      if (err?.message === 'Matter not found') {
+        return reply.code(404).send({ error: 'Matter not found' });
+      }
       return reply.code(500).send({ error: 'runtime snapshot failed', detail: err?.message || String(err) });
     }
   });
