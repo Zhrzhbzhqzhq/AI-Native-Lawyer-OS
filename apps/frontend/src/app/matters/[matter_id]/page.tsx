@@ -394,9 +394,14 @@ export default function MatterWorkspacePage() {
             <div>委托人：{client}</div>
             <div>案件阶段：{stage}</div>
             <div>案件状态：{status}</div>
-            <div style={{ marginTop: 8, display: 'flex', gap: 12 }}>
-              <SummaryCard title="Materials" value={materials.length} />
-              <SummaryCard title="Evidence" value={evidenceCount} />
+            <div style={{ marginTop: 8, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <SummaryCard title="Materials" value={counts.materials} />
+              <SummaryCard title="Evidence" value={counts.evidence} />
+              <SummaryCard title="Facts" value={counts.facts} />
+              <SummaryCard title="Issues" value={counts.issues} />
+              <SummaryCard title="Laws" value={counts.laws} />
+              <SummaryCard title="Arguments" value={counts.arguments} />
+              <SummaryCard title="Documents" value={counts.documents} />
             </div>
           </div>
         </div>
