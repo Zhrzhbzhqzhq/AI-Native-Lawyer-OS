@@ -527,16 +527,35 @@ export async function intakeRoutes(app: FastifyInstance) {
         for (const d of docs.slice(0, 20)) {
           let title = 'AI doc'
           let document_type = 'draft'
-          let content = ''
+
+          // Extract content from common fields returned by AI: prefer `content`, then `body`, then `text`.
+          // If none are present or all are empty, skip creating a document to avoid persisting empty drafts.
+          // Reason: prevent empty draft documents from polluting the database when AI returns metadata only.
+          let contentCandidate: any = null
           if (typeof d === 'string') {
             title = String(d).slice(0, 120)
-            content = d
+            contentCandidate = d
           } else if (d && typeof d === 'object') {
             title = String(d.type || d.title || 'AI doc')
             document_type = String(d.type || 'draft')
-            content = typeof d.content === 'string' ? d.content : JSON.stringify(d.content || d)
+            // prefer explicit content fields if present
+            if (typeof d.content === 'string') contentCandidate = d.content
+            else if (typeof d.body === 'string') contentCandidate = d.body
+            else if (typeof d.text === 'string') contentCandidate = d.text
+            else if (d && typeof d === 'object') {
+              // fallback: stringify if object contains meaningful content fields
+              try { contentCandidate = JSON.stringify(d.content || d) } catch (_) { contentCandidate = '' }
+            }
           }
-          await documentService.createForMatter(matter_id, { document_id: `doc-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`, title: String(title), document_type: String(document_type), content_uri: '', version: 'v1', status: 'draft' })
+
+          const contentStr = (typeof contentCandidate === 'string' ? contentCandidate.trim() : '')
+          if (!contentStr) {
+            // Skip creating a document when AI provided no textual content.
+            // This avoids creating empty draft records like those observed in the audit (M136.1-M136.6).
+            continue
+          }
+
+          await documentService.createForMatter(matter_id, { document_id: `doc-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`, title: String(title), document_type: String(document_type), content_uri: '', content: contentStr, version: 'v1', status: 'draft' })
           createdCounts.documents_count++
         }
       } catch (e) {
