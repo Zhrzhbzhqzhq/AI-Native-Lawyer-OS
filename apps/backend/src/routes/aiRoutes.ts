@@ -56,6 +56,10 @@ export default async function aiRoutes(app: FastifyInstance) {
     })
 
     app.post('/ai/playground', async (request, reply) => {
+        // Hide playground in production to avoid exposing a dev tool
+        if (process.env.NODE_ENV === 'production') {
+            return reply.code(404).send()
+        }
         const body: any = request.body as any || {}
         const caseSummary = (body.case_summary || '').toString()
         const provider = process.env.AI_PROVIDER || 'minimax'

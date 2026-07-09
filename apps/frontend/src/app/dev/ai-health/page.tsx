@@ -2,6 +2,14 @@
 import React, { useState } from 'react'
 
 export default function AIHealthPage() {
+    if (process.env.NODE_ENV === 'production') {
+        return (
+            <main style={{ padding: 24, fontFamily: 'Inter, system-ui, sans-serif', color: '#111' }}>
+                <h1 style={{ marginBottom: 8 }}>AI 健康检查</h1>
+                <p style={{ color: '#666', marginTop: 0 }}>该页面仅供开发环境使用。</p>
+            </main>
+        )
+    }
     const [loading, setLoading] = useState(false)
     const [result, setResult] = useState<any>(null)
     const [error, setError] = useState<string | null>(null)

@@ -4,6 +4,14 @@ import React, { useState } from 'react'
 const DEFAULT = `张三于2024年3月15日向李四出借人民币100000元。双方通过微信约定借款期限一年。张三通过银行转账向李四支付100000元。李四承诺于2025年3月15日前归还。到期后李四未还款。张三多次微信催收，李四回复“最近资金紧张，过段时间还”。目前仍未还款。`
 
 export default function AIPlayground() {
+    if (process.env.NODE_ENV === 'production') {
+        return (
+            <main style={{ padding: 24, fontFamily: 'Inter, system-ui, sans-serif', color: '#111' }}>
+                <h1 style={{ marginBottom: 8 }}>AI Playground</h1>
+                <p style={{ color: '#666', marginTop: 0 }}>该页面仅供开发环境使用。</p>
+            </main>
+        )
+    }
     const [loading, setLoading] = useState(false)
     const [caseSummary, setCaseSummary] = useState(DEFAULT)
     const [result, setResult] = useState<any | null>(null)
