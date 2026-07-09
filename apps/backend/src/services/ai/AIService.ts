@@ -54,9 +54,6 @@ export class AIService {
                 else if (resp.response.choices && Array.isArray(resp.response.choices) && resp.response.choices[0] && resp.response.choices[0].message && typeof resp.response.choices[0].message.content === 'string') {
                     const txt = resp.response.choices[0].message.content
                     try {
-                        console.error('===== MiniMax Raw Content =====')
-                        console.error(resp.response.choices[0].message.content)
-                        console.error('===============================')
                         const { parseAIJson } = await import('./parseAIJson')
                         const parsed = parseAIJson(txt)
                         if (Array.isArray(parsed.data)) suggestions = parsed.data
@@ -126,15 +123,14 @@ export class AIService {
                 // Validate raw facts before mapping
                 let validation = AIOutputValidator.validateFacts(facts)
                 if (validation.ok) {
-                    console.log('AI Validation PASS: facts')
+
                     try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Facts', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'PASS', retry: 0, fallback: false, missing_fields: [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
                     return facts.map((f: any) => ({ title: String(f.title || f.name || ''), description: String(f.description || f.reason || ''), category: f.category, evidence_titles: f.evidence_titles }))
                 }
-                console.log('AI Validation FAIL: facts', validation.errors)
+
                 try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Facts', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'FAIL', retry: 0, fallback: false, missing_fields: validation.errors || [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
                 // Retry once
                 try {
-                    console.log('Retry #1: facts')
                     const resp2 = await this.adapter.generate(promptPack)
                     let facts2: any = null
                     if (resp2 && resp2.response) {
@@ -155,17 +151,16 @@ export class AIService {
                     if (Array.isArray(facts2)) {
                         const validation2 = AIOutputValidator.validateFacts(facts2)
                         if (validation2.ok) {
-                            console.log('AI Validation PASS: facts (retry)')
+
                             try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Facts', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'PASS', retry: 1, fallback: false, missing_fields: [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
                             return facts2.map((f: any) => ({ title: String(f.title || f.name || ''), description: String(f.description || f.reason || ''), category: f.category, evidence_titles: f.evidence_titles }))
                         }
-                        console.log('AI Validation FAIL: facts (retry)', validation2.errors)
+
                         try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Facts', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'FAIL', retry: 1, fallback: false, missing_fields: validation2.errors || [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
                     }
                 } catch (_e) {
                     // ignore
                 }
-                console.log('Fallback Used: facts')
                 try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Facts', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'FAIL', retry: 1, fallback: true, missing_fields: validation.errors || [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
             }
         } catch (e) {
@@ -267,15 +262,15 @@ export class AIService {
                 // Validate laws before returning
                 let validation = AIOutputValidator.validateLaws(laws)
                 if (validation.ok) {
-                    console.log('AI Validation PASS: laws')
+
                     try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Laws', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'PASS', retry: 0, fallback: false, missing_fields: [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
                     return laws.map((l: any) => ({ title: String(l.title || l.name || ''), citation: String(l.citation || l.ref || ''), description: String(l.description || l.reason || ''), issue_title: l.issue_title }))
                 }
-                console.log('AI Validation FAIL: laws', validation.errors)
+
                 try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Laws', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'FAIL', retry: 0, fallback: false, missing_fields: validation.errors || [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
                 // Retry once
                 try {
-                    console.log('Retry #1: laws')
+
                     const resp2 = await this.adapter.generate(promptPack)
                     let laws2: any = null
                     if (resp2 && resp2.response) {
@@ -296,17 +291,16 @@ export class AIService {
                     if (Array.isArray(laws2)) {
                         const validation2 = AIOutputValidator.validateLaws(laws2)
                         if (validation2.ok) {
-                            console.log('AI Validation PASS: laws (retry)')
+
                             try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Laws', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'PASS', retry: 1, fallback: false, missing_fields: [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
                             return laws2.map((l: any) => ({ title: String(l.title || l.name || ''), citation: String(l.citation || l.ref || ''), description: String(l.description || l.reason || ''), issue_title: l.issue_title }))
                         }
-                        console.log('AI Validation FAIL: laws (retry)', validation2.errors)
+
                         try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Laws', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'FAIL', retry: 1, fallback: false, missing_fields: validation2.errors || [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
                     }
                 } catch (_e) {
                     // ignore
                 }
-                console.log('Fallback Used: laws')
                 try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Laws', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'FAIL', retry: 1, fallback: true, missing_fields: validation.errors || [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
             }
         } catch (e) {
@@ -363,14 +357,14 @@ export class AIService {
                 // Validate arguments before mapping
                 let validation = AIOutputValidator.validateArguments(args)
                 if (validation.ok) {
-                    console.log('AI Validation PASS: arguments')
+
                     try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Arguments', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'PASS', retry: 0, fallback: false, missing_fields: [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
                     return args.map((a: any) => ({ title: String(a.title || a.name || ''), description: String(a.description || a.reason || ''), conclusion: String(a.conclusion || a.conclude || ''), issue_title: a.issue_title, fact_titles: a.fact_titles, law_citations: a.law_citations }))
                 }
-                console.log('AI Validation FAIL: arguments', validation.errors)
+
                 try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Arguments', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'FAIL', retry: 0, fallback: false, missing_fields: validation.errors || [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
                 try {
-                    console.log('Retry #1: arguments')
+
                     const resp2 = await this.adapter.generate(promptPack)
                     let args2: any = null
                     if (resp2 && resp2.response) {
@@ -391,17 +385,16 @@ export class AIService {
                     if (Array.isArray(args2)) {
                         const validation2 = AIOutputValidator.validateArguments(args2)
                         if (validation2.ok) {
-                            console.log('AI Validation PASS: arguments (retry)')
+
                             try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Arguments', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'PASS', retry: 1, fallback: false, missing_fields: [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
                             return args2.map((a: any) => ({ title: String(a.title || a.name || ''), description: String(a.description || a.reason || ''), conclusion: String(a.conclusion || a.conclude || ''), issue_title: a.issue_title, fact_titles: a.fact_titles, law_citations: a.law_citations }))
                         }
-                        console.log('AI Validation FAIL: arguments (retry)', validation2.errors)
+
                         try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Arguments', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'FAIL', retry: 1, fallback: false, missing_fields: validation2.errors || [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
                     }
                 } catch (_e) {
                     // ignore
                 }
-                console.log('Fallback Used: arguments')
                 try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Arguments', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'FAIL', retry: 1, fallback: true, missing_fields: validation.errors || [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
             }
         } catch (e) {
@@ -460,14 +453,14 @@ export class AIService {
                 // Validate documents before returning
                 let validation = AIOutputValidator.validateDocuments(docs)
                 if (validation.ok) {
-                    console.log('AI Validation PASS: documents')
+
                     try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Documents', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'PASS', retry: 0, fallback: false, missing_fields: [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
                     return docs.map((d: any) => ({ title: String(d.title || ''), document_type: String(d.document_type || d.type || ''), content: String(d.content || d.body || ''), status: String(d.status || 'draft') }))
                 }
-                console.log('AI Validation FAIL: documents', validation.errors)
+
                 try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Documents', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'FAIL', retry: 0, fallback: false, missing_fields: validation.errors || [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
                 try {
-                    console.log('Retry #1: documents')
+
                     const resp2 = await this.adapter.generate(promptPack)
                     let docs2: any = null
                     if (resp2 && resp2.response) {
@@ -488,17 +481,16 @@ export class AIService {
                     if (Array.isArray(docs2)) {
                         const validation2 = AIOutputValidator.validateDocuments(docs2)
                         if (validation2.ok) {
-                            console.log('AI Validation PASS: documents (retry)')
+
                             try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Documents', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'PASS', retry: 1, fallback: false, missing_fields: [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
                             return docs2.map((d: any) => ({ title: String(d.title || ''), document_type: String(d.document_type || d.type || ''), content: String(d.content || d.body || ''), status: String(d.status || 'draft') }))
                         }
-                        console.log('AI Validation FAIL: documents (retry)', validation2.errors)
+
                         try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Documents', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'FAIL', retry: 1, fallback: false, missing_fields: validation2.errors || [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
                     }
                 } catch (_e) {
                     // ignore
                 }
-                console.log('Fallback Used: documents')
                 try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Documents', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'FAIL', retry: 1, fallback: true, missing_fields: validation.errors || [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
             }
         } catch (e) {

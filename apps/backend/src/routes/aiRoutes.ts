@@ -8,11 +8,7 @@ export default async function aiRoutes(app: FastifyInstance) {
         const model = process.env.MINIMAX_MODEL || 'MiniMax-M3'
         const hasApiKey = Boolean(process.env.MINIMAX_API_KEY)
 
-        // Debug prints for environment (safe: do not print API key value)
-        console.log('[ai/health-check] AI_PROVIDER=', process.env.AI_PROVIDER)
-        console.log('[ai/health-check] MINIMAX_BASE_URL=', process.env.MINIMAX_BASE_URL)
-        console.log('[ai/health-check] MINIMAX_MODEL=', process.env.MINIMAX_MODEL)
-        console.log('[ai/health-check] MINIMAX_API_KEY_PRESENT=', Boolean(process.env.MINIMAX_API_KEY))
+        // Environment checks are returned in the response; avoid noisy console output in production
 
         // Validate required envs before attempting external requests
         if (!baseUrlEnv || baseUrlEnv.trim() === '') {

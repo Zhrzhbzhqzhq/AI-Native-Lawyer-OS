@@ -9,8 +9,6 @@ export class TimelineRepository {
 
   async findByMatterId(matter_id: string) {
     const rows = await this.prisma.timeline.findMany({ where: { matter_id }, orderBy: { event_time: 'desc' } });
-    // eslint-disable-next-line no-console
-    console.log('[TimelineRepository] findByMatterId', { matter_id, count: rows.length });
     return rows;
   }
 
@@ -34,10 +32,6 @@ export class TimelineRepository {
     };
     try {
       const created = await this.prisma.timeline.create({ data: payload as any });
-      // debug log to diagnose missing timeline entries in production validation
-      // (intentionally minimal and safe for production)
-      // eslint-disable-next-line no-console
-      console.debug('[TimelineRepository] created', { timeline_id: created.timeline_id, matter_id: created.matter_id });
       return created;
     } catch (err: any) {
       // eslint-disable-next-line no-console
