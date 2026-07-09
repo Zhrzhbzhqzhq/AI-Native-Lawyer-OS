@@ -6,7 +6,7 @@ MINIMAX_KEY = os.environ.get('MINIMAX_API_KEY','')
 MINIMAX_REGION = os.environ.get('MINIMAX_REGION','')
 MINIMAX_AUTH_MODE = os.environ.get('MINIMAX_AUTH_MODE','')
 BACKEND_URL = os.environ.get('BACKEND_URL','http://127.0.0.1:4000')
-MATTER = os.environ.get('MATTER_ID','demo-001')
+MATTER = os.environ.get('MATTER_ID','')
 
 
 def safe_print(label, value):

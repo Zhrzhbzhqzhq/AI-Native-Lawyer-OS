@@ -8,7 +8,7 @@ MINIMAX_REGION = os.environ.get('MINIMAX_REGION','')
 MINIMAX_BASE_URL = os.environ.get('MINIMAX_BASE_URL','')
 
 BACKEND_URL = os.environ.get('BACKEND_URL','http://127.0.0.1:4000')
-MATTER = os.environ.get('MATTER_ID','demo-001')
+MATTER = os.environ.get('MATTER_ID','')
 
 
 def safe_print(label, value):

@@ -20,8 +20,9 @@ def stop_backend():
   subprocess.call("pkill -f 'node dist/index.js' || true", shell=True)
   time.sleep(0.5)
 
-def call_ai_suggest(matter_id='demo-001'):
-  url=f"{BASE}/matters/{matter_id}/ai/suggest"
+def call_ai_suggest(matter_id=''):
+  mid = matter_id or os.environ.get('MATTER_ID','')
+  url=f"{BASE}/matters/{mid}/ai/suggest"
   try:
     r=requests.post(url,json={})
     return r.status_code, r.json()
