@@ -63,13 +63,25 @@ export default function DocumentsWorkspace() {
       const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/documents`)
       if (!res.ok) throw new Error('加载文书失败')
       const json = await res.json()
-      setDocuments(Array.isArray(json) ? json : [])
+      const arr = Array.isArray(json) ? json : []
+      setDocuments(arr)
+      // default-select first document when present
+      if (arr.length > 0) {
+        const firstId = arr[0].document_id ?? arr[0].id ?? null
+        if (firstId) openDoc(firstId)
+      } else {
+        setSelectedDocId(null)
+      }
     } catch (e) {
       setDocuments([])
     } finally {
       setLoadingDocs(false)
     }
   }
+
+  // computed selected document object (may be null)
+  // support APIs that return either `document_id` or `id` as the primary identifier
+  const selectedDocument = documents.find((d: any) => ((d.document_id ?? d.id) === selectedDocId)) || null
 
   useEffect(() => {
     if (!matterId) return
@@ -86,8 +98,9 @@ export default function DocumentsWorkspace() {
   }
 
   function startEdit(doc: any) {
-    setEditingId(doc.document_id)
-    setEditingPatch({ title: doc.title || '', document_type: doc.document_type || '', content: doc.content || '', status: doc.status || 'draft' })
+    const id = doc?.document_id ?? doc?.id
+    setEditingId(id)
+    setEditingPatch({ title: doc?.title || '', document_type: doc?.document_type || '', content: doc?.content || '', status: doc?.status || 'draft' })
   }
 
   async function saveEdit(docId: string) {
@@ -193,61 +206,65 @@ export default function DocumentsWorkspace() {
               {loadingDocs ? (
                 <div style={{ color: tokens.muted }}>加载文书中…</div>
               ) : documents.length === 0 ? (
-                <div style={{ color: tokens.muted }}>暂无文书</div>
+                <div style={{ color: tokens.muted }}>暂无文书草稿</div>
               ) : (
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                  {documents.map((doc: any) => (
-                    <li key={doc.document_id} style={{ padding: 10, borderBottom: '1px solid #f3f3f3' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                        <div style={{ cursor: 'pointer' }} onClick={() => openDoc(doc.document_id)}>
-                          <div style={{ fontWeight: 700 }}>{doc.title}</div>
-                          <div style={{ color: tokens.muted, fontSize: 12 }}>{doc.document_type || ''} · {doc.status || 'draft'}</div>
+                  {documents.map((doc: any) => {
+                    const docId = doc?.document_id ?? doc?.id ?? null
+                    return (
+                      <li key={docId ?? Math.random()} style={{ padding: 10, borderBottom: '1px solid #f3f3f3' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                          <div style={{ cursor: 'pointer' }} onClick={() => docId && openDoc(docId)}>
+                            <div style={{ fontWeight: 700 }}>{doc?.title ?? '(无标题)'}</div>
+                            <div style={{ color: tokens.muted, fontSize: 12 }}>{doc?.document_type ?? ''} · {doc?.status ?? 'draft'}</div>
+                          </div>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button onClick={() => startEdit(doc)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #e6eef6', background: '#fff', fontSize: 12 }}>编辑</button>
+                            <button onClick={() => docId && deleteDoc(docId)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #fee2e2', background: '#fff', color: '#b91c1c', fontSize: 12 }}>删除</button>
+                          </div>
                         </div>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <button onClick={() => startEdit(doc)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #e6eef6', background: '#fff', fontSize: 12 }}>编辑</button>
-                          <button onClick={() => deleteDoc(doc.document_id)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #fee2e2', background: '#fff', color: '#b91c1c', fontSize: 12 }}>删除</button>
-                        </div>
-                      </div>
 
-                      {selectedDocId === doc.document_id ? (
-                        <div style={{ marginTop: 8, padding: 8, borderRadius: 6, background: '#fff' }}>
-                          <div style={{ fontWeight: 700, marginBottom: 6 }}>{doc.title}</div>
-                          <div style={{ color: tokens.muted, marginBottom: 8 }}>类型：{doc.document_type || '—'}</div>
-                          <div style={{ fontWeight: 700, marginBottom: 6 }}>正文</div>
-                          <div style={{ color: tokens.muted, whiteSpace: 'pre-wrap' }}>{doc.content || '—'}</div>
-                          <div style={{ marginTop: 8, fontWeight: 700 }}>状态</div>
-                          <div style={{ color: tokens.muted }}>{doc.status || 'draft'}</div>
-                        </div>
-                      ) : null}
+                        {selectedDocId === docId ? (
+                          <div style={{ marginTop: 8, padding: 8, borderRadius: 6, background: '#fff' }}>
+                            <div style={{ fontWeight: 700, marginBottom: 6 }}>{selectedDocument?.title ?? '(无标题)'}</div>
+                            <div style={{ color: tokens.muted, marginBottom: 8 }}>类型：{selectedDocument?.document_type ?? '—'}</div>
+                            <div style={{ fontWeight: 700, marginBottom: 6 }}>正文</div>
+                            <div style={{ color: tokens.muted, whiteSpace: 'pre-wrap' }}>{selectedDocument?.content ?? selectedDocument?.content_uri ?? '—'}</div>
+                            <div style={{ marginTop: 8, fontWeight: 700 }}>状态</div>
+                            <div style={{ color: tokens.muted }}>{selectedDocument?.status ?? 'draft'}</div>
+                            <div style={{ marginTop: 8, color: tokens.muted, fontSize: 12 }}>{selectedDocument?.created_at ? `创建: ${new Date(selectedDocument.created_at).toLocaleString()}` : ''}{selectedDocument?.updated_at ? ` • 更新: ${new Date(selectedDocument.updated_at).toLocaleString()}` : ''}</div>
+                          </div>
+                        ) : null}
 
-                      {editingId === doc.document_id ? (
-                        <div style={{ marginTop: 8, padding: 8, borderRadius: 6, background: '#fff' }}>
-                          <div style={{ fontWeight: 700, marginBottom: 6 }}>编辑文书</div>
-                          <div style={{ marginBottom: 8 }}>
-                            <input value={editingPatch.title || ''} onChange={(e) => setEditingPatch((p: any) => ({ ...p, title: e.target.value }))} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
+                        {editingId === docId ? (
+                          <div style={{ marginTop: 8, padding: 8, borderRadius: 6, background: '#fff' }}>
+                            <div style={{ fontWeight: 700, marginBottom: 6 }}>编辑文书</div>
+                            <div style={{ marginBottom: 8 }}>
+                              <input value={editingPatch.title || ''} onChange={(e) => setEditingPatch((p: any) => ({ ...p, title: e.target.value }))} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
+                            </div>
+                            <div style={{ marginBottom: 8 }}>
+                              <input value={editingPatch.document_type || ''} onChange={(e) => setEditingPatch((p: any) => ({ ...p, document_type: e.target.value }))} placeholder="类型" style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
+                            </div>
+                            <div style={{ marginBottom: 8 }}>
+                              <textarea value={editingPatch.content || ''} onChange={(e) => setEditingPatch((p: any) => ({ ...p, content: e.target.value }))} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6', minHeight: 120 }} />
+                            </div>
+                            <div style={{ marginBottom: 8 }}>
+                              <select value={editingPatch.status || 'draft'} onChange={(e) => setEditingPatch((p: any) => ({ ...p, status: e.target.value }))} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }}>
+                                <option value="draft">draft</option>
+                                <option value="completed">completed</option>
+                                <option value="need_review">need_review</option>
+                                <option value="archived">archived</option>
+                              </select>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                              <button onClick={() => setEditingId(null)} style={{ padding: '6px 10px', borderRadius: 6 }}>取消</button>
+                              <button onClick={() => docId && saveEdit(docId)} disabled={savingEdit} style={{ padding: '6px 10px', borderRadius: 6, background: '#111', color: '#fff' }}>{savingEdit ? '保存中…' : '保存'}</button>
+                            </div>
                           </div>
-                          <div style={{ marginBottom: 8 }}>
-                            <input value={editingPatch.document_type || ''} onChange={(e) => setEditingPatch((p: any) => ({ ...p, document_type: e.target.value }))} placeholder="类型" style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
-                          </div>
-                          <div style={{ marginBottom: 8 }}>
-                            <textarea value={editingPatch.content || ''} onChange={(e) => setEditingPatch((p: any) => ({ ...p, content: e.target.value }))} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6', minHeight: 120 }} />
-                          </div>
-                          <div style={{ marginBottom: 8 }}>
-                            <select value={editingPatch.status || 'draft'} onChange={(e) => setEditingPatch((p: any) => ({ ...p, status: e.target.value }))} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }}>
-                              <option value="draft">draft</option>
-                              <option value="completed">completed</option>
-                              <option value="need_review">need_review</option>
-                              <option value="archived">archived</option>
-                            </select>
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-                            <button onClick={() => setEditingId(null)} style={{ padding: '6px 10px', borderRadius: 6 }}>取消</button>
-                            <button onClick={() => saveEdit(doc.document_id)} disabled={savingEdit} style={{ padding: '6px 10px', borderRadius: 6, background: '#111', color: '#fff' }}>{savingEdit ? '保存中…' : '保存'}</button>
-                          </div>
-                        </div>
-                      ) : null}
-                    </li>
-                  ))}
+                        ) : null}
+                      </li>
+                    )
+                  })}
                 </ul>
               )}
             </div>
