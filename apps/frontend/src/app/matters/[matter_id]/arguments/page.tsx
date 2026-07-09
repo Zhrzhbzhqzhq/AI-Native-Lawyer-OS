@@ -63,13 +63,25 @@ export default function ArgumentsWorkspace() {
             const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/arguments`)
             if (!res.ok) throw new Error('加载论点失败')
             const json = await res.json()
-            setArgumentsList(Array.isArray(json) ? json : [])
+            const arr = Array.isArray(json) ? json : []
+            setArgumentsList(arr)
+            // default-select first argument when present
+            if (arr.length > 0) {
+                const firstId = arr[0].argument_id ?? arr[0].id ?? null
+                if (firstId) openArgument(firstId)
+            } else {
+                setSelectedArgId(null)
+            }
         } catch (e) {
             setArgumentsList([])
         } finally {
             setLoadingArgs(false)
         }
     }
+
+    // computed selected argument object (may be null)
+    // support APIs that return either `argument_id` or `id` as the primary identifier
+    const selectedArgument = argumentsList.find((a: any) => ((a.argument_id ?? a.id) === selectedArgId)) || null
 
     useEffect(() => {
         if (!matterId) return
@@ -94,7 +106,7 @@ export default function ArgumentsWorkspace() {
 
     function openArgument(argId: string) { setSelectedArgId(argId); setEditingArgId(null); setEditingPatch({}) }
 
-    function startEdit(arg: any) { setEditingArgId(arg.argument_id); setEditingPatch({ title: arg.title, description: arg.description || '', conclusion: arg.conclusion || '', status: arg.status || 'draft', issue_id: arg.issue_id || '' }) }
+    function startEdit(arg: any) { const id = arg?.argument_id ?? arg?.id; setEditingArgId(id); setEditingPatch({ title: arg?.title, description: arg?.description || '', conclusion: arg?.conclusion || '', status: arg?.status || 'draft', issue_id: arg?.issue_id || '' }) }
 
     async function saveEdit(argId: string) {
         setSavingEdit(true)
@@ -157,7 +169,10 @@ export default function ArgumentsWorkspace() {
                     {/* Right: Arguments */}
                     <div style={{ width: 520 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                            <div style={{ fontWeight: 800 }}>论点（Arguments）</div>
+                            <div>
+                                <div style={{ fontWeight: 800 }}>论点（Arguments）</div>
+                                <div style={{ color: tokens.muted, fontSize: 12 }}>{loadingArgs ? '加载中…' : `${argumentsList.length} 条`}</div>
+                            </div>
                             <div style={{ display: 'flex', gap: 8 }}>
                                 <button onClick={() => setShowCreate(true)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>新建论点</button>
                                 <button disabled={analyzing} onClick={async () => {
@@ -182,34 +197,36 @@ export default function ArgumentsWorkspace() {
                             {loadingArgs ? (
                                 <div style={{ color: tokens.muted }}>加载论点中…</div>
                             ) : argumentsList.length === 0 ? (
-                                <div style={{ color: tokens.muted }}>暂无论点</div>
+                                <div style={{ color: tokens.muted }}>暂无法律论证</div>
                             ) : (
-                                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                                    {argumentsList.map((arg: any) => (
-                                        <li key={arg.argument_id} style={{ padding: 10, borderBottom: '1px solid #f3f3f3' }}>
+                                (() => {
+                                    const arg = selectedArgument
+                                    if (!arg) return <div style={{ color: tokens.muted }}>请选择论点</div>
+                                    const argId = arg?.argument_id ?? arg?.id ?? null
+                                    return (
+                                        <div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                                                <div style={{ cursor: 'pointer' }} onClick={() => openArgument(arg.argument_id)}>
-                                                    <div style={{ fontWeight: 700 }}>{arg.title}</div>
-                                                    <div style={{ color: tokens.muted, fontSize: 12 }}>{arg.status || 'draft'}</div>
+                                                <div>
+                                                    <div style={{ fontWeight: 800 }}>{selectedArgument?.title ?? '(无标题)'}</div>
+                                                    <div style={{ color: tokens.muted, fontSize: 12 }}>{selectedArgument?.side ? `方位: ${selectedArgument.side}` : ''} {selectedArgument?.status ? ` • ${selectedArgument.status}` : ''}</div>
                                                 </div>
                                                 <div style={{ display: 'flex', gap: 8 }}>
                                                     <button onClick={() => startEdit(arg)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #e6eef6', background: '#fff', fontSize: 12 }}>编辑</button>
-                                                    <button onClick={() => deleteArgument(arg.argument_id)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #fee2e2', background: '#fff', color: '#b91c1c', fontSize: 12 }}>删除</button>
+                                                    <button onClick={() => deleteArgument(argId as string)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #fee2e2', background: '#fff', color: '#b91c1c', fontSize: 12 }}>删除</button>
                                                 </div>
                                             </div>
 
-                                            {selectedArgId === arg.argument_id ? (
-                                                <div style={{ marginTop: 8, padding: 8, borderRadius: 6, background: '#fff' }}>
-                                                    <div style={{ fontWeight: 700, marginBottom: 6 }}>说明</div>
-                                                    <div style={{ color: tokens.muted }}>{arg.description || '—'}</div>
-                                                    <div style={{ marginTop: 8, fontWeight: 700 }}>结论</div>
-                                                    <div style={{ color: tokens.muted }}>{arg.conclusion || '—'}</div>
-                                                    <div style={{ marginTop: 8, fontWeight: 700 }}>状态</div>
-                                                    <div style={{ color: tokens.muted }}>{arg.status || 'draft'}</div>
-                                                </div>
-                                            ) : null}
+                                            <div style={{ marginTop: 8, padding: 8, borderRadius: 6, background: '#fff' }}>
+                                                <div style={{ fontWeight: 700, marginBottom: 6 }}>说明</div>
+                                                <div style={{ color: tokens.muted }}>{selectedArgument?.description ?? '—'}</div>
+                                                <div style={{ marginTop: 8, fontWeight: 700 }}>结论</div>
+                                                <div style={{ color: tokens.muted }}>{selectedArgument?.conclusion ?? '—'}</div>
+                                                <div style={{ marginTop: 8, fontWeight: 700 }}>关联法规 / 议题</div>
+                                                <div style={{ color: tokens.muted }}>{selectedArgument?.law_id ?? selectedArgument?.issue_id ?? '未关联'}</div>
+                                                <div style={{ marginTop: 8, color: tokens.muted, fontSize: 12 }}>{selectedArgument?.created_at ? `创建: ${new Date(selectedArgument.created_at).toLocaleString()}` : ''}{selectedArgument?.updated_at ? ` • 更新: ${new Date(selectedArgument.updated_at).toLocaleString()}` : ''}</div>
+                                            </div>
 
-                                            {editingArgId === arg.argument_id ? (
+                                            {editingArgId === argId ? (
                                                 <div style={{ marginTop: 8, padding: 8, borderRadius: 6, background: '#fff' }}>
                                                     <div style={{ fontWeight: 700, marginBottom: 6 }}>编辑论点</div>
                                                     <div style={{ marginBottom: 8 }}>
@@ -230,13 +247,13 @@ export default function ArgumentsWorkspace() {
                                                     </div>
                                                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
                                                         <button onClick={() => setEditingArgId(null)} style={{ padding: '6px 10px', borderRadius: 6 }}>取消</button>
-                                                        <button onClick={() => saveEdit(arg.argument_id)} disabled={savingEdit} style={{ padding: '6px 10px', borderRadius: 6, background: '#111', color: '#fff' }}>{savingEdit ? '保存中…' : '保存'}</button>
+                                                        <button onClick={() => saveEdit(argId as string)} disabled={savingEdit} style={{ padding: '6px 10px', borderRadius: 6, background: '#111', color: '#fff' }}>{savingEdit ? '保存中…' : '保存'}</button>
                                                     </div>
                                                 </div>
                                             ) : null}
-                                        </li>
-                                    ))}
-                                </ul>
+                                        </div>
+                                    )
+                                })()
                             )}
                         </div>
                     </div>
