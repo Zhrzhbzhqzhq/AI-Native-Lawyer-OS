@@ -1,0 +1,909 @@
+id,document_id,matter_id,title,type,status,created_at,updated_at
+5a3bf8a8-98cb-4c2c-94c1-1e2f19aeeaaa,doc-mr62f93j-fome0p,mock-intake-1783151601099-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 07:53:21.11,2026-07-04 07:53:21.11
+53ad40c2-2b50-4396-8529-cf3e941ab178,test-doc-1783043503030-22iy94-1783043503137,test-matter-1783043503030-22iy94,Doc 1,"",draft,2026-07-03 01:51:43.139,2026-07-03 01:51:43.139
+9440279e-5d2c-4eb2-9dd2-8a34a63ef8c7,doc-mr62fa88-2d2dge,mock-intake-1783151602560-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 07:53:22.575,2026-07-04 07:53:22.575
+0aa1ce2d-d193-471c-b825-2b46c2f4f710,doc-mr62w4i6-mnyyt2,mock-intake-1783152388299-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 08:06:28.309,2026-07-04 08:06:28.309
+fe38704e-dc7f-42d5-903b-ac8c9a1f2d55,doc-1783152388332,mock-intake-1783152388330-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 08:06:28.333,2026-07-04 08:06:28.333
+17747caf-7b0e-48ee-91fc-d7175ce0432b,doc-mr4m9sex-zhmkxi,test-matter-aert-1783064005895-o8d97x,Draft preservation notice,"",draft,2026-07-03 07:33:26.386,2026-07-03 07:33:26.386
+e1a90ef0-6e5f-4f5f-9d12-2d6394b57ef9,doc-mr62w5oi-8qcvgk,mock-intake-1783152389801-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 08:06:29.929,2026-07-04 08:06:29.929
+1377b434-bf24-423b-bbe9-e8f31ee1c966,doc-1783152389984,mock-intake-1783152389977-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 08:06:29.985,2026-07-04 08:06:29.985
+f48ee6dc-76cc-4aa6-9cb7-7148bdafbff0,doc-mr6380hp-bj032f,mock-intake-1783152942969-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 08:15:42.98,2026-07-04 08:15:42.98
+ed154663-1260-490a-b5dd-3d8d49e3e3e4,doc-1783152942999,mock-intake-1783152942999-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 08:15:43,2026-07-04 08:15:43
+5672e156-7069-4a6f-95b0-9ddad0393936,doc-mr4ma4gd-scf0xw,test-matter-aert-1783064021435-w10z2u,Draft preservation notice,"",draft,2026-07-03 07:33:41.783,2026-07-03 07:33:41.783
+16bff0d5-f724-439d-ac5c-474b04523999,doc-mr4mow9m-t9rj8c,test-matter-aert-1783064710805-nkjdal,Draft preservation notice,"",draft,2026-07-03 07:45:11.148,2026-07-03 07:45:11.148
+bca2b935-7ae2-4087-b4a7-5467f7bb8aa6,doc-mr6381og-vp4mxf,mock-intake-1783152944496-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 08:15:44.553,2026-07-04 08:15:44.553
+fd9a7132-949e-4c6c-8b19-39a785379b13,doc-1783152944678,mock-intake-1783152944643-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 08:15:44.679,2026-07-04 08:15:44.679
+03496c22-9fbe-47a6-b8b8-347c7dc36188,doc-mr655x3u-1gamy6,mock-intake-1783156204503-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 09:10:04.511,2026-07-04 09:10:04.511
+38185b72-8060-4368-a8d4-9b51d0161043,doc-1783156204527,mock-intake-1783156204527-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 09:10:04.528,2026-07-04 09:10:04.528
+75ae8ce3-59e6-436b-b4b8-8919f1883c09,doc-orig-1783156204532,mock-intake-1783156204531-cdu,Original Doc,representation,active,2026-07-04 09:10:04.532,2026-07-04 09:10:04.532
+eda155fb-957e-4cd7-af92-c2572d34ff42,doc-mr4mpv0g-p7pf1j,test-matter-aert-1783064755859-w2exzy,Draft preservation notice,"",draft,2026-07-03 07:45:56.087,2026-07-03 07:45:56.087
+27a064bd-84e4-4e3f-9bcf-78bfca319c1d,doc-mr655x4l-wbflog,mock-intake-1783156204531-cdu,代理词（更新）,representation,draft,2026-07-04 09:10:04.539,2026-07-04 09:10:04.539
+50d3816d-da43-4fa4-8452-8d205d4d6281,doc-mr655x4u-h1v3i2,mock-intake-1783156204531-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 09:10:04.542,2026-07-04 09:10:04.542
+94f779f4-84c1-4439-99d9-e22b9cab2b5d,doc-mr4mxowo-kpczeh,test-matter-aert-1783065121156-ds8sf0,Draft preservation notice,"",draft,2026-07-03 07:52:01.416,2026-07-03 07:52:01.416
+3bd39d14-ed39-4730-824f-d0195952214e,doc-mr655y4d-fh3ld5,mock-intake-1783156205808-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 09:10:05.892,2026-07-04 09:10:05.892
+b593904c-2e3e-492a-ac56-f6eda44c9f50,doc-1783156206017,mock-intake-1783156206006-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 09:10:06.018,2026-07-04 09:10:06.018
+e52edc94-11ce-4c76-817d-3a873462acfd,doc-orig-1783156206048,mock-intake-1783156206045-cdu,Original Doc,representation,active,2026-07-04 09:10:06.049,2026-07-04 09:10:06.049
+b757cbfc-a911-43f6-978e-28a8d0e01276,doc-mr4mxq5u-bcwwhn,test-matter-aert-1783065122844-50x412,Draft preservation notice,"",draft,2026-07-03 07:52:03.024,2026-07-03 07:52:03.024
+95d66ea2-e069-4e68-a246-024fd1be042e,doc-mr655yav-l262fp,mock-intake-1783156206045-cdu,代理词（更新）,representation,draft,2026-07-04 09:10:06.07,2026-07-04 09:10:06.07
+5988775d-aa51-4714-8703-fb94bcf38626,doc-mr655ybd-zxnpyd,mock-intake-1783156206045-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 09:10:06.074,2026-07-04 09:10:06.074
+76cec059-090b-4399-b686-34fb97bcfa4c,doc-mr6674pg-xr44re,mock-intake-1783157940624-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 09:39:00.634,2026-07-04 09:39:00.634
+7fa2f9be-ba50-416a-a438-439bf3da7090,doc-1783157940649,mock-intake-1783157940648-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 09:39:00.65,2026-07-04 09:39:00.65
+aa102e8c-1723-4b3f-b9aa-cb79887bad4a,doc-orig-1783157940654,mock-intake-1783157940654-cdu,Original Doc,representation,active,2026-07-04 09:39:00.655,2026-07-04 09:39:00.655
+a9ffa820-cb3c-431e-b37e-31bc3a569e34,doc-mr4n4u1t-9yg7tx,test-matter-aert-1783065454299-lotguy,Assign investigator to collect bank records,"",draft,2026-07-03 07:57:34.628,2026-07-03 07:57:34.628
+4deede2c-13db-4bea-a812-bb4587179595,doc-mr4n4u5b-vcsxqa,test-matter-aert-1783065454299-lotguy,Draft preservation notice,"",draft,2026-07-03 07:57:34.752,2026-07-03 07:57:34.752
+2a3b123a-c7c6-4bab-a3e2-fbcda86f2f66,doc-mr6674q8-qk05n5,mock-intake-1783157940654-cdu,代理词（更新）,representation,draft,2026-07-04 09:39:00.662,2026-07-04 09:39:00.662
+812d82ef-d0ae-4c0c-b493-4373b6a14d67,doc-mr6674qf-1kbyu8,mock-intake-1783157940654-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 09:39:00.664,2026-07-04 09:39:00.664
+cd1b8672-7352-4cad-a95f-20593208950b,doc-mr6674re-tsvip9,mock-intake-1783157940697-idem-chdoc,t,challenge_opinion,draft,2026-07-04 09:39:00.707,2026-07-04 09:39:00.707
+1184aa0c-8a78-4e62-9dbe-f237aee7a131,doc-mr6674rs-t5rkx9,mock-intake-1783157940711-idem-docup,代理词（更新）,representation,draft,2026-07-04 09:39:00.719,2026-07-04 09:39:00.719
+50a12acc-7f15-47ba-9b50-62a5f603725b,doc-mr4n4ves-6t8r7k,test-matter-aert-1783065456167-tnp1il,Assign investigator to collect bank records,"",draft,2026-07-03 07:57:36.389,2026-07-03 07:57:36.389
+bdbc6e1e-2bb6-4990-9888-657476d57db2,doc-mr4n4vkh-1r1dvz,test-matter-aert-1783065456167-tnp1il,Draft preservation notice,"",draft,2026-07-03 07:57:36.594,2026-07-03 07:57:36.594
+34a4fe51-1363-42d7-8238-0285bd772840,doc-mr6675t2-y9wzog,mock-intake-1783157942028-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 09:39:02.114,2026-07-04 09:39:02.114
+97e6a9bc-f90f-4c47-8fd1-474b07f8274f,doc-1783157942240,mock-intake-1783157942239-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 09:39:02.241,2026-07-04 09:39:02.241
+821f3b82-5bc8-4646-a173-d8717bad257b,doc-orig-1783157942253,mock-intake-1783157942252-cdu,Original Doc,representation,active,2026-07-04 09:39:02.254,2026-07-04 09:39:02.254
+b9810195-9c9c-49f7-b6fb-cefcdd8a9933,doc-mr6675yo-dakbyz,mock-intake-1783157942252-cdu,代理词（更新）,representation,draft,2026-07-04 09:39:02.264,2026-07-04 09:39:02.264
+497bf735-2f6e-42c9-901f-9a108d8b8576,doc-mr6675yz-jdgpxf,mock-intake-1783157942252-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 09:39:02.267,2026-07-04 09:39:02.267
+05bbddbd-bdfd-46dd-b935-bbd2549917f3,doc-mr66762f-7hrq97,mock-intake-1783157942380-idem-chdoc,t,challenge_opinion,draft,2026-07-04 09:39:02.405,2026-07-04 09:39:02.405
+17d7f264-d359-4062-a3c3-7386569fce69,doc-mr66763a-fwvl2m,mock-intake-1783157942417-idem-docup,代理词（更新）,representation,draft,2026-07-04 09:39:02.435,2026-07-04 09:39:02.435
+e6dfbd06-2d9e-4ec3-a274-27b522494497,doc-mr66f60o-97io7a,mock-intake-1783158315572-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 09:45:15.584,2026-07-04 09:45:15.584
+477fc90c-2af6-4382-af39-d371759a8dc8,doc-1783158315607,mock-intake-1783158315607-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 09:45:15.608,2026-07-04 09:45:15.608
+80671d3f-2caa-4bf1-bfa9-c435ce07f637,doc-orig-1783158315614,mock-intake-1783158315613-cdu,Original Doc,representation,active,2026-07-04 09:45:15.615,2026-07-04 09:45:15.615
+3aa56219-77ec-4d92-bf0d-3ae637f8e096,doc-mr66f61s-xihe2g,mock-intake-1783158315613-cdu,代理词（更新）,representation,draft,2026-07-04 09:45:15.625,2026-07-04 09:45:15.625
+d5ab734d-5af4-4b84-9d82-fd4355c9ca11,doc-mr66f624-mnqqbb,mock-intake-1783158315613-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 09:45:15.628,2026-07-04 09:45:15.628
+23b54566-c606-4517-af7f-8b1b6e7ad2f0,doc-mr66f637-8ua3me,mock-intake-1783158315665-idem-chdoc,t,challenge_opinion,draft,2026-07-04 09:45:15.674,2026-07-04 09:45:15.674
+1d493aba-c77d-4667-a154-b8c1b74ea367,doc-mr66f63l-v1r2vp,mock-intake-1783158315679-idem-docup,代理词（更新）,representation,draft,2026-07-04 09:45:15.686,2026-07-04 09:45:15.686
+c41aff72-2047-4ebd-9027-93eb51934230,doc-mr66f743-4z8ayi,mock-intake-1783158316970-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 09:45:17.045,2026-07-04 09:45:17.045
+439ea6e5-1a4a-4df1-888d-0c5554658d4f,doc-1783158317136,mock-intake-1783158317135-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 09:45:17.137,2026-07-04 09:45:17.137
+5d769c6f-552f-4c98-b239-2926a6fb4719,doc-orig-1783158317158,mock-intake-1783158317156-cdu,Original Doc,representation,active,2026-07-04 09:45:17.159,2026-07-04 09:45:17.159
+2228c5d8-4f81-4321-af57-f178a440f799,doc-mr66f78p-nwatrz,mock-intake-1783158317156-cdu,代理词（更新）,representation,draft,2026-07-04 09:45:17.17,2026-07-04 09:45:17.17
+6fdaa2a2-5688-4b00-8bc8-e4d35bfeaee3,doc-mr66f790-4obkgn,mock-intake-1783158317156-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 09:45:17.173,2026-07-04 09:45:17.173
+0f2bf2a9-eec8-451b-8952-75baca2066ce,doc-mr66f7bx-s8n5qu,mock-intake-1783158317275-idem-chdoc,t,challenge_opinion,draft,2026-07-04 09:45:17.289,2026-07-04 09:45:17.289
+2083a162-7d27-4879-9b90-423a8f8c3a00,doc-mr66f7cn-wb96pq,mock-intake-1783158317300-idem-docup,代理词（更新）,representation,draft,2026-07-04 09:45:17.314,2026-07-04 09:45:17.314
+8e73df3a-94cc-451b-a006-89efb52a1264,doc-mr680lfy-r4dxzl,mock-intake-1783160994946-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 10:29:55.065,2026-07-04 10:29:55.065
+a7ec2fbb-2894-4597-aaba-5078e152db04,doc-1783160995193,mock-intake-1783160995191-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 10:29:55.193,2026-07-04 10:29:55.193
+05faba38-be8e-4210-b41f-143bed0ea68e,doc-orig-1783160995297,mock-intake-1783160995291-cdu,Original Doc,representation,active,2026-07-04 10:29:55.298,2026-07-04 10:29:55.298
+64abc03d-fa0e-4ccb-ba69-0f4e5a5430a2,doc-mr680lq3-fmg9u2,mock-intake-1783160995291-cdu,代理词（更新）,representation,draft,2026-07-04 10:29:55.342,2026-07-04 10:29:55.342
+6cddf43a-82e7-48cf-8701-cde68a8dfaff,doc-mr680lqp-cttbwl,mock-intake-1783160995291-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 10:29:55.346,2026-07-04 10:29:55.346
+4c9966e4-ae0b-40ac-a914-8e62080d4859,doc-mr680lww-vxr95y,mock-intake-1783160995565-idem-chdoc,t,challenge_opinion,draft,2026-07-04 10:29:55.577,2026-07-04 10:29:55.577
+6ff48714-d6bb-4e0d-994b-01f194856a7b,doc-mr671bbv-2txzr8,mock-intake-1783159348874-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 10:02:28.907,2026-07-04 10:02:28.907
+5f085f5c-2e8c-4f63-8249-1fa99aa79168,doc-1783159349036,mock-intake-1783159349035-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 10:02:29.037,2026-07-04 10:02:29.037
+bb3f0158-01a2-45f5-a1c1-ab93a336a3c5,doc-orig-1783159349155,mock-intake-1783159349153-cdu,Original Doc,representation,active,2026-07-04 10:02:29.156,2026-07-04 10:02:29.156
+1390916f-6fb1-47fc-8956-ed596fe1d05c,doc-mr671bja-ob18iu,mock-intake-1783159349153-cdu,代理词（更新）,representation,draft,2026-07-04 10:02:29.165,2026-07-04 10:02:29.165
+5a252e4c-a577-45d3-9a25-93b7f5f092ed,doc-mr671bl0-j7ezhi,mock-intake-1783159349153-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 10:02:29.221,2026-07-04 10:02:29.221
+96b83c2a-1bb4-4ea3-8787-ff7a61bc245b,doc-mr671bng-rsg4ib,mock-intake-1783159349305-idem-chdoc,t,challenge_opinion,draft,2026-07-04 10:02:29.318,2026-07-04 10:02:29.318
+9deb0e0b-a501-4e28-b228-d3ed7f12704a,doc-mr671boc-1un2pq,mock-intake-1783159349337-idem-docup,代理词（更新）,representation,draft,2026-07-04 10:02:29.349,2026-07-04 10:02:29.349
+772093b0-7b28-4b68-9500-d9a2a1ab6701,doc-mr680lxj-svoxcb,mock-intake-1783160995585-idem-docup,代理词（更新）,representation,draft,2026-07-04 10:29:55.616,2026-07-04 10:29:55.616
+c8797562-9c37-418a-8786-9de5c9cd720f,doc-mr67azsd-9khn5f,mock-intake-1783159800446-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 10:10:00.5,2026-07-04 10:10:00.5
+ba13c6cc-9322-4ff5-b357-cbe30d444fa9,doc-1783159800767,mock-intake-1783159800766-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 10:10:00.768,2026-07-04 10:10:00.768
+411ab3bb-5e7e-44d1-b9de-b2951ccd6bd4,doc-orig-1783159800781,mock-intake-1783159800780-cdu,Original Doc,representation,active,2026-07-04 10:10:00.781,2026-07-04 10:10:00.781
+307a8690-0266-48f4-bdde-bf4ea48255bb,doc-mr67b00g-uy3vj2,mock-intake-1783159800780-cdu,代理词（更新）,representation,draft,2026-07-04 10:10:00.792,2026-07-04 10:10:00.792
+54c3f8e0-1b53-4b54-a381-ca3b8ee17fbb,doc-mr67b00t-435pzf,mock-intake-1783159800780-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 10:10:00.798,2026-07-04 10:10:00.798
+eed5e090-f110-4a8d-ae00-639a84feaaed,doc-mr68cc8y-18n7i1,mock-intake-1783161542886-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 10:39:03.021,2026-07-04 10:39:03.021
+1dc67b1f-d9b7-4c49-a1ab-e86df3c620ba,doc-mr67b05g-6i9i02,mock-intake-1783159800924-idem-chdoc,t,challenge_opinion,draft,2026-07-04 10:10:00.984,2026-07-04 10:10:00.984
+0ce37c8b-49e4-49e8-86a0-6062b56e1985,doc-mr67b09f-irm819,mock-intake-1783159801103-idem-docup,代理词（更新）,representation,draft,2026-07-04 10:10:01.115,2026-07-04 10:10:01.115
+9ac68731-c9a1-4922-8d3b-620cc41f8842,doc-1783161543110,mock-intake-1783161543108-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 10:39:03.11,2026-07-04 10:39:03.11
+fae53838-0986-47ac-87ed-2e245d4b6480,doc-orig-1783161543123,mock-intake-1783161543121-cdu,Original Doc,representation,active,2026-07-04 10:39:03.123,2026-07-04 10:39:03.123
+e93c4976-3d35-41e3-a791-79b3abe0d839,doc-mr68ccet-mgi14j,mock-intake-1783161543121-cdu,代理词（更新）,representation,draft,2026-07-04 10:39:03.136,2026-07-04 10:39:03.136
+d0c28fc3-716a-49df-b2f6-75ba835c4c22,doc-mr68ccf9-d72uav,mock-intake-1783161543121-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 10:39:03.142,2026-07-04 10:39:03.142
+c703c97b-72c8-4ee8-9d1d-d334188bbf87,doc-mr68ccjd-704jno,mock-intake-1783161543285-idem-chdoc,t,challenge_opinion,draft,2026-07-04 10:39:03.309,2026-07-04 10:39:03.309
+233ee2ce-de85-4489-9ea0-f9a9c3308d30,doc-mr68cckj-my0xyr,mock-intake-1783161543327-idem-docup,代理词（更新）,representation,draft,2026-07-04 10:39:03.338,2026-07-04 10:39:03.338
+59412ab4-43b4-4baa-8114-4c2194f27dd1,doc-mr67k3lj-b7obrt,mock-intake-1783160225323-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 10:17:05.343,2026-07-04 10:17:05.343
+05e3657b-f13c-44e0-b51f-6fccad5a5496,doc-1783160225382,mock-intake-1783160225381-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 10:17:05.383,2026-07-04 10:17:05.383
+401f7ec3-2b84-48e6-8b41-ff2c0fe23f97,doc-orig-1783160225396,mock-intake-1783160225395-cdu,Original Doc,representation,active,2026-07-04 10:17:05.397,2026-07-04 10:17:05.397
+b0fc5d08-35cd-4f25-9631-330e1cd32d9b,doc-mr67k3nc-xgfay3,mock-intake-1783160225395-cdu,代理词（更新）,representation,draft,2026-07-04 10:17:05.416,2026-07-04 10:17:05.416
+2d89719b-ca2a-45cf-8ee7-97640394c3a1,doc-mr67k3of-le2wn5,mock-intake-1783160225395-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 10:17:05.44,2026-07-04 10:17:05.44
+157f10cc-4262-46fa-acb7-395e3e338c63,doc-mr67k3r1-w66jql,mock-intake-1783160225530-idem-chdoc,t,challenge_opinion,draft,2026-07-04 10:17:05.542,2026-07-04 10:17:05.542
+4b3127fe-b421-4912-91e4-420084b9df80,doc-mr67k3rm-6yo3hc,mock-intake-1783160225551-idem-docup,代理词（更新）,representation,draft,2026-07-04 10:17:05.563,2026-07-04 10:17:05.563
+799abf5f-e51c-410a-96b5-b56ad141ac44,test-document-ws-1783176111622-otkd1r-1-doc-1,test-document-ws-1783176111622-otkd1r-1,Doc 1,contract,draft,2026-07-04 14:41:51.723,2026-07-04 14:41:51.723
+c8ec7e4d-3dc3-4760-b80e-8252deaa021e,doc-mr7eoxwj-abt034,mock-intake-1783232674713-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 06:24:34.736,2026-07-05 06:24:34.736
+91a50d55-7c15-4326-a16b-c9e271c3fb5c,doc-mr6h0mjf-dsvgch,mock-intake-1783176112913-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 14:41:52.949,2026-07-04 14:41:52.949
+684bcf44-6542-468e-a58c-0245df609135,doc-mr6h0mrw-qpm4kz,mock-intake-1783176113226-idem-chdoc,t,challenge_opinion,draft,2026-07-04 14:41:53.252,2026-07-04 14:41:53.252
+0fe2f659-2780-41e0-9e60-74cf920cb7d3,doc-mr69aubm-rycn4x,mock-intake-1783163152621-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 11:05:52.682,2026-07-04 11:05:52.682
+84a36af0-e0ca-4886-bdd0-ed0a444c1788,doc-1783163152747,mock-intake-1783163152746-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 11:05:52.748,2026-07-04 11:05:52.748
+dc024a7c-058c-4dab-8eb7-f98f6e39a1ae,doc-orig-1783163152767,mock-intake-1783163152765-cdu,Original Doc,representation,active,2026-07-04 11:05:52.767,2026-07-04 11:05:52.767
+271f94da-dcd1-4379-a3e9-89fd0a651b67,doc-mr69auf9-u0nfpr,mock-intake-1783163152765-cdu,代理词（更新）,representation,draft,2026-07-04 11:05:52.844,2026-07-04 11:05:52.844
+8d49ae08-cace-41eb-b3f7-3c9e870c7e60,doc-mr69auhb-eau8rd,mock-intake-1783163152765-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 11:05:52.847,2026-07-04 11:05:52.847
+01d0febf-e9ea-4e66-92c3-46eb54becfe7,doc-mr69auji-buevgc,mock-intake-1783163152922-idem-chdoc,t,challenge_opinion,draft,2026-07-04 11:05:52.953,2026-07-04 11:05:52.953
+a00602d9-17b9-4b24-8993-6995fb7ec021,doc-mr69aukx-o86690,mock-intake-1783163152973-idem-docup,代理词（更新）,representation,draft,2026-07-04 11:05:52.991,2026-07-04 11:05:52.991
+3839cca5-cdc8-4c61-9665-ca96fc2177d8,test-matter-ci-1783164121866-3xn1hn-ws-doc-1,test-matter-ci-1783164121866-3xn1hn-ws,Document 1,"",draft,2026-07-04 11:22:02.038,2026-07-04 11:22:02.038
+8cc11302-2c2c-433f-b53b-ee1928c3024a,test-matter-ci-1783164121866-3xn1hn-ws-doc-2,test-matter-ci-1783164121866-3xn1hn-ws,Document 2,"",draft,2026-07-04 11:22:02.041,2026-07-04 11:22:02.041
+e0965da3-c6f3-40e3-b01d-9615b475a3ec,test-matter-ci-1783164121866-3xn1hn-ws-doc-3,test-matter-ci-1783164121866-3xn1hn-ws,Document 3,"",draft,2026-07-04 11:22:02.043,2026-07-04 11:22:02.043
+6d5fb726-24e2-4e5c-8894-b1495251cacf,test-matter-ci-1783164121866-3xn1hn-ws-doc-4,test-matter-ci-1783164121866-3xn1hn-ws,Document 4,"",draft,2026-07-04 11:22:02.044,2026-07-04 11:22:02.044
+c54343b5-71bb-4ee2-864b-7d73a30cbf1c,test-matter-ci-1783164121866-3xn1hn-ws-doc-5,test-matter-ci-1783164121866-3xn1hn-ws,Document 5,"",draft,2026-07-04 11:22:02.045,2026-07-04 11:22:02.045
+9581d60d-266b-4fc2-b8e6-f7baf69a18a2,test-matter-ci-1783164121866-3xn1hn-ws-doc-6,test-matter-ci-1783164121866-3xn1hn-ws,Document 6,"",draft,2026-07-04 11:22:02.046,2026-07-04 11:22:02.046
+eb9f0b2f-ac3d-4577-afff-6a05175c02f9,test-matter-ci-1783177028227-2l0393-ws-doc-1,test-matter-ci-1783177028227-2l0393-ws,Document 1,"",draft,2026-07-04 14:57:08.373,2026-07-04 14:57:08.373
+5bda0b15-6186-4c71-adfb-6979b6a7fed0,test-matter-ci-1783164123194-2dfqkq-ws-doc-1,test-matter-ci-1783164123194-2dfqkq-ws,Document 1,"",draft,2026-07-04 11:22:03.371,2026-07-04 11:22:03.371
+6f46e84f-455f-456d-aede-0137419b67b3,test-matter-ci-1783164123194-2dfqkq-ws-doc-2,test-matter-ci-1783164123194-2dfqkq-ws,Document 2,"",draft,2026-07-04 11:22:03.374,2026-07-04 11:22:03.374
+25b2f5c7-3ae3-4b1f-8862-60017d3ab9bb,test-matter-ci-1783164123194-2dfqkq-ws-doc-3,test-matter-ci-1783164123194-2dfqkq-ws,Document 3,"",draft,2026-07-04 11:22:03.375,2026-07-04 11:22:03.375
+8875ac99-5a49-44ef-9a74-c01e8d6fdbc6,test-matter-ci-1783164123194-2dfqkq-ws-doc-4,test-matter-ci-1783164123194-2dfqkq-ws,Document 4,"",draft,2026-07-04 11:22:03.377,2026-07-04 11:22:03.377
+b671e4cd-7404-4842-8d4d-7d169386c08b,test-matter-ci-1783164123194-2dfqkq-ws-doc-5,test-matter-ci-1783164123194-2dfqkq-ws,Document 5,"",draft,2026-07-04 11:22:03.38,2026-07-04 11:22:03.38
+b4fcb7a6-a351-41d2-876f-c842e0031e4d,test-matter-ci-1783164123194-2dfqkq-ws-doc-6,test-matter-ci-1783164123194-2dfqkq-ws,Document 6,"",draft,2026-07-04 11:22:03.382,2026-07-04 11:22:03.382
+c3713d82-cb2c-4dde-9801-435a003a4774,doc-mr69vnls-ujl2by,mock-intake-1783164123637-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 11:22:03.742,2026-07-04 11:22:03.742
+ad4b9b50-bf7c-4c7f-8f32-50b53a67a967,doc-1783164123804,mock-intake-1783164123801-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 11:22:03.805,2026-07-04 11:22:03.805
+dd3a3595-71c8-46be-9c76-ca25ae96455d,doc-orig-1783164123823,mock-intake-1783164123821-cdu,Original Doc,representation,active,2026-07-04 11:22:03.823,2026-07-04 11:22:03.823
+fba99e11-3148-4b9f-baec-6d8bc224efe0,doc-mr69vnoy-knub4h,mock-intake-1783164123821-cdu,代理词（更新）,representation,draft,2026-07-04 11:22:03.841,2026-07-04 11:22:03.841
+016e4623-11e7-46ee-b44e-6fafec453a3b,doc-mr69vnpn-njp3ej,mock-intake-1783164123821-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 11:22:03.852,2026-07-04 11:22:03.852
+5c33dd4e-ed28-452c-b98a-5aee95d9159e,doc-mr69vnt0-s6qqnd,mock-intake-1783164123967-idem-chdoc,t,challenge_opinion,draft,2026-07-04 11:22:04.006,2026-07-04 11:22:04.006
+290e364b-559a-4365-9797-e017662a3fd5,doc-mr69vnud-m3s0zh,mock-intake-1783164124017-idem-docup,代理词（更新）,representation,draft,2026-07-04 11:22:04.03,2026-07-04 11:22:04.03
+0318d588-4c20-4475-ab7d-90095a857450,test-matter-ci-1783165322737-s5ji21-ws-doc-1,test-matter-ci-1783165322737-s5ji21-ws,Document 1,"",draft,2026-07-04 11:42:02.917,2026-07-04 11:42:02.917
+b59d9f8c-d83a-4e2c-993e-0aa592d7d13f,test-matter-ci-1783165322737-s5ji21-ws-doc-2,test-matter-ci-1783165322737-s5ji21-ws,Document 2,"",draft,2026-07-04 11:42:02.921,2026-07-04 11:42:02.921
+3264f070-58c6-49d0-bfff-a50cacf398a8,test-matter-ci-1783165322737-s5ji21-ws-doc-3,test-matter-ci-1783165322737-s5ji21-ws,Document 3,"",draft,2026-07-04 11:42:02.923,2026-07-04 11:42:02.923
+2979b497-f785-40a5-a716-597e6d2924b2,test-matter-ci-1783165322737-s5ji21-ws-doc-4,test-matter-ci-1783165322737-s5ji21-ws,Document 4,"",draft,2026-07-04 11:42:02.925,2026-07-04 11:42:02.925
+0bba5379-5793-42ab-801a-d84dce956334,test-matter-ci-1783165322737-s5ji21-ws-doc-5,test-matter-ci-1783165322737-s5ji21-ws,Document 5,"",draft,2026-07-04 11:42:02.927,2026-07-04 11:42:02.927
+0ae9816e-1b6b-4ae1-99cd-0ebfb83c12a1,test-matter-ci-1783165322737-s5ji21-ws-doc-6,test-matter-ci-1783165322737-s5ji21-ws,Document 6,"",draft,2026-07-04 11:42:02.928,2026-07-04 11:42:02.928
+6f9a759a-2fd6-49a2-b25f-9e958e9952e9,doc-mr6alcze-q8itq0,mock-intake-1783165322987-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 11:42:03.01,2026-07-04 11:42:03.01
+e3248adb-a5e3-431c-b814-19558cf69f2d,doc-1783165323103,mock-intake-1783165323094-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 11:42:03.104,2026-07-04 11:42:03.104
+b91c3040-2912-43d2-a405-3273b87deb56,doc-orig-1783165323198,mock-intake-1783165323194-cdu,Original Doc,representation,active,2026-07-04 11:42:03.198,2026-07-04 11:42:03.198
+fa1969c1-765b-4766-8a32-7408f599ea92,doc-mr6ald56-mgvfok,mock-intake-1783165323194-cdu,代理词（更新）,representation,draft,2026-07-04 11:42:03.263,2026-07-04 11:42:03.263
+610b959a-72a8-4bf9-bd85-17c8c0dfd36c,doc-mr6ald75-25ire5,mock-intake-1783165323194-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 11:42:03.282,2026-07-04 11:42:03.282
+a4fde91f-1100-476d-9ac7-e2efa9d644d5,doc-mr6ald9q-52n967,mock-intake-1783165323371-idem-chdoc,t,challenge_opinion,draft,2026-07-04 11:42:03.402,2026-07-04 11:42:03.402
+a98237cf-456d-471f-a752-54e8ac813d85,doc-mr6aldau-ya44n7,mock-intake-1783165323409-idem-docup,代理词（更新）,representation,draft,2026-07-04 11:42:03.431,2026-07-04 11:42:03.431
+6d5943c5-f4eb-43b9-82ae-47980a06c79e,test-matter-ci-1783165620124-ujf7u1-ws-doc-1,test-matter-ci-1783165620124-ujf7u1-ws,Document 1,"",draft,2026-07-04 11:47:00.29,2026-07-04 11:47:00.29
+7158d3e8-ede9-4415-8485-2bfb003e3be5,test-matter-ci-1783165620124-ujf7u1-ws-doc-2,test-matter-ci-1783165620124-ujf7u1-ws,Document 2,"",draft,2026-07-04 11:47:00.292,2026-07-04 11:47:00.292
+bfb109b4-32ca-43fe-afcb-deee3ea5845b,test-matter-ci-1783165620124-ujf7u1-ws-doc-3,test-matter-ci-1783165620124-ujf7u1-ws,Document 3,"",draft,2026-07-04 11:47:00.293,2026-07-04 11:47:00.293
+766586df-4ba5-48cd-870e-1ff94b915283,test-matter-ci-1783165620124-ujf7u1-ws-doc-4,test-matter-ci-1783165620124-ujf7u1-ws,Document 4,"",draft,2026-07-04 11:47:00.295,2026-07-04 11:47:00.295
+dcb45696-cb7e-46d3-b4f7-b8717cf25ddd,test-matter-ci-1783165620124-ujf7u1-ws-doc-5,test-matter-ci-1783165620124-ujf7u1-ws,Document 5,"",draft,2026-07-04 11:47:00.296,2026-07-04 11:47:00.296
+5237b1db-bdc3-435d-93be-5a224f440c2d,test-matter-ci-1783165620124-ujf7u1-ws-doc-6,test-matter-ci-1783165620124-ujf7u1-ws,Document 6,"",draft,2026-07-04 11:47:00.297,2026-07-04 11:47:00.297
+a9a4ba90-507d-49d4-9147-41610afe5359,doc-mr6arqf5-r8cmyx,mock-intake-1783165620346-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 11:47:00.387,2026-07-04 11:47:00.387
+41aae8cc-c10b-41e8-b2be-5f76b4c2ad0e,doc-1783165620620,mock-intake-1783165620616-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 11:47:00.621,2026-07-04 11:47:00.621
+688d7da4-a106-43a5-9bb1-edf351aad46c,doc-orig-1783165620636,mock-intake-1783165620635-cdu,Original Doc,representation,active,2026-07-04 11:47:00.636,2026-07-04 11:47:00.636
+7ba1a2cb-9fa1-40b7-b417-7ae96f4172a4,doc-mr6arqn3-5dv1gk,mock-intake-1783165620635-cdu,代理词（更新）,representation,draft,2026-07-04 11:47:00.647,2026-07-04 11:47:00.647
+db5e47c1-c787-4e60-b7f6-6d6a3a570809,doc-mr6arqne-e1m4sx,mock-intake-1783165620635-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 11:47:00.651,2026-07-04 11:47:00.651
+045d1c24-bb8e-4c4e-96f9-055ea47bd37e,doc-mr6arqpt-peel5f,mock-intake-1783165620727-idem-chdoc,t,challenge_opinion,draft,2026-07-04 11:47:00.752,2026-07-04 11:47:00.752
+803b8daf-7573-4bd2-a537-63b4eb7cf83d,doc-mr6arqqi-eoa87g,mock-intake-1783165620760-idem-docup,代理词（更新）,representation,draft,2026-07-04 11:47:00.772,2026-07-04 11:47:00.772
+491a9ba4-8111-41e7-8916-ea47cca75f23,test-matter-ci-1783176112696-u4mys2-ws-doc-1,test-matter-ci-1783176112696-u4mys2-ws,Document 1,"",draft,2026-07-04 14:41:52.841,2026-07-04 14:41:52.841
+b7ec20f2-2f74-4860-8ab9-d6f70eab2acc,test-matter-ci-1783176112696-u4mys2-ws-doc-2,test-matter-ci-1783176112696-u4mys2-ws,Document 2,"",draft,2026-07-04 14:41:52.844,2026-07-04 14:41:52.844
+9bcc3798-7f7f-4f57-8377-449e7dde5569,test-matter-ci-1783168954397-13uosh-ws-doc-1,test-matter-ci-1783168954397-13uosh-ws,Document 1,"",draft,2026-07-04 12:42:34.549,2026-07-04 12:42:34.549
+b7c71e65-1a54-4e32-abaa-f6599bba3cb6,test-matter-ci-1783168954397-13uosh-ws-doc-2,test-matter-ci-1783168954397-13uosh-ws,Document 2,"",draft,2026-07-04 12:42:34.55,2026-07-04 12:42:34.55
+222b8bb0-e8f4-4f26-a068-f38b63957389,test-matter-ci-1783168954397-13uosh-ws-doc-3,test-matter-ci-1783168954397-13uosh-ws,Document 3,"",draft,2026-07-04 12:42:34.551,2026-07-04 12:42:34.551
+73d3666e-1608-4cf8-9881-4ce1a65221ec,test-matter-ci-1783176112696-u4mys2-ws-doc-3,test-matter-ci-1783176112696-u4mys2-ws,Document 3,"",draft,2026-07-04 14:41:52.845,2026-07-04 14:41:52.845
+59d9d4e2-f3a5-4da1-8ab0-e3c652c552a9,test-matter-ci-1783168954397-13uosh-ws-doc-4,test-matter-ci-1783168954397-13uosh-ws,Document 4,"",draft,2026-07-04 12:42:34.555,2026-07-04 12:42:34.555
+50e60989-207c-4401-866e-c4fad34ffe64,test-matter-ci-1783168954397-13uosh-ws-doc-5,test-matter-ci-1783168954397-13uosh-ws,Document 5,"",draft,2026-07-04 12:42:34.556,2026-07-04 12:42:34.556
+6d85ad39-25b3-443f-9bd1-266d45e40ff9,test-matter-ci-1783168954397-13uosh-ws-doc-6,test-matter-ci-1783168954397-13uosh-ws,Document 6,"",draft,2026-07-04 12:42:34.557,2026-07-04 12:42:34.557
+399b7d89-22d6-4f36-aecb-9c21d2f2a5eb,doc-1783176113039,mock-intake-1783176113038-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 14:41:53.039,2026-07-04 14:41:53.039
+cf48a22d-21da-49d6-8a0a-d061e95e4b0b,doc-orig-1783176113051,mock-intake-1783176113050-cdu,Original Doc,representation,active,2026-07-04 14:41:53.052,2026-07-04 14:41:53.052
+10c97fb4-01db-4597-b3a8-126bd269c317,doc-mr6cr78h-gpxv2q,mock-intake-1783168954707-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 12:42:34.727,2026-07-04 12:42:34.727
+f5a78a13-f433-4d1f-8846-7619e81dc1a4,doc-1783168954904,mock-intake-1783168954883-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 12:42:34.905,2026-07-04 12:42:34.905
+8a62091a-5e81-4dea-bba2-9f4a0b07b8f6,doc-orig-1783168954923,mock-intake-1783168954922-cdu,Original Doc,representation,active,2026-07-04 12:42:34.923,2026-07-04 12:42:34.923
+8dac437a-c05e-478a-9076-b3dd256809a6,doc-mr6cr7e5-s0am0t,mock-intake-1783168954922-cdu,代理词（更新）,representation,draft,2026-07-04 12:42:34.935,2026-07-04 12:42:34.935
+a0c42fa8-0e16-4d75-b104-9bd247e4543f,doc-mr6cr7ei-3hoi32,mock-intake-1783168954922-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 12:42:34.938,2026-07-04 12:42:34.938
+1e5971ee-cae6-4773-a3df-ec27446bbe62,doc-mr6cr7ge-hx8l0q,mock-intake-1783168955001-idem-chdoc,t,challenge_opinion,draft,2026-07-04 12:42:35.022,2026-07-04 12:42:35.022
+d85d0023-0be9-4f63-84fc-e5f5f572e643,doc-mr6cr7hd-jo3q0v,mock-intake-1783168955038-idem-docup,代理词（更新）,representation,draft,2026-07-04 12:42:35.053,2026-07-04 12:42:35.053
+03f26b6b-24ba-47d4-9d16-8a9e10f37a02,test-matter-ci-1783169305580-leejtq-ws-doc-1,test-matter-ci-1783169305580-leejtq-ws,Document 1,"",draft,2026-07-04 12:48:25.764,2026-07-04 12:48:25.764
+a5042bc7-94dd-43f3-8c02-f77db6266f73,test-matter-ci-1783169305580-leejtq-ws-doc-2,test-matter-ci-1783169305580-leejtq-ws,Document 2,"",draft,2026-07-04 12:48:25.769,2026-07-04 12:48:25.769
+df55e68d-ead3-43fb-8b53-e26abcb27e93,test-matter-ci-1783169305580-leejtq-ws-doc-3,test-matter-ci-1783169305580-leejtq-ws,Document 3,"",draft,2026-07-04 12:48:25.77,2026-07-04 12:48:25.77
+9c2ae891-718d-473e-bbe2-c6751c352388,test-matter-ci-1783169305580-leejtq-ws-doc-4,test-matter-ci-1783169305580-leejtq-ws,Document 4,"",draft,2026-07-04 12:48:25.772,2026-07-04 12:48:25.772
+186c13c3-6613-4955-a79f-ccbea503fd4e,test-matter-ci-1783169305580-leejtq-ws-doc-5,test-matter-ci-1783169305580-leejtq-ws,Document 5,"",draft,2026-07-04 12:48:25.774,2026-07-04 12:48:25.774
+9405e10d-cc2c-44c5-b9cd-01ca5580ad3a,test-matter-ci-1783169305580-leejtq-ws-doc-6,test-matter-ci-1783169305580-leejtq-ws,Document 6,"",draft,2026-07-04 12:48:25.777,2026-07-04 12:48:25.777
+9969f99c-1fd4-4d93-bfc7-72ab4a152823,doc-mr6cyq7d-tk6q6e,mock-intake-1783169305887-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 12:48:25.976,2026-07-04 12:48:25.976
+cfbf3322-689f-4eb2-970c-732967df50e2,doc-1783169306040,mock-intake-1783169306038-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 12:48:26.04,2026-07-04 12:48:26.04
+82035607-5576-48b9-8844-cc6abc3bbb08,doc-orig-1783169306056,mock-intake-1783169306054-cdu,Original Doc,representation,active,2026-07-04 12:48:26.057,2026-07-04 12:48:26.057
+6a98f0a3-8ab3-4cf2-b11b-1aa755e007b0,doc-mr6cyqbw-dkmpu2,mock-intake-1783169306054-cdu,代理词（更新）,representation,draft,2026-07-04 12:48:26.132,2026-07-04 12:48:26.132
+4bb1d4a8-40fd-4fb2-9b41-d574b1abca98,doc-mr6cyqe0-stated,mock-intake-1783169306054-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 12:48:26.136,2026-07-04 12:48:26.136
+ca4c4256-500d-4991-9d14-e570b98af99f,doc-mr6cyqgd-fm3e9j,mock-intake-1783169306213-idem-chdoc,t,challenge_opinion,draft,2026-07-04 12:48:26.246,2026-07-04 12:48:26.246
+5c94f742-cc69-4e0a-99c8-f6262de27ed6,doc-mr6cyqi1-xrqf4u,mock-intake-1783169306268-idem-docup,代理词（更新）,representation,draft,2026-07-04 12:48:26.311,2026-07-04 12:48:26.311
+211c1865-558c-4d96-a460-f0184d1a86c9,test-matter-ci-1783170091894-mrwaw5-ws-doc-1,test-matter-ci-1783170091894-mrwaw5-ws,Document 1,"",draft,2026-07-04 13:01:32.052,2026-07-04 13:01:32.052
+0ca91481-03e3-43c2-8fd0-4dfe265f9cf4,test-matter-ci-1783170091894-mrwaw5-ws-doc-2,test-matter-ci-1783170091894-mrwaw5-ws,Document 2,"",draft,2026-07-04 13:01:32.055,2026-07-04 13:01:32.055
+4624a2ac-939a-442f-9914-fa82c82c6bf7,test-matter-ci-1783170091894-mrwaw5-ws-doc-3,test-matter-ci-1783170091894-mrwaw5-ws,Document 3,"",draft,2026-07-04 13:01:32.057,2026-07-04 13:01:32.057
+49289c95-c071-4e0e-8b26-8ff7d0a85c59,test-matter-ci-1783170091894-mrwaw5-ws-doc-4,test-matter-ci-1783170091894-mrwaw5-ws,Document 4,"",draft,2026-07-04 13:01:32.058,2026-07-04 13:01:32.058
+d8097829-f30d-4f54-8c33-a511f97fb76c,test-matter-ci-1783170091894-mrwaw5-ws-doc-5,test-matter-ci-1783170091894-mrwaw5-ws,Document 5,"",draft,2026-07-04 13:01:32.059,2026-07-04 13:01:32.059
+fb238d1c-72b8-4f80-a48c-6f24352fafe7,test-matter-ci-1783170091894-mrwaw5-ws-doc-6,test-matter-ci-1783170091894-mrwaw5-ws,Document 6,"",draft,2026-07-04 13:01:32.061,2026-07-04 13:01:32.061
+05a15638-d3e1-4f2e-b5a1-f0d9eacdce36,doc-mr6dfkx9-hvk6sy,mock-intake-1783170092188-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 13:01:32.246,2026-07-04 13:01:32.246
+5f168c35-bc72-4dba-878b-2be7076185b3,doc-1783170092395,mock-intake-1783170092393-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 13:01:32.395,2026-07-04 13:01:32.395
+c324428a-ee26-4306-acfc-becebabdad18,doc-orig-1783170092405,mock-intake-1783170092403-cdu,Original Doc,representation,active,2026-07-04 13:01:32.406,2026-07-04 13:01:32.406
+c2f49e4d-d46a-4601-9a6a-fe125e513512,doc-mr6dfl2x-niatee,mock-intake-1783170092403-cdu,代理词（更新）,representation,draft,2026-07-04 13:01:32.417,2026-07-04 13:01:32.417
+a3632bdb-a231-4dad-bccf-bdf17760181f,doc-mr6dfl38-ktco7h,mock-intake-1783170092403-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 13:01:32.421,2026-07-04 13:01:32.421
+9d694a82-7244-4694-a09f-97f710298a1e,doc-mr6dfl5n-mlzpty,mock-intake-1783170092504-idem-chdoc,t,challenge_opinion,draft,2026-07-04 13:01:32.529,2026-07-04 13:01:32.529
+1efc056e-1e23-41b3-9f0e-e66ac5b3e86a,doc-mr6dfl6i-wf5mfx,mock-intake-1783170092535-idem-docup,代理词（更新）,representation,draft,2026-07-04 13:01:32.55,2026-07-04 13:01:32.55
+36d9e835-763a-4f02-9e79-462b4100f6f1,test-matter-ci-1783171119272-yqv54g-ws-doc-1,test-matter-ci-1783171119272-yqv54g-ws,Document 1,"",draft,2026-07-04 13:18:39.413,2026-07-04 13:18:39.413
+827dabe4-bf6e-4f27-8f5a-f04fd9b75dbc,test-matter-ci-1783171119272-yqv54g-ws-doc-2,test-matter-ci-1783171119272-yqv54g-ws,Document 2,"",draft,2026-07-04 13:18:39.417,2026-07-04 13:18:39.417
+2ad7af41-5164-415c-9384-af5deca5df62,test-matter-ci-1783171119272-yqv54g-ws-doc-3,test-matter-ci-1783171119272-yqv54g-ws,Document 3,"",draft,2026-07-04 13:18:39.419,2026-07-04 13:18:39.419
+cd6abe59-bf4f-454c-9fea-6be8f2355467,test-matter-ci-1783171119272-yqv54g-ws-doc-4,test-matter-ci-1783171119272-yqv54g-ws,Document 4,"",draft,2026-07-04 13:18:39.421,2026-07-04 13:18:39.421
+090a5a3d-3618-4c3b-b981-778ac1184bb8,test-matter-ci-1783171119272-yqv54g-ws-doc-5,test-matter-ci-1783171119272-yqv54g-ws,Document 5,"",draft,2026-07-04 13:18:39.422,2026-07-04 13:18:39.422
+7069e32d-a649-469f-a8d2-b0d1d4eb798c,test-matter-ci-1783171119272-yqv54g-ws-doc-6,test-matter-ci-1783171119272-yqv54g-ws,Document 6,"",draft,2026-07-04 13:18:39.423,2026-07-04 13:18:39.423
+82826944-6826-4b6e-a453-f5f1e32909d3,doc-mr6e1loz-6ftjut,mock-intake-1783171119626-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 13:18:39.668,2026-07-04 13:18:39.668
+76ec0ca9-f93b-4a02-86e8-4d30ee086dc0,doc-1783171119713,mock-intake-1783171119712-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 13:18:39.714,2026-07-04 13:18:39.714
+3f8f3401-11c1-4615-a8f6-ab327c1f40da,doc-orig-1783171119723,mock-intake-1783171119722-cdu,Original Doc,representation,active,2026-07-04 13:18:39.724,2026-07-04 13:18:39.724
+c10e45d5-cc46-45d0-8ca7-b6c5819d7419,doc-mr6e1lrm-a3oxk3,mock-intake-1783171119722-cdu,代理词（更新）,representation,draft,2026-07-04 13:18:39.753,2026-07-04 13:18:39.753
+d0e72b20-d042-4790-8643-805da1e9117e,doc-mr6e1lsh-qpxo8b,mock-intake-1783171119722-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 13:18:39.761,2026-07-04 13:18:39.761
+196c48b9-6036-4897-aa3c-71e4c5aa8fbe,doc-mr6e1luj-0qtie5,mock-intake-1783171119832-idem-chdoc,t,challenge_opinion,draft,2026-07-04 13:18:39.853,2026-07-04 13:18:39.853
+1e51b668-8631-40f9-be54-8245d2e7de18,doc-mr6e1lvb-4a0eug,mock-intake-1783171119860-idem-docup,代理词（更新）,representation,draft,2026-07-04 13:18:39.874,2026-07-04 13:18:39.874
+5cb358e6-b96a-4411-b4bf-f02772a526a2,test-matter-ci-1783171958117-po8vnx-ws-doc-1,test-matter-ci-1783171958117-po8vnx-ws,Document 1,"",draft,2026-07-04 13:32:38.27,2026-07-04 13:32:38.27
+ae4b33e3-0c07-4b76-8bf4-ac41b5dc8923,test-matter-ci-1783171958117-po8vnx-ws-doc-2,test-matter-ci-1783171958117-po8vnx-ws,Document 2,"",draft,2026-07-04 13:32:38.273,2026-07-04 13:32:38.273
+06703dfb-f6b2-4878-94b0-1f85c9efb6cd,test-matter-ci-1783171958117-po8vnx-ws-doc-3,test-matter-ci-1783171958117-po8vnx-ws,Document 3,"",draft,2026-07-04 13:32:38.275,2026-07-04 13:32:38.275
+6158d14a-d5c6-4211-90d0-c727a1f9d8ed,test-matter-ci-1783171958117-po8vnx-ws-doc-4,test-matter-ci-1783171958117-po8vnx-ws,Document 4,"",draft,2026-07-04 13:32:38.276,2026-07-04 13:32:38.276
+c61f24ae-48ef-4b9b-a4a5-e85179dd039f,test-matter-ci-1783171958117-po8vnx-ws-doc-5,test-matter-ci-1783171958117-po8vnx-ws,Document 5,"",draft,2026-07-04 13:32:38.278,2026-07-04 13:32:38.278
+5a9cc950-7d67-4d69-85e8-3c5325dd0d18,test-matter-ci-1783171958117-po8vnx-ws-doc-6,test-matter-ci-1783171958117-po8vnx-ws,Document 6,"",draft,2026-07-04 13:32:38.279,2026-07-04 13:32:38.279
+b95e8cd4-24bd-4723-bc9b-b2fa2f61ec18,doc-mr6ejkv6-3afqb5,mock-intake-1783171958357-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 13:32:38.394,2026-07-04 13:32:38.394
+f03b6182-8939-4296-8580-305af33c9748,doc-1783171958530,mock-intake-1783171958490-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 13:32:38.531,2026-07-04 13:32:38.531
+60fd72f3-472a-424b-8343-52fe9bc149aa,doc-orig-1783171958593,mock-intake-1783171958574-cdu,Original Doc,representation,active,2026-07-04 13:32:38.594,2026-07-04 13:32:38.594
+f28133a3-d0de-4bed-802b-cbc2f0355e85,doc-mr6ejl1g-4uj449,mock-intake-1783171958574-cdu,代理词（更新）,representation,draft,2026-07-04 13:32:38.608,2026-07-04 13:32:38.608
+d43b8e12-c2b1-400c-a980-4def42aac597,doc-mr6ejl1w-7nytrz,mock-intake-1783171958574-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 13:32:38.613,2026-07-04 13:32:38.613
+e376b810-1c19-424d-a621-8e10100aabb7,doc-mr6ejl4c-rns3oo,mock-intake-1783171958698-idem-chdoc,t,challenge_opinion,draft,2026-07-04 13:32:38.708,2026-07-04 13:32:38.708
+f8f7ef20-a5c2-408c-8d2c-d0e3d5c3914f,doc-mr6ejl4w-2dl03z,mock-intake-1783171958714-idem-docup,代理词（更新）,representation,draft,2026-07-04 13:32:38.727,2026-07-04 13:32:38.727
+c9d9c102-a9d6-429d-b155-9aa93664f4fa,test-matter-ci-1783172448996-xalx0q-ws-doc-1,test-matter-ci-1783172448996-xalx0q-ws,Document 1,"",draft,2026-07-04 13:40:49.166,2026-07-04 13:40:49.166
+065394cc-760c-45df-9f58-5d89df9e322d,test-matter-ci-1783172448996-xalx0q-ws-doc-2,test-matter-ci-1783172448996-xalx0q-ws,Document 2,"",draft,2026-07-04 13:40:49.171,2026-07-04 13:40:49.171
+afa98ec0-6ec9-4249-9b4e-2d7630cc6265,test-matter-ci-1783172448996-xalx0q-ws-doc-3,test-matter-ci-1783172448996-xalx0q-ws,Document 3,"",draft,2026-07-04 13:40:49.172,2026-07-04 13:40:49.172
+efd8799c-9656-42be-97cb-902b38af40ca,test-matter-ci-1783172448996-xalx0q-ws-doc-4,test-matter-ci-1783172448996-xalx0q-ws,Document 4,"",draft,2026-07-04 13:40:49.174,2026-07-04 13:40:49.174
+1a61974c-29d1-4d36-9219-ffc1e0a8f882,test-matter-ci-1783172448996-xalx0q-ws-doc-5,test-matter-ci-1783172448996-xalx0q-ws,Document 5,"",draft,2026-07-04 13:40:49.175,2026-07-04 13:40:49.175
+804d07b0-b2b9-40e0-97af-08df3979a1a6,test-matter-ci-1783172448996-xalx0q-ws-doc-6,test-matter-ci-1783172448996-xalx0q-ws,Document 6,"",draft,2026-07-04 13:40:49.177,2026-07-04 13:40:49.177
+3642e174-a112-4673-80d0-8d59f4e02a8e,doc-mr6eu3nb-ca4h24,mock-intake-1783172449258-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 13:40:49.303,2026-07-04 13:40:49.303
+1ab3c45a-c009-4654-b457-bab7fe14860b,doc-1783172449428,mock-intake-1783172449424-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 13:40:49.429,2026-07-04 13:40:49.429
+9a4523ae-4e8d-429b-8158-bb543b83b2a7,doc-orig-1783172449466,mock-intake-1783172449464-cdu,Original Doc,representation,active,2026-07-04 13:40:49.467,2026-07-04 13:40:49.467
+d71be4f9-a0ba-458f-99d6-85e82e6e6a61,doc-mr6eu3sz-vr6usu,mock-intake-1783172449464-cdu,代理词（更新）,representation,draft,2026-07-04 13:40:49.505,2026-07-04 13:40:49.505
+a283448a-8327-4ecc-9d1e-7d6dabb842c9,doc-mr6eu3tx-gwwscp,mock-intake-1783172449464-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 13:40:49.51,2026-07-04 13:40:49.51
+d1d53752-cd17-48f8-9ab2-f723ce3056ad,doc-mr6eu3w8-d9df8w,mock-intake-1783172449587-idem-chdoc,t,challenge_opinion,draft,2026-07-04 13:40:49.613,2026-07-04 13:40:49.613
+d9e965e6-fdaf-470b-8d67-cbf70d51ee2f,doc-mr6eu3x5-7gjnk0,mock-intake-1783172449621-idem-docup,代理词（更新）,representation,draft,2026-07-04 13:40:49.634,2026-07-04 13:40:49.634
+51b8e3e9-5b69-49dd-b278-cb837494e031,test-document-ws-1783176112696-9n9fxg-1-doc-1,test-document-ws-1783176112696-9n9fxg-1,Doc 1,contract,draft,2026-07-04 14:41:52.794,2026-07-04 14:41:52.794
+14282ddc-b9d2-43a9-bc13-d01875c1f9cb,test-document-ws-1783174109749-uevnzt-1-doc-1,test-document-ws-1783174109749-uevnzt-1,Doc 1,contract,draft,2026-07-04 14:08:29.875,2026-07-04 14:08:29.875
+8518bdc1-a56a-42d6-93b3-4f608ae1cd13,test-document-ws-1783174110901-2d9ijc-1-doc-1,test-document-ws-1783174110901-2d9ijc-1,Doc 1,contract,draft,2026-07-04 14:08:31.006,2026-07-04 14:08:31.006
+e0827d71-1fc4-44be-b336-c98670496de2,test-matter-ci-1783176112696-u4mys2-ws-doc-4,test-matter-ci-1783176112696-u4mys2-ws,Document 4,"",draft,2026-07-04 14:41:52.848,2026-07-04 14:41:52.848
+657bb2e0-6a78-4c91-968d-2a0eeea82703,test-matter-ci-1783176112696-u4mys2-ws-doc-5,test-matter-ci-1783176112696-u4mys2-ws,Document 5,"",draft,2026-07-04 14:41:52.849,2026-07-04 14:41:52.849
+03fdc198-e94e-4983-ac96-01ac55592f5a,test-matter-ci-1783176112696-u4mys2-ws-doc-6,test-matter-ci-1783176112696-u4mys2-ws,Document 6,"",draft,2026-07-04 14:41:52.85,2026-07-04 14:41:52.85
+3fceb38a-d195-487d-9e43-11099c857455,doc-mr6h0mn2-y4j0bf,mock-intake-1783176113050-cdu,代理词（更新）,representation,draft,2026-07-04 14:41:53.071,2026-07-04 14:41:53.071
+79ae8f21-404f-4bb2-9014-a91e9b22680a,test-matter-ci-1783174110901-l9ac8w-ws-doc-1,test-matter-ci-1783174110901-l9ac8w-ws,Document 1,"",draft,2026-07-04 14:08:31.06,2026-07-04 14:08:31.06
+8de16bbe-cff4-407f-b799-ab6d4d5ce19f,test-matter-ci-1783174110901-l9ac8w-ws-doc-2,test-matter-ci-1783174110901-l9ac8w-ws,Document 2,"",draft,2026-07-04 14:08:31.062,2026-07-04 14:08:31.062
+24e9fdab-252a-4f51-b79a-e942adf14a59,test-matter-ci-1783174110901-l9ac8w-ws-doc-3,test-matter-ci-1783174110901-l9ac8w-ws,Document 3,"",draft,2026-07-04 14:08:31.064,2026-07-04 14:08:31.064
+598c7796-13da-48f4-9720-5bdefa9b4218,test-matter-ci-1783174110901-l9ac8w-ws-doc-4,test-matter-ci-1783174110901-l9ac8w-ws,Document 4,"",draft,2026-07-04 14:08:31.065,2026-07-04 14:08:31.065
+d8d2f5de-b137-42dd-aeb8-aba7679f6dd1,test-matter-ci-1783174110901-l9ac8w-ws-doc-5,test-matter-ci-1783174110901-l9ac8w-ws,Document 5,"",draft,2026-07-04 14:08:31.066,2026-07-04 14:08:31.066
+cbf2d00a-cdb1-43e7-9131-e66c25489a6f,test-matter-ci-1783174110901-l9ac8w-ws-doc-6,test-matter-ci-1783174110901-l9ac8w-ws,Document 6,"",draft,2026-07-04 14:08:31.068,2026-07-04 14:08:31.068
+1496dfcd-7a45-418f-8a87-1921d0469396,doc-mr6ftpyn-m7ycap,mock-intake-1783174111140-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 14:08:31.158,2026-07-04 14:08:31.158
+9ecf20e9-ff46-407b-a6b3-41974f82b3ea,doc-1783174111230,mock-intake-1783174111223-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 14:08:31.231,2026-07-04 14:08:31.231
+f5a5173f-425e-4904-a765-f3a29473632a,doc-orig-1783174111345,mock-intake-1783174111331-cdu,Original Doc,representation,active,2026-07-04 14:08:31.346,2026-07-04 14:08:31.346
+83286370-575a-47c6-81c2-b4ea80457f13,doc-mr6ftq4d-s9yu8b,mock-intake-1783174111331-cdu,代理词（更新）,representation,draft,2026-07-04 14:08:31.376,2026-07-04 14:08:31.376
+2b4b5b2c-3927-4ef0-9f88-d65cf7fd37bb,doc-mr6ftq5e-dzf29o,mock-intake-1783174111331-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 14:08:31.395,2026-07-04 14:08:31.395
+31e58d1c-15a6-4cd8-8893-2c8820c950b0,doc-mr6ftq8f-zcwpjj,mock-intake-1783174111500-idem-chdoc,t,challenge_opinion,draft,2026-07-04 14:08:31.509,2026-07-04 14:08:31.509
+3b05b375-f88b-46a1-8e55-3bacf911cc06,doc-mr6ftq98-v0swiw,mock-intake-1783174111529-idem-docup,代理词（更新）,representation,draft,2026-07-04 14:08:31.611,2026-07-04 14:08:31.611
+d2a64aff-f37a-4877-965e-6ad11913c8a3,doc-mr6h0mnr-gzayqe,mock-intake-1783176113050-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 14:41:53.08,2026-07-04 14:41:53.08
+68d80d75-8480-41ea-89f0-bbd7409139c1,test-document-ws-1783174759754-d4ca5j-1-doc-1,test-document-ws-1783174759754-d4ca5j-1,Doc 1,contract,draft,2026-07-04 14:19:19.857,2026-07-04 14:19:19.857
+75921d23-8019-450a-8c6a-4b6decd1f27a,doc-mr6h0mtc-lsgh86,mock-intake-1783176113270-idem-docup,代理词（更新）,representation,draft,2026-07-04 14:41:53.318,2026-07-04 14:41:53.318
+115a0f32-845c-44d3-a2cc-5d91cad821c8,test-document-ws-1783174760903-aunma0-1-doc-1,test-document-ws-1783174760903-aunma0-1,Doc 1,contract,draft,2026-07-04 14:19:21.011,2026-07-04 14:19:21.011
+a0921ca1-e38e-45f1-82ad-a9288c3cb633,test-document-ws-1783177028227-ao1it2-1-doc-1,test-document-ws-1783177028227-ao1it2-1,Doc 1,contract,draft,2026-07-04 14:57:08.328,2026-07-04 14:57:08.328
+73e1ac42-c706-4d28-9602-26639998b36b,test-matter-ci-1783177028227-2l0393-ws-doc-2,test-matter-ci-1783177028227-2l0393-ws,Document 2,"",draft,2026-07-04 14:57:08.374,2026-07-04 14:57:08.374
+b15f00b6-f53a-495f-b774-898e5c3604ad,test-matter-ci-1783174760903-fgknse-ws-doc-1,test-matter-ci-1783174760903-fgknse-ws,Document 1,"",draft,2026-07-04 14:19:21.061,2026-07-04 14:19:21.061
+79c6bd9c-db29-43a1-a927-bd05c58e3c45,test-matter-ci-1783174760903-fgknse-ws-doc-2,test-matter-ci-1783174760903-fgknse-ws,Document 2,"",draft,2026-07-04 14:19:21.063,2026-07-04 14:19:21.063
+1304ed42-f568-497f-b06c-8ed37f58fb62,test-matter-ci-1783174760903-fgknse-ws-doc-3,test-matter-ci-1783174760903-fgknse-ws,Document 3,"",draft,2026-07-04 14:19:21.065,2026-07-04 14:19:21.065
+943fdc16-e46f-43ec-9716-52c78bb7a67c,test-matter-ci-1783174760903-fgknse-ws-doc-4,test-matter-ci-1783174760903-fgknse-ws,Document 4,"",draft,2026-07-04 14:19:21.067,2026-07-04 14:19:21.067
+20288c4c-c635-4727-bfdc-e16a6ff83f01,test-matter-ci-1783174760903-fgknse-ws-doc-5,test-matter-ci-1783174760903-fgknse-ws,Document 5,"",draft,2026-07-04 14:19:21.068,2026-07-04 14:19:21.068
+4ad672a4-f7c5-490d-bb3b-2af759d99233,test-matter-ci-1783174760903-fgknse-ws-doc-6,test-matter-ci-1783174760903-fgknse-ws,Document 6,"",draft,2026-07-04 14:19:21.069,2026-07-04 14:19:21.069
+9487720b-cdd3-4f56-9015-12980a22c5b5,doc-mr6g7nig-kjzlpn,mock-intake-1783174761142-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 14:19:21.249,2026-07-04 14:19:21.249
+1348ef0d-2527-465b-b180-43ca6c515979,doc-1783174761306,mock-intake-1783174761305-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 14:19:21.307,2026-07-04 14:19:21.307
+9b4b63d0-091e-4cd1-a16f-7cd402fcdead,doc-orig-1783174761390,mock-intake-1783174761387-cdu,Original Doc,representation,active,2026-07-04 14:19:21.391,2026-07-04 14:19:21.391
+d635f748-3d91-48e1-b9bf-36cc553ed39e,doc-mr6g7np3-qcrz1p,mock-intake-1783174761387-cdu,代理词（更新）,representation,draft,2026-07-04 14:19:21.418,2026-07-04 14:19:21.418
+bb8fb82c-b588-4740-8b0c-2d01bd6ec0d8,doc-mr6g7npo-h7msxx,mock-intake-1783174761387-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 14:19:21.421,2026-07-04 14:19:21.421
+14f14cbd-2c27-4758-bf5e-52df367aae34,doc-mr6g7nsg-t0rev3,mock-intake-1783174761514-idem-chdoc,t,challenge_opinion,draft,2026-07-04 14:19:21.58,2026-07-04 14:19:21.58
+091c21fc-8bfd-459a-9981-dc04e7a4bc97,doc-mr6g7nuw-waje77,mock-intake-1783174761603-idem-docup,代理词（更新）,representation,draft,2026-07-04 14:19:21.641,2026-07-04 14:19:21.641
+8b0fe07e-33cb-4bae-9890-77d3712496ad,test-matter-ci-1783177028227-2l0393-ws-doc-3,test-matter-ci-1783177028227-2l0393-ws,Document 3,"",draft,2026-07-04 14:57:08.376,2026-07-04 14:57:08.376
+7327421c-375a-4f7e-87d0-0367120a54f2,test-matter-ci-1783177028227-2l0393-ws-doc-4,test-matter-ci-1783177028227-2l0393-ws,Document 4,"",draft,2026-07-04 14:57:08.377,2026-07-04 14:57:08.377
+96c64208-9fea-4856-aa36-bc31fa3061e1,test-matter-ci-1783177028227-2l0393-ws-doc-5,test-matter-ci-1783177028227-2l0393-ws,Document 5,"",draft,2026-07-04 14:57:08.378,2026-07-04 14:57:08.378
+84e6ac68-b48e-47c8-9526-1f377bde8b8a,test-matter-ci-1783177028227-2l0393-ws-doc-6,test-matter-ci-1783177028227-2l0393-ws,Document 6,"",draft,2026-07-04 14:57:08.379,2026-07-04 14:57:08.379
+654749f1-a494-468f-9bff-82583f01e210,doc-mr6hk8yw-gyaiea,mock-intake-1783177028436-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 14:57:08.471,2026-07-04 14:57:08.471
+f8c128bc-6d39-4581-9f11-adfa75efbc8c,doc-1783177028531,mock-intake-1783177028529-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 14:57:08.532,2026-07-04 14:57:08.532
+80dc364f-d9a9-4f1b-bbf2-e022cc0ea21e,doc-orig-1783177028566,mock-intake-1783177028564-cdu,Original Doc,representation,active,2026-07-04 14:57:08.567,2026-07-04 14:57:08.567
+4398d026-6cfc-4723-81a7-f45e97eabb6e,doc-mr6hk922-m1u0fe,mock-intake-1783177028564-cdu,代理词（更新）,representation,draft,2026-07-04 14:57:08.583,2026-07-04 14:57:08.583
+e1d819f4-17ab-478e-8a12-c13bd042b4dc,doc-mr6hk934-n9tnb6,mock-intake-1783177028564-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 14:57:08.608,2026-07-04 14:57:08.608
+b8eec09e-8f33-4839-a41d-4903b5a62c12,doc-mr6hk96g-bg2weq,mock-intake-1783177028726-idem-chdoc,t,challenge_opinion,draft,2026-07-04 14:57:08.734,2026-07-04 14:57:08.734
+6239d07b-3611-4c7b-bd54-7cbf73f34235,doc-mr6hk971-jyp4z9,mock-intake-1783177028745-idem-docup,代理词（更新）,representation,draft,2026-07-04 14:57:08.757,2026-07-04 14:57:08.757
+d4cc3e0e-43ae-4e97-9ceb-5455f02f5ca9,test-document-ws-1783232674488-vpn6or-1-doc-1,test-document-ws-1783232674488-vpn6or-1,Doc 1,contract,draft,2026-07-05 06:24:34.597,2026-07-05 06:24:34.597
+fe1ce5f2-e8e0-4f79-af8b-dde36660a7fa,test-document-ws-1783177065884-re2oap-1-doc-1,test-document-ws-1783177065884-re2oap-1,Doc 1,contract,draft,2026-07-04 14:57:45.98,2026-07-04 14:57:45.98
+ff9a5b28-43cb-4fc0-8a74-aac110b2c9fb,test-matter-ci-1783177065884-no0vgg-ws-doc-1,test-matter-ci-1783177065884-no0vgg-ws,Document 1,"",draft,2026-07-04 14:57:46.025,2026-07-04 14:57:46.025
+31b6065e-71c4-4f18-b6d2-b0030f2dec84,test-matter-ci-1783177065884-no0vgg-ws-doc-2,test-matter-ci-1783177065884-no0vgg-ws,Document 2,"",draft,2026-07-04 14:57:46.027,2026-07-04 14:57:46.027
+b213f6ff-790d-4a34-a2ee-798086e86ff2,test-matter-ci-1783177065884-no0vgg-ws-doc-3,test-matter-ci-1783177065884-no0vgg-ws,Document 3,"",draft,2026-07-04 14:57:46.028,2026-07-04 14:57:46.028
+57bc5439-f1a2-4490-9e0b-1bf9b70a4bdf,test-matter-ci-1783177065884-no0vgg-ws-doc-4,test-matter-ci-1783177065884-no0vgg-ws,Document 4,"",draft,2026-07-04 14:57:46.03,2026-07-04 14:57:46.03
+36f5ffd4-d494-4cb4-aa19-8c5fa2f2707b,test-matter-ci-1783177065884-no0vgg-ws-doc-5,test-matter-ci-1783177065884-no0vgg-ws,Document 5,"",draft,2026-07-04 14:57:46.031,2026-07-04 14:57:46.031
+3192c5d4-b89a-4522-bf53-6a1add304d9e,test-matter-ci-1783177065884-no0vgg-ws-doc-6,test-matter-ci-1783177065884-no0vgg-ws,Document 6,"",draft,2026-07-04 14:57:46.032,2026-07-04 14:57:46.032
+8a46abb5-759e-44e6-b5cd-8529183a930e,doc-mr6hl215-vdcfcx,mock-intake-1783177066109-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 14:57:46.15,2026-07-04 14:57:46.15
+23449fb7-ccbd-4463-a46b-da67cbf8ec11,doc-1783177066222,mock-intake-1783177066220-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 14:57:46.223,2026-07-04 14:57:46.223
+d798fe34-045a-4266-8298-c5db68c49a70,doc-orig-1783177066281,mock-intake-1783177066280-cdu,Original Doc,representation,active,2026-07-04 14:57:46.282,2026-07-04 14:57:46.282
+29818f7b-8703-4b4d-ad6a-12093babecb0,doc-mr6hl25p-j674j7,mock-intake-1783177066280-cdu,代理词（更新）,representation,draft,2026-07-04 14:57:46.292,2026-07-04 14:57:46.292
+9211d77f-7bb3-437c-b66b-a823b15b8668,doc-mr6hl25y-0ijg1v,mock-intake-1783177066280-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 14:57:46.295,2026-07-04 14:57:46.295
+8fee06cb-eb3e-49f5-a196-2ba0d6b7ccec,doc-mr6hl28v-5w4gkb,mock-intake-1783177066397-idem-chdoc,t,challenge_opinion,draft,2026-07-04 14:57:46.416,2026-07-04 14:57:46.416
+a39cf6d1-9efc-49ed-bf0d-6d4c535276ae,doc-mr6hl29j-wofeyp,mock-intake-1783177066422-idem-docup,代理词（更新）,representation,draft,2026-07-04 14:57:46.429,2026-07-04 14:57:46.429
+42e94db8-54bb-4a09-bdeb-250bd9fcaace,test-document-ws-1783177969155-b9n5m0-1-doc-1,test-document-ws-1783177969155-b9n5m0-1,Doc 1,contract,draft,2026-07-04 15:12:49.254,2026-07-04 15:12:49.254
+34f26569-a2b2-4fef-be52-b18773f4e114,test-matter-ci-1783177969155-2jx4hv-ws-doc-1,test-matter-ci-1783177969155-2jx4hv-ws,Document 1,"",draft,2026-07-04 15:12:49.301,2026-07-04 15:12:49.301
+a80c9815-8ce3-4b3b-8af4-f72c8d36626f,test-matter-ci-1783177969155-2jx4hv-ws-doc-2,test-matter-ci-1783177969155-2jx4hv-ws,Document 2,"",draft,2026-07-04 15:12:49.303,2026-07-04 15:12:49.303
+1ca554ee-93eb-493d-8ba8-34135bde0c08,test-matter-ci-1783177969155-2jx4hv-ws-doc-3,test-matter-ci-1783177969155-2jx4hv-ws,Document 3,"",draft,2026-07-04 15:12:49.305,2026-07-04 15:12:49.305
+c5e01f1e-497d-4143-bb45-a316635360b9,test-matter-ci-1783177969155-2jx4hv-ws-doc-4,test-matter-ci-1783177969155-2jx4hv-ws,Document 4,"",draft,2026-07-04 15:12:49.306,2026-07-04 15:12:49.306
+bf412494-55dd-44ab-839b-4550cbce981c,test-matter-ci-1783177969155-2jx4hv-ws-doc-5,test-matter-ci-1783177969155-2jx4hv-ws,Document 5,"",draft,2026-07-04 15:12:49.307,2026-07-04 15:12:49.307
+efe5d386-2bfc-4744-9cc4-c9732ac7fa1c,test-matter-ci-1783177969155-2jx4hv-ws-doc-6,test-matter-ci-1783177969155-2jx4hv-ws,Document 6,"",draft,2026-07-04 15:12:49.308,2026-07-04 15:12:49.308
+7848f147-2e0f-4d65-a4df-2309df604bf3,doc-mr6i4f23-5bn5r7,mock-intake-1783177969387-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 15:12:49.476,2026-07-04 15:12:49.476
+9edfa457-c4be-42ce-abd2-cdce35534b3b,doc-1783177969576,mock-intake-1783177969575-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 15:12:49.577,2026-07-04 15:12:49.577
+c2e38dd0-f088-451b-a59e-5af33e191a1a,doc-orig-1783177969589,mock-intake-1783177969588-cdu,Original Doc,representation,active,2026-07-04 15:12:49.589,2026-07-04 15:12:49.589
+81b57884-f193-4e17-aac6-ab4b1db0b1d0,doc-mr6i4f5l-cf8269,mock-intake-1783177969588-cdu,代理词（更新）,representation,draft,2026-07-04 15:12:49.613,2026-07-04 15:12:49.613
+5a9c50aa-cf3f-4cde-a303-df172819c577,doc-mr6i4f6a-7f4irx,mock-intake-1783177969588-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 15:12:49.619,2026-07-04 15:12:49.619
+044e1977-9b26-4f16-9426-a8f4493e5c3f,doc-mr6i4f87-agzjoj,mock-intake-1783177969682-idem-chdoc,t,challenge_opinion,draft,2026-07-04 15:12:49.699,2026-07-04 15:12:49.699
+0e799507-214d-44d2-a4ea-bddd5e881643,doc-mr6i4f8v-q29cct,mock-intake-1783177969705-idem-docup,代理词（更新）,representation,draft,2026-07-04 15:12:49.718,2026-07-04 15:12:49.718
+14261543-5d7e-4cc0-9288-aef59d4158ae,test-document-ws-1783178164313-lgbhzx-1-doc-1,test-document-ws-1783178164313-lgbhzx-1,Doc 1,contract,draft,2026-07-04 15:16:04.428,2026-07-04 15:16:04.428
+c1db8f99-4340-4a78-944f-7e530a1e1aa0,test-matter-ci-1783178164313-n7u8et-ws-doc-1,test-matter-ci-1783178164313-n7u8et-ws,Document 1,"",draft,2026-07-04 15:16:04.474,2026-07-04 15:16:04.474
+95b5cc5c-e06e-410d-b795-e52309954d59,test-matter-ci-1783178164313-n7u8et-ws-doc-2,test-matter-ci-1783178164313-n7u8et-ws,Document 2,"",draft,2026-07-04 15:16:04.475,2026-07-04 15:16:04.475
+bd5bad38-9111-4cfe-bfd5-d3ca97651ef8,test-matter-ci-1783178164313-n7u8et-ws-doc-3,test-matter-ci-1783178164313-n7u8et-ws,Document 3,"",draft,2026-07-04 15:16:04.477,2026-07-04 15:16:04.477
+aa5fffa6-17e5-4387-b117-b930740ffd14,test-matter-ci-1783178164313-n7u8et-ws-doc-4,test-matter-ci-1783178164313-n7u8et-ws,Document 4,"",draft,2026-07-04 15:16:04.478,2026-07-04 15:16:04.478
+ad3a80f5-8fde-4ed2-b4e6-c23d5f3cc2d7,test-matter-ci-1783178164313-n7u8et-ws-doc-5,test-matter-ci-1783178164313-n7u8et-ws,Document 5,"",draft,2026-07-04 15:16:04.479,2026-07-04 15:16:04.479
+2ce1e0d3-e4b7-447c-abd1-c3cbb1581fbd,test-matter-ci-1783178164313-n7u8et-ws-doc-6,test-matter-ci-1783178164313-n7u8et-ws,Document 6,"",draft,2026-07-04 15:16:04.48,2026-07-04 15:16:04.48
+ec2fac74-9bc0-4248-a024-a3f30d892d7b,doc-mr6i8ll4-nea01s,mock-intake-1783178164547-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 15:16:04.58,2026-07-04 15:16:04.58
+f66ab0ed-4b77-4492-b79a-1c6fc32304d9,doc-1783178164732,mock-intake-1783178164715-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 15:16:04.733,2026-07-04 15:16:04.733
+fb9ae516-8f1a-45e2-9aec-946d76aefed6,doc-orig-1783178164748,mock-intake-1783178164746-cdu,Original Doc,representation,active,2026-07-04 15:16:04.749,2026-07-04 15:16:04.749
+458b4788-a8fa-4bdd-9ca2-80718cce40e0,doc-mr6i8lqn-5yon12,mock-intake-1783178164746-cdu,代理词（更新）,representation,draft,2026-07-04 15:16:04.773,2026-07-04 15:16:04.773
+61e32dcf-80c7-4ef7-a626-3dad301c2d02,doc-mr6i8lrg-ynfpqq,mock-intake-1783178164746-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 15:16:04.781,2026-07-04 15:16:04.781
+3738cc90-372b-4065-967d-667653dd67ec,doc-mr6i8lta-b5qqud,mock-intake-1783178164842-idem-chdoc,t,challenge_opinion,draft,2026-07-04 15:16:04.861,2026-07-04 15:16:04.861
+2e05fcde-fbae-4db2-b393-2b51225dacee,doc-mr6i8lu0-pllgmd,mock-intake-1783178164868-idem-docup,代理词（更新）,representation,draft,2026-07-04 15:16:04.889,2026-07-04 15:16:04.889
+606172fe-62a1-4e2d-8e4e-6f800b1d8d20,test-document-ws-1783179010912-7zyyrz-1-doc-1,test-document-ws-1783179010912-7zyyrz-1,Doc 1,contract,draft,2026-07-04 15:30:11.013,2026-07-04 15:30:11.013
+6aa67d51-5fc0-4f6a-b27b-aa17baca6a14,doc-1783232674841,mock-intake-1783232674838-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 06:24:34.842,2026-07-05 06:24:34.842
+f0592c3d-6af5-4556-bd5a-5f989a60baa5,doc-orig-1783232674870,mock-intake-1783232674867-cdu,Original Doc,representation,active,2026-07-05 06:24:34.871,2026-07-05 06:24:34.871
+2dcb403c-69d8-4b8e-924a-a801103f53d8,test-document-ws-1783237695792-kmf73j-1-doc-1,test-document-ws-1783237695792-kmf73j-1,Doc 1,contract,draft,2026-07-05 07:48:15.936,2026-07-05 07:48:15.936
+c287848e-ac61-4913-a28e-1d3ba17b764b,test-matter-ci-1783237695792-k62dtv-ws-doc-1,test-matter-ci-1783237695792-k62dtv-ws,Document 1,"",draft,2026-07-05 07:48:15.987,2026-07-05 07:48:15.987
+48f44e1c-1b00-4537-a129-508962d0015e,test-matter-ci-1783179010912-o1x21z-ws-doc-1,test-matter-ci-1783179010912-o1x21z-ws,Document 1,"",draft,2026-07-04 15:30:11.058,2026-07-04 15:30:11.058
+224566ee-365e-487c-924d-6f2036091d2e,test-matter-ci-1783179010912-o1x21z-ws-doc-2,test-matter-ci-1783179010912-o1x21z-ws,Document 2,"",draft,2026-07-04 15:30:11.06,2026-07-04 15:30:11.06
+a4b7c4fe-6ff2-4da9-9ec2-7aa638d8b026,test-matter-ci-1783179010912-o1x21z-ws-doc-3,test-matter-ci-1783179010912-o1x21z-ws,Document 3,"",draft,2026-07-04 15:30:11.061,2026-07-04 15:30:11.061
+16574661-1361-4b45-a197-281131be58e2,test-matter-ci-1783179010912-o1x21z-ws-doc-4,test-matter-ci-1783179010912-o1x21z-ws,Document 4,"",draft,2026-07-04 15:30:11.063,2026-07-04 15:30:11.063
+029bd316-e98b-4cde-82be-eddbc2e9679e,test-matter-ci-1783179010912-o1x21z-ws-doc-5,test-matter-ci-1783179010912-o1x21z-ws,Document 5,"",draft,2026-07-04 15:30:11.064,2026-07-04 15:30:11.064
+7cfec762-a924-4a4a-9916-7bed5bc92d95,test-matter-ci-1783179010912-o1x21z-ws-doc-6,test-matter-ci-1783179010912-o1x21z-ws,Document 6,"",draft,2026-07-04 15:30:11.065,2026-07-04 15:30:11.065
+b4dddf68-2928-4081-a117-5fe26eb009df,doc-mr6iqqt2-pf3h9s,mock-intake-1783179011112-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 15:30:11.143,2026-07-04 15:30:11.143
+dfd56f60-cd94-468d-b12c-774036958114,doc-1783179011220,mock-intake-1783179011217-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 15:30:11.222,2026-07-04 15:30:11.222
+e74e49d1-e483-453d-a6dd-92532fe5a27d,doc-orig-1783179011241,mock-intake-1783179011240-cdu,Original Doc,representation,active,2026-07-04 15:30:11.242,2026-07-04 15:30:11.242
+bded1d67-117d-457f-b8c2-21139333c53e,doc-mr6iqqxa-qfut8u,mock-intake-1783179011240-cdu,代理词（更新）,representation,draft,2026-07-04 15:30:11.306,2026-07-04 15:30:11.306
+329f36f3-8c53-44b2-a7ea-8e99bdcd8fb3,doc-mr6iqqy5-8uj99v,mock-intake-1783179011240-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 15:30:11.31,2026-07-04 15:30:11.31
+6af52303-9506-4363-9a35-43c2f3905f8f,doc-mr6iqr11-06zmvb,mock-intake-1783179011411-idem-chdoc,t,challenge_opinion,draft,2026-07-04 15:30:11.42,2026-07-04 15:30:11.42
+d6b33d91-1368-4d0e-8c4e-39ba71986100,doc-mr6iqr1i-hrceys,mock-intake-1783179011425-idem-docup,代理词（更新）,representation,draft,2026-07-04 15:30:11.443,2026-07-04 15:30:11.443
+f5aec4d7-d13d-4120-bc0f-235aec9edb49,test-matter-ci-1783237695792-k62dtv-ws-doc-2,test-matter-ci-1783237695792-k62dtv-ws,Document 2,"",draft,2026-07-05 07:48:15.991,2026-07-05 07:48:15.991
+41b35504-24c6-4938-b4c8-627149c9d4dc,test-document-ws-1783179781169-wajadk-1-doc-1,test-document-ws-1783179781169-wajadk-1,Doc 1,contract,draft,2026-07-04 15:43:01.328,2026-07-04 15:43:01.328
+399963e4-1301-4d73-a217-115a042fe472,test-matter-ci-1783179781169-b0qgyt-ws-doc-1,test-matter-ci-1783179781169-b0qgyt-ws,Document 1,"",draft,2026-07-04 15:43:01.375,2026-07-04 15:43:01.375
+26e60489-226e-46c0-b9fc-a2408b20e7f8,test-matter-ci-1783179781169-b0qgyt-ws-doc-2,test-matter-ci-1783179781169-b0qgyt-ws,Document 2,"",draft,2026-07-04 15:43:01.378,2026-07-04 15:43:01.378
+d8dcb88e-3084-4230-ae0f-c171e8515b6c,test-matter-ci-1783179781169-b0qgyt-ws-doc-3,test-matter-ci-1783179781169-b0qgyt-ws,Document 3,"",draft,2026-07-04 15:43:01.379,2026-07-04 15:43:01.379
+0a77649a-c512-4cee-a716-bc840159c249,test-matter-ci-1783179781169-b0qgyt-ws-doc-4,test-matter-ci-1783179781169-b0qgyt-ws,Document 4,"",draft,2026-07-04 15:43:01.38,2026-07-04 15:43:01.38
+6abc12c4-9c17-435c-8f84-aecee91b4482,test-matter-ci-1783179781169-b0qgyt-ws-doc-5,test-matter-ci-1783179781169-b0qgyt-ws,Document 5,"",draft,2026-07-04 15:43:01.382,2026-07-04 15:43:01.382
+589c1466-57fa-467e-b564-5ace75da7250,test-matter-ci-1783179781169-b0qgyt-ws-doc-6,test-matter-ci-1783179781169-b0qgyt-ws,Document 6,"",draft,2026-07-04 15:43:01.392,2026-07-04 15:43:01.392
+cd154bab-f1b1-46a5-bfc1-d2093bbf25c8,doc-mr6j798r-2k4i7d,mock-intake-1783179781505-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 15:43:01.521,2026-07-04 15:43:01.521
+492452b3-38ea-4862-b4ab-1b64ddbefcb2,doc-1783179781610,mock-intake-1783179781609-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 15:43:01.611,2026-07-04 15:43:01.611
+26b8d88e-cc6e-4061-a25d-100b8f4116d6,doc-orig-1783179781630,mock-intake-1783179781627-cdu,Original Doc,representation,active,2026-07-04 15:43:01.631,2026-07-04 15:43:01.631
+19229440-9563-4dee-bea0-6eeaac1a47c1,doc-mr6j79c3-vif5vw,mock-intake-1783179781627-cdu,代理词（更新）,representation,draft,2026-07-04 15:43:01.644,2026-07-04 15:43:01.644
+a12acd3e-a783-42c9-b01d-7b658b30524a,doc-mr6j79cf-bfouqb,mock-intake-1783179781627-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 15:43:01.647,2026-07-04 15:43:01.647
+5d94727e-aa1a-4305-83c3-e2aa1ae2f9cb,doc-mr6j79ga-u3rrgf,mock-intake-1783179781781-idem-chdoc,t,challenge_opinion,draft,2026-07-04 15:43:01.794,2026-07-04 15:43:01.794
+b46d6551-1215-4029-a31f-bd1ce82501d5,doc-mr6j79gy-gfqqd3,mock-intake-1783179781807-idem-docup,代理词（更新）,representation,draft,2026-07-04 15:43:01.816,2026-07-04 15:43:01.816
+4ca2eec5-1752-49ca-92b9-6be57bdc2cfb,test-document-ws-1783180345074-46txcs-1-doc-1,test-document-ws-1783180345074-46txcs-1,Doc 1,contract,draft,2026-07-04 15:52:25.198,2026-07-04 15:52:25.198
+8d6e6f3f-dc7b-41aa-823c-ffe3afe7728b,test-matter-ci-1783180345074-pg0yuv-ws-doc-1,test-matter-ci-1783180345074-pg0yuv-ws,Document 1,"",draft,2026-07-04 15:52:25.245,2026-07-04 15:52:25.245
+839cf044-7394-4c28-9056-902f55b39a88,test-matter-ci-1783180345074-pg0yuv-ws-doc-2,test-matter-ci-1783180345074-pg0yuv-ws,Document 2,"",draft,2026-07-04 15:52:25.247,2026-07-04 15:52:25.247
+ed64be23-41b7-474e-8395-6d783e26a0f1,test-matter-ci-1783180345074-pg0yuv-ws-doc-3,test-matter-ci-1783180345074-pg0yuv-ws,Document 3,"",draft,2026-07-04 15:52:25.248,2026-07-04 15:52:25.248
+fbc3f5c1-d53d-4ebe-a517-09ceff4ff0c6,test-matter-ci-1783180345074-pg0yuv-ws-doc-4,test-matter-ci-1783180345074-pg0yuv-ws,Document 4,"",draft,2026-07-04 15:52:25.249,2026-07-04 15:52:25.249
+a575f3e7-c817-4f99-ad2d-cadea9d6d108,test-matter-ci-1783180345074-pg0yuv-ws-doc-5,test-matter-ci-1783180345074-pg0yuv-ws,Document 5,"",draft,2026-07-04 15:52:25.25,2026-07-04 15:52:25.25
+70530e9e-fd78-435a-bd25-e709e7fcc28f,test-matter-ci-1783180345074-pg0yuv-ws-doc-6,test-matter-ci-1783180345074-pg0yuv-ws,Document 6,"",draft,2026-07-04 15:52:25.252,2026-07-04 15:52:25.252
+9f926345-d730-44d1-92d7-3bb018a0f9b0,doc-mr6jjc9v-oynxvs,mock-intake-1783180345307-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 15:52:25.321,2026-07-04 15:52:25.321
+0fd79e40-50e7-43eb-97c1-be679ddf321a,doc-1783180345421,mock-intake-1783180345420-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 15:52:25.422,2026-07-04 15:52:25.422
+fccb8c07-d673-444b-b5ca-f59f64065a27,doc-orig-1783180345439,mock-intake-1783180345437-cdu,Original Doc,representation,active,2026-07-04 15:52:25.44,2026-07-04 15:52:25.44
+7a5ca705-f29b-4a1a-bf12-244a76a51e4a,doc-mr6jjcde-w74zha,mock-intake-1783180345437-cdu,代理词（更新）,representation,draft,2026-07-04 15:52:25.486,2026-07-04 15:52:25.486
+c46108cf-400c-4145-abbd-d1eb2893ffdb,doc-mr6jjcet-ovv7pa,mock-intake-1783180345437-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 15:52:25.493,2026-07-04 15:52:25.493
+c54618f2-7e5b-4bd6-8fb6-102c48b06fd9,doc-mr6jjchh-eh75zz,mock-intake-1783180345586-idem-chdoc,t,challenge_opinion,draft,2026-07-04 15:52:25.597,2026-07-04 15:52:25.597
+311daf6b-fd04-4c93-941d-a3dc95de1279,doc-mr6jjci6-bj2bau,mock-intake-1783180345607-idem-docup,代理词（更新）,representation,draft,2026-07-04 15:52:25.64,2026-07-04 15:52:25.64
+bb1c79c7-4e34-4494-a22f-6a10926ae216,test-document-ws-1783180767238-npibzi-1-doc-1,test-document-ws-1783180767238-npibzi-1,Doc 1,contract,draft,2026-07-04 15:59:27.366,2026-07-04 15:59:27.366
+25c0241b-8854-4de2-b105-960f0219a3a3,test-matter-ci-1783180767239-ti5cao-ws-doc-1,test-matter-ci-1783180767239-ti5cao-ws,Document 1,"",draft,2026-07-04 15:59:27.413,2026-07-04 15:59:27.413
+3b78e558-4800-4ee6-b989-af5647cdd52d,test-matter-ci-1783180767239-ti5cao-ws-doc-2,test-matter-ci-1783180767239-ti5cao-ws,Document 2,"",draft,2026-07-04 15:59:27.414,2026-07-04 15:59:27.414
+94eb3c4c-6210-418a-8f9b-b4a3d508cc1c,test-matter-ci-1783180767239-ti5cao-ws-doc-3,test-matter-ci-1783180767239-ti5cao-ws,Document 3,"",draft,2026-07-04 15:59:27.416,2026-07-04 15:59:27.416
+a0c6407e-a3fa-4ead-8da6-fb051c3baafc,test-matter-ci-1783180767239-ti5cao-ws-doc-4,test-matter-ci-1783180767239-ti5cao-ws,Document 4,"",draft,2026-07-04 15:59:27.417,2026-07-04 15:59:27.417
+883ef8e6-1fc7-43be-ba47-f718d2b59518,test-matter-ci-1783180767239-ti5cao-ws-doc-5,test-matter-ci-1783180767239-ti5cao-ws,Document 5,"",draft,2026-07-04 15:59:27.419,2026-07-04 15:59:27.419
+ef184956-677e-4f48-9d3b-29270c1b02fc,test-matter-ci-1783180767239-ti5cao-ws-doc-6,test-matter-ci-1783180767239-ti5cao-ws,Document 6,"",draft,2026-07-04 15:59:27.421,2026-07-04 15:59:27.421
+bd9d621d-3347-489d-9c01-16c54c1e9747,doc-mr6jse19-8jh8wi,mock-intake-1783180767481-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 15:59:27.542,2026-07-04 15:59:27.542
+e8f6a4ca-2a77-4974-8fac-c5ce7e60b541,doc-1783180767590,mock-intake-1783180767589-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 15:59:27.59,2026-07-04 15:59:27.59
+8a50b879-ed20-49c5-b580-725c55925c6a,doc-orig-1783180767603,mock-intake-1783180767602-cdu,Original Doc,representation,active,2026-07-04 15:59:27.603,2026-07-04 15:59:27.603
+42fc4289-de94-4234-ae16-a216fc8631d2,doc-mr6jse46-4rlu47,mock-intake-1783180767602-cdu,代理词（更新）,representation,draft,2026-07-04 15:59:27.642,2026-07-04 15:59:27.642
+ad0ac632-e094-4907-a6b4-f583aa03a572,doc-mr6jse5c-o4h2f2,mock-intake-1783180767602-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 15:59:27.649,2026-07-04 15:59:27.649
+65f2793b-eeb4-4d3b-bbed-69162d297c1c,doc-mr6jse8l-4uvn2l,mock-intake-1783180767762-idem-chdoc,t,challenge_opinion,draft,2026-07-04 15:59:27.773,2026-07-04 15:59:27.773
+29363a2c-2ca0-4660-be7d-c8ec86e4c842,doc-mr6jse93-6r1xvd,mock-intake-1783180767780-idem-docup,代理词（更新）,representation,draft,2026-07-04 15:59:27.793,2026-07-04 15:59:27.793
+2f73ef57-c728-4431-9361-01a7a2e0149f,doc-mr7eoy0r-x8iqlb,mock-intake-1783232674867-cdu,代理词（更新）,representation,draft,2026-07-05 06:24:34.914,2026-07-05 06:24:34.914
+8c87fdd0-3ed5-48e0-91c4-c1b0386112fb,doc-mr7eoy1y-gsev1p,mock-intake-1783232674867-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 06:24:34.919,2026-07-05 06:24:34.919
+fac9d6eb-8003-4bc9-a74d-232c50c88aa4,test-document-ws-1783181046186-rivtww-1-doc-1,test-document-ws-1783181046186-rivtww-1,Doc 1,contract,draft,2026-07-04 16:04:06.309,2026-07-04 16:04:06.309
+0c1491c3-ab61-4a4a-9cf8-c0f692b46be8,test-matter-ci-1783181046186-tq8ez4-ws-doc-1,test-matter-ci-1783181046186-tq8ez4-ws,Document 1,"",draft,2026-07-04 16:04:06.342,2026-07-04 16:04:06.342
+bbbf06a7-0bde-46a4-9ecb-f5e80ad98085,test-matter-ci-1783181046186-tq8ez4-ws-doc-2,test-matter-ci-1783181046186-tq8ez4-ws,Document 2,"",draft,2026-07-04 16:04:06.344,2026-07-04 16:04:06.344
+c00303d5-514f-4fc4-af26-fd04852d196d,test-matter-ci-1783181046186-tq8ez4-ws-doc-3,test-matter-ci-1783181046186-tq8ez4-ws,Document 3,"",draft,2026-07-04 16:04:06.346,2026-07-04 16:04:06.346
+61befd3a-3c30-4a88-9968-d4173b109f7c,test-matter-ci-1783181046186-tq8ez4-ws-doc-4,test-matter-ci-1783181046186-tq8ez4-ws,Document 4,"",draft,2026-07-04 16:04:06.347,2026-07-04 16:04:06.347
+bfdfb432-4ce8-47aa-b76e-7989f78fe2b5,test-matter-ci-1783181046186-tq8ez4-ws-doc-5,test-matter-ci-1783181046186-tq8ez4-ws,Document 5,"",draft,2026-07-04 16:04:06.349,2026-07-04 16:04:06.349
+9ee6c3d4-b047-4414-9985-c766ccc3148a,test-matter-ci-1783181046186-tq8ez4-ws-doc-6,test-matter-ci-1783181046186-tq8ez4-ws,Document 6,"",draft,2026-07-04 16:04:06.35,2026-07-04 16:04:06.35
+8612b516-6134-4987-9ed8-5fe1a9c1d269,test-matter-ci-1783237695792-k62dtv-ws-doc-3,test-matter-ci-1783237695792-k62dtv-ws,Document 3,"",draft,2026-07-05 07:48:15.993,2026-07-05 07:48:15.993
+2a3cb28e-01a5-4ca9-8468-210a91001c0a,test-matter-ci-1783237695792-k62dtv-ws-doc-4,test-matter-ci-1783237695792-k62dtv-ws,Document 4,"",draft,2026-07-05 07:48:15.994,2026-07-05 07:48:15.994
+143b774b-d38c-4c46-998c-7a12c4ebdcfe,doc-mr6jyd8w-txf7j5,mock-intake-1783181046412-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 16:04:06.44,2026-07-04 16:04:06.44
+adf27fc8-5225-4c50-82a9-cc06a97493c4,doc-1783181046531,mock-intake-1783181046527-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 16:04:06.535,2026-07-04 16:04:06.535
+e769efbf-cfd2-4c69-b2e3-e9c6e2c19d6d,doc-orig-1783181046581,mock-intake-1783181046580-cdu,Original Doc,representation,active,2026-07-04 16:04:06.582,2026-07-04 16:04:06.582
+19eb165e-c93e-4a30-b67f-2f8befee527b,doc-mr6jyddo-1jb46t,mock-intake-1783181046580-cdu,代理词（更新）,representation,draft,2026-07-04 16:04:06.644,2026-07-04 16:04:06.644
+98360568-2b58-4686-9c11-a6771bbfde92,doc-mr6jydfi-1d4d12,mock-intake-1783181046580-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 16:04:06.654,2026-07-04 16:04:06.654
+5c879fc6-f9ec-472f-baf4-ac364b79c2ae,doc-mr6jydhx-ta44ac,mock-intake-1783181046738-idem-chdoc,t,challenge_opinion,draft,2026-07-04 16:04:06.753,2026-07-04 16:04:06.753
+d1415880-4138-4f73-9e8c-a7f6f29a3b24,doc-mr6jydim-i93cxc,mock-intake-1783181046760-idem-docup,代理词（更新）,representation,draft,2026-07-04 16:04:06.789,2026-07-04 16:04:06.789
+7f2aa7bf-6bed-47f9-8987-eb1324592f87,test-document-ws-1783181576120-xfws2k-1-doc-1,test-document-ws-1783181576120-xfws2k-1,Doc 1,contract,draft,2026-07-04 16:12:56.243,2026-07-04 16:12:56.243
+4773234b-0e40-44cc-a1d7-a17c06dd332a,test-matter-ci-1783181576120-fhsrfl-ws-doc-1,test-matter-ci-1783181576120-fhsrfl-ws,Document 1,"",draft,2026-07-04 16:12:56.295,2026-07-04 16:12:56.295
+e7db113e-4208-4e20-9436-528398dc3332,test-matter-ci-1783181576120-fhsrfl-ws-doc-2,test-matter-ci-1783181576120-fhsrfl-ws,Document 2,"",draft,2026-07-04 16:12:56.298,2026-07-04 16:12:56.298
+4bac87e3-617c-40f3-9d87-ee67f3111dc1,test-matter-ci-1783181576120-fhsrfl-ws-doc-3,test-matter-ci-1783181576120-fhsrfl-ws,Document 3,"",draft,2026-07-04 16:12:56.299,2026-07-04 16:12:56.299
+f5141cbd-6c64-4a58-9620-02e581053e56,test-matter-ci-1783181576120-fhsrfl-ws-doc-4,test-matter-ci-1783181576120-fhsrfl-ws,Document 4,"",draft,2026-07-04 16:12:56.3,2026-07-04 16:12:56.3
+900c3408-7de9-4669-868c-9368e4e0005b,test-matter-ci-1783181576120-fhsrfl-ws-doc-5,test-matter-ci-1783181576120-fhsrfl-ws,Document 5,"",draft,2026-07-04 16:12:56.302,2026-07-04 16:12:56.302
+69e3878a-8046-4472-af55-e4b27e9a2dee,test-matter-ci-1783181576120-fhsrfl-ws-doc-6,test-matter-ci-1783181576120-fhsrfl-ws,Document 6,"",draft,2026-07-04 16:12:56.303,2026-07-04 16:12:56.303
+822742f4-b5cc-44ef-89cf-459ea9c3aff9,doc-mr6k9q5w-sy2b0k,mock-intake-1783181576366-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 16:12:56.383,2026-07-04 16:12:56.383
+702181de-ad2a-4184-86ec-632e23c8ca73,doc-1783181576509,mock-intake-1783181576508-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 16:12:56.51,2026-07-04 16:12:56.51
+2d75614a-545f-4b9d-a646-af9dddce28f8,doc-orig-1783181576524,mock-intake-1783181576523-cdu,Original Doc,representation,active,2026-07-04 16:12:56.524,2026-07-04 16:12:56.524
+432dede5-a5f8-41ea-bb3e-2c5ca70869b7,doc-mr6k9qab-359dj5,mock-intake-1783181576523-cdu,代理词（更新）,representation,draft,2026-07-04 16:12:56.551,2026-07-04 16:12:56.551
+7d19aa23-8c63-479a-8e0b-11e35bb9bdf9,doc-mr6k9qba-7tjrva,mock-intake-1783181576523-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 16:12:56.567,2026-07-04 16:12:56.567
+2b938ca2-54db-4f03-9743-3f011e421b8a,doc-mr6k9qdq-1sdyom,mock-intake-1783181576649-idem-chdoc,t,challenge_opinion,draft,2026-07-04 16:12:56.662,2026-07-04 16:12:56.662
+3fd8fe91-114c-4118-b6f2-7e79849c1917,doc-mr6k9qei-v5qhgs,mock-intake-1783181576675-idem-docup,代理词（更新）,representation,draft,2026-07-04 16:12:56.691,2026-07-04 16:12:56.691
+ac240da1-0c04-4fc8-ac63-52e41d761929,test-document-ws-1783181874142-rbqnfr-1-doc-1,test-document-ws-1783181874142-rbqnfr-1,Doc 1,contract,draft,2026-07-04 16:17:54.265,2026-07-04 16:17:54.265
+df7768e9-70ae-4ae0-82a8-4928693bedf5,test-matter-ci-1783181874142-rjczwa-ws-doc-1,test-matter-ci-1783181874142-rjczwa-ws,Document 1,"",draft,2026-07-04 16:17:54.313,2026-07-04 16:17:54.313
+764cfeaf-5ef6-4e53-8b24-aed9693867e1,test-matter-ci-1783181874142-rjczwa-ws-doc-2,test-matter-ci-1783181874142-rjczwa-ws,Document 2,"",draft,2026-07-04 16:17:54.316,2026-07-04 16:17:54.316
+23c1a236-080e-45a4-b87b-29c911f7568f,test-matter-ci-1783181874142-rjczwa-ws-doc-3,test-matter-ci-1783181874142-rjczwa-ws,Document 3,"",draft,2026-07-04 16:17:54.318,2026-07-04 16:17:54.318
+a2451d01-808b-4038-bf4c-f210774502db,test-matter-ci-1783181874142-rjczwa-ws-doc-4,test-matter-ci-1783181874142-rjczwa-ws,Document 4,"",draft,2026-07-04 16:17:54.319,2026-07-04 16:17:54.319
+7d28e9ff-6fc7-4d98-ba9f-e2160c35fd2d,test-matter-ci-1783181874142-rjczwa-ws-doc-5,test-matter-ci-1783181874142-rjczwa-ws,Document 5,"",draft,2026-07-04 16:17:54.32,2026-07-04 16:17:54.32
+7139ca0e-d686-4139-9b49-f739bdd624a7,test-matter-ci-1783181874142-rjczwa-ws-doc-6,test-matter-ci-1783181874142-rjczwa-ws,Document 6,"",draft,2026-07-04 16:17:54.321,2026-07-04 16:17:54.321
+ba6d7c22-d6d9-4417-a0cb-ad3d4acbfafd,doc-mr6kg43c-o2i9fm,mock-intake-1783181874354-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 16:17:54.368,2026-07-04 16:17:54.368
+006f5a52-db7a-482e-93c5-8566d74d3e54,doc-1783181874518,mock-intake-1783181874516-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 16:17:54.519,2026-07-04 16:17:54.519
+d3a020d3-3502-4e04-ab66-27956ef3d5b3,doc-orig-1783181874570,mock-intake-1783181874560-cdu,Original Doc,representation,active,2026-07-04 16:17:54.571,2026-07-04 16:17:54.571
+cf6ab93d-06e8-41d6-8516-201dd3ecb508,doc-mr6kg49a-n03ivx,mock-intake-1783181874560-cdu,代理词（更新）,representation,draft,2026-07-04 16:17:54.597,2026-07-04 16:17:54.597
+4a383216-0abb-46f3-90d9-79752fa49aa2,doc-mr6kg4a2-uftyil,mock-intake-1783181874560-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 16:17:54.603,2026-07-04 16:17:54.603
+d38a4de3-7404-4995-b428-908118fe16d3,doc-mr6kg4cm-0nu9ag,mock-intake-1783181874688-idem-chdoc,t,challenge_opinion,draft,2026-07-04 16:17:54.703,2026-07-04 16:17:54.703
+584912af-fd96-4c2d-a79e-e56b3412893c,doc-mr6kg4da-6sswiz,mock-intake-1783181874714-idem-docup,代理词（更新）,representation,draft,2026-07-04 16:17:54.733,2026-07-04 16:17:54.733
+13914c0e-b880-41b6-82ee-3cb460e3afab,doc-mr7eoy4j-5r4ye8,mock-intake-1783232675007-idem-chdoc,t,challenge_opinion,draft,2026-07-05 06:24:35.018,2026-07-05 06:24:35.018
+fe1493d1-3ed2-4695-9122-f76cf87da725,test-document-ws-1783182506957-4if7u0-1-doc-1,test-document-ws-1783182506957-4if7u0-1,Doc 1,contract,draft,2026-07-04 16:28:27.089,2026-07-04 16:28:27.089
+87a45fca-a9da-4913-8a23-01c220aec077,test-matter-ci-1783237695792-k62dtv-ws-doc-5,test-matter-ci-1783237695792-k62dtv-ws,Document 5,"",draft,2026-07-05 07:48:15.995,2026-07-05 07:48:15.995
+2b1e37e4-aa2f-491c-8c8a-1ef73b6428cf,test-matter-ci-1783237695792-k62dtv-ws-doc-6,test-matter-ci-1783237695792-k62dtv-ws,Document 6,"",draft,2026-07-05 07:48:15.997,2026-07-05 07:48:15.997
+e6681c07-02cd-4e14-bc93-87af51d50621,doc-mr7hokjw-h421qb,mock-intake-1783237696257-cdu,代理词（更新）,representation,draft,2026-07-05 07:48:16.278,2026-07-05 07:48:16.278
+dbc6930e-c82b-4d33-a989-f2b5aa9cd4a9,doc-mr7hokka-ii6er3,mock-intake-1783237696257-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 07:48:16.282,2026-07-05 07:48:16.282
+7019f890-a142-4ff1-bf58-55b50fb04741,test-matter-ci-1783182506957-hpjc06-ws-doc-1,test-matter-ci-1783182506957-hpjc06-ws,Document 1,"",draft,2026-07-04 16:28:27.135,2026-07-04 16:28:27.135
+8af82614-444c-4424-88d2-b1a7a5a46b93,test-matter-ci-1783182506957-hpjc06-ws-doc-2,test-matter-ci-1783182506957-hpjc06-ws,Document 2,"",draft,2026-07-04 16:28:27.139,2026-07-04 16:28:27.139
+693b601c-c8d5-4fc8-addd-a1b95af3dafc,test-matter-ci-1783182506957-hpjc06-ws-doc-3,test-matter-ci-1783182506957-hpjc06-ws,Document 3,"",draft,2026-07-04 16:28:27.141,2026-07-04 16:28:27.141
+6619b3b9-e37f-443d-8666-ab256921c012,test-matter-ci-1783182506957-hpjc06-ws-doc-4,test-matter-ci-1783182506957-hpjc06-ws,Document 4,"",draft,2026-07-04 16:28:27.143,2026-07-04 16:28:27.143
+3c2e81f0-a37c-42b8-a147-5a670f0cba1b,test-matter-ci-1783182506957-hpjc06-ws-doc-5,test-matter-ci-1783182506957-hpjc06-ws,Document 5,"",draft,2026-07-04 16:28:27.144,2026-07-04 16:28:27.144
+71917220-1df2-4cac-a1b4-e6e7692cb2d0,test-matter-ci-1783182506957-hpjc06-ws-doc-6,test-matter-ci-1783182506957-hpjc06-ws,Document 6,"",draft,2026-07-04 16:28:27.146,2026-07-04 16:28:27.146
+714a3336-af78-4da1-bb7a-dc6fb371407f,doc-mr6ktoeh-pzmvui,mock-intake-1783182507197-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 16:28:27.22,2026-07-04 16:28:27.22
+51404f64-80c7-4c51-a996-f2b09a381a32,doc-1783182507301,mock-intake-1783182507287-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 16:28:27.303,2026-07-04 16:28:27.303
+166ef720-5bf1-4dc3-b907-86a610b36ddf,doc-orig-1783182507338,mock-intake-1783182507337-cdu,Original Doc,representation,active,2026-07-04 16:28:27.339,2026-07-04 16:28:27.339
+5ebe3687-fbbd-4a27-b33b-04958601b664,doc-mr6ktoi6-3pvkfm,mock-intake-1783182507337-cdu,代理词（更新）,representation,draft,2026-07-04 16:28:27.352,2026-07-04 16:28:27.352
+67f9218a-05b5-4c3f-b01b-acbfec8b8c71,doc-mr6ktoik-spex0z,mock-intake-1783182507337-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 16:28:27.357,2026-07-04 16:28:27.357
+16d31aa0-a658-4acc-85de-1b4ae42ee730,doc-mr6ktoma-g5zc90,mock-intake-1783182507488-idem-chdoc,t,challenge_opinion,draft,2026-07-04 16:28:27.496,2026-07-04 16:28:27.496
+0d1c9310-b5e1-41fd-badc-4450c2e7ef82,doc-mr6ktomv-b7kopm,mock-intake-1783182507505-idem-docup,代理词（更新）,representation,draft,2026-07-04 16:28:27.522,2026-07-04 16:28:27.522
+7cc2c5f7-c589-4531-b266-c6e82c1a1c58,test-document-ws-1783184520845-1rafvm-1-doc-1,test-document-ws-1783184520845-1rafvm-1,Doc 1,contract,draft,2026-07-04 17:02:00.969,2026-07-04 17:02:00.969
+991d7fe8-3ecd-419d-81a4-2cd398015800,test-matter-ci-1783184520845-9yne6y-ws-doc-1,test-matter-ci-1783184520845-9yne6y-ws,Document 1,"",draft,2026-07-04 17:02:01.013,2026-07-04 17:02:01.013
+3e35c982-2d5e-400d-9be5-a1cfcce18944,test-matter-ci-1783184520845-9yne6y-ws-doc-2,test-matter-ci-1783184520845-9yne6y-ws,Document 2,"",draft,2026-07-04 17:02:01.016,2026-07-04 17:02:01.016
+0a482469-a5f9-4a3a-a12f-52cf91b22d26,test-matter-ci-1783184520845-9yne6y-ws-doc-3,test-matter-ci-1783184520845-9yne6y-ws,Document 3,"",draft,2026-07-04 17:02:01.017,2026-07-04 17:02:01.017
+d547e2fe-d4e4-406c-b1e6-74ea24b71c4d,test-matter-ci-1783184520845-9yne6y-ws-doc-4,test-matter-ci-1783184520845-9yne6y-ws,Document 4,"",draft,2026-07-04 17:02:01.019,2026-07-04 17:02:01.019
+ce910cf7-fefc-4dad-90f7-8a6050e47bc3,test-matter-ci-1783184520845-9yne6y-ws-doc-5,test-matter-ci-1783184520845-9yne6y-ws,Document 5,"",draft,2026-07-04 17:02:01.02,2026-07-04 17:02:01.02
+d8f12845-ccef-461f-9d8a-3892c0f32777,test-matter-ci-1783184520845-9yne6y-ws-doc-6,test-matter-ci-1783184520845-9yne6y-ws,Document 6,"",draft,2026-07-04 17:02:01.022,2026-07-04 17:02:01.022
+bd14c1f1-5caa-495c-8745-909358395b08,doc-mr6m0uaz-u47nnk,mock-intake-1783184521062-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 17:02:01.085,2026-07-04 17:02:01.085
+f6c30da0-1f2a-4362-9ef8-5d9c19f0c2fb,doc-1783184521175,mock-intake-1783184521173-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 17:02:01.176,2026-07-04 17:02:01.176
+8b35ca15-c903-407c-ba1d-2765cabe66d2,doc-orig-1783184521217,mock-intake-1783184521214-cdu,Original Doc,representation,active,2026-07-04 17:02:01.218,2026-07-04 17:02:01.218
+e767c08e-f1e4-4fd5-b230-a3a73cc52e62,doc-mr6m0uha-k4hpex,mock-intake-1783184521214-cdu,代理词（更新）,representation,draft,2026-07-04 17:02:01.312,2026-07-04 17:02:01.312
+0f30af7f-9b8c-4ea9-b821-98aaff62b970,doc-mr6m0ui2-t27fs2,mock-intake-1783184521214-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 17:02:01.323,2026-07-04 17:02:01.323
+4f2f1473-e5f9-4019-950f-f2ca489b39b5,doc-mr6m0uka-w8kvgi,mock-intake-1783184521400-idem-chdoc,t,challenge_opinion,draft,2026-07-04 17:02:01.409,2026-07-04 17:02:01.409
+987b8124-7a8f-4411-a4b7-9e2e7eb2a224,doc-mr6m0ukt-3e54xa,mock-intake-1783184521417-idem-docup,代理词（更新）,representation,draft,2026-07-04 17:02:01.428,2026-07-04 17:02:01.428
+bee3bb92-3400-4bc5-b092-89e852d69364,test-document-ws-1783185166709-l3lxe5-1-doc-1,test-document-ws-1783185166709-l3lxe5-1,Doc 1,contract,draft,2026-07-04 17:12:46.829,2026-07-04 17:12:46.829
+2e665b90-2627-4cdc-8090-a43db52fcc4a,test-matter-ci-1783185166709-tmq9kk-ws-doc-1,test-matter-ci-1783185166709-tmq9kk-ws,Document 1,"",draft,2026-07-04 17:12:46.878,2026-07-04 17:12:46.878
+25c13a93-fc98-48bd-8c67-6c0262324e2e,test-matter-ci-1783185166709-tmq9kk-ws-doc-2,test-matter-ci-1783185166709-tmq9kk-ws,Document 2,"",draft,2026-07-04 17:12:46.881,2026-07-04 17:12:46.881
+7e971db2-3ef0-4ef8-9cd1-891660bb15f7,test-matter-ci-1783185166709-tmq9kk-ws-doc-3,test-matter-ci-1783185166709-tmq9kk-ws,Document 3,"",draft,2026-07-04 17:12:46.882,2026-07-04 17:12:46.882
+aae6ecd8-a9c4-4e09-b17d-310455acc10f,test-matter-ci-1783185166709-tmq9kk-ws-doc-4,test-matter-ci-1783185166709-tmq9kk-ws,Document 4,"",draft,2026-07-04 17:12:46.884,2026-07-04 17:12:46.884
+5f9f76bc-c3eb-4f0a-95da-95a423b7541f,test-matter-ci-1783185166709-tmq9kk-ws-doc-5,test-matter-ci-1783185166709-tmq9kk-ws,Document 5,"",draft,2026-07-04 17:12:46.886,2026-07-04 17:12:46.886
+e23966e9-229f-4758-9279-7670de124866,test-matter-ci-1783185166709-tmq9kk-ws-doc-6,test-matter-ci-1783185166709-tmq9kk-ws,Document 6,"",draft,2026-07-04 17:12:46.887,2026-07-04 17:12:46.887
+9c23968d-5988-4482-a543-e938dec56683,doc-mr6meoo5-du3he4,mock-intake-1783185166941-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 17:12:46.956,2026-07-04 17:12:46.956
+72479cad-6b28-46d8-b92e-cb86f9b436d8,doc-1783185167018,mock-intake-1783185167015-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 17:12:47.019,2026-07-04 17:12:47.019
+8e738b6b-3e70-41eb-9c70-d8d4a99d5ea9,doc-orig-1783185167069,mock-intake-1783185167068-cdu,Original Doc,representation,active,2026-07-04 17:12:47.07,2026-07-04 17:12:47.07
+103d8199-e3bc-4cf3-8bb1-72f0623b1f4d,doc-mr6meork-6aasuv,mock-intake-1783185167068-cdu,代理词（更新）,representation,draft,2026-07-04 17:12:47.141,2026-07-04 17:12:47.141
+83a01d4d-6a19-451e-a5e7-f99600ee62d9,doc-mr6meotk-gvw9su,mock-intake-1783185167068-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 17:12:47.145,2026-07-04 17:12:47.145
+caa37091-f979-473a-be25-33a58e4c241d,doc-mr6meovu-asy0oi,mock-intake-1783185167224-idem-chdoc,t,challenge_opinion,draft,2026-07-04 17:12:47.235,2026-07-04 17:12:47.235
+b4e11586-e37c-4584-a373-78661b373c6e,doc-mr6meowf-c2lpg1,mock-intake-1783185167243-idem-docup,代理词（更新）,representation,draft,2026-07-04 17:12:47.258,2026-07-04 17:12:47.258
+818b33fe-f26f-4d78-8bb9-d6143987dbfd,doc-mr7eoy50-2ijg38,mock-intake-1783232675025-idem-docup,代理词（更新）,representation,draft,2026-07-05 06:24:35.043,2026-07-05 06:24:35.043
+cc61fc97-9bc3-441e-b9c7-f1accffde7db,test-document-ws-1783185301423-nhkvwg-1-doc-1,test-document-ws-1783185301423-nhkvwg-1,Doc 1,contract,draft,2026-07-04 17:15:01.536,2026-07-04 17:15:01.536
+660dd50b-ad09-4f9c-b88e-a4b83c960adf,doc-mr7hokf7-tvoer2,mock-intake-1783237696084-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 07:48:16.143,2026-07-05 07:48:16.143
+81a2982f-bb53-49d9-886a-4b1c223a13f1,doc-mr7hokod-b157o3,mock-intake-1783237696426-idem-chdoc,t,challenge_opinion,draft,2026-07-05 07:48:16.437,2026-07-05 07:48:16.437
+53258c84-6857-42b4-bfa0-97041fd4aa4c,test-matter-ci-1783185301423-wtgumr-ws-doc-1,test-matter-ci-1783185301423-wtgumr-ws,Document 1,"",draft,2026-07-04 17:15:01.584,2026-07-04 17:15:01.584
+79a3a511-cefa-485e-bab2-2c28b9d4f7e3,test-matter-ci-1783185301423-wtgumr-ws-doc-2,test-matter-ci-1783185301423-wtgumr-ws,Document 2,"",draft,2026-07-04 17:15:01.586,2026-07-04 17:15:01.586
+c347e04e-e288-4753-9a61-06df01ba3e2b,test-matter-ci-1783185301423-wtgumr-ws-doc-3,test-matter-ci-1783185301423-wtgumr-ws,Document 3,"",draft,2026-07-04 17:15:01.587,2026-07-04 17:15:01.587
+1a17e21e-072d-440c-a271-bdac80322ae3,test-matter-ci-1783185301423-wtgumr-ws-doc-4,test-matter-ci-1783185301423-wtgumr-ws,Document 4,"",draft,2026-07-04 17:15:01.588,2026-07-04 17:15:01.588
+cda54ca4-9069-4651-8561-63110e5745f3,test-matter-ci-1783185301423-wtgumr-ws-doc-5,test-matter-ci-1783185301423-wtgumr-ws,Document 5,"",draft,2026-07-04 17:15:01.589,2026-07-04 17:15:01.589
+692a5cf2-8fee-4996-a81b-3e8142c64143,test-matter-ci-1783185301423-wtgumr-ws-doc-6,test-matter-ci-1783185301423-wtgumr-ws,Document 6,"",draft,2026-07-04 17:15:01.59,2026-07-04 17:15:01.59
+37e64078-fcf7-4026-83ee-08756003cfbf,doc-mr6mhklb-2qxfik,mock-intake-1783185301627-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 17:15:01.653,2026-07-04 17:15:01.653
+f5eb7f73-9422-4ebe-a1ac-3d2dc8e8d688,doc-1783185301816,mock-intake-1783185301814-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 17:15:01.816,2026-07-04 17:15:01.816
+e0f0188e-c5fd-4082-b260-bb05ac40a9fc,doc-orig-1783185301833,mock-intake-1783185301832-cdu,Original Doc,representation,active,2026-07-04 17:15:01.834,2026-07-04 17:15:01.834
+9f690191-a6ba-4af1-831a-b9b37836e430,doc-mr6mhkr2-sacr0a,mock-intake-1783185301832-cdu,代理词（更新）,representation,draft,2026-07-04 17:15:01.85,2026-07-04 17:15:01.85
+8820e980-5b03-4356-8389-bb1c75a68fce,doc-mr6mhkrn-1x1h6c,mock-intake-1783185301832-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 17:15:01.86,2026-07-04 17:15:01.86
+daa70c9f-6706-4dc6-9639-8b41c43e3369,doc-mr6mhktn-bomhir,mock-intake-1783185301927-idem-chdoc,t,challenge_opinion,draft,2026-07-04 17:15:01.942,2026-07-04 17:15:01.942
+e5883d97-9ec6-4125-8ec8-ece847563993,doc-mr6mhkua-800f43,mock-intake-1783185301950-idem-docup,代理词（更新）,representation,draft,2026-07-04 17:15:01.973,2026-07-04 17:15:01.973
+908a5c90-358f-4c7e-8576-7acef9b1033c,test-document-ws-1783237829350-z97q9p-1-doc-1,test-document-ws-1783237829350-z97q9p-1,Doc 1,contract,draft,2026-07-05 07:50:29.471,2026-07-05 07:50:29.471
+88d91a91-0627-447d-9166-bd052fdbe459,test-document-ws-1783185608781-0pjtqe-1-doc-1,test-document-ws-1783185608781-0pjtqe-1,Doc 1,contract,draft,2026-07-04 17:20:08.892,2026-07-04 17:20:08.892
+a8247571-8b84-4f8e-9382-02ab17c244a5,test-matter-ci-1783185608781-10k2sz-ws-doc-1,test-matter-ci-1783185608781-10k2sz-ws,Document 1,"",draft,2026-07-04 17:20:08.935,2026-07-04 17:20:08.935
+4e350cc1-1d2d-43da-b0b7-9464bd461bb5,test-matter-ci-1783185608781-10k2sz-ws-doc-2,test-matter-ci-1783185608781-10k2sz-ws,Document 2,"",draft,2026-07-04 17:20:08.937,2026-07-04 17:20:08.937
+06a725cb-ed70-4103-98c0-09d1a09682fe,test-matter-ci-1783185608781-10k2sz-ws-doc-3,test-matter-ci-1783185608781-10k2sz-ws,Document 3,"",draft,2026-07-04 17:20:08.939,2026-07-04 17:20:08.939
+f8c3f165-077c-4dac-acfd-e934c36a235d,test-matter-ci-1783185608781-10k2sz-ws-doc-4,test-matter-ci-1783185608781-10k2sz-ws,Document 4,"",draft,2026-07-04 17:20:08.94,2026-07-04 17:20:08.94
+781be763-035b-49d5-ab64-961d12e32255,test-matter-ci-1783185608781-10k2sz-ws-doc-5,test-matter-ci-1783185608781-10k2sz-ws,Document 5,"",draft,2026-07-04 17:20:08.941,2026-07-04 17:20:08.941
+0feb7a33-6fd2-4ecf-9b56-ade73a6a95d2,test-matter-ci-1783185608781-10k2sz-ws-doc-6,test-matter-ci-1783185608781-10k2sz-ws,Document 6,"",draft,2026-07-04 17:20:08.942,2026-07-04 17:20:08.942
+d5d920eb-6e4f-4490-b3a9-e6d1a386667f,doc-mr6mo5rf-vr6a0g,mock-intake-1783185608986-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 17:20:09.011,2026-07-04 17:20:09.011
+6140b39f-57ca-45a3-9298-1d8d98b74e92,doc-1783185609152,mock-intake-1783185609148-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 17:20:09.152,2026-07-04 17:20:09.152
+b967cfd5-c404-4e4a-abe7-2d6d90ff6db0,doc-orig-1783185609188,mock-intake-1783185609185-cdu,Original Doc,representation,active,2026-07-04 17:20:09.189,2026-07-04 17:20:09.189
+48c6b7cc-281c-4f0f-9816-2a22b5a62e15,doc-mr6mo5wq-140gid,mock-intake-1783185609185-cdu,代理词（更新）,representation,draft,2026-07-04 17:20:09.21,2026-07-04 17:20:09.21
+898e9320-e7f8-4ce4-bb03-bac04caad834,doc-mr6mo5x9-4dii8t,mock-intake-1783185609185-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 17:20:09.213,2026-07-04 17:20:09.213
+435218d8-9639-4db8-bfa5-8b0088913d5a,doc-mr6mo5z8-lxibbs,mock-intake-1783185609280-idem-chdoc,t,challenge_opinion,draft,2026-07-04 17:20:09.308,2026-07-04 17:20:09.308
+18503d1b-6afd-442b-ad79-4282c2f62f8b,doc-mr6mo608-1ppofl,mock-intake-1783185609317-idem-docup,代理词（更新）,representation,draft,2026-07-04 17:20:09.339,2026-07-04 17:20:09.339
+cb679362-bd7b-49b4-a9e9-78eb50742b21,test-document-ws-1783185975281-k6zn8p-1-doc-1,test-document-ws-1783185975281-k6zn8p-1,Doc 1,contract,draft,2026-07-04 17:26:15.382,2026-07-04 17:26:15.382
+dd445b76-2613-4e8f-8e8f-c61a4bebb048,test-matter-ci-1783232674488-yhj5zh-ws-doc-1,test-matter-ci-1783232674488-yhj5zh-ws,Document 1,"",draft,2026-07-05 06:24:34.637,2026-07-05 06:24:34.637
+5701df80-5b4a-4079-b1a6-2fefb25cce2c,test-matter-ci-1783185975281-l79iam-ws-doc-1,test-matter-ci-1783185975281-l79iam-ws,Document 1,"",draft,2026-07-04 17:26:15.432,2026-07-04 17:26:15.432
+fc432113-4547-4ae5-b23f-d8f8c1046a99,test-matter-ci-1783185975281-l79iam-ws-doc-2,test-matter-ci-1783185975281-l79iam-ws,Document 2,"",draft,2026-07-04 17:26:15.434,2026-07-04 17:26:15.434
+68a126bb-f2f4-44ae-bf7e-fb9ed14b7313,test-matter-ci-1783185975281-l79iam-ws-doc-3,test-matter-ci-1783185975281-l79iam-ws,Document 3,"",draft,2026-07-04 17:26:15.435,2026-07-04 17:26:15.435
+c455ca72-dbe3-45a3-ac93-52462b3b58d2,test-matter-ci-1783185975281-l79iam-ws-doc-4,test-matter-ci-1783185975281-l79iam-ws,Document 4,"",draft,2026-07-04 17:26:15.436,2026-07-04 17:26:15.436
+e39f0019-1a36-41a6-b9eb-a7b4529fb524,test-matter-ci-1783185975281-l79iam-ws-doc-5,test-matter-ci-1783185975281-l79iam-ws,Document 5,"",draft,2026-07-04 17:26:15.437,2026-07-04 17:26:15.437
+c66ce323-4d37-4d1f-9467-ff96baecfb8c,test-matter-ci-1783185975281-l79iam-ws-doc-6,test-matter-ci-1783185975281-l79iam-ws,Document 6,"",draft,2026-07-04 17:26:15.438,2026-07-04 17:26:15.438
+b304155d-1f3f-4c40-a0e2-ed62c9f726d5,doc-mr6mw0jw-s31vh0,mock-intake-1783185975494-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-04 17:26:15.506,2026-07-04 17:26:15.506
+f098fe32-318e-4109-931d-e22fb45bf5d7,doc-1783185975622,mock-intake-1783185975621-dus-c,challenge doc,challenge_opinion,draft,2026-07-04 17:26:15.623,2026-07-04 17:26:15.623
+2fcb855f-821f-4052-9813-7ac1fd8cfc2c,doc-orig-1783185975644,mock-intake-1783185975643-cdu,Original Doc,representation,active,2026-07-04 17:26:15.645,2026-07-04 17:26:15.645
+e90bfd43-b967-4ee9-b0eb-be5abf8fbf8d,doc-mr6mw0o0-cjee79,mock-intake-1783185975643-cdu,代理词（更新）,representation,draft,2026-07-04 17:26:15.659,2026-07-04 17:26:15.659
+9f2beb56-89ca-4486-a44c-7c7b7d8d0daf,doc-mr6mw0of-iebw7r,mock-intake-1783185975643-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-04 17:26:15.664,2026-07-04 17:26:15.664
+7ec2023a-a242-469d-8a2a-52de58025b8c,doc-mr6mw0ro-a7xxjl,mock-intake-1783185975776-idem-chdoc,t,challenge_opinion,draft,2026-07-04 17:26:15.786,2026-07-04 17:26:15.786
+df4bc5cb-1c3d-4740-8e85-e1beb2d333c1,doc-mr6mw0s6-xgol8j,mock-intake-1783185975795-idem-docup,代理词（更新）,representation,draft,2026-07-04 17:26:15.807,2026-07-04 17:26:15.807
+98029fa5-c05f-411d-8863-3bd541375324,test-matter-ci-1783232674488-yhj5zh-ws-doc-2,test-matter-ci-1783232674488-yhj5zh-ws,Document 2,"",draft,2026-07-05 06:24:34.641,2026-07-05 06:24:34.641
+3a744557-d12b-4311-b58f-702f48abea71,test-document-ws-1783222207132-ywkdow-1-doc-1,test-document-ws-1783222207132-ywkdow-1,Doc 1,contract,draft,2026-07-05 03:30:07.245,2026-07-05 03:30:07.245
+e40e59f6-85be-4e85-b47b-8aaf91ecd740,test-matter-ci-1783232674488-yhj5zh-ws-doc-3,test-matter-ci-1783232674488-yhj5zh-ws,Document 3,"",draft,2026-07-05 06:24:34.644,2026-07-05 06:24:34.644
+5b3b76d7-0e94-4e3a-af65-cde3ecdb7565,test-matter-ci-1783232674488-yhj5zh-ws-doc-4,test-matter-ci-1783232674488-yhj5zh-ws,Document 4,"",draft,2026-07-05 06:24:34.645,2026-07-05 06:24:34.645
+8e6ce664-b557-40e6-bdc3-498f96cc8467,test-matter-ci-1783232674488-yhj5zh-ws-doc-5,test-matter-ci-1783232674488-yhj5zh-ws,Document 5,"",draft,2026-07-05 06:24:34.647,2026-07-05 06:24:34.647
+0546859e-0f73-480d-931b-c6f42eaa00f3,test-matter-ci-1783222207132-ihvrxy-ws-doc-1,test-matter-ci-1783222207132-ihvrxy-ws,Document 1,"",draft,2026-07-05 03:30:07.315,2026-07-05 03:30:07.315
+3b0d90a6-ed04-4ba0-aa78-ceaa4fbbb9be,test-matter-ci-1783222207132-ihvrxy-ws-doc-2,test-matter-ci-1783222207132-ihvrxy-ws,Document 2,"",draft,2026-07-05 03:30:07.318,2026-07-05 03:30:07.318
+6b814992-e95e-4d29-ad77-323053afdc24,test-matter-ci-1783222207132-ihvrxy-ws-doc-3,test-matter-ci-1783222207132-ihvrxy-ws,Document 3,"",draft,2026-07-05 03:30:07.319,2026-07-05 03:30:07.319
+2ca3909d-960d-465d-8215-f3d24cccfc8d,test-matter-ci-1783222207132-ihvrxy-ws-doc-4,test-matter-ci-1783222207132-ihvrxy-ws,Document 4,"",draft,2026-07-05 03:30:07.32,2026-07-05 03:30:07.32
+1d462457-1b15-429a-9a62-39f5df4ee4d4,test-matter-ci-1783222207132-ihvrxy-ws-doc-5,test-matter-ci-1783222207132-ihvrxy-ws,Document 5,"",draft,2026-07-05 03:30:07.321,2026-07-05 03:30:07.321
+fbc5daff-3003-456d-a933-05e46d102a6a,test-matter-ci-1783222207132-ihvrxy-ws-doc-6,test-matter-ci-1783222207132-ihvrxy-ws,Document 6,"",draft,2026-07-05 03:30:07.322,2026-07-05 03:30:07.322
+6ce50d43-4939-4a9d-ac28-89afead01f1b,doc-mr78gl9l-0xmssm,mock-intake-1783222207392-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 03:30:07.451,2026-07-05 03:30:07.451
+19d43a47-75c7-45ea-86cb-97be9c6d7a11,doc-1783222207561,mock-intake-1783222207560-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 03:30:07.562,2026-07-05 03:30:07.562
+d90157e7-cd97-48df-b085-767d79f5cdf0,doc-orig-1783222207573,mock-intake-1783222207573-cdu,Original Doc,representation,active,2026-07-05 03:30:07.574,2026-07-05 03:30:07.574
+0475a00a-cb3d-4f2d-b06f-c2edccf6bcb4,doc-mr78gleh-m3ef3p,mock-intake-1783222207573-cdu,代理词（更新）,representation,draft,2026-07-05 03:30:07.592,2026-07-05 03:30:07.592
+b814c7b3-07ec-4a22-9fd4-e1d73a530d7e,doc-mr78glez-549ahm,mock-intake-1783222207573-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 03:30:07.596,2026-07-05 03:30:07.596
+603b1a8b-d88d-4638-a968-63142c398964,doc-mr78glhq-tyi7ti,mock-intake-1783222207690-idem-chdoc,t,challenge_opinion,draft,2026-07-05 03:30:07.705,2026-07-05 03:30:07.705
+059f23b9-e701-4b5c-8696-736853d4175c,doc-mr78gliz-wyewu6,mock-intake-1783222207726-idem-docup,代理词（更新）,representation,draft,2026-07-05 03:30:07.759,2026-07-05 03:30:07.759
+056f81d9-47b3-4fbe-94a5-1ab4dc3ac5a5,test-document-ws-1783222407548-y7x335-1-doc-1,test-document-ws-1783222407548-y7x335-1,Doc 1,contract,draft,2026-07-05 03:33:27.673,2026-07-05 03:33:27.673
+c0331c17-9ae7-4601-954f-3feae446994f,test-matter-ci-1783222407548-nu29d7-ws-doc-1,test-matter-ci-1783222407548-nu29d7-ws,Document 1,"",draft,2026-07-05 03:33:27.713,2026-07-05 03:33:27.713
+aba99661-efbc-4e92-b7d6-9725e042aca5,test-matter-ci-1783222407548-nu29d7-ws-doc-2,test-matter-ci-1783222407548-nu29d7-ws,Document 2,"",draft,2026-07-05 03:33:27.716,2026-07-05 03:33:27.716
+bb663214-4ef8-42cf-aa64-2c608adbc8ea,test-matter-ci-1783222407548-nu29d7-ws-doc-3,test-matter-ci-1783222407548-nu29d7-ws,Document 3,"",draft,2026-07-05 03:33:27.718,2026-07-05 03:33:27.718
+b2c34854-a123-43e3-b89e-c512989ab292,test-matter-ci-1783222407548-nu29d7-ws-doc-4,test-matter-ci-1783222407548-nu29d7-ws,Document 4,"",draft,2026-07-05 03:33:27.721,2026-07-05 03:33:27.721
+04f5469e-28d6-483d-9fe5-092d3f45dc59,test-matter-ci-1783222407548-nu29d7-ws-doc-5,test-matter-ci-1783222407548-nu29d7-ws,Document 5,"",draft,2026-07-05 03:33:27.722,2026-07-05 03:33:27.722
+1ba583f8-3043-46b4-bfa5-0b7519a00e3e,test-matter-ci-1783222407548-nu29d7-ws-doc-6,test-matter-ci-1783222407548-nu29d7-ws,Document 6,"",draft,2026-07-05 03:33:27.724,2026-07-05 03:33:27.724
+e25f3538-eebb-4b78-b2a9-a8033fffbb47,doc-mr78kvwe-un1j7q,mock-intake-1783222407795-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 03:33:27.82,2026-07-05 03:33:27.82
+3a01c543-11c2-4292-b207-4d2fdbeba2ba,doc-1783222407899,mock-intake-1783222407897-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 03:33:27.9,2026-07-05 03:33:27.9
+4f3f813e-19ca-43f5-9e6d-02d4be53629c,doc-orig-1783222407916,mock-intake-1783222407915-cdu,Original Doc,representation,active,2026-07-05 03:33:27.918,2026-07-05 03:33:27.918
+83ceb9ee-9ad1-4b83-934e-a4af1778ad68,doc-mr78kvzk-2npnnr,mock-intake-1783222407915-cdu,代理词（更新）,representation,draft,2026-07-05 03:33:28.01,2026-07-05 03:33:28.01
+d33831db-fb35-4289-8cfc-1424c49f81a8,doc-mr78kw3i-46fx9y,mock-intake-1783222407915-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 03:33:28.063,2026-07-05 03:33:28.063
+c085bb1d-86e7-4bd2-8953-7337bc71dd49,doc-mr78kw6o-6djd35,mock-intake-1783222408170-idem-chdoc,t,challenge_opinion,draft,2026-07-05 03:33:28.202,2026-07-05 03:33:28.202
+b2f4a0e6-468d-4661-ba9c-57778582eaa3,doc-mr78kw7z-xi3z9x,mock-intake-1783222408218-idem-docup,代理词（更新）,representation,draft,2026-07-05 03:33:28.237,2026-07-05 03:33:28.237
+23f0c0cc-21cb-4b7c-a2e7-52620472d76d,test-document-ws-1783222642757-fv8ckp-1-doc-1,test-document-ws-1783222642757-fv8ckp-1,Doc 1,contract,draft,2026-07-05 03:37:22.867,2026-07-05 03:37:22.867
+e4d3ab74-3dc5-4b6f-bb16-74bbb57b027b,test-matter-ci-1783232674488-yhj5zh-ws-doc-6,test-matter-ci-1783232674488-yhj5zh-ws,Document 6,"",draft,2026-07-05 06:24:34.648,2026-07-05 06:24:34.648
+e212b0c2-6a4b-46b6-a1cc-4071ed11bc29,test-matter-ci-1783222642757-as9ibm-ws-doc-1,test-matter-ci-1783222642757-as9ibm-ws,Document 1,"",draft,2026-07-05 03:37:22.919,2026-07-05 03:37:22.919
+17b83084-b502-4c3a-98dc-42c95fbfccc2,test-matter-ci-1783222642757-as9ibm-ws-doc-2,test-matter-ci-1783222642757-as9ibm-ws,Document 2,"",draft,2026-07-05 03:37:22.921,2026-07-05 03:37:22.921
+c1206583-96d0-4e05-8935-98d78289cee7,test-matter-ci-1783222642757-as9ibm-ws-doc-3,test-matter-ci-1783222642757-as9ibm-ws,Document 3,"",draft,2026-07-05 03:37:22.922,2026-07-05 03:37:22.922
+b293cb41-0730-49ea-894f-f5384649ec86,test-matter-ci-1783222642757-as9ibm-ws-doc-4,test-matter-ci-1783222642757-as9ibm-ws,Document 4,"",draft,2026-07-05 03:37:22.924,2026-07-05 03:37:22.924
+d8e22e5e-ab73-4e2a-8632-8ee472232664,test-matter-ci-1783222642757-as9ibm-ws-doc-5,test-matter-ci-1783222642757-as9ibm-ws,Document 5,"",draft,2026-07-05 03:37:22.925,2026-07-05 03:37:22.925
+1e2fb226-6ba5-4a80-b6a5-41ed3b9ae146,test-matter-ci-1783222642757-as9ibm-ws-doc-6,test-matter-ci-1783222642757-as9ibm-ws,Document 6,"",draft,2026-07-05 03:37:22.926,2026-07-05 03:37:22.926
+9f79a21e-020e-4399-b397-452890fb7883,doc-mr78pxer-rcfept,mock-intake-1783222642989-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 03:37:23.059,2026-07-05 03:37:23.059
+8e6bb160-7b51-4261-a3bb-ae1de8a79d9f,doc-1783222643121,mock-intake-1783222643117-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 03:37:23.122,2026-07-05 03:37:23.122
+ccdeda6e-e036-469f-9f62-b25c4395ac32,doc-orig-1783222643193,mock-intake-1783222643191-cdu,Original Doc,representation,active,2026-07-05 03:37:23.194,2026-07-05 03:37:23.194
+f981cfe5-ffb0-4396-8214-3c4f5e000b33,doc-mr78pxj7-r12vfa,mock-intake-1783222643191-cdu,代理词（更新）,representation,draft,2026-07-05 03:37:23.223,2026-07-05 03:37:23.223
+e4c7e9d6-62ed-40a6-8e29-1c7788b9a59a,doc-mr78pxjy-q1syru,mock-intake-1783222643191-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 03:37:23.23,2026-07-05 03:37:23.23
+bc80fbb3-71c9-48af-baa8-fac74ad75b28,doc-mr78pxnw-7ro7q9,mock-intake-1783222643369-idem-chdoc,t,challenge_opinion,draft,2026-07-05 03:37:23.385,2026-07-05 03:37:23.385
+21158551-89c9-486c-8625-8f2e14f382e8,doc-mr78pxoo-cnwmor,mock-intake-1783222643395-idem-docup,代理词（更新）,representation,draft,2026-07-05 03:37:23.429,2026-07-05 03:37:23.429
+3db160be-c82c-4e64-83d5-38688c2f52c1,test-document-ws-1783223017226-477hxr-1-doc-1,test-document-ws-1783223017226-477hxr-1,Doc 1,contract,draft,2026-07-05 03:43:37.345,2026-07-05 03:43:37.345
+744678e6-3367-4aca-a38d-a9fcfba96a91,doc-1783237696232,mock-intake-1783237696230-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 07:48:16.233,2026-07-05 07:48:16.233
+b1a09188-f17d-4bf4-b22f-991891b10b84,doc-orig-1783237696262,mock-intake-1783237696257-cdu,Original Doc,representation,active,2026-07-05 07:48:16.263,2026-07-05 07:48:16.263
+cbb88688-337e-4157-8877-4e1eade60ab1,doc-mr7hokp8-hjf3dz,mock-intake-1783237696446-idem-docup,代理词（更新）,representation,draft,2026-07-05 07:48:16.483,2026-07-05 07:48:16.483
+0687198a-2498-4da4-a433-f5d413ecd967,test-matter-ci-1783223017226-48dgja-ws-doc-1,test-matter-ci-1783223017226-48dgja-ws,Document 1,"",draft,2026-07-05 03:43:37.396,2026-07-05 03:43:37.396
+2c8f0de8-31f1-49e2-a01a-f0158a50ec74,test-matter-ci-1783223017226-48dgja-ws-doc-2,test-matter-ci-1783223017226-48dgja-ws,Document 2,"",draft,2026-07-05 03:43:37.398,2026-07-05 03:43:37.398
+4890e3b3-9c27-4795-9beb-43ea2647f752,test-matter-ci-1783223017226-48dgja-ws-doc-3,test-matter-ci-1783223017226-48dgja-ws,Document 3,"",draft,2026-07-05 03:43:37.399,2026-07-05 03:43:37.399
+dfc062d7-6a32-4cf8-acd4-b5c57bfa9856,test-matter-ci-1783223017226-48dgja-ws-doc-4,test-matter-ci-1783223017226-48dgja-ws,Document 4,"",draft,2026-07-05 03:43:37.401,2026-07-05 03:43:37.401
+01d6001c-673e-4c45-b837-898f5bcd7680,test-matter-ci-1783223017226-48dgja-ws-doc-5,test-matter-ci-1783223017226-48dgja-ws,Document 5,"",draft,2026-07-05 03:43:37.403,2026-07-05 03:43:37.403
+d1ffbd5d-b094-4eb0-8341-ba463a6a9313,test-matter-ci-1783223017226-48dgja-ws-doc-6,test-matter-ci-1783223017226-48dgja-ws,Document 6,"",draft,2026-07-05 03:43:37.405,2026-07-05 03:43:37.405
+ea87227a-d57b-4cf6-9870-1af95df83f14,doc-mr78xyc0-7q0a5q,mock-intake-1783223017480-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 03:43:37.503,2026-07-05 03:43:37.503
+c4882c9b-894e-4940-914b-86dd7f14bb1c,doc-1783223017563,mock-intake-1783223017558-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 03:43:37.564,2026-07-05 03:43:37.564
+650ebc90-475b-4552-ac28-18917ae521a3,doc-orig-1783223017624,mock-intake-1783223017610-cdu,Original Doc,representation,active,2026-07-05 03:43:37.625,2026-07-05 03:43:37.625
+897a1709-7958-4d0e-80f4-9c7c74cb3f7d,doc-mr78xyfy-999bdu,mock-intake-1783223017610-cdu,代理词（更新）,representation,draft,2026-07-05 03:43:37.636,2026-07-05 03:43:37.636
+2b435f59-8c3b-4a32-b6f3-2f9713cb41fd,doc-mr78xyg6-q5ac3e,mock-intake-1783223017610-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 03:43:37.639,2026-07-05 03:43:37.639
+17b1075a-aa89-401d-b78c-d2bdda52f78f,doc-mr78xykd-it34u1,mock-intake-1783223017785-idem-chdoc,t,challenge_opinion,draft,2026-07-05 03:43:37.795,2026-07-05 03:43:37.795
+cab929ab-4e79-4ccb-a467-29adcff983e1,doc-mr78xykw-dnk27k,mock-intake-1783223017806-idem-docup,代理词（更新）,representation,draft,2026-07-05 03:43:37.845,2026-07-05 03:43:37.845
+da2b8fb2-8b46-41c4-9d8d-e49646bac3b1,test-document-ws-1783228022224-m62r6a-1-doc-1,test-document-ws-1783228022224-m62r6a-1,Doc 1,contract,draft,2026-07-05 05:07:02.346,2026-07-05 05:07:02.346
+131fa9a1-8d63-46aa-9ee2-424bea01bd39,test-matter-ci-1783228022224-bmlffr-ws-doc-1,test-matter-ci-1783228022224-bmlffr-ws,Document 1,"",draft,2026-07-05 05:07:02.388,2026-07-05 05:07:02.388
+81687a85-da42-42f2-afa1-2a11e9918830,test-matter-ci-1783228022224-bmlffr-ws-doc-2,test-matter-ci-1783228022224-bmlffr-ws,Document 2,"",draft,2026-07-05 05:07:02.39,2026-07-05 05:07:02.39
+dde4b3b9-a5a4-42b3-8880-7b1099c7480a,test-matter-ci-1783228022224-bmlffr-ws-doc-3,test-matter-ci-1783228022224-bmlffr-ws,Document 3,"",draft,2026-07-05 05:07:02.392,2026-07-05 05:07:02.392
+a6a24085-5fb4-4676-92c1-b3c9260d6a68,test-matter-ci-1783228022224-bmlffr-ws-doc-4,test-matter-ci-1783228022224-bmlffr-ws,Document 4,"",draft,2026-07-05 05:07:02.394,2026-07-05 05:07:02.394
+1fc751a6-4dee-43ff-bcbd-2f99231f1ae4,test-matter-ci-1783228022224-bmlffr-ws-doc-5,test-matter-ci-1783228022224-bmlffr-ws,Document 5,"",draft,2026-07-05 05:07:02.396,2026-07-05 05:07:02.396
+0935d777-7966-4843-bb52-8705985c04fc,test-matter-ci-1783228022224-bmlffr-ws-doc-6,test-matter-ci-1783228022224-bmlffr-ws,Document 6,"",draft,2026-07-05 05:07:02.398,2026-07-05 05:07:02.398
+845df3cc-26ac-4036-95ad-8b98657faadc,doc-mr7bx87r-qud6v1,mock-intake-1783228022474-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 05:07:02.499,2026-07-05 05:07:02.499
+fcb19fd8-c7c6-4532-99a3-684b57b52e28,doc-1783228022569,mock-intake-1783228022568-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 05:07:02.57,2026-07-05 05:07:02.57
+ef530f14-0a3d-4f3d-82a9-321bac43bd2d,doc-orig-1783228022597,mock-intake-1783228022595-cdu,Original Doc,representation,active,2026-07-05 05:07:02.598,2026-07-05 05:07:02.598
+614d188a-df9f-46e6-ab9d-c3c10b6934ad,doc-mr7bx8b0-hma74m,mock-intake-1783228022595-cdu,代理词（更新）,representation,draft,2026-07-05 05:07:02.613,2026-07-05 05:07:02.613
+d201cec4-7017-4065-bf0e-914fc88fac5d,doc-mr7bx8bb-ss8gx3,mock-intake-1783228022595-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 05:07:02.616,2026-07-05 05:07:02.616
+dcdbb9fc-17c9-4d43-b4dd-e46a4877eb9c,doc-mr7bx8eo-prai5r,mock-intake-1783228022729-idem-chdoc,t,challenge_opinion,draft,2026-07-05 05:07:02.773,2026-07-05 05:07:02.773
+73682c05-2e01-4cde-9a89-f1ef70f91964,doc-mr7bx8g2-z9jrvl,mock-intake-1783228022782-idem-docup,代理词（更新）,representation,draft,2026-07-05 05:07:02.796,2026-07-05 05:07:02.796
+2ea38b42-201c-4915-bed5-4afe945a9779,test-matter-ci-1783237829350-yg8yqg-ws-doc-1,test-matter-ci-1783237829350-yg8yqg-ws,Document 1,"",draft,2026-07-05 07:50:29.517,2026-07-05 07:50:29.517
+bd9c13ce-5aeb-42ac-b780-151d8decaa5b,test-matter-ci-1783237829350-yg8yqg-ws-doc-2,test-matter-ci-1783237829350-yg8yqg-ws,Document 2,"",draft,2026-07-05 07:50:29.519,2026-07-05 07:50:29.519
+dd27b314-7274-43e4-abd9-c6e5d627d7e6,test-matter-ci-1783237829350-yg8yqg-ws-doc-3,test-matter-ci-1783237829350-yg8yqg-ws,Document 3,"",draft,2026-07-05 07:50:29.521,2026-07-05 07:50:29.521
+941c5a24-e9a9-42a9-9ca2-5dbb3acd8fce,test-matter-ci-1783237829350-yg8yqg-ws-doc-4,test-matter-ci-1783237829350-yg8yqg-ws,Document 4,"",draft,2026-07-05 07:50:29.523,2026-07-05 07:50:29.523
+963ec465-0b41-4c25-b16a-446c183c7bfb,test-matter-ci-1783237829350-yg8yqg-ws-doc-5,test-matter-ci-1783237829350-yg8yqg-ws,Document 5,"",draft,2026-07-05 07:50:29.524,2026-07-05 07:50:29.524
+04b15874-7782-4d3a-83a2-c12be4f8dfa2,test-matter-ci-1783237829350-yg8yqg-ws-doc-6,test-matter-ci-1783237829350-yg8yqg-ws,Document 6,"",draft,2026-07-05 07:50:29.526,2026-07-05 07:50:29.526
+a7a123c1-d095-49f6-9e44-16b9857fda51,doc-mr7hrfjb-aqlelh,mock-intake-1783237829722-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 07:50:29.748,2026-07-05 07:50:29.748
+327928bd-5aad-406d-827a-f7ee9aad01e6,doc-1783237829810,mock-intake-1783237829809-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 07:50:29.811,2026-07-05 07:50:29.811
+db6b1c8e-112b-4cf4-96f0-9ceef7d85e5f,doc-orig-1783237829861,mock-intake-1783237829860-cdu,Original Doc,representation,active,2026-07-05 07:50:29.861,2026-07-05 07:50:29.861
+da1651f7-b96a-4f77-85ac-14f2ad1978ab,doc-mr7hrfmw-lc0at3,mock-intake-1783237829860-cdu,代理词（更新）,representation,draft,2026-07-05 07:50:29.886,2026-07-05 07:50:29.886
+b6928ae8-fd09-4aca-8b88-79b4fa4787c6,doc-mr7hrfnk-ryhont,mock-intake-1783237829860-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 07:50:29.889,2026-07-05 07:50:29.889
+abf2d170-33dc-4088-bff3-92ee51cd1942,doc-mr7hrfqz-byd10m,mock-intake-1783237830007-idem-chdoc,t,challenge_opinion,draft,2026-07-05 07:50:30.038,2026-07-05 07:50:30.038
+7e5ff3e6-aae2-494d-96e1-1c08d8c2d946,doc-mr7hrfsf-f6vhke,mock-intake-1783237830056-idem-docup,代理词（更新）,representation,draft,2026-07-05 07:50:30.073,2026-07-05 07:50:30.073
+0ae5b8bc-a5b9-4385-8c92-107cd6a6ce94,test-document-ws-1783249016891-xittty-1-doc-1,test-document-ws-1783249016891-xittty-1,Doc 1,contract,draft,2026-07-05 10:56:57.005,2026-07-05 10:56:57.005
+ea000c12-7e4d-4a50-b7c9-2455aa6af291,test-matter-ci-1783249016891-1lz6ab-ws-doc-1,test-matter-ci-1783249016891-1lz6ab-ws,Document 1,"",draft,2026-07-05 10:56:57.056,2026-07-05 10:56:57.056
+d9ca97ad-f2be-4f91-b009-520f807868fc,test-matter-ci-1783249016891-1lz6ab-ws-doc-2,test-matter-ci-1783249016891-1lz6ab-ws,Document 2,"",draft,2026-07-05 10:56:57.06,2026-07-05 10:56:57.06
+43e27f40-dfe2-43fd-8467-dc1e2c9163ab,test-matter-ci-1783249016891-1lz6ab-ws-doc-3,test-matter-ci-1783249016891-1lz6ab-ws,Document 3,"",draft,2026-07-05 10:56:57.061,2026-07-05 10:56:57.061
+59549cf6-20d6-49b8-9227-58bc21bebc32,test-matter-ci-1783249016891-1lz6ab-ws-doc-4,test-matter-ci-1783249016891-1lz6ab-ws,Document 4,"",draft,2026-07-05 10:56:57.064,2026-07-05 10:56:57.064
+33e0cf0b-9fbb-4e9e-b09e-cc6326392b58,test-matter-ci-1783249016891-1lz6ab-ws-doc-5,test-matter-ci-1783249016891-1lz6ab-ws,Document 5,"",draft,2026-07-05 10:56:57.065,2026-07-05 10:56:57.065
+42e5a622-2b56-4d15-9cdb-76c5f6a960da,test-matter-ci-1783249016891-1lz6ab-ws-doc-6,test-matter-ci-1783249016891-1lz6ab-ws,Document 6,"",draft,2026-07-05 10:56:57.067,2026-07-05 10:56:57.067
+56d6ec86-aadb-42f0-b8cd-fb4fe6bba971,doc-mr7of7sx-a3lama,mock-intake-1783249017144-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 10:56:57.175,2026-07-05 10:56:57.175
+85439374-d4e4-488b-a691-c50e0dde41bd,doc-1783249017292,mock-intake-1783249017289-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 10:56:57.293,2026-07-05 10:56:57.293
+b5cc57cb-1a0c-4eed-b397-3b11d9936b03,doc-orig-1783249017320,mock-intake-1783249017317-cdu,Original Doc,representation,active,2026-07-05 10:56:57.321,2026-07-05 10:56:57.321
+36e99ac5-3418-46a9-9b1d-a16fcec75a57,doc-mr7of7xn-nq7fs0,mock-intake-1783249017317-cdu,代理词（更新）,representation,draft,2026-07-05 10:56:57.339,2026-07-05 10:56:57.339
+b95c74ff-9ece-4bf2-9b2f-ffdace160755,doc-mr7of7y6-gvqc33,mock-intake-1783249017317-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 10:56:57.343,2026-07-05 10:56:57.343
+c7a628a1-8b17-4ec9-ad6e-b84b1cc94db2,doc-mr7of80r-9102hk,mock-intake-1783249017421-idem-chdoc,t,challenge_opinion,draft,2026-07-05 10:56:57.443,2026-07-05 10:56:57.443
+ff1827bc-e3ff-49aa-9306-3f9888a7ec8d,doc-mr7of81g-ymgwi6,mock-intake-1783249017455-idem-docup,代理词（更新）,representation,draft,2026-07-05 10:56:57.469,2026-07-05 10:56:57.469
+1d8a9a63-ac11-4e12-966a-72933bc1a2aa,test-document-ws-1783250250266-h42zp8-1-doc-1,test-document-ws-1783250250266-h42zp8-1,Doc 1,contract,draft,2026-07-05 11:17:30.381,2026-07-05 11:17:30.381
+4a26d214-4b18-437a-9c42-75730f32a701,test-matter-ci-1783250250266-7usapx-ws-doc-1,test-matter-ci-1783250250266-7usapx-ws,Document 1,"",draft,2026-07-05 11:17:30.423,2026-07-05 11:17:30.423
+cf1f0c79-6ddd-4fb5-a452-87b983c5ca04,test-matter-ci-1783250250266-7usapx-ws-doc-2,test-matter-ci-1783250250266-7usapx-ws,Document 2,"",draft,2026-07-05 11:17:30.426,2026-07-05 11:17:30.426
+761be165-cc11-4d5d-8042-16c0c09798cf,test-matter-ci-1783250250266-7usapx-ws-doc-3,test-matter-ci-1783250250266-7usapx-ws,Document 3,"",draft,2026-07-05 11:17:30.427,2026-07-05 11:17:30.427
+0f4c1899-8a40-4c94-9c6b-cc5e8e9b8c68,test-matter-ci-1783250250266-7usapx-ws-doc-4,test-matter-ci-1783250250266-7usapx-ws,Document 4,"",draft,2026-07-05 11:17:30.429,2026-07-05 11:17:30.429
+a3b93cac-b189-4eaf-ad09-c31b3473c912,test-matter-ci-1783250250266-7usapx-ws-doc-5,test-matter-ci-1783250250266-7usapx-ws,Document 5,"",draft,2026-07-05 11:17:30.43,2026-07-05 11:17:30.43
+69c2fab8-29ac-42ef-9e0c-086e20e05125,test-matter-ci-1783250250266-7usapx-ws-doc-6,test-matter-ci-1783250250266-7usapx-ws,Document 6,"",draft,2026-07-05 11:17:30.431,2026-07-05 11:17:30.431
+bdb3c709-efda-452c-989f-b775997e4911,doc-mr7p5ngb-3fanfc,mock-intake-1783250250477-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 11:17:30.499,2026-07-05 11:17:30.499
+67c0fc3c-2098-4782-9624-85721300f5ec,doc-1783250250557,mock-intake-1783250250553-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 11:17:30.558,2026-07-05 11:17:30.558
+ba0d3f0c-2149-4fa2-8b83-9e385f9510d9,doc-orig-1783250250624,mock-intake-1783250250618-cdu,Original Doc,representation,active,2026-07-05 11:17:30.625,2026-07-05 11:17:30.625
+a0bc89be-04aa-4892-b224-f8aa6fde073a,doc-mr7p5nk3-l0auxs,mock-intake-1783250250618-cdu,代理词（更新）,representation,draft,2026-07-05 11:17:30.634,2026-07-05 11:17:30.634
+596dd93b-e6db-4e0d-a9c5-3d8c97dc06da,doc-mr7p5nkn-tk7guq,mock-intake-1783250250618-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 11:17:30.647,2026-07-05 11:17:30.647
+20a31c1f-63ba-4035-b580-ad5a1b56b69d,doc-mr7p5np4-tqkpc7,mock-intake-1783250250796-idem-chdoc,t,challenge_opinion,draft,2026-07-05 11:17:30.82,2026-07-05 11:17:30.82
+9cc086ae-0aed-43b1-b13f-b99e6be115ac,doc-mr7p5nq6-gwmqsm,mock-intake-1783250250839-idem-docup,代理词（更新）,representation,draft,2026-07-05 11:17:30.864,2026-07-05 11:17:30.864
+6551dfed-60e9-4813-a881-3633e8a85b6c,test-document-ws-1783250338098-0v1lzy-1-doc-1,test-document-ws-1783250338098-0v1lzy-1,Doc 1,contract,draft,2026-07-05 11:18:58.203,2026-07-05 11:18:58.203
+344f95e4-3e5d-4e06-8f33-cf2d590f796e,doc-mrccyzw0-6vmbg9,m-mrccynxa-xu3eis,起诉状,draft,draft,2026-07-08 17:35:15.505,2026-07-08 17:35:15.505
+7e5f788d-ba55-4ef7-99c3-510d435edb49,doc-mrccyzw4-kosl9v,m-mrccynxa-xu3eis,答辩状,draft,draft,2026-07-08 17:35:15.509,2026-07-08 17:35:15.509
+b72c74d1-3785-4a05-b2f9-1b8b4ee8df27,doc-mrccyzw6-fvqeom,m-mrccynxa-xu3eis,证据目录,draft,draft,2026-07-08 17:35:15.51,2026-07-08 17:35:15.51
+ddff92ef-c32c-4204-a722-47cd42f2e3d4,doc-mrccyzw8-exldq2,m-mrccynxa-xu3eis,代理词,draft,draft,2026-07-08 17:35:15.513,2026-07-08 17:35:15.513
+bc746c1b-98bb-43c3-9fc4-45f742235f6b,doc-mrccyzwa-zihls7,m-mrccynxa-xu3eis,法律意见书,draft,draft,2026-07-08 17:35:15.515,2026-07-08 17:35:15.515
+adb4eae0-6ffb-4ae7-9040-82179d89b57e,test-matter-ci-1783250338098-wcc2xq-ws-doc-1,test-matter-ci-1783250338098-wcc2xq-ws,Document 1,"",draft,2026-07-05 11:18:58.246,2026-07-05 11:18:58.246
+e026060b-846b-457f-8247-16a915a3d716,test-matter-ci-1783250338098-wcc2xq-ws-doc-2,test-matter-ci-1783250338098-wcc2xq-ws,Document 2,"",draft,2026-07-05 11:18:58.248,2026-07-05 11:18:58.248
+b4af2b0e-8489-4610-a293-8c1b644e8eed,test-matter-ci-1783250338098-wcc2xq-ws-doc-3,test-matter-ci-1783250338098-wcc2xq-ws,Document 3,"",draft,2026-07-05 11:18:58.25,2026-07-05 11:18:58.25
+59f695c4-110a-4047-b3aa-0d67c88bf955,test-matter-ci-1783250338098-wcc2xq-ws-doc-4,test-matter-ci-1783250338098-wcc2xq-ws,Document 4,"",draft,2026-07-05 11:18:58.251,2026-07-05 11:18:58.251
+b16e015e-e207-4990-a34c-5ab33f93948e,test-matter-ci-1783250338098-wcc2xq-ws-doc-5,test-matter-ci-1783250338098-wcc2xq-ws,Document 5,"",draft,2026-07-05 11:18:58.252,2026-07-05 11:18:58.252
+78f8f31b-4b93-4ea0-9b16-6211cba9a754,test-matter-ci-1783250338098-wcc2xq-ws-doc-6,test-matter-ci-1783250338098-wcc2xq-ws,Document 6,"",draft,2026-07-05 11:18:58.253,2026-07-05 11:18:58.253
+6f1e123f-0a92-45d5-b57b-821dfc18545e,doc-mr7p7j7z-gyyeap,mock-intake-1783250338313-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 11:18:58.329,2026-07-05 11:18:58.329
+ee54332b-fc3b-442a-9b23-f64e904f7ab0,doc-1783250338403,mock-intake-1783250338402-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 11:18:58.404,2026-07-05 11:18:58.404
+190da728-d571-4cb8-a94c-292a907ce838,doc-orig-1783250338417,mock-intake-1783250338415-cdu,Original Doc,representation,active,2026-07-05 11:18:58.418,2026-07-05 11:18:58.418
+06696191-c345-4b3c-9f7a-a6f8ee48dcb0,doc-mr7p7jav-y82vqj,mock-intake-1783250338415-cdu,代理词（更新）,representation,draft,2026-07-05 11:18:58.449,2026-07-05 11:18:58.449
+e4dd7587-fbc7-4c4c-817a-fe0761ef544b,doc-mr7p7jbr-6sp3hw,mock-intake-1783250338415-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 11:18:58.456,2026-07-05 11:18:58.456
+b87223ef-29f6-486d-bd50-5ed48ea410bd,doc-mr7p7jem-wwgmco,mock-intake-1783250338553-idem-chdoc,t,challenge_opinion,draft,2026-07-05 11:18:58.57,2026-07-05 11:18:58.57
+497d6bde-e8e9-4943-9d82-3404b3e20ae9,doc-mr7p7jfc-tnhqxv,mock-intake-1783250338579-idem-docup,代理词（更新）,representation,draft,2026-07-05 11:18:58.611,2026-07-05 11:18:58.611
+f23a2e10-1f60-4518-b24c-3b33660cc9c3,test-document-ws-1783250453028-lh7nxt-1-doc-1,test-document-ws-1783250453028-lh7nxt-1,Doc 1,contract,draft,2026-07-05 11:20:53.145,2026-07-05 11:20:53.145
+37e598c9-4f04-453e-9a86-fa2be11d9a44,test-matter-ci-1783250453028-dr1tw5-ws-doc-1,test-matter-ci-1783250453028-dr1tw5-ws,Document 1,"",draft,2026-07-05 11:20:53.192,2026-07-05 11:20:53.192
+be638d79-bd0b-44fc-a36c-855c9bc54308,test-matter-ci-1783250453028-dr1tw5-ws-doc-2,test-matter-ci-1783250453028-dr1tw5-ws,Document 2,"",draft,2026-07-05 11:20:53.194,2026-07-05 11:20:53.194
+f76347be-2beb-486a-8f07-d3f077ec4459,test-matter-ci-1783250453028-dr1tw5-ws-doc-3,test-matter-ci-1783250453028-dr1tw5-ws,Document 3,"",draft,2026-07-05 11:20:53.196,2026-07-05 11:20:53.196
+a26cb837-528f-42a1-8cc0-44b55d35dae4,test-matter-ci-1783250453028-dr1tw5-ws-doc-4,test-matter-ci-1783250453028-dr1tw5-ws,Document 4,"",draft,2026-07-05 11:20:53.198,2026-07-05 11:20:53.198
+c40fdfb6-c354-4c97-9c05-d5d78e092452,test-matter-ci-1783250453028-dr1tw5-ws-doc-5,test-matter-ci-1783250453028-dr1tw5-ws,Document 5,"",draft,2026-07-05 11:20:53.199,2026-07-05 11:20:53.199
+d30aa798-4d9b-4c74-b817-079f35e3d39a,test-matter-ci-1783250453028-dr1tw5-ws-doc-6,test-matter-ci-1783250453028-dr1tw5-ws,Document 6,"",draft,2026-07-05 11:20:53.201,2026-07-05 11:20:53.201
+b1739455-3708-4d99-8010-88962f07d5e8,doc-mr7p9zwj-kkrlb8,mock-intake-1783250453245-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 11:20:53.269,2026-07-05 11:20:53.269
+53cab9a4-5eee-4ecd-9dfc-6b55d5c2edb7,doc-1783250453371,mock-intake-1783250453365-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 11:20:53.373,2026-07-05 11:20:53.373
+96e306bb-8b97-419d-ba6d-62da45873683,doc-orig-1783250453419,mock-intake-1783250453401-cdu,Original Doc,representation,active,2026-07-05 11:20:53.42,2026-07-05 11:20:53.42
+64f6c108-b53b-4061-9f35-b9345d1b60d8,doc-mr7pa02d-41jpz0,mock-intake-1783250453401-cdu,代理词（更新）,representation,draft,2026-07-05 11:20:53.472,2026-07-05 11:20:53.472
+4506608a-93cd-4194-882a-457c59082954,doc-mr7pa02r-294r3q,mock-intake-1783250453401-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 11:20:53.476,2026-07-05 11:20:53.476
+e5b9debd-3202-43be-8d49-395094dd5465,doc-mr7pa05s-1jod4n,mock-intake-1783250453576-idem-chdoc,t,challenge_opinion,draft,2026-07-05 11:20:53.606,2026-07-05 11:20:53.606
+ca5a7399-9ffb-4f3f-a902-e92e2b374f98,doc-mr7pa06x-upx68z,mock-intake-1783250453620-idem-docup,代理词（更新）,representation,draft,2026-07-05 11:20:53.642,2026-07-05 11:20:53.642
+c32b030c-1d6c-4bfd-a30f-ce5d8f17d4a1,test-document-ws-1783250669417-aowfbj-1-doc-1,test-document-ws-1783250669417-aowfbj-1,Doc 1,contract,draft,2026-07-05 11:24:29.518,2026-07-05 11:24:29.518
+f573c2d6-711e-4640-a7a1-9c30cdf7b459,test-matter-ci-1783250669417-hphqye-ws-doc-1,test-matter-ci-1783250669417-hphqye-ws,Document 1,"",draft,2026-07-05 11:24:29.565,2026-07-05 11:24:29.565
+b8fb4f56-bd3e-45af-93a6-02b05c9fd554,test-matter-ci-1783250669417-hphqye-ws-doc-2,test-matter-ci-1783250669417-hphqye-ws,Document 2,"",draft,2026-07-05 11:24:29.568,2026-07-05 11:24:29.568
+faef3b57-f726-4fd1-afe8-ac9ccc964f33,test-matter-ci-1783250669417-hphqye-ws-doc-3,test-matter-ci-1783250669417-hphqye-ws,Document 3,"",draft,2026-07-05 11:24:29.569,2026-07-05 11:24:29.569
+4ecc3290-1581-4294-929c-956ec1dff1a3,test-matter-ci-1783250669417-hphqye-ws-doc-4,test-matter-ci-1783250669417-hphqye-ws,Document 4,"",draft,2026-07-05 11:24:29.57,2026-07-05 11:24:29.57
+20abb481-5455-496e-a6b1-bb70b6364aa5,test-matter-ci-1783250669417-hphqye-ws-doc-5,test-matter-ci-1783250669417-hphqye-ws,Document 5,"",draft,2026-07-05 11:24:29.571,2026-07-05 11:24:29.571
+743036c8-dd4a-4647-90dd-20c6d0730dfa,test-matter-ci-1783250669417-hphqye-ws-doc-6,test-matter-ci-1783250669417-hphqye-ws,Document 6,"",draft,2026-07-05 11:24:29.573,2026-07-05 11:24:29.573
+dc370f3c-ca64-4045-bdbe-c38990cd626e,doc-mr7pemv7-c3ywhi,mock-intake-1783250669626-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 11:24:29.649,2026-07-05 11:24:29.649
+fb13cd7e-dd80-42c8-92ba-a9457e538820,doc-1783250669719,mock-intake-1783250669718-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 11:24:29.719,2026-07-05 11:24:29.719
+8b393ec5-ed71-44c2-8f18-b66bdfd70d82,doc-orig-1783250669762,mock-intake-1783250669759-cdu,Original Doc,representation,active,2026-07-05 11:24:29.763,2026-07-05 11:24:29.763
+a0c8eb7d-df85-4a0b-a9ac-a99556db9e90,doc-mr7pemz1-7llo56,mock-intake-1783250669759-cdu,代理词（更新）,representation,draft,2026-07-05 11:24:29.792,2026-07-05 11:24:29.792
+b00ba6a7-52e6-4a9d-b445-01902c6b2756,doc-mr7pemzq-x8zybl,mock-intake-1783250669759-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 11:24:29.799,2026-07-05 11:24:29.799
+87e90181-c3f0-4e49-ba0c-9908b6909251,doc-mr7pen2b-ppji9p,mock-intake-1783250669884-idem-chdoc,t,challenge_opinion,draft,2026-07-05 11:24:29.897,2026-07-05 11:24:29.897
+c0346373-88e1-4f94-9b9a-87aaa7768ebb,doc-mr7pen36-hzw8yt,mock-intake-1783250669920-idem-docup,代理词（更新）,representation,draft,2026-07-05 11:24:29.931,2026-07-05 11:24:29.931
+b0b59454-9fad-4b55-ab3e-75ff4945a729,test-document-ws-1783250818515-8uzqt6-1-doc-1,test-document-ws-1783250818515-8uzqt6-1,Doc 1,contract,draft,2026-07-05 11:26:58.623,2026-07-05 11:26:58.623
+14e63b09-ee79-4066-968f-d3bf8b680e3f,doc-mrcdpy7j-fnogup,m-mrcdpaea-gdj049,title,draft,draft,2026-07-08 17:56:13.041,2026-07-08 17:56:13.041
+2ee338a5-9e09-4c02-9f73-0987e583a1fb,doc-mrcdpy7q-fqughh,m-mrcdpaea-gdj049,heading,draft,draft,2026-07-08 17:56:13.047,2026-07-08 17:56:13.047
+e456aa85-7549-480e-91a3-b173e736a36c,doc-mrcdpy7s-e4qlil,m-mrcdpaea-gdj049,field,draft,draft,2026-07-08 17:56:13.048,2026-07-08 17:56:13.048
+4fddeb3c-ba7e-4992-aee2-2045b796f13c,doc-mrcdpy7t-yu4adm,m-mrcdpaea-gdj049,field,draft,draft,2026-07-08 17:56:13.05,2026-07-08 17:56:13.05
+bcdec4eb-5c3c-4e06-83bf-ace0d11512a1,doc-mrcdpy7v-373aqj,m-mrcdpaea-gdj049,heading,draft,draft,2026-07-08 17:56:13.052,2026-07-08 17:56:13.052
+6eadb044-3621-4683-9161-5637394925b4,doc-mrcdpy7x-8w4h3w,m-mrcdpaea-gdj049,item,draft,draft,2026-07-08 17:56:13.054,2026-07-08 17:56:13.054
+203aaa1f-360d-427b-82c8-acd32109b03a,doc-mrcdpy7y-fp73ti,m-mrcdpaea-gdj049,item,draft,draft,2026-07-08 17:56:13.055,2026-07-08 17:56:13.055
+de003812-56d3-4b45-90d8-30090341cd72,test-matter-ci-1783250818515-qmdb73-ws-doc-1,test-matter-ci-1783250818515-qmdb73-ws,Document 1,"",draft,2026-07-05 11:26:58.664,2026-07-05 11:26:58.664
+9d39e567-117f-4dd6-ab88-b29a0bc7e7a0,test-matter-ci-1783250818515-qmdb73-ws-doc-2,test-matter-ci-1783250818515-qmdb73-ws,Document 2,"",draft,2026-07-05 11:26:58.667,2026-07-05 11:26:58.667
+e323bc4f-8398-4ec8-8737-8d97e9ccbc62,test-matter-ci-1783250818515-qmdb73-ws-doc-3,test-matter-ci-1783250818515-qmdb73-ws,Document 3,"",draft,2026-07-05 11:26:58.668,2026-07-05 11:26:58.668
+ec4ef551-5f35-4783-ad3b-c786cb3a6318,test-matter-ci-1783250818515-qmdb73-ws-doc-4,test-matter-ci-1783250818515-qmdb73-ws,Document 4,"",draft,2026-07-05 11:26:58.67,2026-07-05 11:26:58.67
+8a9569ef-1d4a-4285-93fa-21e875274d24,test-matter-ci-1783250818515-qmdb73-ws-doc-5,test-matter-ci-1783250818515-qmdb73-ws,Document 5,"",draft,2026-07-05 11:26:58.672,2026-07-05 11:26:58.672
+385bb8f0-b113-401e-8215-69ce4fe4549d,test-matter-ci-1783250818515-qmdb73-ws-doc-6,test-matter-ci-1783250818515-qmdb73-ws,Document 6,"",draft,2026-07-05 11:26:58.673,2026-07-05 11:26:58.673
+c2aca407-5195-4433-9afe-6301d49a55e2,doc-mr7phtwj-r7xkgg,mock-intake-1783250818717-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 11:26:58.732,2026-07-05 11:26:58.732
+61b24923-4357-4a21-956c-2902845b32f0,doc-1783250818765,mock-intake-1783250818764-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 11:26:58.766,2026-07-05 11:26:58.766
+7ec280ac-68f3-421c-b9d3-072623bf5108,doc-orig-1783250818801,mock-intake-1783250818799-cdu,Original Doc,representation,active,2026-07-05 11:26:58.802,2026-07-05 11:26:58.802
+4660fb7c-7086-43c5-b60b-3073f53cb67e,doc-mr7phtyv-cy6fyi,mock-intake-1783250818799-cdu,代理词（更新）,representation,draft,2026-07-05 11:26:58.833,2026-07-05 11:26:58.833
+bf0abf35-a7ef-4aa0-b0c5-0338fe1f0f41,doc-mr7phtzp-lpcyaq,mock-intake-1783250818799-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 11:26:58.837,2026-07-05 11:26:58.837
+3974ecb3-a6e0-4ce1-b86a-847642b71c2b,doc-mr7phu2n-cjy8o4,mock-intake-1783250818941-idem-chdoc,t,challenge_opinion,draft,2026-07-05 11:26:58.949,2026-07-05 11:26:58.949
+522ebfe2-9193-42b3-bbe1-6676e69c7e61,doc-mr7phu3u-oucfa6,mock-intake-1783250818964-idem-docup,代理词（更新）,representation,draft,2026-07-05 11:26:58.998,2026-07-05 11:26:58.998
+e2665232-fb0e-4b21-94ed-85941cf6d8fe,test-document-ws-1783251229642-30hbpg-1-doc-1,test-document-ws-1783251229642-30hbpg-1,Doc 1,contract,draft,2026-07-05 11:33:49.749,2026-07-05 11:33:49.749
+4b5bb567-a9d4-47f8-9fcb-fabfc6b6fb35,test-matter-ci-1783251229643-nao3j9-ws-doc-1,test-matter-ci-1783251229643-nao3j9-ws,Document 1,"",draft,2026-07-05 11:33:49.792,2026-07-05 11:33:49.792
+35ce3107-8eb2-4312-b522-68a73a7eed47,test-matter-ci-1783251229643-nao3j9-ws-doc-2,test-matter-ci-1783251229643-nao3j9-ws,Document 2,"",draft,2026-07-05 11:33:49.795,2026-07-05 11:33:49.795
+f5f7f5af-e294-40e6-93f1-588f57539cb1,test-matter-ci-1783251229643-nao3j9-ws-doc-3,test-matter-ci-1783251229643-nao3j9-ws,Document 3,"",draft,2026-07-05 11:33:49.796,2026-07-05 11:33:49.796
+41a85f16-485d-44b5-bb97-9fdd0aa1c735,test-matter-ci-1783251229643-nao3j9-ws-doc-4,test-matter-ci-1783251229643-nao3j9-ws,Document 4,"",draft,2026-07-05 11:33:49.797,2026-07-05 11:33:49.797
+8f89758a-8d62-4d63-9c22-a51b20e5acd6,test-matter-ci-1783251229643-nao3j9-ws-doc-5,test-matter-ci-1783251229643-nao3j9-ws,Document 5,"",draft,2026-07-05 11:33:49.799,2026-07-05 11:33:49.799
+61a4f413-33dc-47be-9b89-60dd06ab6563,test-matter-ci-1783251229643-nao3j9-ws-doc-6,test-matter-ci-1783251229643-nao3j9-ws,Document 6,"",draft,2026-07-05 11:33:49.8,2026-07-05 11:33:49.8
+30397781-f39a-4870-b313-ed4e3f19d5c1,doc-mr7pqn4k-wl4ot9,mock-intake-1783251229835-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 11:33:49.876,2026-07-05 11:33:49.876
+e197462e-0b9d-4a78-92a4-9466dba28487,doc-1783251229937,mock-intake-1783251229924-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 11:33:49.937,2026-07-05 11:33:49.937
+536cb54e-9572-41ca-894a-aed0a07b9e52,doc-orig-1783251229978,mock-intake-1783251229972-cdu,Original Doc,representation,active,2026-07-05 11:33:49.98,2026-07-05 11:33:49.98
+d5ca6819-1b4e-46ea-b47c-982c42263681,doc-mr7pqn9n-zn93q1,mock-intake-1783251229972-cdu,代理词（更新）,representation,draft,2026-07-05 11:33:50.034,2026-07-05 11:33:50.034
+7b20cce5-66c9-49c5-9f0a-c96d94e048ad,doc-mr7pqn9x-qr5jgf,mock-intake-1783251229972-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 11:33:50.038,2026-07-05 11:33:50.038
+1813f5bb-fdb8-49f1-b332-12e69138190f,doc-mr7pqncv-fje0h5,mock-intake-1783251230139-idem-chdoc,t,challenge_opinion,draft,2026-07-05 11:33:50.156,2026-07-05 11:33:50.156
+fc102783-ed2c-418a-9c5e-35fb594c2fb6,doc-mr7pqndz-acjo6j,mock-intake-1783251230181-idem-docup,代理词（更新）,representation,draft,2026-07-05 11:33:50.219,2026-07-05 11:33:50.219
+9352fad4-45ab-4fbd-ba2c-a8c343a8c317,test-document-ws-1783251371416-xmdjx0-1-doc-1,test-document-ws-1783251371416-xmdjx0-1,Doc 1,contract,draft,2026-07-05 11:36:11.527,2026-07-05 11:36:11.527
+5994a83c-aa94-4ea5-9a23-7fe8e31a8135,test-matter-ci-1783251371416-t99cwf-ws-doc-1,test-matter-ci-1783251371416-t99cwf-ws,Document 1,"",draft,2026-07-05 11:36:11.572,2026-07-05 11:36:11.572
+7ad6345d-d617-43be-b22e-767d93109fc9,test-matter-ci-1783251371416-t99cwf-ws-doc-2,test-matter-ci-1783251371416-t99cwf-ws,Document 2,"",draft,2026-07-05 11:36:11.573,2026-07-05 11:36:11.573
+1d2f7123-be7b-476d-8eb4-1374e094e5d4,test-matter-ci-1783251371416-t99cwf-ws-doc-3,test-matter-ci-1783251371416-t99cwf-ws,Document 3,"",draft,2026-07-05 11:36:11.575,2026-07-05 11:36:11.575
+9c9843c9-43c9-422b-aac6-1454f0a33629,test-matter-ci-1783251371416-t99cwf-ws-doc-4,test-matter-ci-1783251371416-t99cwf-ws,Document 4,"",draft,2026-07-05 11:36:11.576,2026-07-05 11:36:11.576
+2fa24135-ed52-49e2-b405-796225b9c018,test-matter-ci-1783251371416-t99cwf-ws-doc-5,test-matter-ci-1783251371416-t99cwf-ws,Document 5,"",draft,2026-07-05 11:36:11.577,2026-07-05 11:36:11.577
+d182d3c5-89ab-4764-a81d-b9d108fce865,test-matter-ci-1783251371416-t99cwf-ws-doc-6,test-matter-ci-1783251371416-t99cwf-ws,Document 6,"",draft,2026-07-05 11:36:11.578,2026-07-05 11:36:11.578
+f71f98ff-ec59-4e0c-b409-c2cd8fbfbaf6,doc-mr7ptojm-g66sf9,mock-intake-1783251371639-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 11:36:11.66,2026-07-05 11:36:11.66
+f20eec3a-3f60-4a0e-a080-0a9c6231c782,doc-1783251371740,mock-intake-1783251371735-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 11:36:11.74,2026-07-05 11:36:11.74
+57a35aa9-d45a-450f-a312-7c595a715b0d,doc-orig-1783251371778,mock-intake-1783251371775-cdu,Original Doc,representation,active,2026-07-05 11:36:11.778,2026-07-05 11:36:11.778
+787e8aef-a73e-4c62-9472-782f9a439f67,doc-mr7ptona-ira9i7,mock-intake-1783251371775-cdu,代理词（更新）,representation,draft,2026-07-05 11:36:11.801,2026-07-05 11:36:11.801
+3d24454e-fb18-4ae0-9bd7-9cc3f60da830,doc-mr7ptonv-sjp09e,mock-intake-1783251371775-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 11:36:11.804,2026-07-05 11:36:11.804
+58225cd5-e38b-4830-b431-7edd9b7ee091,doc-mr7ptorn-lhvpxf,mock-intake-1783251371927-idem-chdoc,t,challenge_opinion,draft,2026-07-05 11:36:11.952,2026-07-05 11:36:11.952
+5c612ab4-79a8-4881-8736-8aac308659b7,doc-mr7ptost-7xj7kz,mock-intake-1783251371975-idem-docup,代理词（更新）,representation,draft,2026-07-05 11:36:12,2026-07-05 11:36:12
+b0ea2d07-bf0e-4fd7-a101-974c75e24ff4,test-document-ws-1783251524323-fv3l04-1-doc-1,test-document-ws-1783251524323-fv3l04-1,Doc 1,contract,draft,2026-07-05 11:38:44.431,2026-07-05 11:38:44.431
+7b2b6b6e-31ee-4942-bc6e-af060b4e5d75,doc-mrcdpy80-s3sfk2,m-mrcdpaea-gdj049,heading,draft,draft,2026-07-08 17:56:13.056,2026-07-08 17:56:13.056
+55738795-714c-42aa-a938-ff2aeb3eeaee,doc-mrcdpy81-7d2bka,m-mrcdpaea-gdj049,paragraph,draft,draft,2026-07-08 17:56:13.058,2026-07-08 17:56:13.058
+4610c15a-fe5c-42d5-8524-e22e8b7e7854,doc-mrcdpy82-9srjzm,m-mrcdpaea-gdj049,heading,draft,draft,2026-07-08 17:56:13.059,2026-07-08 17:56:13.059
+98bcc28c-6219-4b0c-8ec4-9c9d9346a402,doc-mrcdpy83-xpxhyk,m-mrcdpaea-gdj049,paragraph,draft,draft,2026-07-08 17:56:13.059,2026-07-08 17:56:13.059
+98e86d51-21c0-4389-88b0-8e675b5d7518,doc-mrcdpy86-ajclvr,m-mrcdpaea-gdj049,signature,draft,draft,2026-07-08 17:56:13.063,2026-07-08 17:56:13.063
+c50c0c2c-7c17-4852-a12b-dfd3e8f10f70,doc-mrcdpy87-l4ibap,m-mrcdpaea-gdj049,date,draft,draft,2026-07-08 17:56:13.064,2026-07-08 17:56:13.064
+8d3d5d29-d9e7-4467-9f9c-fe7d393079cc,test-matter-ci-1783251524323-31kir8-ws-doc-1,test-matter-ci-1783251524323-31kir8-ws,Document 1,"",draft,2026-07-05 11:38:44.466,2026-07-05 11:38:44.466
+d4055622-b55b-4636-be00-b952c6a7f402,test-matter-ci-1783251524323-31kir8-ws-doc-2,test-matter-ci-1783251524323-31kir8-ws,Document 2,"",draft,2026-07-05 11:38:44.468,2026-07-05 11:38:44.468
+9ad23423-5c2f-41bd-a42d-fc665c943f5c,test-matter-ci-1783251524323-31kir8-ws-doc-3,test-matter-ci-1783251524323-31kir8-ws,Document 3,"",draft,2026-07-05 11:38:44.469,2026-07-05 11:38:44.469
+9c16a4c6-ce98-42dd-9fc8-d924d4dd4f38,test-matter-ci-1783251524323-31kir8-ws-doc-4,test-matter-ci-1783251524323-31kir8-ws,Document 4,"",draft,2026-07-05 11:38:44.471,2026-07-05 11:38:44.471
+314aad1b-2051-4af5-a537-6682aea6d301,test-matter-ci-1783251524323-31kir8-ws-doc-5,test-matter-ci-1783251524323-31kir8-ws,Document 5,"",draft,2026-07-05 11:38:44.472,2026-07-05 11:38:44.472
+82b37267-96eb-4f71-a793-2977e0bf23e5,test-matter-ci-1783251524323-31kir8-ws-doc-6,test-matter-ci-1783251524323-31kir8-ws,Document 6,"",draft,2026-07-05 11:38:44.474,2026-07-05 11:38:44.474
+d8684015-2c73-4da6-a460-1c5924c33bc5,doc-mr7pwyja-w2bcdp,mock-intake-1783251524542-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 11:38:44.577,2026-07-05 11:38:44.577
+b6be91e1-479c-4bdb-b4bc-f1d3b4a62832,doc-1783251524670,mock-intake-1783251524668-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 11:38:44.67,2026-07-05 11:38:44.67
+f9e8a1ec-00e8-417b-a02f-5d006cbfaa0d,doc-orig-1783251524683,mock-intake-1783251524682-cdu,Original Doc,representation,active,2026-07-05 11:38:44.683,2026-07-05 11:38:44.683
+e35bee25-4a77-40b1-ad6e-3694c7f452e8,doc-mr7pwymm-8tnoj5,mock-intake-1783251524682-cdu,代理词（更新）,representation,draft,2026-07-05 11:38:44.696,2026-07-05 11:38:44.696
+c40cef1a-f7f3-459f-bdce-6b8c4d493e7c,doc-mr7pwyn0-7h4uxr,mock-intake-1783251524682-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 11:38:44.701,2026-07-05 11:38:44.701
+86c037e9-bbb4-4c82-a715-f4a527de2ecb,doc-mr7pwyrc-xtj5hy,mock-intake-1783251524845-idem-chdoc,t,challenge_opinion,draft,2026-07-05 11:38:44.866,2026-07-05 11:38:44.866
+0a52ee07-f647-41e7-9599-62b4dbf4409b,doc-mr7pwys0-078ync,mock-intake-1783251524878-idem-docup,代理词（更新）,representation,draft,2026-07-05 11:38:44.907,2026-07-05 11:38:44.907
+586ec707-2710-46bc-af43-929815cb63c9,test-document-ws-1783251649097-mnlagm-1-doc-1,test-document-ws-1783251649097-mnlagm-1,Doc 1,contract,draft,2026-07-05 11:40:49.202,2026-07-05 11:40:49.202
+f6f993dc-4b0e-47b5-ad3d-5b89581f5e7c,test-matter-ci-1783251649097-w6gelc-ws-doc-1,test-matter-ci-1783251649097-w6gelc-ws,Document 1,"",draft,2026-07-05 11:40:49.246,2026-07-05 11:40:49.246
+209c07d1-4b7b-46cd-910e-d6eced54e95a,test-matter-ci-1783251649097-w6gelc-ws-doc-2,test-matter-ci-1783251649097-w6gelc-ws,Document 2,"",draft,2026-07-05 11:40:49.25,2026-07-05 11:40:49.25
+1e84dd0e-5935-4820-bb00-6e5f3963ae0f,test-matter-ci-1783251649097-w6gelc-ws-doc-3,test-matter-ci-1783251649097-w6gelc-ws,Document 3,"",draft,2026-07-05 11:40:49.251,2026-07-05 11:40:49.251
+b53f2963-2934-41ff-88cd-5ef2c838eea4,test-matter-ci-1783251649097-w6gelc-ws-doc-4,test-matter-ci-1783251649097-w6gelc-ws,Document 4,"",draft,2026-07-05 11:40:49.252,2026-07-05 11:40:49.252
+9497bfba-13e2-45ba-b305-bb2707417279,test-matter-ci-1783251649097-w6gelc-ws-doc-5,test-matter-ci-1783251649097-w6gelc-ws,Document 5,"",draft,2026-07-05 11:40:49.253,2026-07-05 11:40:49.253
+b92b1758-c18e-4829-a7e5-308cbe63279b,test-matter-ci-1783251649097-w6gelc-ws-doc-6,test-matter-ci-1783251649097-w6gelc-ws,Document 6,"",draft,2026-07-05 11:40:49.254,2026-07-05 11:40:49.254
+23e61e40-54f2-44c6-83e2-327252fb71e7,doc-mr7pzmsr-7xtpoj,mock-intake-1783251649314-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 11:40:49.333,2026-07-05 11:40:49.333
+9a77f151-9b39-4843-82ac-fad76bb85536,doc-1783251649477,mock-intake-1783251649473-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 11:40:49.478,2026-07-05 11:40:49.478
+5ab28fe2-5cf6-466f-8055-29037e1235f9,doc-orig-1783251649491,mock-intake-1783251649490-cdu,Original Doc,representation,active,2026-07-05 11:40:49.492,2026-07-05 11:40:49.492
+90fb56ae-f0ce-49ea-8c06-8710615f67f7,doc-mr7pzmxm-b0kujx,mock-intake-1783251649490-cdu,代理词（更新）,representation,draft,2026-07-05 11:40:49.506,2026-07-05 11:40:49.506
+f5df228d-937f-4e68-ad6e-7263b2303c0a,doc-mr7pzmxx-c91ahb,mock-intake-1783251649490-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 11:40:49.509,2026-07-05 11:40:49.509
+9529bcca-563e-4cb0-881f-ba02b7964976,doc-mr7pzn09-kyrzvl,mock-intake-1783251649590-idem-chdoc,t,challenge_opinion,draft,2026-07-05 11:40:49.604,2026-07-05 11:40:49.604
+b7e2b100-f5e2-4802-8155-3bcf0a1632a1,doc-mr7pzn0y-n8d720,mock-intake-1783251649615-idem-docup,代理词（更新）,representation,draft,2026-07-05 11:40:49.65,2026-07-05 11:40:49.65
+d55d8497-5ea0-4724-9929-f5db182c26e1,test-document-ws-1783251943340-2yfdq6-1-doc-1,test-document-ws-1783251943340-2yfdq6-1,Doc 1,contract,draft,2026-07-05 11:45:43.445,2026-07-05 11:45:43.445
+ea062091-b640-40d7-9ff0-d98e6f2e2ac4,test-matter-ci-1783251943340-d984sp-ws-doc-1,test-matter-ci-1783251943340-d984sp-ws,Document 1,"",draft,2026-07-05 11:45:43.491,2026-07-05 11:45:43.491
+fe8e2f23-27a1-4887-afaa-204a892335bc,test-matter-ci-1783251943340-d984sp-ws-doc-2,test-matter-ci-1783251943340-d984sp-ws,Document 2,"",draft,2026-07-05 11:45:43.493,2026-07-05 11:45:43.493
+466e8bf6-1eca-42bc-9ca9-28dee37d311c,test-matter-ci-1783251943340-d984sp-ws-doc-3,test-matter-ci-1783251943340-d984sp-ws,Document 3,"",draft,2026-07-05 11:45:43.495,2026-07-05 11:45:43.495
+13cdbd5c-60a1-46a0-ae4c-f9067ef698a1,test-matter-ci-1783251943340-d984sp-ws-doc-4,test-matter-ci-1783251943340-d984sp-ws,Document 4,"",draft,2026-07-05 11:45:43.496,2026-07-05 11:45:43.496
+db1ce028-b29b-406c-90cc-579b00871a68,test-matter-ci-1783251943340-d984sp-ws-doc-5,test-matter-ci-1783251943340-d984sp-ws,Document 5,"",draft,2026-07-05 11:45:43.497,2026-07-05 11:45:43.497
+992593a5-31f5-4fac-87b4-cfe2d670e121,test-matter-ci-1783251943340-d984sp-ws-doc-6,test-matter-ci-1783251943340-d984sp-ws,Document 6,"",draft,2026-07-05 11:45:43.499,2026-07-05 11:45:43.499
+211ef846-18b4-4c12-909b-4b6e48ca6878,doc-mr7q5xub-7b40cn,mock-intake-1783251943562-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 11:45:43.6,2026-07-05 11:45:43.6
+244f49f4-8744-4c22-96d6-75b03dc9dff7,doc-1783251943683,mock-intake-1783251943678-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 11:45:43.684,2026-07-05 11:45:43.684
+da5a90bc-c70b-4e06-b3f2-d78875d6d0fd,doc-orig-1783251943703,mock-intake-1783251943701-cdu,Original Doc,representation,active,2026-07-05 11:45:43.704,2026-07-05 11:45:43.704
+5682e9b1-69d7-46d0-92a4-88444f4ac68e,doc-mr7q5xyb-9b0gna,mock-intake-1783251943701-cdu,代理词（更新）,representation,draft,2026-07-05 11:45:43.724,2026-07-05 11:45:43.724
+7bbc3cc3-b1e6-4d88-be5c-ded3474be7f8,doc-mr7q5xyl-c6rcoo,mock-intake-1783251943701-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 11:45:43.726,2026-07-05 11:45:43.726
+97c095d3-dd18-43f9-954f-f7539da17bb0,doc-mr7q5y0y-rl5qn9,mock-intake-1783251943807-idem-chdoc,t,challenge_opinion,draft,2026-07-05 11:45:43.828,2026-07-05 11:45:43.828
+eb8ba4ca-458c-4031-b214-2449d6046d4b,doc-mr7q5y1y-of478t,mock-intake-1783251943840-idem-docup,代理词（更新）,representation,draft,2026-07-05 11:45:43.865,2026-07-05 11:45:43.865
+f2d91f49-d8e9-4c34-83e2-82d346167ca6,test-document-ws-1783252091583-97gi73-1-doc-1,test-document-ws-1783252091583-97gi73-1,Doc 1,contract,draft,2026-07-05 11:48:11.689,2026-07-05 11:48:11.689
+9372883d-03bc-4082-8956-99737c999298,doc-mrcdu4gk-exli08,m-mrcdtfzk-z7n62m,起诉状,draft,draft,2026-07-08 17:59:27.765,2026-07-08 17:59:27.765
+be7e6d34-dfac-4761-a541-13ce1904934c,test-matter-ci-1783252091583-3m59zw-ws-doc-1,test-matter-ci-1783252091583-3m59zw-ws,Document 1,"",draft,2026-07-05 11:48:11.732,2026-07-05 11:48:11.732
+465aeb88-cde0-47dc-98cf-2c5eb5ca816a,test-matter-ci-1783252091583-3m59zw-ws-doc-2,test-matter-ci-1783252091583-3m59zw-ws,Document 2,"",draft,2026-07-05 11:48:11.734,2026-07-05 11:48:11.734
+d32a8b92-8e10-4e30-b2cb-734efea6cd4a,test-matter-ci-1783252091583-3m59zw-ws-doc-3,test-matter-ci-1783252091583-3m59zw-ws,Document 3,"",draft,2026-07-05 11:48:11.735,2026-07-05 11:48:11.735
+ba871e2a-8d0d-4088-b1cb-7be6992a4d00,test-matter-ci-1783252091583-3m59zw-ws-doc-4,test-matter-ci-1783252091583-3m59zw-ws,Document 4,"",draft,2026-07-05 11:48:11.736,2026-07-05 11:48:11.736
+64a45248-3fcc-47d2-9551-a3b947d77419,test-matter-ci-1783252091583-3m59zw-ws-doc-5,test-matter-ci-1783252091583-3m59zw-ws,Document 5,"",draft,2026-07-05 11:48:11.738,2026-07-05 11:48:11.738
+543803d9-445d-479b-9c58-0e22a81c5383,test-matter-ci-1783252091583-3m59zw-ws-doc-6,test-matter-ci-1783252091583-3m59zw-ws,Document 6,"",draft,2026-07-05 11:48:11.739,2026-07-05 11:48:11.739
+789d94ee-1c1b-4e8b-b041-293166d16988,doc-mr7q947d-80dpa1,mock-intake-1783252091781-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 11:48:11.823,2026-07-05 11:48:11.823
+cfd7c832-1ca6-4390-b52c-506435387602,doc-1783252091941,mock-intake-1783252091893-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 11:48:11.942,2026-07-05 11:48:11.942
+b7b1dc05-29b9-472e-a055-97ea42aad55a,doc-orig-1783252091977,mock-intake-1783252091970-cdu,Original Doc,representation,active,2026-07-05 11:48:11.978,2026-07-05 11:48:11.978
+0868e68d-2a21-476b-9c02-bbaac7a93432,doc-mr7q94d7-wxl73s,mock-intake-1783252091970-cdu,代理词（更新）,representation,draft,2026-07-05 11:48:12.014,2026-07-05 11:48:12.014
+fd964d17-21d3-4738-8863-0f0c20c1a83f,doc-mr7q94du-uo4uva,mock-intake-1783252091970-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 11:48:12.019,2026-07-05 11:48:12.019
+72e0fe53-a349-4abd-86d8-d4d471f7afe7,doc-mr7q94gv-p6lpij,mock-intake-1783252092124-idem-chdoc,t,challenge_opinion,draft,2026-07-05 11:48:12.161,2026-07-05 11:48:12.161
+3b978479-f978-4d0f-86d0-661f8b39082b,doc-mr7q94iv-od75en,mock-intake-1783252092189-idem-docup,代理词（更新）,representation,draft,2026-07-05 11:48:12.208,2026-07-05 11:48:12.208
+525d0405-c695-42a9-a20e-f6029fbd19ef,test-document-ws-1783252654420-pqnno5-1-doc-1,test-document-ws-1783252654420-pqnno5-1,Doc 1,contract,draft,2026-07-05 11:57:34.546,2026-07-05 11:57:34.546
+93dfa610-0755-41a1-9002-08b399d40319,test-matter-ci-1783252654420-tutcbt-ws-doc-1,test-matter-ci-1783252654420-tutcbt-ws,Document 1,"",draft,2026-07-05 11:57:34.581,2026-07-05 11:57:34.581
+df92cf73-1243-48d1-8d83-74d268ce19d7,test-matter-ci-1783252654420-tutcbt-ws-doc-2,test-matter-ci-1783252654420-tutcbt-ws,Document 2,"",draft,2026-07-05 11:57:34.584,2026-07-05 11:57:34.584
+8bc39936-5359-4656-808b-23ffcdb29c7b,test-matter-ci-1783252654420-tutcbt-ws-doc-3,test-matter-ci-1783252654420-tutcbt-ws,Document 3,"",draft,2026-07-05 11:57:34.586,2026-07-05 11:57:34.586
+3f14a31a-e45a-4349-87dd-ccc4bd69a48b,test-matter-ci-1783252654420-tutcbt-ws-doc-4,test-matter-ci-1783252654420-tutcbt-ws,Document 4,"",draft,2026-07-05 11:57:34.587,2026-07-05 11:57:34.587
+66bd84b5-cfcb-4463-aacb-0a2418da687d,test-matter-ci-1783252654420-tutcbt-ws-doc-5,test-matter-ci-1783252654420-tutcbt-ws,Document 5,"",draft,2026-07-05 11:57:34.59,2026-07-05 11:57:34.59
+a3f577b5-0571-4503-9ee8-4b441c179a72,test-matter-ci-1783252654420-tutcbt-ws-doc-6,test-matter-ci-1783252654420-tutcbt-ws,Document 6,"",draft,2026-07-05 11:57:34.593,2026-07-05 11:57:34.593
+ada97228-a006-48be-a3d9-eecae8b6de03,doc-mr7ql6ir-foou3g,mock-intake-1783252654653-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 11:57:34.666,2026-07-05 11:57:34.666
+41f7c032-b32f-4600-b56c-f6cd3d2973c3,doc-1783252654707,mock-intake-1783252654705-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 11:57:34.707,2026-07-05 11:57:34.707
+24f1dca9-0df4-4e5c-92de-cb0c95d3122c,doc-orig-1783252654717,mock-intake-1783252654716-cdu,Original Doc,representation,active,2026-07-05 11:57:34.718,2026-07-05 11:57:34.718
+e95dba3d-f0ca-41e0-bc38-befb1cd90ead,doc-mr7ql6kg-qvlshe,mock-intake-1783252654716-cdu,代理词（更新）,representation,draft,2026-07-05 11:57:34.782,2026-07-05 11:57:34.782
+cd24b631-afdb-48fa-95d0-b95d879811bc,doc-mr7ql6mb-r63p0o,mock-intake-1783252654716-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 11:57:34.787,2026-07-05 11:57:34.787
+bce63101-6d07-4f75-9cb6-bf114a1b2ae2,doc-mr7ql6q1-elc9og,mock-intake-1783252654908-idem-chdoc,t,challenge_opinion,draft,2026-07-05 11:57:34.942,2026-07-05 11:57:34.942
+9a436c39-bdc7-4834-9f83-d907f3897c4b,doc-mr7ql6qy-z4w0fw,mock-intake-1783252654950-idem-docup,代理词（更新）,representation,draft,2026-07-05 11:57:34.962,2026-07-05 11:57:34.962
+b73dee34-1c23-4f28-a50a-ac593b32fb3a,test-document-ws-1783253028212-q2we31-1-doc-1,test-document-ws-1783253028212-q2we31-1,Doc 1,contract,draft,2026-07-05 12:03:48.32,2026-07-05 12:03:48.32
+844ef3ff-5f32-4d12-babb-f312259cb56a,test-matter-ci-1783253028212-kd7c8t-ws-doc-1,test-matter-ci-1783253028212-kd7c8t-ws,Document 1,"",draft,2026-07-05 12:03:48.364,2026-07-05 12:03:48.364
+f1040c71-2c6e-444e-9ee4-9d77b9f9c7e5,test-matter-ci-1783253028212-kd7c8t-ws-doc-2,test-matter-ci-1783253028212-kd7c8t-ws,Document 2,"",draft,2026-07-05 12:03:48.366,2026-07-05 12:03:48.366
+297ca987-fa89-48be-8103-c00a996f1f9f,test-matter-ci-1783253028212-kd7c8t-ws-doc-3,test-matter-ci-1783253028212-kd7c8t-ws,Document 3,"",draft,2026-07-05 12:03:48.367,2026-07-05 12:03:48.367
+4483ecb4-fbeb-47fd-9b2a-3150c3e092a8,test-matter-ci-1783253028212-kd7c8t-ws-doc-4,test-matter-ci-1783253028212-kd7c8t-ws,Document 4,"",draft,2026-07-05 12:03:48.368,2026-07-05 12:03:48.368
+ede40f70-34d7-4e21-a44c-4dfdc31bc8c1,test-matter-ci-1783253028212-kd7c8t-ws-doc-5,test-matter-ci-1783253028212-kd7c8t-ws,Document 5,"",draft,2026-07-05 12:03:48.37,2026-07-05 12:03:48.37
+f73e0ac4-0b36-4ab8-8c68-ce5708ac7005,test-matter-ci-1783253028212-kd7c8t-ws-doc-6,test-matter-ci-1783253028212-kd7c8t-ws,Document 6,"",draft,2026-07-05 12:03:48.371,2026-07-05 12:03:48.371
+32a27ffd-45df-45e8-9ea2-71142dae8719,doc-mr7qt6wl-nvmkhv,mock-intake-1783253028401-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 12:03:48.414,2026-07-05 12:03:48.414
+952c0b9f-1220-4461-b95a-8af15026e298,doc-1783253028449,mock-intake-1783253028448-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 12:03:48.45,2026-07-05 12:03:48.45
+11be5b6f-2202-47fd-ae11-ea4d4fa57600,doc-orig-1783253028461,mock-intake-1783253028460-cdu,Original Doc,representation,active,2026-07-05 12:03:48.462,2026-07-05 12:03:48.462
+78adf935-d929-4816-9ff3-ac45f4335ef8,doc-mr7qt6y9-i36jrk,mock-intake-1783253028460-cdu,代理词（更新）,representation,draft,2026-07-05 12:03:48.491,2026-07-05 12:03:48.491
+6ba37091-be21-41a0-905b-8809f696a246,doc-mr7qt6za-zamgmk,mock-intake-1783253028460-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 12:03:48.503,2026-07-05 12:03:48.503
+76a818d8-9663-4e85-9bc2-e334a79b82fd,doc-mr7qt74a-zkj8i1,mock-intake-1783253028678-idem-chdoc,t,challenge_opinion,draft,2026-07-05 12:03:48.687,2026-07-05 12:03:48.687
+942c73fe-b991-4cd2-9da5-aa895a7a5bc2,doc-mr7qt74z-8j2ip8,mock-intake-1783253028704-idem-docup,代理词（更新）,representation,draft,2026-07-05 12:03:48.714,2026-07-05 12:03:48.714
+d9cde339-f7a8-443b-9d5d-c1eea7b8db5f,test-document-ws-1783263027605-p004iw-1-doc-1,test-document-ws-1783263027605-p004iw-1,Doc 1,contract,draft,2026-07-05 14:50:27.71,2026-07-05 14:50:27.71
+bf59fae8-e656-446a-8ccb-75520f743d3d,doc-mrco4drt-n9sjcv,m-mrco3mr5-1wco4a,raw,raw,draft,2026-07-08 22:47:22.555,2026-07-08 22:47:22.555
+5b9ac6a1-834e-488b-95bf-102442db2211,test-matter-ci-1783263027605-rxrcvr-ws-doc-1,test-matter-ci-1783263027605-rxrcvr-ws,Document 1,"",draft,2026-07-05 14:50:27.75,2026-07-05 14:50:27.75
+7178d786-c9a3-4265-bbf7-88f2b59bfec0,test-matter-ci-1783263027605-rxrcvr-ws-doc-2,test-matter-ci-1783263027605-rxrcvr-ws,Document 2,"",draft,2026-07-05 14:50:27.752,2026-07-05 14:50:27.752
+f5c4a97c-d9ce-4ad2-ad84-30fb4f2d2f80,test-matter-ci-1783263027605-rxrcvr-ws-doc-3,test-matter-ci-1783263027605-rxrcvr-ws,Document 3,"",draft,2026-07-05 14:50:27.754,2026-07-05 14:50:27.754
+ecb83885-110a-46be-be37-29bf5cf04cce,test-matter-ci-1783263027605-rxrcvr-ws-doc-4,test-matter-ci-1783263027605-rxrcvr-ws,Document 4,"",draft,2026-07-05 14:50:27.755,2026-07-05 14:50:27.755
+397fd9b0-6f4c-41f7-8fed-c941cc00f544,test-matter-ci-1783263027605-rxrcvr-ws-doc-5,test-matter-ci-1783263027605-rxrcvr-ws,Document 5,"",draft,2026-07-05 14:50:27.756,2026-07-05 14:50:27.756
+a04afbeb-3b47-482b-8686-84187742e5b9,test-matter-ci-1783263027605-rxrcvr-ws-doc-6,test-matter-ci-1783263027605-rxrcvr-ws,Document 6,"",draft,2026-07-05 14:50:27.757,2026-07-05 14:50:27.757
+f617489a-5260-439a-bbdf-76df9e3d6a28,doc-mr7wriha-c6dpf4,mock-intake-1783263027786-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 14:50:27.796,2026-07-05 14:50:27.796
+bc80119a-2b59-45cf-a294-3d9405100e46,doc-1783263027826,mock-intake-1783263027824-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 14:50:27.827,2026-07-05 14:50:27.827
+9401a80c-44c1-44c0-a7ac-23ded4c17f28,doc-orig-1783263027843,mock-intake-1783263027841-cdu,Original Doc,representation,active,2026-07-05 14:50:27.844,2026-07-05 14:50:27.844
+240010a5-fd21-4968-80e3-ce3d9d523c58,doc-mr7wrij1-233ub7,mock-intake-1783263027841-cdu,代理词（更新）,representation,draft,2026-07-05 14:50:27.866,2026-07-05 14:50:27.866
+d4f0c1d1-2f91-483a-ad2c-8a900f7c0c7e,doc-mr7wrijf-rjazsq,mock-intake-1783263027841-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 14:50:27.868,2026-07-05 14:50:27.868
+08c93938-e967-4006-a118-58adcf1d8c5d,doc-mr7wrioe-tx8lz9,mock-intake-1783263027992-idem-chdoc,t,challenge_opinion,draft,2026-07-05 14:50:28.063,2026-07-05 14:50:28.063
+3debac79-be77-49af-b8ff-728f4b8f4f74,doc-mr7wrip4-9jf8ww,mock-intake-1783263028070-idem-docup,代理词（更新）,representation,draft,2026-07-05 14:50:28.079,2026-07-05 14:50:28.079
+05906d85-1311-467e-93ad-f4c1770d8b37,test-document-ws-1783263209472-lr8yq2-1-doc-1,test-document-ws-1783263209472-lr8yq2-1,Doc 1,contract,draft,2026-07-05 14:53:29.576,2026-07-05 14:53:29.576
+d0a2d46c-f751-466e-8b79-0643955eb654,test-matter-ci-1783263209473-aemg6j-ws-doc-1,test-matter-ci-1783263209473-aemg6j-ws,Document 1,"",draft,2026-07-05 14:53:29.616,2026-07-05 14:53:29.616
+edd18939-642d-4e76-9ec1-54bcd6c25dfa,test-matter-ci-1783263209473-aemg6j-ws-doc-2,test-matter-ci-1783263209473-aemg6j-ws,Document 2,"",draft,2026-07-05 14:53:29.618,2026-07-05 14:53:29.618
+afb68cc3-1971-435f-b65c-0e71d01edf27,test-matter-ci-1783263209473-aemg6j-ws-doc-3,test-matter-ci-1783263209473-aemg6j-ws,Document 3,"",draft,2026-07-05 14:53:29.62,2026-07-05 14:53:29.62
+f0ae481c-60ac-4eaf-bdbc-00bd5b23f158,test-matter-ci-1783263209473-aemg6j-ws-doc-4,test-matter-ci-1783263209473-aemg6j-ws,Document 4,"",draft,2026-07-05 14:53:29.621,2026-07-05 14:53:29.621
+d577d39f-63c5-461f-9280-43826029d565,test-matter-ci-1783263209473-aemg6j-ws-doc-5,test-matter-ci-1783263209473-aemg6j-ws,Document 5,"",draft,2026-07-05 14:53:29.623,2026-07-05 14:53:29.623
+3c8518ca-7fd4-4c7a-9e44-8d89218061be,test-matter-ci-1783263209473-aemg6j-ws-doc-6,test-matter-ci-1783263209473-aemg6j-ws,Document 6,"",draft,2026-07-05 14:53:29.624,2026-07-05 14:53:29.624
+526fad3f-ebcb-44bb-a062-490305930536,doc-mr7wvetj-7vfw82,mock-intake-1783263209667-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 14:53:29.7,2026-07-05 14:53:29.7
+3fdcb46e-8780-4f65-b1a8-4e7fe59fd8b1,doc-1783263209745,mock-intake-1783263209743-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 14:53:29.746,2026-07-05 14:53:29.746
+5b1d56b7-470b-4105-a15b-cff23da39c88,doc-orig-1783263209873,mock-intake-1783263209871-cdu,Original Doc,representation,active,2026-07-05 14:53:29.873,2026-07-05 14:53:29.873
+a7545343-e3eb-47b9-af81-42fd9b553f87,doc-mr7wveze-4o3oqv,mock-intake-1783263209871-cdu,代理词（更新）,representation,draft,2026-07-05 14:53:29.896,2026-07-05 14:53:29.896
+e1704cbb-cd8d-4a6b-a20d-e1f778a4f059,doc-mr7wvezw-w0cqiz,mock-intake-1783263209871-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 14:53:29.902,2026-07-05 14:53:29.902
+d01e71f8-8352-4d4d-8fc8-91d64f12ba35,doc-mr7wvf2s-cqlc8t,mock-intake-1783263210000-idem-chdoc,t,challenge_opinion,draft,2026-07-05 14:53:30.01,2026-07-05 14:53:30.01
+9e00021e-1f18-4bd2-87df-449b9acc8f3d,doc-mr7wvf3p-r3p78c,mock-intake-1783263210031-idem-docup,代理词（更新）,representation,draft,2026-07-05 14:53:30.067,2026-07-05 14:53:30.067
+5611fca8-c89d-495e-95f7-6a997e0911ef,test-document-ws-1783263347668-5qhknd-1-doc-1,test-document-ws-1783263347668-5qhknd-1,Doc 1,contract,draft,2026-07-05 14:55:47.765,2026-07-05 14:55:47.765
+8cbcb649-665a-45b5-bf60-a97cdb2e3958,test-matter-ci-1783263347668-379scq-ws-doc-1,test-matter-ci-1783263347668-379scq-ws,Document 1,"",draft,2026-07-05 14:55:47.806,2026-07-05 14:55:47.806
+aa36e401-84b3-4422-aa4c-746854497622,test-matter-ci-1783263347668-379scq-ws-doc-2,test-matter-ci-1783263347668-379scq-ws,Document 2,"",draft,2026-07-05 14:55:47.808,2026-07-05 14:55:47.808
+e842e7ad-421f-4cb7-a5c4-aa1e52f02433,test-matter-ci-1783263347668-379scq-ws-doc-3,test-matter-ci-1783263347668-379scq-ws,Document 3,"",draft,2026-07-05 14:55:47.81,2026-07-05 14:55:47.81
+90347cfc-846c-4c7c-bc5e-b91c5db040f8,test-matter-ci-1783263347668-379scq-ws-doc-4,test-matter-ci-1783263347668-379scq-ws,Document 4,"",draft,2026-07-05 14:55:47.811,2026-07-05 14:55:47.811
+1f303e77-8305-4504-af10-aea0385ea99e,test-matter-ci-1783263347668-379scq-ws-doc-5,test-matter-ci-1783263347668-379scq-ws,Document 5,"",draft,2026-07-05 14:55:47.812,2026-07-05 14:55:47.812
+91e07e3d-4502-45f6-835a-bd0790e14f48,test-matter-ci-1783263347668-379scq-ws-doc-6,test-matter-ci-1783263347668-379scq-ws,Document 6,"",draft,2026-07-05 14:55:47.813,2026-07-05 14:55:47.813
+6e83d7cc-3751-431d-94bb-4461878feb11,doc-mr7wydfu-4d800c,mock-intake-1783263347846-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 14:55:47.856,2026-07-05 14:55:47.856
+e718011a-5113-46a0-9bb0-1b425de36649,doc-1783263347887,mock-intake-1783263347885-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 14:55:47.888,2026-07-05 14:55:47.888
+cf4cd9cf-c69c-43d4-b81b-de7aac18e53d,doc-orig-1783263347901,mock-intake-1783263347897-cdu,Original Doc,representation,active,2026-07-05 14:55:47.901,2026-07-05 14:55:47.901
+87632409-c495-4cb6-a64e-c5cb215e2373,doc-mr7wydhc-pfepq0,mock-intake-1783263347897-cdu,代理词（更新）,representation,draft,2026-07-05 14:55:47.916,2026-07-05 14:55:47.916
+7599774e-5d1c-4444-a178-3c3efe46dfd5,doc-mr7wydi0-5r0t05,mock-intake-1783263347897-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 14:55:47.929,2026-07-05 14:55:47.929
+edda8ca9-0bb1-4a07-9754-4ab459116e39,doc-mr7wydnl-9xz7uh,mock-intake-1783263348127-idem-chdoc,t,challenge_opinion,draft,2026-07-05 14:55:48.155,2026-07-05 14:55:48.155
+ce89a6bd-2dd7-4c85-ac5f-c3f05ce7b6f2,doc-mr7wydom-vcffzn,mock-intake-1783263348162-idem-docup,代理词（更新）,representation,draft,2026-07-05 14:55:48.178,2026-07-05 14:55:48.178
+c9baad82-251b-4ac7-bf74-538da3ee0715,test-document-ws-1783263491333-a56lil-1-doc-1,test-document-ws-1783263491333-a56lil-1,Doc 1,contract,draft,2026-07-05 14:58:11.433,2026-07-05 14:58:11.433
+52e32154-7592-4e09-9403-e02732d57a4f,test-matter-ci-1783263491333-2y2ivi-ws-doc-1,test-matter-ci-1783263491333-2y2ivi-ws,Document 1,"",draft,2026-07-05 14:58:11.48,2026-07-05 14:58:11.48
+8542546d-490c-4b74-b495-73ef070f5cc5,test-matter-ci-1783263491333-2y2ivi-ws-doc-2,test-matter-ci-1783263491333-2y2ivi-ws,Document 2,"",draft,2026-07-05 14:58:11.481,2026-07-05 14:58:11.481
+2a28a1a7-52ef-4d64-b76a-5a9bd03a1fd0,test-matter-ci-1783263491333-2y2ivi-ws-doc-3,test-matter-ci-1783263491333-2y2ivi-ws,Document 3,"",draft,2026-07-05 14:58:11.483,2026-07-05 14:58:11.483
+a114d87e-4fb7-4e1e-80ad-318592d21638,test-matter-ci-1783263491333-2y2ivi-ws-doc-4,test-matter-ci-1783263491333-2y2ivi-ws,Document 4,"",draft,2026-07-05 14:58:11.484,2026-07-05 14:58:11.484
+41c064c8-c418-4a97-8b1e-df46ed7b52c1,test-matter-ci-1783263491333-2y2ivi-ws-doc-5,test-matter-ci-1783263491333-2y2ivi-ws,Document 5,"",draft,2026-07-05 14:58:11.485,2026-07-05 14:58:11.485
+07d03bc5-57a3-458f-8e41-880a36892a1a,test-matter-ci-1783263491333-2y2ivi-ws-doc-6,test-matter-ci-1783263491333-2y2ivi-ws,Document 6,"",draft,2026-07-05 14:58:11.486,2026-07-05 14:58:11.486
+9c269f3e-29be-4529-94cd-37f173176c0c,doc-mr7x1gax-clxr72,mock-intake-1783263491525-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 14:58:11.542,2026-07-05 14:58:11.542
+e233da7d-e3d1-46b6-8ee9-e20a8dae797a,doc-1783263491573,mock-intake-1783263491573-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 14:58:11.574,2026-07-05 14:58:11.574
+fb6e7715-7335-4a06-97f2-b83091db85d1,doc-orig-1783263491609,mock-intake-1783263491608-cdu,Original Doc,representation,active,2026-07-05 14:58:11.61,2026-07-05 14:58:11.61
+615ce668-3a88-4c0c-a98d-b0cdabd0a88e,doc-mr7x1gd9-qor4z9,mock-intake-1783263491608-cdu,代理词（更新）,representation,draft,2026-07-05 14:58:11.65,2026-07-05 14:58:11.65
+24874901-765a-4936-9214-de79061375f3,doc-mr7x1geo-0vcfc8,mock-intake-1783263491608-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 14:58:11.665,2026-07-05 14:58:11.665
+895c874f-83b5-499f-9f33-b54d6cd98c74,doc-mr7x1gih-gwxfc4,mock-intake-1783263491798-idem-chdoc,t,challenge_opinion,draft,2026-07-05 14:58:11.808,2026-07-05 14:58:11.808
+ac806694-6b74-4337-99fe-3f875e2790c1,doc-mr7x1giz-rpyf57,mock-intake-1783263491815-idem-docup,代理词（更新）,representation,draft,2026-07-05 14:58:11.827,2026-07-05 14:58:11.827
+d1bf8185-3c0b-43f0-a432-f1511f2f6da3,test-document-ws-1783266899266-3ewwms-1-doc-1,test-document-ws-1783266899266-3ewwms-1,Doc 1,contract,draft,2026-07-05 15:54:59.372,2026-07-05 15:54:59.372
+7b970bad-5743-4a3c-b686-82a15af09175,test-matter-ci-1783266899266-gr9py7-ws-doc-1,test-matter-ci-1783266899266-gr9py7-ws,Document 1,"",draft,2026-07-05 15:54:59.416,2026-07-05 15:54:59.416
+9d7a4874-12b7-42e2-bb5c-5f25ee179c63,test-matter-ci-1783266899266-gr9py7-ws-doc-2,test-matter-ci-1783266899266-gr9py7-ws,Document 2,"",draft,2026-07-05 15:54:59.418,2026-07-05 15:54:59.418
+0644ef56-fd31-4bf1-ad0d-685df60d197b,test-matter-ci-1783266899266-gr9py7-ws-doc-3,test-matter-ci-1783266899266-gr9py7-ws,Document 3,"",draft,2026-07-05 15:54:59.42,2026-07-05 15:54:59.42
+ca54bc16-b82d-4916-9937-219d88a6082b,test-matter-ci-1783266899266-gr9py7-ws-doc-4,test-matter-ci-1783266899266-gr9py7-ws,Document 4,"",draft,2026-07-05 15:54:59.421,2026-07-05 15:54:59.421
+7efcd857-e858-48ce-91f1-c2b1569d7343,test-matter-ci-1783266899266-gr9py7-ws-doc-5,test-matter-ci-1783266899266-gr9py7-ws,Document 5,"",draft,2026-07-05 15:54:59.422,2026-07-05 15:54:59.422
+87846d7b-d611-47d4-a7e1-85d1fc2191f1,test-matter-ci-1783266899266-gr9py7-ws-doc-6,test-matter-ci-1783266899266-gr9py7-ws,Document 6,"",draft,2026-07-05 15:54:59.424,2026-07-05 15:54:59.424
+07499fcc-0a39-42ae-8ab3-91ca1ca03add,doc-mr7z2hvu-j2gcju,mock-intake-1783266899461-confirm-doc,op.pdf,challenge_opinion,draft,2026-07-05 15:54:59.472,2026-07-05 15:54:59.472
+c7083599-3b76-49e4-831c-93242bfb48f6,doc-1783266899551,mock-intake-1783266899549-dus-c,challenge doc,challenge_opinion,draft,2026-07-05 15:54:59.552,2026-07-05 15:54:59.552
+6ae7df7d-6925-48ed-b6a8-8375ba47043d,doc-orig-1783266899615,mock-intake-1783266899583-cdu,Original Doc,representation,active,2026-07-05 15:54:59.616,2026-07-05 15:54:59.616
+9e9f5e11-a002-4f97-9012-e3ae69a116c6,doc-mr7z2i0o-v0hn8w,mock-intake-1783266899583-cdu,代理词（更新）,representation,draft,2026-07-05 15:54:59.653,2026-07-05 15:54:59.653
+c7b2b603-42ac-4925-99ce-e835b9fdf813,doc-mr7z2i13-28aftp,mock-intake-1783266899583-cdu,庭审提纲（更新）,hearing_outline,draft,2026-07-05 15:54:59.656,2026-07-05 15:54:59.656
+33af4fca-ef8b-44cd-a715-32d608986a19,doc-mr7z2i39-lhbes5,mock-intake-1783266899731-idem-chdoc,t,challenge_opinion,draft,2026-07-05 15:54:59.742,2026-07-05 15:54:59.742
+24ad66ea-3fc1-416f-9d80-36bf9f18d307,doc-mr7z2i48-3en261,mock-intake-1783266899761-idem-docup,代理词（更新）,representation,draft,2026-07-05 15:54:59.806,2026-07-05 15:54:59.806
+c76848ba-6734-4057-ba57-8c03f598b10f,doc-mrcoa92k-04lifh,m-mrco9m97-dbygsz,起诉状,起诉状,draft,2026-07-08 22:51:56.397,2026-07-08 22:51:56.397
+ef5414e7-2aea-467e-a6ec-d543424e548a,doc-mrcoa92n-ukztrc,m-mrco9m97-dbygsz,证据清单,证据清单,draft,2026-07-08 22:51:56.4,2026-07-08 22:51:56.4
+2b1a5dd8-edf5-4570-ab98-a32403bb953b,doc-mrcoa92p-pmhpx4,m-mrco9m97-dbygsz,诉讼策略建议,诉讼策略建议,draft,2026-07-08 22:51:56.401,2026-07-08 22:51:56.401
