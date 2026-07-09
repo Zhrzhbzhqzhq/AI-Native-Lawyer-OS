@@ -44,8 +44,8 @@ export default function RuntimeDashboardPage() {
     async function load() {
       setLoading(true)
       setNotice(null)
-      // For demo matter, skip runtime fetch and use empty local state
-      if (!params.matter_id || String(params.matter_id).startsWith('demo-')) {
+      // If no matter_id provided, do nothing
+      if (!params.matter_id) {
         setRuntime(null)
         setLoading(false)
         return

@@ -35,8 +35,8 @@ export default function ExecutionWorkspacePage() {
     async function load() {
       setLoading(true)
       setError(null)
-      // For demo matter, skip runtime fetch and keep local fallback
-      if (!params.matter_id || String(params.matter_id).startsWith('demo-')) {
+      // If no matter_id provided, keep local fallback
+      if (!params.matter_id) {
         setRuntime(null)
         setLoading(false)
         return
@@ -58,7 +58,7 @@ export default function ExecutionWorkspacePage() {
 
   useEffect(() => {
     async function loadExecution() {
-      if (!params.matter_id || String(params.matter_id).startsWith('demo-')) {
+      if (!params.matter_id) {
         setExecutionRows([])
         return
       }
