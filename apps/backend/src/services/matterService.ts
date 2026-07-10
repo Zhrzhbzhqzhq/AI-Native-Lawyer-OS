@@ -3,6 +3,7 @@ import MatterRepository from '../repositories/matterRepository';
 import TaskRepository from '../repositories/taskRepository';
 import * as matterEngine from './matter/matterEngine';
 import * as stages from './matter/matterStage';
+import type { MatterStage } from './matter/matterStage';
 
 export class MatterService {
   repo: MatterRepository;
@@ -121,6 +122,43 @@ export class MatterService {
     // V1 schema does not contain a persistent `stage` column.
     // Do NOT write `stage` or `status` here. Return a clear signal to caller.
     return { ...result, persisted: false, reason: 'matter_stage_not_persisted_in_v1_schema' }
+  }
+
+  // bootstrapStageTasks: create default tasks for a given stage if missing
+  async bootstrapStageTasks(matter_id: string, stage: MatterStage) {
+    if (!matter_id) throw new Error('matter_id required')
+
+    const matter = await this.repo.findByMatterId(matter_id)
+    if (!matter) throw new Error(`matter not found: ${matter_id}`)
+
+    // determine default titles from engine
+    const titles: string[] = matterEngine.createStageTasks(stage)
+    if (!titles || titles.length === 0) {
+      return { created: [], skipped: [] }
+    }
+
+    const taskRepo = new TaskRepository((this.repo as any).prisma)
+    const existing = await taskRepo.findByMatterId(matter_id)
+    const existingTitles = new Set(Array.isArray(existing) ? existing.map((t: any) => t.title) : [])
+
+    const toCreate = titles.filter(t => !existingTitles.has(t))
+    const created: any[] = []
+    const skipped: string[] = titles.filter(t => existingTitles.has(t))
+
+    for (const title of toCreate) {
+      const taskId = `t-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+      const payload = {
+        task_id: taskId,
+        title,
+        description: '',
+        priority: 'normal',
+        status: 'ready_to_start',
+      }
+      const c = await taskRepo.create({ ...payload, matter_id })
+      created.push(c)
+    }
+
+    return { created, skipped }
   }
 }
 
