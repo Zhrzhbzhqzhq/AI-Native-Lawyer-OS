@@ -234,8 +234,7 @@ export default function DocumentsWorkspace() {
                             try {
                               const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
                               const url = `${base}/matters/${encodeURIComponent(matterId)}/documents/${encodeURIComponent(docId)}`
-                              const description = String(selectedDocument?.description ?? selectedDocument?.content ?? '')
-                              const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ review: 'approved', description }) })
+                              const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ review: 'approved' }) })
                               if (!res.ok) throw new Error(`status:${res.status}`)
                               const json = await res.json().catch(() => ({}))
                               await fetchDocuments()
@@ -261,8 +260,7 @@ export default function DocumentsWorkspace() {
                             try {
                               const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
                               const url = `${base}/matters/${encodeURIComponent(matterId)}/documents/${encodeURIComponent(docId)}`
-                              const description = String(selectedDocument?.description ?? selectedDocument?.content ?? '')
-                              const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ review: 'revision', description }) })
+                              const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ review: 'revision' }) })
                               if (!res.ok) throw new Error(`status:${res.status}`)
                               const json = await res.json().catch(() => ({}))
                               await fetchDocuments()
