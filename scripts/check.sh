@@ -11,6 +11,8 @@ if command -v pnpm >/dev/null 2>&1; then
   echo "Using pnpm"
   if pnpm -w -s ls @lawdesk/frontend >/dev/null 2>&1; then
     echo "Building frontend..."
+    echo "[check] cleaning frontend .next cache"
+    rm -rf apps/frontend/.next
     pnpm --filter @lawdesk/frontend build
     echo "✅ required check: frontend build passed"
   else
