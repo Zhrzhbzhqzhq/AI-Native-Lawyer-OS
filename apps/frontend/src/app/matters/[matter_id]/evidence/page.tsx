@@ -188,7 +188,10 @@ export default function EvidencePage() {
         try {
             const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
             const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence/${encodeURIComponent(selectedEvidence.id)}`
-            const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ review: action }) })
+            // ensure description is a string; prefer selectedEvidence.description, fall back to notes
+            const description = String((selectedEvidence as any)?.description ?? (selectedEvidence as any)?.notes ?? '')
+            const bodyPayload = { review: action, description }
+            const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bodyPayload) })
             if (!res.ok) throw new Error(`status:${res.status}`)
             const json = await res.json().catch(() => ({}))
             // refresh evidence data
