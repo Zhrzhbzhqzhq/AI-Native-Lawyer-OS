@@ -51,5 +51,3 @@
 {"timestamp":"2026-07-08T17:13:35.965Z","provider":"minimax","model":"MiniMax-M3","duration_ms":5510,"prompt_tokens":301,"completion_tokens":618,"fallback":false,"prompt_version":"v1","context_sizes":{}}
 {"timestamp":"2026-07-08T17:13:42.905Z","provider":"minimax","model":"MiniMax-M3","duration_ms":6938,"prompt_tokens":295,"completion_tokens":616,"fallback":false,"prompt_version":"v1","context_sizes":{}}
 {"timestamp":"2026-07-08T17:13:52.223Z","provider":"minimax","model":"MiniMax-M3","duration_ms":9315,"prompt_tokens":303,"completion_tokens":782,"fallback":false,"prompt_version":"v1","context_sizes":{}}
-{"timestamp":"2026-07-10T01:52:47.880Z","provider":"minimax","model":"MiniMax-M3","duration_ms":0,"prompt_tokens":null,"completion_tokens":null,"fallback":false,"prompt_version":"v1","context_sizes":{}}
-{"timestamp":"2026-07-10T01:52:48.551Z","provider":"minimax","model":"MiniMax-M3","duration_ms":0,"prompt_tokens":null,"completion_tokens":null,"fallback":false,"prompt_version":"v1","context_sizes":{}}
