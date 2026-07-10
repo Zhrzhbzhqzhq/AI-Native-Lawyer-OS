@@ -118,10 +118,9 @@ export class MatterService {
     if (!mappedStage) {
       return { ...result, persisted: false, reason: 'execution stage not persisted in V1' }
     }
-
-    // V1 schema does not contain a persistent `stage` column.
-    // Do NOT write `stage` or `status` here. Return a clear signal to caller.
-    return { ...result, persisted: false, reason: 'matter_stage_not_persisted_in_v1_schema' }
+    // Persist only `stage` (nullable) in V2 migration; do not touch `status`.
+    await this.repo.updateByMatterId(matter_id, { stage: mappedStage } as any)
+    return { ...result, persisted: true }
   }
 
   // bootstrapStageTasks: create default tasks for a given stage if missing

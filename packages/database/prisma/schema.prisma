@@ -14,6 +14,7 @@ model Matter {
   description String
   matter_type String
   status      String
+  stage       String?
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
   closed_at   DateTime?

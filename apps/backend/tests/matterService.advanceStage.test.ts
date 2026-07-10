@@ -37,10 +37,10 @@ describe('MatterService.advanceMatterStage', () => {
         const spy = { called: false as boolean, last: null }
         const svc = makeServiceMock(matter, tasks, spy)
         const out = await svc.advanceMatterStage('m-2', 'TASK_COMPLETED')
-        // Schema does not persist stage in V1 — should not persist
-        expect(out.persisted).toBe(false)
-        expect(out.reason).toBe('matter_stage_not_persisted_in_v1_schema')
-        expect(spy.called).toBe(false)
+        // After migration, should persist stage only
+        expect(out.persisted).toBe(true)
+        expect(spy.called).toBe(true)
+        expect(spy.last.patch).toEqual({ stage: 'evidence_collection' })
     })
 
     it('does not update when nextStage equals currentStage', async () => {
