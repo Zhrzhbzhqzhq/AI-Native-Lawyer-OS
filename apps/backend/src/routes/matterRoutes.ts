@@ -1787,7 +1787,37 @@ export async function matterRoutes(app: FastifyInstance) {
     if (!allowed.includes(String(payload.status))) return reply.code(400).send({ error: 'invalid_status' })
     try {
       const updated = await evidenceService.updateStatus(matter_id, evidence_id, String(payload.status))
-      return reply.code(200).send(updated)
+
+      // If evidence is confirmed/completed (accepted), try to transition the related "证据整理" task
+      let task_transitioned = false
+      let task_status: string | undefined = undefined
+      try {
+        if (String(payload.status) === 'accepted') {
+          // find the task titled exactly '证据整理' under the matter
+          const tasks = await taskService.listByMatter(matter_id)
+          const target = Array.isArray(tasks) ? tasks.find((t: any) => String(t.title || '') === '证据整理') : null
+          if (target) {
+            const current = String(target.status || '')
+            // do not re-transition if already in these end states
+            if (!['waiting_lawyer', 'finalized', 'completed'].includes(current)) {
+              // attempt transition via TaskService to preserve state machine rules
+              try {
+                const next = await taskService.transitionTaskStatus(target.task_id, 'AI_FINISHED')
+                task_transitioned = true
+                task_status = next
+              } catch (e: any) {
+                // invalid transition should be surfaced as a clear business error
+                return reply.code(400).send({ error: 'invalid_task_transition' })
+              }
+            }
+          }
+        }
+      } catch (e: any) {
+        // ensure evidence update success is not hidden by unexpected errors
+      }
+
+      const out: any = { ...(updated || {}), task_transitioned, task_status }
+      return reply.code(200).send(out)
     } catch (err: any) {
       if (String(err.message) === 'evidence_not_found') return reply.code(404).send({ error: 'evidence_not_found' })
       if (String(err.message) === 'invalid_status') return reply.code(400).send({ error: 'invalid_status' })
