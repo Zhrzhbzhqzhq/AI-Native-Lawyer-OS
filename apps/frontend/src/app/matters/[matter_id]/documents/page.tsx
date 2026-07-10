@@ -37,6 +37,8 @@ export default function DocumentsWorkspace() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingPatch, setEditingPatch] = useState<any>({})
   const [savingEdit, setSavingEdit] = useState(false)
+  const [reviewLoading, setReviewLoading] = useState<boolean>(false)
+  const [reviewMessage, setReviewMessage] = useState<string | null>(null)
   // AI suggestions state
   const [suggestions, setSuggestions] = useState<Array<{ id?: string; title: string; document_type?: string; content?: string }>>([])
   const [analyzing, setAnalyzing] = useState<boolean>(false)
@@ -224,7 +226,63 @@ export default function DocumentsWorkspace() {
                           <button onClick={() => startEdit(selectedDocument)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #e6eef6', background: '#fff', fontSize: 12 }}>编辑</button>
                           <button onClick={() => docId && deleteDoc(docId)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #fee2e2', background: '#fff', color: '#b91c1c', fontSize: 12 }}>删除</button>
                         </div>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <button disabled={!docId || reviewLoading} onClick={async () => {
+                            if (!docId) return
+                            setReviewMessage(null)
+                            setReviewLoading(true)
+                            try {
+                              const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
+                              const url = `${base}/matters/${encodeURIComponent(matterId)}/documents/${encodeURIComponent(docId)}`
+                              const description = String(selectedDocument?.description ?? selectedDocument?.content ?? '')
+                              const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ review: 'approved', description }) })
+                              if (!res.ok) throw new Error(`status:${res.status}`)
+                              const json = await res.json().catch(() => ({}))
+                              await fetchDocuments()
+                              setReviewMessage('已审核通过')
+                              if (json && typeof json.task_status === 'string') {
+                                const map: Record<string, string> = { waiting_lawyer: '等待律师确认', approved: '已通过', revision_requested: '需要修改', ai_revising: 'AI 修改中', finalized: '已归档', completed: '已完成' }
+                                const label = map[String(json.task_status)]
+                                if (label) setReviewMessage((m) => (m ? `${m} · 任务状态：${label}` : `任务状态：${label}`))
+                              }
+                            } catch (e) {
+                              console.error(e)
+                              setReviewMessage('审核操作失败，请重试')
+                            } finally {
+                              setReviewLoading(false)
+                              setTimeout(() => setReviewMessage(null), 4000)
+                            }
+                          }} style={{ padding: '8px 12px', borderRadius: 6, background: '#fff', border: '1px solid #e6eef6', fontSize: 12 }}>审核通过</button>
+
+                          <button disabled={!docId || reviewLoading} onClick={async () => {
+                            if (!docId) return
+                            setReviewMessage(null)
+                            setReviewLoading(true)
+                            try {
+                              const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
+                              const url = `${base}/matters/${encodeURIComponent(matterId)}/documents/${encodeURIComponent(docId)}`
+                              const description = String(selectedDocument?.description ?? selectedDocument?.content ?? '')
+                              const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ review: 'revision', description }) })
+                              if (!res.ok) throw new Error(`status:${res.status}`)
+                              const json = await res.json().catch(() => ({}))
+                              await fetchDocuments()
+                              setReviewMessage('已提交修改意见')
+                              if (json && typeof json.task_status === 'string') {
+                                const map: Record<string, string> = { waiting_lawyer: '等待律师确认', approved: '已通过', revision_requested: '需要修改', ai_revising: 'AI 修改中', finalized: '已归档', completed: '已完成' }
+                                const label = map[String(json.task_status)]
+                                if (label) setReviewMessage((m) => (m ? `${m} · 任务状态：${label}` : `任务状态：${label}`))
+                              }
+                            } catch (e) {
+                              console.error(e)
+                              setReviewMessage('审核操作失败，请重试')
+                            } finally {
+                              setReviewLoading(false)
+                              setTimeout(() => setReviewMessage(null), 4000)
+                            }
+                          }} style={{ padding: '8px 12px', borderRadius: 6, background: '#fff', border: '1px solid #e6eef6', fontSize: 12 }}>要求修改</button>
+                        </div>
                       </div>
+                      {reviewMessage ? <div style={{ marginTop: 8, color: reviewMessage === '审核操作失败，请重试' ? '#b91c1c' : '#111827' }}>{reviewMessage}</div> : null}
 
                       {!editingId || editingId !== docId ? (
                         <div style={{ marginTop: 8, padding: 8, borderRadius: 6, background: '#fff' }}>
@@ -273,46 +331,48 @@ export default function DocumentsWorkspace() {
         </div>
 
         {/* Create dialog */}
-        {showCreate ? (
-          <div style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ width: 560, background: '#fff', borderRadius: 8, padding: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontWeight: 800 }}>新建文书</div>
-                <div><button onClick={() => { setShowCreate(false) }} style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}>关闭</button></div>
-              </div>
+        {
+          showCreate ? (
+            <div style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 560, background: '#fff', borderRadius: 8, padding: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: 800 }}>新建文书</div>
+                  <div><button onClick={() => { setShowCreate(false) }} style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}>关闭</button></div>
+                </div>
 
-              <div style={{ marginTop: 12 }}>
-                <div style={{ fontWeight: 700, marginBottom: 6 }}>标题</div>
-                <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
-              </div>
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontWeight: 700, marginBottom: 6 }}>标题</div>
+                  <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
+                </div>
 
-              <div style={{ marginTop: 12 }}>
-                <div style={{ fontWeight: 700, marginBottom: 6 }}>类型（可选）</div>
-                <input value={newType} onChange={(e) => setNewType(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
-              </div>
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontWeight: 700, marginBottom: 6 }}>类型（可选）</div>
+                  <input value={newType} onChange={(e) => setNewType(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
+                </div>
 
-              <div style={{ marginTop: 12 }}>
-                <div style={{ fontWeight: 700, marginBottom: 6 }}>正文</div>
-                <textarea value={newContent} onChange={(e) => setNewContent(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6', minHeight: 160 }} />
-              </div>
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontWeight: 700, marginBottom: 6 }}>正文</div>
+                  <textarea value={newContent} onChange={(e) => setNewContent(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6', minHeight: 160 }} />
+                </div>
 
-              <div style={{ marginTop: 12 }}>
-                <div style={{ fontWeight: 700, marginBottom: 6 }}>状态</div>
-                <select value={newStatus} onChange={(e) => setNewStatus(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }}>
-                  <option value="draft">draft</option>
-                  <option value="completed">completed</option>
-                  <option value="need_review">need_review</option>
-                  <option value="archived">archived</option>
-                </select>
-              </div>
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontWeight: 700, marginBottom: 6 }}>状态</div>
+                  <select value={newStatus} onChange={(e) => setNewStatus(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }}>
+                    <option value="draft">draft</option>
+                    <option value="completed">completed</option>
+                    <option value="need_review">need_review</option>
+                    <option value="archived">archived</option>
+                  </select>
+                </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
-                <button onClick={() => { setShowCreate(false) }} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff' }}>取消</button>
-                <button onClick={() => createDocument()} disabled={creating} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: '#111', color: '#fff' }}>{creating ? '保存中…' : '保存'}</button>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
+                  <button onClick={() => { setShowCreate(false) }} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff' }}>取消</button>
+                  <button onClick={() => createDocument()} disabled={creating} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: '#111', color: '#fff' }}>{creating ? '保存中…' : '保存'}</button>
+                </div>
               </div>
             </div>
-          </div>
-        ) : null}
+          ) : null
+        }
 
         {/* AI Suggestions area */}
         <div style={{ maxWidth: 1200, margin: '12px auto 0', display: 'flex', justifyContent: 'flex-end' }}>
@@ -378,7 +438,7 @@ export default function DocumentsWorkspace() {
         <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
           <div style={{ width: 720, maxWidth: '90%', padding: 16, borderRadius: 10, background: '#f3f4f6', color: '#111827', textAlign: 'center', fontWeight: 800 }}>办案主流程已完成</div>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   )
 }

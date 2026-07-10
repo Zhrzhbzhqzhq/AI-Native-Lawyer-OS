@@ -62,7 +62,42 @@ export async function matterRoutes(app: FastifyInstance) {
     if (!title) return reply.code(400).send({ error: 'title required' });
     try {
       const created = await documentService.createDocument(matter_id, { title, document_type: String(payload.document_type || ''), content_uri: typeof payload.content_uri === 'string' ? String(payload.content_uri) : undefined, content: typeof payload.content === 'string' ? String(payload.content) : undefined, status: String(payload.status || 'draft'), material_id: typeof payload.material_id === 'string' ? String(payload.material_id) : undefined, evidence_id: typeof payload.evidence_id === 'string' ? String(payload.evidence_id) : undefined, argument_id: typeof payload.argument_id === 'string' ? String(payload.argument_id) : undefined });
-      return reply.code(201).send(created);
+
+      let task_transitioned = false
+      let task_status: string | undefined = undefined
+      try {
+        const tasks = await taskService.listByMatter(matter_id)
+        const target = Array.isArray(tasks) ? tasks.find((t: any) => String(t.title || '') === '法律文书') : null
+        if (target) {
+          const currentStatus = String(target.status || '')
+          if (!['finalized', 'completed'].includes(currentStatus)) {
+            if (String(payload.status || '').toLowerCase() === 'ai_finished' || String(payload.event || '').toUpperCase() === 'AI_FINISHED') {
+              const next = await taskService.transitionTaskStatus(target.task_id, 'AI_FINISHED')
+              task_transitioned = true
+              task_status = next
+            }
+
+            if (payload.review === 'approved') {
+              const next = await taskService.transitionTaskStatus(target.task_id, 'LAWYER_APPROVED')
+              task_transitioned = true
+              task_status = next
+            } else if (payload.review === 'revision') {
+              const next = await taskService.transitionTaskStatus(target.task_id, 'LAWYER_REVISION')
+              task_transitioned = true
+              task_status = next
+            }
+          }
+        }
+      } catch (e: any) {
+        if (String(e.message || '').startsWith('invalid transition') || String(e.message || '').startsWith('illegal transition')) {
+          return reply.code(400).send({ error: 'invalid_task_transition' })
+        }
+      }
+
+      const resBody: any = { created }
+      resBody.task_transitioned = task_transitioned
+      if (task_status) resBody.task_status = task_status
+      return reply.code(201).send(resBody);
     } catch (err: any) {
       return reply.code(500).send({ error: 'create_failed', detail: err?.message || String(err) });
     }
@@ -105,7 +140,45 @@ export async function matterRoutes(app: FastifyInstance) {
     if (Object.keys(patch).length === 0) return reply.code(400).send({ error: 'nothing to update' });
     try {
       const updated = await documentService.updateDocument(document_id, patch);
-      return reply.code(200).send(updated);
+
+      // attempt task transitions similar to research handling
+      let task_transitioned = false
+      let task_status: string | undefined = undefined
+      try {
+        const doc = updated
+        const matter_id = String(doc.matter_id || '')
+        const tasks = await taskService.listByMatter(matter_id)
+        const target = Array.isArray(tasks) ? tasks.find((t: any) => String(t.title || '') === '法律文书') : null
+        if (target) {
+          const currentStatus = String(target.status || '')
+          if (!['finalized', 'completed'].includes(currentStatus)) {
+            if (String(payload.status || '').toLowerCase() === 'ai_finished' || String(payload.event || '').toUpperCase() === 'AI_FINISHED') {
+              const next = await taskService.transitionTaskStatus(target.task_id, 'AI_FINISHED')
+              task_transitioned = true
+              task_status = next
+            }
+
+            if (payload.review === 'approved') {
+              const next = await taskService.transitionTaskStatus(target.task_id, 'LAWYER_APPROVED')
+              task_transitioned = true
+              task_status = next
+            } else if (payload.review === 'revision') {
+              const next = await taskService.transitionTaskStatus(target.task_id, 'LAWYER_REVISION')
+              task_transitioned = true
+              task_status = next
+            }
+          }
+        }
+      } catch (e: any) {
+        if (String(e.message || '').startsWith('invalid transition') || String(e.message || '').startsWith('illegal transition')) {
+          return reply.code(400).send({ error: 'invalid_task_transition' })
+        }
+      }
+
+      const resBody: any = updated
+        ; (resBody as any).task_transitioned = task_transitioned
+      if (task_status) (resBody as any).task_status = task_status
+      return reply.code(200).send(resBody);
     } catch (err: any) {
       if (String(err.message) === 'Not found') return reply.code(404).send({ error: 'not_found' });
       return reply.code(500).send({ error: 'update_failed', detail: err?.message || String(err) });
