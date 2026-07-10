@@ -59,6 +59,9 @@ export default function EvidencePage() {
     const [saveDescriptionError, setSaveDescriptionError] = useState<string | null>(null)
     const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
     const [statusErrorById, setStatusErrorById] = useState<Record<string, string>>({})
+    const [reviewLoading, setReviewLoading] = useState<boolean>(false)
+    const [reviewMessage, setReviewMessage] = useState<string | null>(null)
+    const [reloadKey, setReloadKey] = useState<number>(0)
     // AI suggestions state
     const [suggestions, setSuggestions] = useState<Array<{ title: string; reason: string; id?: string }>>([])
     const [analyzing, setAnalyzing] = useState<boolean>(false)
@@ -150,7 +153,7 @@ export default function EvidencePage() {
         }
         load()
         return () => { cancelled = true }
-    }, [matterId])
+    }, [matterId, reloadKey])
 
     // fetch evidence records (GET /matters/:matter_id/evidence)
     async function fetchEvidence() {
@@ -174,6 +177,48 @@ export default function EvidencePage() {
             return []
         } finally {
             setLoadingEvidence(false)
+        }
+    }
+
+    // perform lawyer review action: 'approved' | 'revision'
+    async function performReview(action: 'approved' | 'revision') {
+        if (!selectedEvidence || !selectedEvidence.id) return
+        setReviewMessage(null)
+        setReviewLoading(true)
+        try {
+            const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
+            const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence/${encodeURIComponent(selectedEvidence.id)}`
+            const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ review: action }) })
+            if (!res.ok) throw new Error(`status:${res.status}`)
+            const json = await res.json().catch(() => ({}))
+            // refresh evidence data
+            try { await fetchEvidence() } catch (e) { }
+            // trigger workspace reload to refresh selected_evidence if backend provided it
+            setReloadKey((k) => k + 1)
+
+            if (action === 'approved') setReviewMessage('已审核通过')
+            else setReviewMessage('已提交修改意见')
+
+            // display task status in Chinese if returned
+            if (json && typeof json.task_status === 'string') {
+                const map: Record<string, string> = {
+                    waiting_lawyer: '等待律师确认',
+                    approved: '已通过',
+                    revision_requested: '需要修改',
+                    ai_revising: 'AI 修改中',
+                    finalized: '已归档',
+                    completed: '已完成',
+                }
+                const label = map[String(json.task_status)]
+                if (label) setReviewMessage((m) => (m ? `${m} · 任务状态：${label}` : `任务状态：${label}`))
+            }
+        } catch (err) {
+            console.error('review failed', err)
+            setReviewMessage('审核操作失败，请重试')
+        } finally {
+            setReviewLoading(false)
+            // clear message after short delay
+            setTimeout(() => setReviewMessage(null), 4000)
         }
     }
 
@@ -604,6 +649,31 @@ export default function EvidencePage() {
                                         <div style={{ marginTop: 6 }}>{selectedEvidence.date}</div>
                                     </div>
                                 </div>
+                                {/* Review actions */}
+                                <div style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
+                                    <div style={{ color: tokens.muted, fontSize: 13, marginRight: 'auto' }} />
+                                    <button
+                                        onClick={async () => {
+                                            if (!hasSelectedEvidence || reviewLoading) return
+                                            await performReview('approved')
+                                        }}
+                                        disabled={!hasSelectedEvidence || reviewLoading}
+                                        style={{ padding: '8px 12px', borderRadius: 8, background: '#fff', border: '1px solid #e6e7eb', color: '#111827' }}
+                                    >
+                                        审核通过
+                                    </button>
+                                    <button
+                                        onClick={async () => {
+                                            if (!hasSelectedEvidence || reviewLoading) return
+                                            await performReview('revision')
+                                        }}
+                                        disabled={!hasSelectedEvidence || reviewLoading}
+                                        style={{ padding: '8px 12px', borderRadius: 8, background: '#fff', border: '1px solid #e6e7eb', color: '#111827' }}
+                                    >
+                                        要求修改
+                                    </button>
+                                </div>
+                                {reviewMessage ? <div style={{ marginTop: 8, color: reviewMessage === '审核操作失败，请重试' ? '#b91c1c' : '#111827' }}>{reviewMessage}</div> : null}
                             </div>
                         </div>
 
