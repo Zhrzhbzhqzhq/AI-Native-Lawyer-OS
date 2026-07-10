@@ -10,6 +10,8 @@ type TodayRuntime = {
     risks: any[]
 }
 
+type EnrichedTask = { nextAction?: string; reason?: string } & Record<string, any>
+
 export class ChiefService {
     matterRepo: MatterRepository
     taskRepo: TaskRepository
@@ -26,16 +28,45 @@ export class ChiefService {
         const grouped = this.group(filtered)
         const sorted = this.sort(grouped)
 
+        // Enrich tasks with nextAction and reason (V1 mapping by status)
+        const enrich = (items: any[] = []) => (items || []).map((it: any) => ({ ...(it || {}), ...this.mapActionForStatus(it?.status) })) as EnrichedTask[]
+
         // V1 fixed ordering when returning object
         const runtime: TodayRuntime = {
-            risks: sorted.risks || [],
-            review: sorted.review || [],
-            ready: sorted.ready || [],
-            handle: sorted.handle || [],
-            completed: sorted.completed || [],
+            risks: enrich(sorted.risks || []),
+            review: enrich(sorted.review || []),
+            ready: enrich(sorted.ready || []),
+            handle: enrich(sorted.handle || []),
+            completed: enrich(sorted.completed || []),
         }
 
         return runtime
+    }
+
+    // Map task.status -> nextAction and reason
+    mapActionForStatus(status?: string) {
+        const s = (status || '').toLowerCase()
+        switch (s) {
+            case 'waiting_lawyer':
+                return { nextAction: '审核工作成果', reason: 'AI 已完成本轮工作，等待律师审核' }
+            case 'ready_to_start':
+                return { nextAction: '同意开始', reason: '资料已具备，可以开始处理' }
+            case 'waiting_materials':
+                return { nextAction: '补充资料', reason: '当前资料不足，暂时无法继续' }
+            case 'revision_requested':
+                return { nextAction: '等待 AI 修正', reason: '律师已提出修改意见' }
+            case 'ai_working':
+                return { nextAction: '查看处理进度', reason: 'AI 正在处理中' }
+            case 'ai_revising':
+                return { nextAction: '查看修正进度', reason: 'AI 正在根据律师意见修正' }
+            case 'approved':
+                return { nextAction: '确认定稿', reason: '律师已审核通过，等待最终定稿' }
+            case 'finalized':
+            case 'completed':
+                return { nextAction: '查看成果', reason: '该项工作已完成' }
+            default:
+                return { nextAction: '进入案件', reason: '查看当前工作状态' }
+        }
     }
 
     // collect tasks across matters

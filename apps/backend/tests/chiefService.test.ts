@@ -49,4 +49,44 @@ describe('ChiefService.generateTodayRuntime', () => {
         // completed -> completed
         expect(out.completed.find((t: any) => t.task_id === 't3')).toBeTruthy()
     })
+
+    it('maps statuses to nextAction and reason with safe fallback', async () => {
+        const matters = [{ matter_id: 'm1' }]
+        const tasksByMatter: any = {
+            m1: [
+                { task_id: 'tw', status: 'waiting_lawyer', priority: 'normal' },
+                { task_id: 'tr', status: 'ready_to_start', priority: 'normal' },
+                { task_id: 'tm', status: 'waiting_materials', priority: 'normal' },
+                { task_id: 'tc', status: 'completed', priority: 'normal' },
+                { task_id: 'tu', status: 'some_unknown_status', priority: 'normal' },
+            ],
+        }
+
+        const svc = makeServiceWithMocks(matters, tasksByMatter)
+        const out = await svc.generateTodayRuntime()
+
+        const all = [...out.risks, ...out.review, ...out.ready, ...out.handle, ...out.completed]
+
+        const find = (id: string) => all.find((t: any) => t.task_id === id)
+
+        const a_tw = find('tw')
+        expect(a_tw).toBeTruthy()
+        expect(a_tw.nextAction).toBe('审核工作成果')
+
+        const a_tr = find('tr')
+        expect(a_tr).toBeTruthy()
+        expect(a_tr.nextAction).toBe('同意开始')
+
+        const a_tm = find('tm')
+        expect(a_tm).toBeTruthy()
+        expect(a_tm.nextAction).toBe('补充资料')
+
+        const a_tc = find('tc')
+        expect(a_tc).toBeTruthy()
+        expect(a_tc.nextAction).toBe('查看成果')
+
+        const a_tu = find('tu')
+        expect(a_tu).toBeTruthy()
+        expect(a_tu.nextAction).toBe('进入案件')
+    })
 })

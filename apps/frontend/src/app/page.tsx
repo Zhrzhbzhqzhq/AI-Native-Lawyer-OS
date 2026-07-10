@@ -246,8 +246,9 @@ export default function HomePage() {
                     <div style={{ fontWeight: 600 }}>{it.title || it.task_title || '未命名'}</div>
                     <div style={{ marginTop: 4, color: '#475569' }}>{it.matter?.title || it.matterTitle || it.matter?.matter_title || it.matter?.matterTitle || it.matter?.title || it.matter?.matter_id || it.matter_id || ''}</div>
                     <div style={{ marginTop: 4, color: '#64748b', fontSize: 13 }}>
-                      状态：{it.status || it.sourceStatus || '-'} · 优先级：{it.priority || '-'} · 更新时间：{formatTime(it.updatedAt || it.updated_at || it.updatedAt || it.updated_at || it.updated_at)}
+                      下一步：{it.nextAction || '-'} · 原因：{it.reason || '-'} · 优先级：{it.priority || '-'}
                     </div>
+                    <div style={{ marginTop: 4, color: '#64748b', fontSize: 13 }}>更新时间：{formatTime(it.updatedAt || it.updated_at || it.updatedAt || it.updated_at || it.updated_at)}</div>
                     <button
                       onClick={() => openMatter(it.matter?.matter_id || it.matterId || it.matter_id)}
                       style={{ marginTop: 8, border: '1px solid #cbd5e1', borderRadius: 8, background: '#fff', padding: '6px 10px', cursor: 'pointer' }}
