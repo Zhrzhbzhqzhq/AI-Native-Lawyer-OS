@@ -64,6 +64,9 @@ export default function ResearchWorkspacePage() {
   const [aiCompleted, setAiCompleted] = useState(false)
 
   // M63: recommended keywords and sites (static suggestions for UI)
+  // review UI state
+  const [reviewPending, setReviewPending] = useState(false)
+  const [reviewMessage, setReviewMessage] = useState<string | null>(null)
   const recommendedKeywords = [
     { id: 'k1', stars: 5, term: '借款事实认定', purpose: '用于确认借款关系是否成立' },
     { id: 'k2', stars: 5, term: '微信聊天记录 借款', purpose: '用于检索聊天记录证明借款合意' },
@@ -882,6 +885,60 @@ export default function ResearchWorkspacePage() {
                 <div style={{ fontWeight: 700 }}>下一步：</div>
                 <div style={{ marginTop: 6, color: lawdesk.muted }}>开始起草法律文书。</div>
                 <div style={{ marginTop: 8, color: lawdesk.muted }}>进入文书工作区后，AI 将基于本次研究结果，协助律师起草第一版法律文书。包括：</div>
+                {/* Review actions: allow lawyer to mark research as approved or request revision */}
+                <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <button
+                    disabled={reviewPending}
+                    onClick={async () => {
+                      try {
+                        setReviewPending(true)
+                        setReviewMessage(null)
+                        const matterId = (params as any)?.matter_id || (params as any)?.id || ''
+                        if (!matterId) return
+                        const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
+                        const payload = { research_id: `ui-review-${Date.now()}`, title: 'lawyer_review', review: 'approved' }
+                        const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/research`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+                        if (res.ok) {
+                          setReviewMessage('已审核通过')
+                        } else {
+                          setReviewMessage('审核操作失败，请重试')
+                        }
+                      } catch (e) {
+                        setReviewMessage('审核操作失败，请重试')
+                      } finally { setReviewPending(false) }
+                    }}
+                    style={{ padding: '8px 12px', borderRadius: 6, background: lawdesk.blue, color: '#fff', border: 'none' }}
+                  >
+                    审核通过
+                  </button>
+
+                  <button
+                    disabled={reviewPending}
+                    onClick={async () => {
+                      try {
+                        setReviewPending(true)
+                        setReviewMessage(null)
+                        const matterId = (params as any)?.matter_id || (params as any)?.id || ''
+                        if (!matterId) return
+                        const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
+                        const payload = { research_id: `ui-review-${Date.now()}`, title: 'lawyer_review', review: 'revision' }
+                        const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/research`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+                        if (res.ok) {
+                          setReviewMessage('已提交修改意见')
+                        } else {
+                          setReviewMessage('审核操作失败，请重试')
+                        }
+                      } catch (e) {
+                        setReviewMessage('审核操作失败，请重试')
+                      } finally { setReviewPending(false) }
+                    }}
+                    style={{ padding: '8px 12px', borderRadius: 6, background: '#f97316', color: '#fff', border: 'none' }}
+                  >
+                    要求修改
+                  </button>
+
+                  {reviewMessage ? <div style={{ marginLeft: 12, color: lawdesk.muted }}>{reviewMessage}</div> : null}
+                </div>
                 <ul style={{ marginTop: 6, color: lawdesk.muted }}>
                   <li>• 自动继承本次检索成果</li>
                   <li>• 自动引用相关法条与案例</li>

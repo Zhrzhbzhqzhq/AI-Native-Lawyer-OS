@@ -482,7 +482,52 @@ export async function matterRoutes(app: FastifyInstance) {
     if (!payload.research_id || !payload.title) return reply.code(400).send({ error: 'research_id and title required' });
     try {
       const created = await researchService.createForMatter(id, payload);
-      return reply.code(201).send(created);
+
+      // optional: handle workflow integrations based on payload
+      // do not fail the research creation if task operations fail
+      let task_transitioned = false
+      let task_status: string | undefined = undefined
+      try {
+        // find task titled '法律检索' in this matter
+        const tasks = await taskService.listByMatter(id)
+        const target = Array.isArray(tasks) ? tasks.find((t: any) => String(t.title || '') === '法律检索') : null
+        if (target) {
+          const currentStatus = String(target.status || '')
+          // if already finalized or completed, do nothing
+          if (['finalized', 'completed'].includes(currentStatus)) {
+            // intentionally no-op
+          } else {
+            // AI finished signal -> trigger AI_FINISHED
+            if (String(payload.status || '').toLowerCase() === 'ai_finished' || String(payload.event || '').toUpperCase() === 'AI_FINISHED') {
+              const next = await taskService.transitionTaskStatus(target.task_id, 'AI_FINISHED')
+              task_transitioned = true
+              task_status = next
+            }
+
+            // lawyer review handling
+            if (payload.review === 'approved') {
+              const next = await taskService.transitionTaskStatus(target.task_id, 'LAWYER_APPROVED')
+              task_transitioned = true
+              task_status = next
+            } else if (payload.review === 'revision') {
+              const next = await taskService.transitionTaskStatus(target.task_id, 'LAWYER_REVISION')
+              task_transitioned = true
+              task_status = next
+            }
+          }
+        }
+      } catch (e: any) {
+        // translate illegal transition to expected 400
+        if (String(e.message || '').startsWith('invalid transition') || String(e.message || '').startsWith('illegal transition')) {
+          return reply.code(400).send({ error: 'invalid_task_transition' })
+        }
+        // otherwise swallow and continue (research creation already succeeded)
+      }
+
+      const resBody: any = { created }
+      resBody.task_transitioned = task_transitioned
+      if (task_status) resBody.task_status = task_status
+      return reply.code(201).send(resBody);
     } catch (err: any) {
       return reply.code(500).send({ error: 'create failed', detail: err?.message || String(err) });
     }
