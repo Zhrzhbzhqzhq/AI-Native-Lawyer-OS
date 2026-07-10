@@ -1,5 +1,8 @@
 import type { PrismaClient } from '@lawdesk/database';
 
+// Derive the correct update `data` type for Matter from the PrismaClient shape
+type MatterUpdateData = Parameters<PrismaClient['matter']['update']>[0]['data'];
+
 export class MatterRepository {
   prisma: PrismaClient;
 
@@ -32,7 +35,7 @@ export class MatterRepository {
     return this.prisma.matter.create({ data: payload as any });
   }
 
-  async updateByMatterId(matter_id: string, patch: Partial<any>) {
+  async updateByMatterId(matter_id: string, patch: MatterUpdateData) {
     // Check existence first to return a predictable result
     const existing = await this.prisma.matter.findFirst({ where: { matter_id } });
     if (!existing) {

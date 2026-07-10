@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import MatterService from '../src/services/matterService'
 import * as stages from '../src/services/matter/matterStage'
 import * as matterEngine from '../src/services/matter/matterEngine'
@@ -37,9 +37,10 @@ describe('MatterService.advanceMatterStage', () => {
         const spy = { called: false as boolean, last: null }
         const svc = makeServiceMock(matter, tasks, spy)
         const out = await svc.advanceMatterStage('m-2', 'TASK_COMPLETED')
-        expect(out.persisted).toBe(true)
-        expect(spy.called).toBe(true)
-        expect(spy.last.patch).toEqual({ status: 'evidence_collection' })
+        // Schema does not persist stage in V1 — should not persist
+        expect(out.persisted).toBe(false)
+        expect(out.reason).toBe('matter_stage_not_persisted_in_v1_schema')
+        expect(spy.called).toBe(false)
     })
 
     it('does not update when nextStage equals currentStage', async () => {
@@ -48,13 +49,12 @@ describe('MatterService.advanceMatterStage', () => {
         const spy = { called: false as boolean }
         const svc = makeServiceMock(matter, tasks, spy)
 
-        // force engine to return same stage
-        const orig = matterEngine.handleEvent
-            ; (matterEngine as any).handleEvent = () => stages.INTAKE
+        // force engine to return same stage via spy
+        const s = vi.spyOn(matterEngine as any, 'handleEvent').mockReturnValue(stages.INTAKE)
         const out = await svc.advanceMatterStage('m-3', 'TASK_COMPLETED')
         expect(out.persisted).toBe(false)
         expect(spy.called).toBe(false)
-            ; (matterEngine as any).handleEvent = orig
+        s.mockRestore()
     })
 
     it('does not persist EXECUTION stage and returns reason', async () => {
@@ -63,13 +63,12 @@ describe('MatterService.advanceMatterStage', () => {
         const spy = { called: false as boolean }
         const svc = makeServiceMock(matter, tasks, spy)
 
-        // force engine to return EXECUTION
-        const orig = matterEngine.handleEvent
-            ; (matterEngine as any).handleEvent = () => stages.EXECUTION
+        // force engine to return EXECUTION via spy
+        const s = vi.spyOn(matterEngine as any, 'handleEvent').mockReturnValue(stages.EXECUTION)
         const out = await svc.advanceMatterStage('m-4', 'TASK_COMPLETED')
         expect(out.persisted).toBe(false)
         expect(out.reason).toMatch(/execution/)
         expect(spy.called).toBe(false)
-            ; (matterEngine as any).handleEvent = orig
+        s.mockRestore()
     })
 })

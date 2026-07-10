@@ -89,8 +89,8 @@ export class MatterService {
       return { ...result, persisted: false }
     }
 
-    // map nextStage back to matter.status string
-    const mapStageToStatus = (stage: string) => {
+    // map nextStage back to matter.stage string (persisted field 'stage' in V1)
+    const mapStageToStage = (stage: string) => {
       switch (stage) {
         case stages.INTAKE:
           return 'intake'
@@ -113,15 +113,14 @@ export class MatterService {
       }
     }
 
-    const mapped = mapStageToStatus(nextStage)
-    if (!mapped) {
+    const mappedStage = mapStageToStage(nextStage)
+    if (!mappedStage) {
       return { ...result, persisted: false, reason: 'execution stage not persisted in V1' }
     }
 
-    // perform minimal update: only update status field via repository
-    await this.repo.updateByMatterId(matter_id, { status: mapped })
-
-    return { ...result, persisted: true }
+    // V1 schema does not contain a persistent `stage` column.
+    // Do NOT write `stage` or `status` here. Return a clear signal to caller.
+    return { ...result, persisted: false, reason: 'matter_stage_not_persisted_in_v1_schema' }
   }
 }
 
