@@ -40,10 +40,10 @@ export class MatterService {
     const matter = await this.repo.findByMatterId(matter_id)
     if (!matter) throw new Error(`matter not found: ${matter_id}`)
 
-    // map Matter.status to MatterStage
-    const mapStatusToStage = (status?: string) => {
-      if (!status) return stages.INTAKE
-      const s = status.toLowerCase()
+    // map a persisted `matter.stage` string to MatterStage (preferred)
+    const mapPersistedStageToStage = (stage?: string) => {
+      if (!stage) return stages.INTAKE
+      const s = stage.toLowerCase()
       if (s === 'intake') return stages.INTAKE
       if (s === 'evidence_collection' || s === 'evidence') return stages.EVIDENCE
       if (s === 'research' || s === 'litigation_preparation') return stages.RESEARCH
@@ -55,7 +55,26 @@ export class MatterService {
       return stages.INTAKE
     }
 
-    const currentStage = mapStatusToStage(matter.status)
+    // map Matter.status to MatterStage as a fallback, but do NOT treat
+    // generic lifecycle statuses (active, accepted, paused, progressing, closed)
+    // as business stages. closed/archived should only map to CLOSED when they
+    // appear in the persisted `matter.stage` field.
+    const mapStatusToStage = (status?: string) => {
+      if (!status) return stages.INTAKE
+      const s = status.toLowerCase()
+      if (s === 'intake') return stages.INTAKE
+      if (s === 'evidence_collection' || s === 'evidence') return stages.EVIDENCE
+      if (s === 'research' || s === 'litigation_preparation') return stages.RESEARCH
+      if (s === 'drafting') return stages.DOCUMENTS
+      if (s === 'litigation' || s === 'trial') return stages.LITIGATION
+      if (s === 'execution') return stages.EXECUTION
+      if (s === 'closing' || s === 'review') return stages.CLOSING
+      // Note: do NOT map 'closed' or 'archived' from status -> stage here
+      return stages.INTAKE
+    }
+
+    // Decide currentStage: prefer persisted `matter.stage` when present.
+    const currentStage = matter.stage ? mapPersistedStageToStage(matter.stage) : mapStatusToStage(matter.status)
 
     // read tasks for this matter (no writes)
     const taskRepo = new TaskRepository((this.repo as any).prisma)
