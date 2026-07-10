@@ -1771,7 +1771,42 @@ export async function matterRoutes(app: FastifyInstance) {
     if (!payload || typeof payload.description !== 'string') return reply.code(400).send({ error: 'description required' })
     try {
       const updated = await evidenceService.updateDescription(matter_id, evidence_id, String(payload.description))
-      return reply.code(200).send(updated)
+
+      // Optional lawyer review: payload.review === 'approved' | 'revision'
+      let task_transitioned = false
+      let task_status: string | undefined = undefined
+      try {
+        if (payload && typeof payload.review === 'string') {
+          const action = String(payload.review).toLowerCase()
+          // find the task titled exactly '证据整理' under the matter
+          const tasks = await taskService.listByMatter(matter_id)
+          const target = Array.isArray(tasks) ? tasks.find((t: any) => String(t.title || '') === '证据整理') : null
+          if (target) {
+            const current = String(target.status || '')
+            // never transition finalized/completed
+            if (!['finalized', 'completed'].includes(current)) {
+              try {
+                if (action === 'approved') {
+                  const next = await taskService.transitionTaskStatus(target.task_id, 'LAWYER_APPROVED')
+                  task_transitioned = true
+                  task_status = next
+                } else if (action === 'revision' || action === 'revise' || action === 'revision_requested') {
+                  const next = await taskService.transitionTaskStatus(target.task_id, 'LAWYER_REVISION')
+                  task_transitioned = true
+                  task_status = next
+                }
+              } catch (e: any) {
+                return reply.code(400).send({ error: 'invalid_task_transition' })
+              }
+            }
+          }
+        }
+      } catch (e: any) {
+        // do not block evidence update on unexpected errors
+      }
+
+      const out: any = { ...(updated || {}), task_transitioned, task_status }
+      return reply.code(200).send(out)
     } catch (err: any) {
       if (String(err.message) === 'evidence_not_found') return reply.code(404).send({ error: 'evidence_not_found' })
       return reply.code(500).send({ error: 'update_failed', detail: err?.message || String(err) })

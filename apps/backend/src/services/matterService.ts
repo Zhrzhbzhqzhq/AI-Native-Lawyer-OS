@@ -137,9 +137,27 @@ export class MatterService {
     if (!mappedStage) {
       return { ...result, persisted: false, reason: 'execution stage not persisted in V1' }
     }
+
     // Persist only `stage` (nullable) in V2 migration; do not touch `status`.
-    await this.repo.updateByMatterId(matter_id, { stage: mappedStage } as any)
-    return { ...result, persisted: true }
+    let updateResult: any = null
+    try {
+      updateResult = await this.repo.updateByMatterId(matter_id, { stage: mappedStage } as any)
+    } catch (err) {
+      // Do not call bootstrap when update fails; surface as not persisted
+      return { ...result, persisted: false, reason: 'matter_stage_update_failed', cause: err }
+    }
+
+    // If persisted successfully, attempt to bootstrap tasks for the new stage.
+    // Use existing bootstrapStageTasks logic; it will skip already-existing tasks.
+    try {
+      const bootstrapResult = await this.bootstrapStageTasks(matter_id, nextStage)
+      return { ...result, persisted: true, bootstrap: bootstrapResult }
+    } catch (err) {
+      // Per spec: do NOT rollback stage; surface explicit error with cause
+      const e: any = new Error('matter_stage_persisted_but_task_bootstrap_failed')
+      e.cause = err
+      throw e
+    }
   }
 
   // bootstrapStageTasks: create default tasks for a given stage if missing
