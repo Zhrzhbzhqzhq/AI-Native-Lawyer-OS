@@ -124,6 +124,80 @@ describe('document -> task transition', () => {
         const unchanged = await prisma.task.findUnique({ where: { task_id: task.task_id } })
         expect(unchanged?.status).toBe('waiting_lawyer')
     })
+
+    it('review-only approved -> 200 and task approved', async () => {
+        const task = await prisma.task.create({ data: { task_id: `t-${RUN_ID}-11`, matter_id: testMatterId, title: '法律文书', description: 'waiting for lawyer', priority: 'normal', status: 'waiting_lawyer' } })
+        // create document
+        const created = await app.inject({ method: 'POST', url: `/matters/${testMatterId}/documents`, payload: { title: `DR-${RUN_ID}`, document_type: 'memo', status: 'draft', content: 'verify' } })
+        expect(created.statusCode).toBe(201)
+        const body = JSON.parse(created.body)
+        const docId = body.created?.document_id || body.created?.id
+
+        const res = await app.inject({ method: 'PATCH', url: `/matters/${testMatterId}/documents/${docId}`, payload: { review: 'approved' } })
+        expect(res.statusCode).toBe(200)
+        const resp = JSON.parse(res.body)
+        expect(resp.task_transitioned).toBe(true)
+        expect(resp.task_status).toBe('approved')
+
+        const updated = await prisma.task.findUnique({ where: { task_id: task.task_id } })
+        expect(updated?.status).toBe('approved')
+    })
+
+    it('review-only revision -> 200 and task revision_requested', async () => {
+        const task = await prisma.task.create({ data: { task_id: `t-${RUN_ID}-12`, matter_id: testMatterId, title: '法律文书', description: 'waiting for lawyer', priority: 'normal', status: 'waiting_lawyer' } })
+        const created = await app.inject({ method: 'POST', url: `/matters/${testMatterId}/documents`, payload: { title: `DR2-${RUN_ID}`, document_type: 'memo', status: 'draft', content: 'verify' } })
+        expect(created.statusCode).toBe(201)
+        const body = JSON.parse(created.body)
+        const docId = body.created?.document_id || body.created?.id
+
+        const res = await app.inject({ method: 'PATCH', url: `/matters/${testMatterId}/documents/${docId}`, payload: { review: 'revision' } })
+        expect(res.statusCode).toBe(200)
+        const resp = JSON.parse(res.body)
+        expect(resp.task_transitioned).toBe(true)
+        expect(resp.task_status).toBe('revision_requested')
+
+        const updated = await prisma.task.findUnique({ where: { task_id: task.task_id } })
+        expect(updated?.status).toBe('revision_requested')
+    })
+
+    it('empty body -> 400 nothing to update', async () => {
+        const created = await app.inject({ method: 'POST', url: `/matters/${testMatterId}/documents`, payload: { title: `DR3-${RUN_ID}`, document_type: 'memo', status: 'draft', content: 'verify' } })
+        expect(created.statusCode).toBe(201)
+        const body = JSON.parse(created.body)
+        const docId = body.created?.document_id || body.created?.id
+
+        const res = await app.inject({ method: 'PATCH', url: `/matters/${testMatterId}/documents/${docId}`, payload: {} })
+        expect(res.statusCode).toBe(400)
+        const resp = JSON.parse(res.body)
+        expect(resp.error).toBe('nothing to update')
+    })
+
+    it('illegal review -> 400', async () => {
+        const created = await app.inject({ method: 'POST', url: `/matters/${testMatterId}/documents`, payload: { title: `DR4-${RUN_ID}`, document_type: 'memo', status: 'draft', content: 'verify' } })
+        expect(created.statusCode).toBe(201)
+        const body = JSON.parse(created.body)
+        const docId = body.created?.document_id || body.created?.id
+
+        const res = await app.inject({ method: 'PATCH', url: `/matters/${testMatterId}/documents/${docId}`, payload: { review: 'invalid_value' } })
+        expect(res.statusCode).toBe(400)
+        const resp = JSON.parse(res.body)
+        expect(resp.error).toBe('invalid_review')
+    })
+
+    it('does not transition when task finalized or completed (patch review-only)', async () => {
+        const taskF = await prisma.task.create({ data: { task_id: `t-${RUN_ID}-13`, matter_id: testMatterId, title: '法律文书', description: 'finalized', priority: 'normal', status: 'finalized' } })
+        const createdF = await app.inject({ method: 'POST', url: `/matters/${testMatterId}/documents`, payload: { title: `DRF-${RUN_ID}`, document_type: 'memo', status: 'draft', content: 'verify' } })
+        expect(createdF.statusCode).toBe(201)
+        const bodyF = JSON.parse(createdF.body)
+        const docIdF = bodyF.created?.document_id || bodyF.created?.id
+
+        const resF = await app.inject({ method: 'PATCH', url: `/matters/${testMatterId}/documents/${docIdF}`, payload: { review: 'approved' } })
+        expect(resF.statusCode).toBe(200)
+        const respF = JSON.parse(resF.body)
+        expect(respF.task_transitioned).toBe(false)
+        const unchangedF = await prisma.task.findUnique({ where: { task_id: taskF.task_id } })
+        expect(unchangedF?.status).toBe('finalized')
+    })
 })
 
 export { }

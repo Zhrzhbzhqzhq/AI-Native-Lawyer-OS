@@ -137,9 +137,25 @@ export async function matterRoutes(app: FastifyInstance) {
     if (typeof payload.material_id === 'string') patch.material_id = String(payload.material_id);
     if (typeof payload.evidence_id === 'string') patch.evidence_id = String(payload.evidence_id);
     if (typeof payload.argument_id === 'string') patch.argument_id = String(payload.argument_id);
-    if (Object.keys(patch).length === 0) return reply.code(400).send({ error: 'nothing to update' });
+    const hasPatch = Object.keys(patch).length > 0
+    const review = typeof payload.review === 'string' ? String(payload.review) : undefined
+    const allowedReviews = ['approved', 'revision']
+
+    if (!hasPatch) {
+      // no updatable document fields — allow review-only when valid
+      if (!review) return reply.code(400).send({ error: 'nothing to update' });
+      if (!allowedReviews.includes(review)) return reply.code(400).send({ error: 'invalid_review' });
+    }
     try {
-      const updated = await documentService.updateDocument(document_id, patch);
+      let updated: any
+      if (hasPatch) {
+        updated = await documentService.updateDocument(document_id, patch);
+      } else {
+        // review-only: fetch existing document without modifying it
+        const doc = await documentService.getDocument(document_id)
+        if (!doc) return reply.code(404).send({ error: 'not_found' })
+        updated = doc
+      }
 
       // attempt task transitions similar to research handling
       let task_transitioned = false
