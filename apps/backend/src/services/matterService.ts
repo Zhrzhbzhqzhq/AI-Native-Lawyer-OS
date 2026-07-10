@@ -72,6 +72,57 @@ export class MatterService {
       stageTasks,
     }
   }
+
+  // advanceMatterStage: persist stage when engine indicates safe to advance
+  async advanceMatterStage(matter_id: string, event: string) {
+    if (!matter_id) throw new Error('matter_id required')
+
+    const result = await this.processMatterEvent(matter_id, event)
+
+    if (!result.shouldAdvance) {
+      return { ...result, persisted: false }
+    }
+
+    const { nextStage, currentStage } = result
+
+    if (nextStage === currentStage) {
+      return { ...result, persisted: false }
+    }
+
+    // map nextStage back to matter.status string
+    const mapStageToStatus = (stage: string) => {
+      switch (stage) {
+        case stages.INTAKE:
+          return 'intake'
+        case stages.EVIDENCE:
+          return 'evidence_collection'
+        case stages.RESEARCH:
+          return 'litigation_preparation'
+        case stages.DOCUMENTS:
+          return 'drafting'
+        case stages.LITIGATION:
+          return 'litigation'
+        case stages.EXECUTION:
+          return null // unsupported in V1
+        case stages.CLOSING:
+          return 'closing'
+        case stages.CLOSED:
+          return 'closed'
+        default:
+          return 'intake'
+      }
+    }
+
+    const mapped = mapStageToStatus(nextStage)
+    if (!mapped) {
+      return { ...result, persisted: false, reason: 'execution stage not persisted in V1' }
+    }
+
+    // perform minimal update: only update status field via repository
+    await this.repo.updateByMatterId(matter_id, { status: mapped })
+
+    return { ...result, persisted: true }
+  }
 }
 
 export default MatterService;
