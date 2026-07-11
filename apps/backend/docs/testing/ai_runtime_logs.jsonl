@@ -65,3 +65,5 @@
 {"timestamp":"2026-07-11T13:24:03.101Z","provider":"minimax","model":"MiniMax-M3","duration_ms":1,"prompt_tokens":null,"completion_tokens":null,"fallback":false,"prompt_version":"v1","context_sizes":{}}
 {"timestamp":"2026-07-11T13:24:47.116Z","provider":"minimax","model":"MiniMax-M3","duration_ms":0,"prompt_tokens":null,"completion_tokens":null,"fallback":false,"prompt_version":"v1","context_sizes":{}}
 {"timestamp":"2026-07-11T13:24:47.766Z","provider":"minimax","model":"MiniMax-M3","duration_ms":0,"prompt_tokens":null,"completion_tokens":null,"fallback":false,"prompt_version":"v1","context_sizes":{}}
+{"timestamp":"2026-07-11T13:28:38.385Z","provider":"minimax","model":"MiniMax-M3","duration_ms":0,"prompt_tokens":null,"completion_tokens":null,"fallback":false,"prompt_version":"v1","context_sizes":{}}
+{"timestamp":"2026-07-11T13:28:39.050Z","provider":"minimax","model":"MiniMax-M3","duration_ms":1,"prompt_tokens":null,"completion_tokens":null,"fallback":false,"prompt_version":"v1","context_sizes":{}}
