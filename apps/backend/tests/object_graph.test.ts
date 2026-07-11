@@ -21,7 +21,7 @@ beforeAll(async () => {
 
   await prisma.aiRecord.deleteMany({ where: { ai_record_id: { startsWith: `test-conv-graph-${RUN_ID}` } } })
   await prisma.task.deleteMany({ where: { task_id: { startsWith: `test-task-graph-${RUN_ID}` } } })
-  await prisma.document.deleteMany({ where: { document_id: { startsWith: `test-doc-graph-${RUN_ID}` } } })
+  await prisma.document.deleteMany({ where: { matter_id: testMatterId } }).catch(() => { })
   await prisma.knowledge.deleteMany({ where: { knowledge_id: { startsWith: `test-res-graph-${RUN_ID}` } } })
   await prisma.evidence.deleteMany({ where: { evidence_id: { startsWith: `test-evi-graph-${RUN_ID}` } } })
   await prisma.material.deleteMany({ where: { material_id: { startsWith: `test-mat-graph-${RUN_ID}` } } })
@@ -42,7 +42,7 @@ beforeAll(async () => {
 afterAll(async () => {
   await prisma.aiRecord.deleteMany({ where: { ai_record_id: { startsWith: `test-conv-graph-${RUN_ID}` } } })
   await prisma.task.deleteMany({ where: { task_id: { startsWith: `test-task-graph-${RUN_ID}` } } })
-  await prisma.document.deleteMany({ where: { document_id: { startsWith: `test-doc-graph-${RUN_ID}` } } })
+  await prisma.document.deleteMany({ where: { matter_id: testMatterId } }).catch(() => { })
   await prisma.knowledge.deleteMany({ where: { knowledge_id: { startsWith: `test-res-graph-${RUN_ID}` } } })
   await prisma.evidence.deleteMany({ where: { evidence_id: { startsWith: `test-evi-graph-${RUN_ID}` } } })
   await prisma.material.deleteMany({ where: { material_id: { startsWith: `test-mat-graph-${RUN_ID}` } } })
@@ -68,8 +68,10 @@ describe('Object Graph Runtime API', () => {
     const researchId = `test-res-graph-${RUN_ID}-${Date.now()}`
     await app.inject({ method: 'POST', url: `/matters/${mId}/research`, payload: { research_id: researchId, title: 'Research 1' } })
 
-    const documentId = `test-doc-graph-${RUN_ID}-${Date.now()}`
-    await app.inject({ method: 'POST', url: `/matters/${mId}/documents`, payload: { document_id: documentId, title: 'Doc 1' } })
+    const documentIdPayload = `test-doc-graph-${RUN_ID}-${Date.now()}`
+    const docRes = await app.inject({ method: 'POST', url: `/matters/${mId}/documents`, payload: { document_id: documentIdPayload, title: 'Doc 1' } })
+    const createdDoc = JSON.parse(docRes.body).created
+    const documentId = createdDoc?.document_id || documentIdPayload
 
     const taskId = `test-task-graph-${RUN_ID}-${Date.now()}`
     await app.inject({ method: 'POST', url: `/matters/${mId}/tasks`, payload: { task_id: taskId, title: 'Task 1' } })

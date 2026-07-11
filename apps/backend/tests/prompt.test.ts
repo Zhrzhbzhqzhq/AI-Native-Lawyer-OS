@@ -4,7 +4,7 @@ import { createPrismaClient } from '@lawdesk/database'
 
 let app: any
 let prisma: any
-const RUN_ID = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`
+const RUN_ID = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 let testMatterId: string
 
 beforeAll(async () => {
@@ -15,7 +15,7 @@ beforeAll(async () => {
   // cleanup
   await prisma.aiRecord.deleteMany({ where: { ai_record_id: { startsWith: `test-prompt-conv-${RUN_ID}` } } })
   await prisma.task.deleteMany({ where: { task_id: { startsWith: `test-prompt-task-${RUN_ID}` } } })
-  await prisma.document.deleteMany({ where: { document_id: { startsWith: `test-prompt-doc-${RUN_ID}` } } })
+  await prisma.document.deleteMany({ where: { matter_id: testMatterId } }).catch(() => { })
   await prisma.knowledge.deleteMany({ where: { knowledge_id: { startsWith: `test-prompt-res-${RUN_ID}` } } })
   await prisma.evidence.deleteMany({ where: { evidence_id: { startsWith: `test-prompt-evi-${RUN_ID}` } } })
   await prisma.material.deleteMany({ where: { material_id: { startsWith: `test-prompt-mat-${RUN_ID}` } } })
@@ -37,7 +37,7 @@ beforeAll(async () => {
 afterAll(async () => {
   await prisma.aiRecord.deleteMany({ where: { ai_record_id: { startsWith: `test-prompt-conv-${RUN_ID}` } } })
   await prisma.task.deleteMany({ where: { task_id: { startsWith: `test-prompt-task-${RUN_ID}` } } })
-  await prisma.document.deleteMany({ where: { document_id: { startsWith: `test-prompt-doc-${RUN_ID}` } } })
+  await prisma.document.deleteMany({ where: { matter_id: testMatterId } }).catch(() => { })
   await prisma.knowledge.deleteMany({ where: { knowledge_id: { startsWith: `test-prompt-res-${RUN_ID}` } } })
   await prisma.evidence.deleteMany({ where: { evidence_id: { startsWith: `test-prompt-evi-${RUN_ID}` } } })
   await prisma.material.deleteMany({ where: { material_id: { startsWith: `test-prompt-mat-${RUN_ID}` } } })

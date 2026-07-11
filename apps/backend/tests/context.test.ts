@@ -4,7 +4,7 @@ import { createPrismaClient } from '@lawdesk/database'
 
 let app: any
 let prisma: any
-const RUN_ID = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`
+const RUN_ID = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 let testMatterId: string
 
 beforeAll(async () => {
@@ -16,7 +16,7 @@ beforeAll(async () => {
   // delete dependents first to avoid FK constraint failures
   await prisma.aiRecord.deleteMany({ where: { ai_record_id: { startsWith: `test-conv-${RUN_ID}` } } })
   await prisma.task.deleteMany({ where: { task_id: { startsWith: `test-task-${RUN_ID}` } } })
-  await prisma.document.deleteMany({ where: { document_id: { startsWith: `test-doc-${RUN_ID}` } } })
+  await prisma.document.deleteMany({ where: { matter_id: testMatterId } }).catch(() => { })
   await prisma.knowledge.deleteMany({ where: { knowledge_id: { startsWith: `test-res-${RUN_ID}` } } })
   await prisma.evidence.deleteMany({ where: { evidence_id: { startsWith: `test-evi-${RUN_ID}` } } })
   await prisma.material.deleteMany({ where: { material_id: { startsWith: `test-mat-${RUN_ID}` } } })
@@ -30,7 +30,7 @@ afterAll(async () => {
   // delete dependents first to avoid FK constraint failures
   await prisma.aiRecord.deleteMany({ where: { ai_record_id: { startsWith: `test-conv-${RUN_ID}` } } })
   await prisma.task.deleteMany({ where: { task_id: { startsWith: `test-task-${RUN_ID}` } } })
-  await prisma.document.deleteMany({ where: { document_id: { startsWith: `test-doc-${RUN_ID}` } } })
+  await prisma.document.deleteMany({ where: { matter_id: testMatterId } }).catch(() => { })
   await prisma.knowledge.deleteMany({ where: { knowledge_id: { startsWith: `test-res-${RUN_ID}` } } })
   await prisma.evidence.deleteMany({ where: { evidence_id: { startsWith: `test-evi-${RUN_ID}` } } })
   await prisma.material.deleteMany({ where: { material_id: { startsWith: `test-mat-${RUN_ID}` } } })
@@ -60,9 +60,11 @@ describe('Matter Context API', () => {
     const researchId = `test-res-${RUN_ID}-${Date.now()}`
     await app.inject({ method: 'POST', url: `/matters/${mId}/research`, payload: { research_id: researchId, title: 'Research 1' } })
 
-    // document
-    const docId = `test-doc-${RUN_ID}-${Date.now()}`
-    await app.inject({ method: 'POST', url: `/matters/${mId}/documents`, payload: { document_id: docId, title: 'Doc 1' } })
+    // document (capture created id from response)
+    const docIdPayload = `test-doc-${RUN_ID}-${Date.now()}`
+    const docRes = await app.inject({ method: 'POST', url: `/matters/${mId}/documents`, payload: { document_id: docIdPayload, title: 'Doc 1' } })
+    const docCreated = JSON.parse(docRes.body).created
+    const docId = docCreated?.document_id || docIdPayload
 
     // task
     const taskId = `test-task-${RUN_ID}-${Date.now()}`

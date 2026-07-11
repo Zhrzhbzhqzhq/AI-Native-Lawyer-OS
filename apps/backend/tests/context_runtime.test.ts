@@ -14,7 +14,7 @@ beforeAll(async () => {
 
   await prisma.aiRecord.deleteMany({ where: { ai_record_id: { startsWith: `test-conv-ctxrt-${RUN_ID}` } } })
   await prisma.task.deleteMany({ where: { task_id: { startsWith: `test-task-ctxrt-${RUN_ID}` } } })
-  await prisma.document.deleteMany({ where: { document_id: { startsWith: `test-doc-ctxrt-${RUN_ID}` } } })
+  await prisma.document.deleteMany({ where: { matter_id: testMatterId } }).catch(() => { })
   await prisma.knowledge.deleteMany({ where: { knowledge_id: { startsWith: `test-res-ctxrt-${RUN_ID}` } } })
   await prisma.evidence.deleteMany({ where: { evidence_id: { startsWith: `test-evi-ctxrt-${RUN_ID}` } } })
   await prisma.material.deleteMany({ where: { material_id: { startsWith: `test-mat-ctxrt-${RUN_ID}` } } })
@@ -35,7 +35,7 @@ beforeAll(async () => {
 afterAll(async () => {
   await prisma.aiRecord.deleteMany({ where: { ai_record_id: { startsWith: `test-conv-ctxrt-${RUN_ID}` } } })
   await prisma.task.deleteMany({ where: { task_id: { startsWith: `test-task-ctxrt-${RUN_ID}` } } })
-  await prisma.document.deleteMany({ where: { document_id: { startsWith: `test-doc-ctxrt-${RUN_ID}` } } })
+  await prisma.document.deleteMany({ where: { matter_id: testMatterId } }).catch(() => { })
   await prisma.knowledge.deleteMany({ where: { knowledge_id: { startsWith: `test-res-ctxrt-${RUN_ID}` } } })
   await prisma.evidence.deleteMany({ where: { evidence_id: { startsWith: `test-evi-ctxrt-${RUN_ID}` } } })
   await prisma.material.deleteMany({ where: { material_id: { startsWith: `test-mat-ctxrt-${RUN_ID}` } } })
@@ -71,8 +71,12 @@ describe('Context Builder Runtime API', () => {
 
     const docDraftId = `test-doc-ctxrt-${RUN_ID}-draft`
     const docFinalId = `test-doc-ctxrt-${RUN_ID}-final`
-    await app.inject({ method: 'POST', url: `/matters/${mId}/documents`, payload: { document_id: docDraftId, title: 'Doc Draft', status: 'draft' } })
-    await app.inject({ method: 'POST', url: `/matters/${mId}/documents`, payload: { document_id: docFinalId, title: 'Doc Final', status: 'final' } })
+    const dr = await app.inject({ method: 'POST', url: `/matters/${mId}/documents`, payload: { document_id: docDraftId, title: 'Doc Draft', status: 'draft' } })
+    const df = await app.inject({ method: 'POST', url: `/matters/${mId}/documents`, payload: { document_id: docFinalId, title: 'Doc Final', status: 'final' } })
+    const createdDraft = JSON.parse(dr.body).created
+    const createdFinal = JSON.parse(df.body).created
+    const actualDocDraftId = createdDraft?.document_id || docDraftId
+    const actualDocFinalId = createdFinal?.document_id || docFinalId
 
     const convOldId = `test-conv-ctxrt-${RUN_ID}-old`
     const convNewId = `test-conv-ctxrt-${RUN_ID}-new`
@@ -115,7 +119,7 @@ describe('Context Builder Runtime API', () => {
 
     // pendingDocuments: status not in completed/final/archived
     expect(body.pendingDocuments.length).toBe(1)
-    expect(body.pendingDocuments[0].document_id).toBe(docDraftId)
+    expect(body.pendingDocuments[0].document_id).toBe(actualDocDraftId)
 
     // Latest conversation sorted by created_at desc
     expect(body.latestConversation.length).toBeGreaterThanOrEqual(2)
