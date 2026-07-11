@@ -2,6 +2,13 @@ import type { FastifyInstance } from 'fastify'
 import MiniMaxAdapter from '../ai/minimaxAdapter'
 
 export default async function aiRoutes(app: FastifyInstance) {
+    // GET /ai/health - lightweight configuration check (no external calls)
+    app.get('/ai/health', async (request, reply) => {
+        const provider = process.env.AI_PROVIDER || 'minimax'
+        const model = process.env.AI_MODEL || process.env.MINIMAX_MODEL || 'MiniMax-M3'
+        return reply.code(200).send({ configured: true, provider, model })
+    })
+
     app.post('/ai/health-check', async (request, reply) => {
         const provider = process.env.AI_PROVIDER || 'minimax'
         const baseUrlEnv = process.env.MINIMAX_BASE_URL?.replace(/\s+/g, "").trim()
@@ -48,6 +55,43 @@ export default async function aiRoutes(app: FastifyInstance) {
         } catch (err: any) {
             const latency = Date.now() - start
             return reply.code(500).send({ provider, model, base_url: baseUrlEnv, has_api_key: hasApiKey, status: 'error', latency_ms: latency, raw_response: null, error: err?.message || String(err) })
+        }
+    })
+
+    // POST /ai/test - development test endpoint to exercise the configured provider
+    // Accepts { prompt: string } and returns { text, provider, model }
+    app.post('/ai/test', async (request, reply) => {
+        if (process.env.NODE_ENV === 'production') return reply.code(404).send()
+        const body: any = request.body || {}
+        const prompt = String(body.prompt || '').trim()
+        if (!prompt) return reply.code(400).send({ error: 'prompt required' })
+
+        const provider = (process.env.AI_PROVIDER || 'minimax').toLowerCase()
+        const model = process.env.AI_MODEL || process.env.MINIMAX_MODEL || 'MiniMax-M3'
+
+        try {
+            const Adapter = (await import('../ai/minimaxAdapter')).default
+            const adapter = new Adapter()
+            const resp = await adapter.generate({ user_prompt: prompt })
+
+            // extract text from common response shapes
+            let text = ''
+            try {
+                const r = resp && resp.response ? resp.response : null
+                if (r && r.choices && Array.isArray(r.choices) && r.choices[0]) {
+                    const c = r.choices[0]
+                    if (c.message && typeof c.message.content === 'string') text = c.message.content
+                    else if (typeof c.text === 'string') text = c.text
+                }
+            } catch (_e) { text = '' }
+
+            // If adapter fell back to mock, try to surface provider/model hints
+            const outProvider = resp && resp.provider ? resp.provider : provider
+            const outModel = resp && resp.model ? resp.model : model
+
+            return reply.code(200).send({ text, provider: outProvider, model: outModel })
+        } catch (err: any) {
+            return reply.code(500).send({ error: err?.message || String(err) })
         }
     })
 
