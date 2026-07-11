@@ -57,4 +57,54 @@ describe('DocumentPipeline', () => {
         const p = new DocumentPipeline(fakePrisma as any)
         await expect(p.run('m-3')).rejects.toThrow(/draft_save_failed/)
     })
+
+    it('accepts fenced JSON array', async () => {
+        buildSpy.mockResolvedValue({ matter: { matter_id: 'm-4' } })
+        const fenced = '```json\n' + JSON.stringify([{ title: 'T', document_type: 'dt', content: 'c' }]) + '\n```'
+        promptSpy
+            .mockResolvedValueOnce({ text: 'analysis', provider: 'p', model: 'm' })
+            .mockResolvedValueOnce({ text: fenced, provider: 'minimax', model: 'MiniMax-M3' })
+        docCreateSpy.mockResolvedValue({ document_id: 'doc-4' })
+        const p = new DocumentPipeline(fakePrisma as any)
+        const res = await p.run('m-4')
+        expect(res.success).toBe(true)
+        expect(res.draftDocumentId).toBe('doc-4')
+        expect(res.provider).toBe('minimax')
+    })
+
+    it('rejects JSON object (not array)', async () => {
+        buildSpy.mockResolvedValue({ matter: { matter_id: 'm-5' } })
+        promptSpy
+            .mockResolvedValueOnce({ text: 'analysis', provider: 'p', model: 'm' })
+            .mockResolvedValueOnce({ text: JSON.stringify({ title: 'only' }), provider: 'minimax', model: 'MiniMax-M3' })
+        const p = new DocumentPipeline(fakePrisma as any)
+        await expect(p.run('m-5')).rejects.toThrow('document_generation_error')
+    })
+
+    it('rejects empty array', async () => {
+        buildSpy.mockResolvedValue({ matter: { matter_id: 'm-6' } })
+        promptSpy
+            .mockResolvedValueOnce({ text: 'analysis', provider: 'p', model: 'm' })
+            .mockResolvedValueOnce({ text: JSON.stringify([]), provider: 'minimax', model: 'MiniMax-M3' })
+        const p = new DocumentPipeline(fakePrisma as any)
+        await expect(p.run('m-6')).rejects.toThrow('document_generation_error')
+    })
+
+    it('rejects first item with empty content', async () => {
+        buildSpy.mockResolvedValue({ matter: { matter_id: 'm-7' } })
+        promptSpy
+            .mockResolvedValueOnce({ text: 'analysis', provider: 'p', model: 'm' })
+            .mockResolvedValueOnce({ text: JSON.stringify([{ title: 'T', document_type: 'dt', content: '   ' }]), provider: 'minimax', model: 'MiniMax-M3' })
+        const p = new DocumentPipeline(fakePrisma as any)
+        await expect(p.run('m-7')).rejects.toThrow('document_generation_error')
+    })
+
+    it('rejects invalid JSON', async () => {
+        buildSpy.mockResolvedValue({ matter: { matter_id: 'm-8' } })
+        promptSpy
+            .mockResolvedValueOnce({ text: 'analysis', provider: 'p', model: 'm' })
+            .mockResolvedValueOnce({ text: 'not a json', provider: 'minimax', model: 'MiniMax-M3' })
+        const p = new DocumentPipeline(fakePrisma as any)
+        await expect(p.run('m-8')).rejects.toThrow('document_generation_error')
+    })
 })

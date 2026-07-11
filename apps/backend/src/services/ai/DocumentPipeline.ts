@@ -2,6 +2,7 @@ import type { PrismaClient } from '@lawdesk/database'
 import MatterContextBuilder from './context/MatterContextBuilder'
 import PromptRunner from './PromptRunner'
 import DocumentService from '../documentService'
+import parseAIJson from './AIJsonParser'
 
 export default class DocumentPipeline {
     prisma: PrismaClient
@@ -30,19 +31,21 @@ export default class DocumentPipeline {
         const docResp = await this.promptRunner.run({ matterId, promptType: 'document', systemPrompt: analysis.text })
 
         // docResp.text expected to be a JSON array of documents
-        let docs: any
-        try {
-            docs = typeof docResp.text === 'string' ? JSON.parse(docResp.text) : docResp.text
-        } catch (e: any) {
+        const parsed = parseAIJson(docResp.text)
+        if (!parsed.ok) {
             throw new Error('document_generation_error')
         }
+        const docs = parsed.data
 
+        // Strict validation
         if (!Array.isArray(docs) || docs.length === 0) {
             throw new Error('document_generation_error')
         }
-
-        // take first doc as draft
         const first = docs[0]
+        if (!first || typeof first !== 'object') throw new Error('document_generation_error')
+        if (!('title' in first) || !('content' in first)) throw new Error('document_generation_error')
+        if (!first.content || String(first.content).trim().length === 0) throw new Error('document_generation_error')
+        // take first doc as draft
         try {
             const created = await this.documentService.createDocument(context.matter.matter_id, {
                 title: String(first.title || 'Draft Document'),
