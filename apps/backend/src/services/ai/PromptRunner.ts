@@ -1,11 +1,11 @@
 import type { PrismaClient } from '@lawdesk/database'
 import MatterContextBuilder from './context/MatterContextBuilder'
-import { buildEvidencePrompt, buildFactPrompt } from './AIPromptTemplates'
+import { buildEvidencePrompt, buildFactPrompt, buildDocumentPrompt } from './AIPromptTemplates'
 import AIService from './AIService'
 
 export type PromptRunnerInput = {
     matterId: string
-    promptType: 'evidence' | 'research'
+    promptType: 'evidence' | 'research' | 'document'
     systemPrompt?: string
 }
 
@@ -41,6 +41,8 @@ export class PromptRunner {
             promptText = buildEvidencePrompt(context)
         } else if (promptType === 'research') {
             promptText = buildFactPrompt(context)
+        } else if (promptType === 'document') {
+            promptText = buildDocumentPrompt(context)
         } else {
             throw new Error('unsupported_prompt_type')
         }
