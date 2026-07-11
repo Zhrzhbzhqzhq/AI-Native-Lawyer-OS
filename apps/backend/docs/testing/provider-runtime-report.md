@@ -65,5 +65,3 @@
 - Provider: minimax, Model: MiniMax-M3, Matter: -, Duration: 1ms, Fallback: no, PromptVersion: v1
 - Provider: minimax, Model: MiniMax-M3, Matter: -, Duration: 0ms, Fallback: no, PromptVersion: v1
 - Provider: minimax, Model: MiniMax-M3, Matter: -, Duration: 0ms, Fallback: no, PromptVersion: v1
-- Provider: minimax, Model: MiniMax-M3, Matter: -, Duration: 0ms, Fallback: no, PromptVersion: v1
-- Provider: minimax, Model: MiniMax-M3, Matter: -, Duration: 1ms, Fallback: no, PromptVersion: v1
