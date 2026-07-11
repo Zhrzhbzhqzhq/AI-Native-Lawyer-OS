@@ -522,42 +522,9 @@ export async function intakeRoutes(app: FastifyInstance) {
           createdCounts.arguments_count++
         }
 
-        // Documents
-        const docs = Array.isArray(aiRes.steps.documents) ? aiRes.steps.documents : []
-        for (const d of docs.slice(0, 20)) {
-          let title = 'AI doc'
-          let document_type = 'draft'
-
-          // Extract content from common fields returned by AI: prefer `content`, then `body`, then `text`.
-          // If none are present or all are empty, skip creating a document to avoid persisting empty drafts.
-          // Reason: prevent empty draft documents from polluting the database when AI returns metadata only.
-          let contentCandidate: any = null
-          if (typeof d === 'string') {
-            title = String(d).slice(0, 120)
-            contentCandidate = d
-          } else if (d && typeof d === 'object') {
-            title = String(d.type || d.title || 'AI doc')
-            document_type = String(d.type || 'draft')
-            // prefer explicit content fields if present
-            if (typeof d.content === 'string') contentCandidate = d.content
-            else if (typeof d.body === 'string') contentCandidate = d.body
-            else if (typeof d.text === 'string') contentCandidate = d.text
-            else if (d && typeof d === 'object') {
-              // fallback: stringify if object contains meaningful content fields
-              try { contentCandidate = JSON.stringify(d.content || d) } catch (_) { contentCandidate = '' }
-            }
-          }
-
-          const contentStr = (typeof contentCandidate === 'string' ? contentCandidate.trim() : '')
-          if (!contentStr) {
-            // Skip creating a document when AI provided no textual content.
-            // This avoids creating empty draft records like those observed in the audit (M136.1-M136.6).
-            continue
-          }
-
-          await documentService.createForMatter(matter_id, { document_id: `doc-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`, title: String(title), document_type: String(document_type), content_uri: '', content: contentStr, version: 'v1', status: 'draft' })
-          createdCounts.documents_count++
-        }
+        // Documents: do NOT persist `aiRes.steps.documents` here.
+        // Document creation must be handled solely by the DocumentPipeline below.
+        // This prevents placeholder/empty drafts being created from untrusted AI step output.
       } catch (e) {
         // record insert/persistence error (do not fully swallow)
         console.error('ai create writes error', e)
@@ -591,8 +558,9 @@ export async function intakeRoutes(app: FastifyInstance) {
           if (docRes && docRes.draftDocumentId) meta.ai.created_documents_from_pipeline = 1
         } catch (e) { }
       } catch (e: any) {
-        // do not fail the whole intake on pipeline errors; surface in meta
-        meta.ai.document_pipeline_error = String(e?.message || e || 'document_pipeline_failed')
+        // On pipeline failure, do not create any documents and return a clear error to the client.
+        try { await prisma.$disconnect() } catch (_) { }
+        return reply.code(502).send({ error: 'document_pipeline_failed', matter_id })
       }
 
       return reply.code(201).send({ matter_id, created: true, ...meta })
