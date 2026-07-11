@@ -13,6 +13,8 @@ export default function IntakePage() {
   const [files, setFiles] = useState<Array<{ name: string; size: number; type?: string; upload_time: string }>>([])
   const [derivedMatterId, setDerivedMatterId] = useState<string | null>(null)
   const [receivedConfirmed, setReceivedConfirmed] = useState(false)
+  const [processing, setProcessing] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   useEffect(() => {
     try {
@@ -34,24 +36,32 @@ export default function IntakePage() {
     }
   }, [])
 
-  function handleStart() {
-    // For V2: call backend AI create endpoint, then redirect to creating page
-    (async () => {
-      try {
-        const base = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'
-        const res = await fetch(`${base}/intake/ai-create-matter`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: caseName, client_name: client, opponent_name: opponent, matter_type: caseType }) })
-        if (res.status === 201) {
-          const data = await res.json()
-          try { sessionStorage.setItem('intake_analysis', JSON.stringify(data)) } catch (e) { }
-          router.push('/intake/creating')
+  async function handleStart() {
+    setErrorMessage(null)
+    setProcessing(true)
+    try {
+      const base = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'
+      const res = await fetch(`${base}/intake/ai-create-matter`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: caseName, client_name: client, opponent_name: opponent, matter_type: caseType }) })
+      if (res.status === 201) {
+        const data = await res.json()
+        try { sessionStorage.setItem('intake_analysis', JSON.stringify(data)) } catch (e) { }
+        const matterId = data && data.matter_id ? String(data.matter_id) : null
+        const draftId = data && data.document_pipeline && data.document_pipeline.draftDocumentId ? String(data.document_pipeline.draftDocumentId) : null
+        if (matterId) {
+          // navigate to documents workspace; documents page will auto-select newest draft
+          router.push(`/matters/${encodeURIComponent(matterId)}/documents`)
           return
         }
-      } catch (e) {
-        // fallback to local draft
-        try { const draft = { caseName, client, opponent, caseType, files }; sessionStorage.setItem('new_matter_draft', JSON.stringify(draft)) } catch (e) { }
       }
-      router.push('/intake/creating')
-    })()
+      // non-201 or missing matter id -> treat as failure
+      throw new Error('create_failed')
+    } catch (e) {
+      // restore button and show error
+      setErrorMessage('分析失败，请稍后重试')
+      try { const draft = { caseName, client, opponent, caseType, files }; sessionStorage.setItem('new_matter_draft', JSON.stringify(draft)) } catch (e) { }
+    } finally {
+      setProcessing(false)
+    }
   }
 
   return (
@@ -122,7 +132,8 @@ export default function IntakePage() {
           </div>
 
           <div style={{ marginTop: 12 }}>
-            <button onClick={handleStart} style={{ width: '100%', padding: '12px 16px', borderRadius: 10, border: 'none', background: '#2563eb', color: '#fff', fontWeight: 600 }}>开始整理案件</button>
+            <button disabled={processing} onClick={handleStart} style={{ width: '100%', padding: '12px 16px', borderRadius: 10, border: 'none', background: '#2563eb', color: '#fff', fontWeight: 600 }}>{processing ? 'AI 正在分析……' : '开始整理案件'}</button>
+            {errorMessage ? <div style={{ marginTop: 8, color: '#b91c1c' }}>{errorMessage}</div> : null}
           </div>
         </div>
       </div>

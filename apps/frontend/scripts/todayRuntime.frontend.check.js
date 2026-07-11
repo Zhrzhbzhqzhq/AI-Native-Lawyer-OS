@@ -1,4 +1,4 @@
-// Minimal integration check (not wired to runner)
+// Moved out of tests/ to avoid vitest collection. Standalone check script.
 import assert from 'assert'
 
 async function run() {

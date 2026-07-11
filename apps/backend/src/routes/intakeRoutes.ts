@@ -580,6 +580,40 @@ export async function intakeRoutes(app: FastifyInstance) {
         }
       } catch (_) { }
 
+      // attempt to run DocumentPipeline to produce a draft document synchronously
+      try {
+        const DocumentPipelineClass = (await import('../services/ai/DocumentPipeline')).default
+        const docPipeline = new DocumentPipelineClass(prisma)
+        const docRes = await docPipeline.run(matter_id)
+        meta.document_pipeline = docRes
+        // increment document count if pipeline created a draft
+        try {
+          if (docRes && docRes.draftDocumentId) meta.ai.created_documents_from_pipeline = 1
+        } catch (e) { }
+        // if pipeline didn't return a draft id, attempt a lightweight fallback draft
+        if (!(docRes && docRes.draftDocumentId)) {
+          try {
+            const fallbackDoc = await documentService.createForMatter(matter_id, { title: `案件草稿 - ${title || '未命名'}`, document_type: 'draft', content: String(caseSummary || '').slice(0, 2000), status: 'draft' })
+            meta.document_pipeline = { success: true, draftDocumentId: fallbackDoc.document_id, fallback: true }
+            meta.ai.created_documents_from_pipeline = (meta.ai.created_documents_from_pipeline || 0) + 1
+          } catch (e: any) {
+            // ignore fallback failure but record
+            meta.ai.document_pipeline_error = meta.ai.document_pipeline_error || String(e?.message || e || 'document_pipeline_fallback_failed')
+          }
+        }
+      } catch (e: any) {
+        // do not fail the whole intake on pipeline errors; surface in meta and attempt fallback
+        meta.ai.document_pipeline_error = String(e?.message || e || 'document_pipeline_failed')
+        try {
+          const fallbackDoc = await documentService.createForMatter(matter_id, { title: `案件草稿 - ${title || '未命名'}`, document_type: 'draft', content: String(caseSummary || '').slice(0, 2000), status: 'draft' })
+          meta.document_pipeline = { success: true, draftDocumentId: fallbackDoc.document_id, fallback: true }
+          meta.ai.created_documents_from_pipeline = (meta.ai.created_documents_from_pipeline || 0) + 1
+        } catch (e: any) {
+          // fallback also failed; record but continue
+          meta.ai.document_pipeline_error = meta.ai.document_pipeline_error + ' | fallback_failed:' + String(e?.message || e || '')
+        }
+      }
+
       return reply.code(201).send({ matter_id, created: true, ...meta })
     } finally {
       try { await prisma.$disconnect() } catch (e) { }
