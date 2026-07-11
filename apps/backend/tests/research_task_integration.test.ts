@@ -18,7 +18,8 @@ beforeAll(async () => {
 
 afterAll(async () => {
     // cleanup created records
-    await prisma.task.deleteMany({ where: { task_id: { startsWith: `t-` } } }).catch(() => { })
+    // cleanup tasks created for this test matter only
+    await prisma.task.deleteMany({ where: { matter_id: testMatterId } }).catch(() => { })
     await prisma.material.deleteMany({ where: { material_id: { startsWith: `mat-${testMatterId}` } } }).catch(() => { })
     await prisma.matter.deleteMany({ where: { matter_id: testMatterId } }).catch(() => { })
     await app.close()

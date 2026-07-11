@@ -16,9 +16,14 @@ beforeAll(async () => {
     await prisma.material.create({ data: { material_id: `mat-${testMatterId}`, matter_id: testMatterId, title: 'Test Material', material_type: 'generic', source: '', storage_uri: '', status: 'active' } })
 })
 
+// Ensure each test runs without leftover '证据整理' tasks from other suites
+beforeEach(async () => {
+    await prisma.task.deleteMany({ where: { matter_id: testMatterId, title: '证据整理' } }).catch(() => { })
+})
+
 afterAll(async () => {
-    // cleanup created records
-    await prisma.task.deleteMany({ where: { task_id: { startsWith: `t-` } } }).catch(() => { })
+    // cleanup created records (limit to this test matter)
+    await prisma.task.deleteMany({ where: { matter_id: testMatterId } }).catch(() => { })
     await prisma.evidence.deleteMany({ where: { evidence_id: { startsWith: `e-` } } }).catch(() => { })
     await prisma.material.deleteMany({ where: { material_id: { startsWith: `mat-${testMatterId}` } } }).catch(() => { })
     await prisma.matter.deleteMany({ where: { matter_id: testMatterId } }).catch(() => { })
