@@ -1,3 +1,80 @@
+import { test, expect } from 'vitest'
+import PromptRunner from '../src/services/ai/PromptRunner'
+
+test('PromptRunner injects context into evidence prompt', async () => {
+    const runner: any = new PromptRunner({} as any)
+    // stub contextBuilder.build
+    const fakeContext = {
+        matter: { matter_id: 'm-1', title: 'Test Matter' },
+        client: { name: 'Client A' },
+        materials: [{ title: 'mat1' }],
+        evidence: [{ title: 'Evidence A' }],
+        research: [],
+        documents: []
+    }
+    runner.contextBuilder.build = async (_: string) => fakeContext
+
+    // stub adapter
+    const adapter: any = {}
+    let captured: any = null
+    adapter.generate = async (pack: any) => { captured = pack; return { response: '[]', provider: 'mock', model: 'mock' } }
+    (runner as any).aiService = { adapter }
+
+    await runner.run({ matterId: 'm-1', promptType: 'evidence' })
+    expect(captured).toBeTruthy()
+    expect(typeof captured.user_prompt).toBe('string')
+    expect(captured.user_prompt).toContain('Evidence:')
+    expect(captured.user_prompt).toContain('Evidence A')
+})
+
+test('PromptRunner injects context into research prompt', async () => {
+    const runner: any = new PromptRunner({} as any)
+    const fakeContext = {
+        matter: { matter_id: 'm-2', title: 'Matter Two' },
+        client: null,
+        materials: [{ title: 'mat2' }],
+        evidence: [{ title: 'Evidence B' }],
+        research: [],
+        documents: []
+    }
+    runner.contextBuilder.build = async (_: string) => fakeContext
+    const adapter: any = {}
+    let captured: any = null
+    adapter.generate = async (pack: any) => { captured = pack; return { response: '[]', provider: 'mock', model: 'mock' } }
+    (runner as any).aiService = { adapter }
+
+    await runner.run({ matterId: 'm-2', promptType: 'research' })
+    expect(captured).toBeTruthy()
+    expect(captured.user_prompt).toContain('Matter:')
+    expect(captured.user_prompt).toContain('Matter Two')
+    expect(captured.user_prompt).toContain('Materials:')
+    expect(captured.user_prompt).toContain('Evidence B')
+})
+
+test('PromptRunner injects analysis and context into document prompt', async () => {
+    const runner: any = new PromptRunner({} as any)
+    const fakeContext = {
+        matter: { matter_id: 'm-3', title: 'Matter Three' },
+        client: null,
+        materials: [],
+        evidence: [{ title: 'Evidence C' }],
+        research: [{ title: 'Fact 1' }],
+        documents: []
+    }
+    runner.contextBuilder.build = async (_: string) => fakeContext
+    const adapter: any = {}
+    let captured: any = null
+    adapter.generate = async (pack: any) => { captured = pack; return { response: '[]', provider: 'mock', model: 'mock' } }
+    (runner as any).aiService = { adapter }
+
+    const analysisText = '这是分析结果：若干事实摘要'
+    await runner.run({ matterId: 'm-3', promptType: 'document', systemPrompt: analysisText })
+    expect(captured).toBeTruthy()
+    expect(captured.user_prompt).toContain('Analysis:')
+    expect(captured.user_prompt).toContain('这是分析结果')
+    expect(captured.user_prompt).toContain('Matter Three')
+    expect(captured.user_prompt).toContain('Evidence C')
+})
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import PromptRunner from '../src/services/ai/PromptRunner'
 import MatterContextBuilder from '../src/services/ai/context/MatterContextBuilder'

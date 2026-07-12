@@ -52,12 +52,41 @@ export class PromptRunner {
             promptText = `${systemPrompt}\n\n${promptText}`
         }
 
+        // build a stable serialized context block to inject into prompts
+        const safeStringify = (v: any) => {
+            try { return JSON.stringify(v, null, 2) } catch (_) { return String(v) }
+        }
+
+        const contextBlockParts: string[] = []
+        contextBlockParts.push('Matter:')
+        contextBlockParts.push(safeStringify(context.matter || {}))
+        contextBlockParts.push('\nClient:')
+        contextBlockParts.push(safeStringify(context.client || {}))
+        contextBlockParts.push('\nMaterials:')
+        contextBlockParts.push(safeStringify(context.materials || []))
+        contextBlockParts.push('\nEvidence:')
+        contextBlockParts.push(safeStringify(context.evidence || []))
+        contextBlockParts.push('\nResearch:')
+        contextBlockParts.push(safeStringify(context.research || []))
+        contextBlockParts.push('\nDocuments:')
+        contextBlockParts.push(safeStringify(context.documents || []))
+
+        const serializedContext = contextBlockParts.join('\n')
+
+        // Compose user prompt: always include serialized context. If caller provided a systemPrompt (analysis text), include it explicitly under Analysis.
+        let userPromptWithContext = ''
+        userPromptWithContext += `${serializedContext}\n\n` // always include context block
+        if (systemPrompt && typeof systemPrompt === 'string' && systemPrompt.length) {
+            userPromptWithContext += `Analysis:\n${systemPrompt}\n\n`
+        }
+        userPromptWithContext += promptText
+
         // build a generic prompt pack and delegate to AIService adapter via service instance
         const promptPack: any = {
             task: `prompt_runner_${promptType}`,
             matter_id: matterId,
             context_pack: context,
-            user_prompt: promptText,
+            user_prompt: userPromptWithContext,
             created_at: new Date().toISOString(),
         }
 

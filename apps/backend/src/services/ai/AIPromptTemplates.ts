@@ -94,58 +94,56 @@ export function buildDocumentPrompt(_context: any) {
     const issues = Array.isArray(_context && _context.issues) ? _context.issues : []
     const laws = Array.isArray(_context && _context.laws) ? _context.laws : []
     const argumentsList = Array.isArray(_context && _context.arguments) ? _context.arguments : []
+
+    const matter = _context && _context.matter ? _context.matter : {}
+    const materials = Array.isArray(_context && _context.materials) ? _context.materials : []
+    const evidence = Array.isArray(_context && _context.evidence) ? _context.evidence : []
+
+    const matterTitle = matter.title || ''
+    const court = (matter && (matter.court || matter.court_name || matter.courtName)) || ''
+
+    const evidenceTitles = evidence.map((e: any) => e && e.title ? e.title : null).filter(Boolean)
+    const materialTitles = materials.map((m: any) => m && m.title ? m.title : null).filter(Boolean)
+
+    // detect simple RMB amount patterns in material/evidence titles (e.g. 100000, ￥100000, 人民币100000元)
+    const amountCandidates: string[] = []
+        ;[...evidenceTitles, ...materialTitles].forEach((t: string) => {
+            if (!t) return
+            const m = t.match(/(?:人民币|RMB|￥)?\s?([0-9,]+)(?:元)?/i)
+            if (m && m[1]) amountCandidates.push(m[1].replace(/,/g, ''))
+        })
+    const detectedAmount = amountCandidates.length ? amountCandidates[0] : ''
+
     return `你是一名中国资深民商事诉讼律师。
 
-下面提供：
+任务目标：使用 Matter / Material / Evidence / Research / Documents 中已有的真实信息，尽可能在起诉状初稿中填入真实当事人、案由、金额、时间、诉讼请求与已有证据名称；仅当信息确实缺失时允许使用统一占位符：[待补充]。
 
-案件事实：
-${JSON.stringify(facts, null, 2)}
+优先信息（若存在请务必直接使用，不要替换为占位符）：
+- Matter 标题: ${JSON.stringify(matterTitle)}
+- 法院（如存在）: ${JSON.stringify(court)}
+- 已有材料标题: ${JSON.stringify(materialTitles)}
+- 已有证据标题: ${JSON.stringify(evidenceTitles)}
+- 检测到的金额（若任何材料或证据标题含金额，请务必使用该真实金额）: ${JSON.stringify(detectedAmount)}
 
-争议焦点：
-${JSON.stringify(issues, null, 2)}
+严格要求（必须遵守）：
+1) 优先使用上下文中已有的信息；任何已在上下文或 Matter 标题中出现的当事人/金额/时间/证据名称必须原样使用，禁止以占位符替代。
+2) 仅在确实缺失的字段使用占位符，且统一使用 "[待补充]"（包括当事人、金额、地址等）。
+3) 明确禁止输出或使用其他方括号占位符或由字母 X 连续组成的占位标记；禁止使用类似的无意义占位符。
+4) 禁止编造身份证号、住址、电话、法院名称或其他个人敏感信息；若无，则写为 "[待补充]"。
+5) 优先提取并在文中使用以下字段（若存在）：原告姓名、被告姓名、案由、借款/合同金额、关键时间节点、诉讼请求、已有证据名称、法院名称。
+6) 文书不得包含未经上下文支持的事实或金额；若需要估计或推断须标注为基于现有材料的初步表述，并避免具体敏感信息的编造。
 
-法律依据：
-${JSON.stringify(laws, null, 2)}
+具体输出格式与约束（必须逐字遵守）：
+- 输出为单一合法的 JSON 数组，数组中每个对象包含："title","document_type","content"。
+- content 必须为 JSON 字符串（内部换行使用 \\n，所有双引号需转义为 \\\"）。
+- content 最少 300 字中文完整正文，且必须包含：当事人信息（能写多少写多少）、诉讼请求、事实与理由、证据清单（每项写明证明目的）。
+- 当信息缺失时，使用统一占位符 "[待补充]"；不要使用其他占位符或模板标记。
+- 严禁输出 Markdown、代码块、注释或额外解释；只输出可直接 JSON.parse 的数组文本。
 
-法律论证：
-${JSON.stringify(argumentsList, null, 2)}
+示例（示例仅为格式示例，勿在最终文本中出现任何示例或注释）：
+[ { "title":"民事起诉状","document_type":"起诉状","content":"第一段\\n\\n第二段" } ]
 
-任务：请基于以上案件事实、争议焦点、法律依据与法律论证，生成可编辑的法律文书初稿，必须至少包含：
-1. 起诉状（诉状） — 必选
-2. 证据目录（清单） — 必选
-可选：代理词、庭审提纲（如信息足够可生成）
-
-严格内容要求（必须遵守）：
-1) 返回至少 2 份文书，且必须包含“起诉状”和“证据目录”；
-2) 每份文书的 "content" 必须为中文完整正文，长度不少于 300 字；
-3) "content" 中必须包含关键段落：诉讼请求、事实与理由、证据清单或证明目的；
-4) 严禁使用占位词或模板标记（如“……”、“待补充”、“某某”、“此处填写”、“模板”、“占位”等）；
-5) 起诉状应包含：当事人信息（能写多少写多少）、诉讼请求、事实与理由、证据清单；若部分信息缺失，请使用“根据现有材料可初步表述为：”并以此为前缀给出初稿；
-6) 证据目录应按证据项列明证据标题与证明目的，每项至少一句说明其证明目的；
-7) 不要编造新的事实或不存在的法条；当信息不足时以“根据现有材料可初步表述为：”开头并完整写出正文，而非空缺或占位；
-8) 最多返回 4 份文书，按律师使用优先级排序（起诉状第一，证据目录第二）；
-
-返回格式（严格 JSON 数组，元素示例如下）：
-[
-    {
-        "title": "起诉状（针对某某案）",
-        "document_type": "起诉状",
-        "content": "...中文完整正文，不少于300字，包含诉讼请求、事实与理由、证据清单或证明目的..."
-    },
-    {
-        "title": "证据目录",
-        "document_type": "证据目录",
-        "content": "...中文完整证据清单正文，不少于300字，每项说明证明目的..."
-    }
-]
-
-严格要求：
-- 只返回合法 JSON 数组；
-- 不输出 Markdown、额外注释或非 JSON 内容；
-- content 必须可直接复制到文书编辑器进行修改。
-
-只返回 JSON.`
-}
+注意：不要在 content 或其他字段中重复将已知信息替换为占位符；若 Matter 标题内已包含原告或被告姓名，必须在起诉状中使用这些真实姓名。` }
 
 export default {
     buildEvidencePrompt,
