@@ -1,11 +1,12 @@
-import MiniMaxAdapter from '../../ai/minimaxAdapter'
+import { ProviderManager } from '../../ai/providerManager'
+import type LlmAdapter from '../../ai/llmAdapter'
 import parseAIJson from './AIJsonParser'
 
 export default class AIPipelineService {
-    adapter: MiniMaxAdapter
+    adapter: LlmAdapter
 
     constructor() {
-        this.adapter = new MiniMaxAdapter()
+        this.adapter = ProviderManager.getAdapter()
     }
 
     async run(caseSummary: string) {
@@ -47,10 +48,12 @@ export default class AIPipelineService {
             return [parsed]
         }
 
+        const adapter = this.adapter
+
         async function callStep(name: string, userPrompt: string) {
             const system = '你是资深律师助理，输出仅包含 JSON 或可解析的 JSON 文本，用于开发测试。不要输出解释性文本。'
             const promptPack = { system_prompt: system, user_prompt: `${userPrompt}\n\n案件摘要：\n${caseSummary}` }
-            const resp = await (new MiniMaxAdapter()).generate(promptPack)
+            const resp = await adapter.generate(promptPack)
             raw[name] = resp
             if (resp && resp.fallback) fallback_used = true
 
