@@ -35,16 +35,8 @@ export class MiniMaxAdapter implements LlmAdapter {
   async generate(promptPack: any) {
     const promptVersion = process.env.PROMPT_VERSION || 'v1'
 
-    // If no API key, signal fallback to mock via provider flag
     if (!this.apiKey) {
-      return {
-        provider: 'mock',
-        model: 'mock-lawdesk-v1',
-        response: {},
-        notes: 'MINIMAX_API_KEY missing, fallback to mock',
-        fallback: true,
-        prompt_version: promptVersion,
-      }
+      throw new Error('ai_provider_key_missing:minimax')
     }
 
     const system_prompt = promptPack.system_prompt ?? promptPack.systemPrompt ?? ''
@@ -105,9 +97,11 @@ export class MiniMaxAdapter implements LlmAdapter {
             continue
           }
         }
+        if (!resp.ok) throw new Error(`http_${status}`)
 
         // gather usage tokens if present
         const usage = json && json.usage ? json.usage : (json && json.data && json.data.usage ? json.data.usage : null)
+        const cost = json && typeof json.cost === 'number' ? json.cost : (json && json.billing && typeof json.billing.cost === 'number' ? json.billing.cost : null)
         const duration = Date.now() - start
 
         // log request
@@ -122,7 +116,7 @@ export class MiniMaxAdapter implements LlmAdapter {
             arguments: Array.isArray(promptPack.context_pack.arguments) ? promptPack.context_pack.arguments.length : 0,
             documents: Array.isArray(promptPack.context_pack.documents) ? promptPack.context_pack.documents.length : 0,
           } : {}
-          logAIRequest({ provider: 'minimax', model: this.model, matter_id: promptPack.matter_id, workspace: promptPack.task, duration_ms: duration, prompt_tokens: usage && usage.prompt_tokens ? usage.prompt_tokens : null, completion_tokens: usage && usage.completion_tokens ? usage.completion_tokens : (usage && usage.total_tokens ? usage.total_tokens : null), fallback: false, prompt_version: promptVersion, context_sizes: contextSizes })
+          logAIRequest({ provider: 'minimax', model: this.model, matter_id: promptPack.matter_id, workspace: promptPack.task, duration_ms: duration, prompt_tokens: usage && typeof usage.prompt_tokens === 'number' ? usage.prompt_tokens : null, completion_tokens: usage && typeof usage.completion_tokens === 'number' ? usage.completion_tokens : (usage && typeof usage.total_tokens === 'number' ? usage.total_tokens : null), retry: Math.max(0, attempt - 1), cost, fallback: false, prompt_version: promptVersion, context_sizes: contextSizes })
         } catch (_e) {
           // ignore logger errors
         }
@@ -131,11 +125,14 @@ export class MiniMaxAdapter implements LlmAdapter {
           provider: 'minimax',
           model: this.model,
           response: json,
-          payload_sent: payload,
           usage,
+          cost,
           duration_ms: duration,
           attempts: attempt,
+          fallback: false,
+          fallback_used: false,
           prompt_version: promptVersion,
+          error: undefined as string | undefined,
         }
       } catch (err: any) {
         lastError = err
@@ -164,19 +161,13 @@ export class MiniMaxAdapter implements LlmAdapter {
 
     try {
       const { logAIRequest } = await import('../services/ai/aiRuntimeLogger')
-      logAIRequest({ provider: 'minimax', model: this.model, matter_id: promptPack && promptPack.matter_id, workspace: promptPack && promptPack.task, duration_ms: Date.now() - start, prompt_tokens: null, completion_tokens: null, fallback: true, prompt_version: promptVersion })
+      logAIRequest({ provider: 'minimax', model: this.model, matter_id: promptPack && promptPack.matter_id, workspace: promptPack && promptPack.task, duration_ms: Date.now() - start, prompt_tokens: null, completion_tokens: null, retry: Math.max(0, attempt - 1), cost: null, fallback: false, prompt_version: promptVersion })
     } catch (_e) {
       // ignore
     }
 
-    return {
-      provider: 'minimax',
-      model: this.model,
-      response: null,
-      error: lastError ? String(lastError) : 'unknown_error',
-      fallback: true,
-      prompt_version: promptVersion,
-    }
+    const reason = lastError instanceof Error ? lastError.message : String(lastError || 'unknown_error')
+    throw new Error(`ai_provider_request_failed:minimax:${reason}`)
   }
 }
 

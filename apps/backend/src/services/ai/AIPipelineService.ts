@@ -13,6 +13,8 @@ export default class AIPipelineService {
         const steps: any = { evidence: [], facts: [], issues: [], laws: [], arguments: [], documents: [] }
         const raw: any = {}
         let fallback_used = false
+        let provider = ProviderManager.getConfiguredProvider()
+        let model = provider === 'mock' ? 'mock-lawdesk-v1' : (process.env.MINIMAX_MODEL || 'MiniMax-M3')
 
         function extractAssistantContent(respObj: any) {
             if (!respObj) return ''
@@ -48,6 +50,55 @@ export default class AIPipelineService {
             return [parsed]
         }
 
+        function isUnsafeEvidenceTitle(value: string) {
+            const text = String(value || '').trim()
+            if (!text) return true
+            if (text.startsWith('{') || text.startsWith('[')) return true
+            if (/mock summary for matter unknown/i.test(text)) return true
+            return false
+        }
+
+        function isGenericSummaryObject(value: any) {
+            if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+            return (
+                'summary' in value
+                || 'risks' in value
+                || 'missing_items' in value
+                || 'next' in value
+                || 'next_steps' in value
+                || 'lawyer_actions' in value
+            )
+        }
+
+        function normalizeEvidenceCandidates(items: any[]) {
+            const normalized: Array<{ title: string; description?: string; evidence_type?: string; relevance?: string; material_id?: string }> = []
+
+            for (const item of items) {
+                if (typeof item === 'string') {
+                    const title = item.trim()
+                    if (!isUnsafeEvidenceTitle(title)) normalized.push({ title })
+                    continue
+                }
+
+                if (!item || typeof item !== 'object' || Array.isArray(item)) continue
+                if (isGenericSummaryObject(item)) continue
+
+                const title = String(item.title || item.name || '').trim()
+                if (isUnsafeEvidenceTitle(title)) continue
+
+                const evidence: { title: string; description?: string; evidence_type?: string; relevance?: string; material_id?: string } = { title }
+                if (typeof item.description === 'string' && item.description.trim()) evidence.description = item.description.trim()
+                if (typeof item.proof_purpose === 'string' && item.proof_purpose.trim()) evidence.description = item.proof_purpose.trim()
+                if (typeof item.evidence_type === 'string' && item.evidence_type.trim()) evidence.evidence_type = item.evidence_type.trim()
+                if (typeof item.type === 'string' && item.type.trim()) evidence.evidence_type = item.type.trim()
+                if (typeof item.relevance === 'string' && item.relevance.trim()) evidence.relevance = item.relevance.trim()
+                if (typeof item.material_id === 'string' && item.material_id.trim()) evidence.material_id = item.material_id.trim()
+                normalized.push(evidence)
+            }
+
+            return normalized
+        }
+
         const adapter = this.adapter
 
         async function callStep(name: string, userPrompt: string) {
@@ -55,6 +106,8 @@ export default class AIPipelineService {
             const promptPack = { system_prompt: system, user_prompt: `${userPrompt}\n\n案件摘要：\n${caseSummary}` }
             const resp = await adapter.generate(promptPack)
             raw[name] = resp
+            if (resp?.provider) provider = String(resp.provider)
+            if (resp?.model) model = String(resp.model)
             if (resp && resp.fallback) fallback_used = true
 
             const responseObj = resp && resp.response ? resp.response : resp
@@ -83,9 +136,7 @@ export default class AIPipelineService {
 
         const ev = await callStep('evidence', '请基于案件摘要，列出可能的证据项数组，返回 JSON 数组，例如:["转账记录","微信聊天记录"]')
         if (ev.parse_meta && ev.parse_meta.ok && Array.isArray(ev.parsed_array) && ev.parsed_array.length > 0) {
-            steps.evidence = ev.parsed_array
-        } else if (ev.raw_text && ev.raw_text.length > 0) {
-            steps.evidence = [ev.raw_text]
+            steps.evidence = normalizeEvidenceCandidates(ev.parsed_array)
         } else {
             steps.evidence = []
         }
@@ -153,7 +204,7 @@ export default class AIPipelineService {
             }
         } catch (_) { }
 
-        const res: any = { provider: 'minimax', model: process.env.MINIMAX_MODEL || 'MiniMax-M3', steps, raw, validation, fallback_used }
+        const res: any = { provider, model, steps, raw, validation, fallback_used }
         if (error) res.error = error
         return res
     }

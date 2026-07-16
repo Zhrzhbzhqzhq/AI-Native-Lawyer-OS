@@ -1,5 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { createPrismaClient } from '@lawdesk/database'
+import { readFile } from 'node:fs/promises'
+import path from 'node:path'
 import IntakeRuntime, { type IntakeFileMeta, type IntakeSource } from '../runtime/intakeRuntime'
 import MaterialService from '../services/materialService'
 import EvidenceService from '../services/evidenceService'
@@ -15,6 +17,36 @@ function makeIdemKey(endpoint: string, matter_id: string, idem?: string) {
 
 function genId(prefix = 'ij-') {
   return `${prefix}${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+function isTextFile(nameOrPath: string, mimeType?: string) {
+  const lower = String(nameOrPath || '').toLowerCase()
+  const mime = String(mimeType || '').toLowerCase()
+  return lower.endsWith('.md') || lower.endsWith('.txt') || lower.endsWith('.json') || mime.includes('markdown') || mime.includes('text/plain') || mime.includes('application/json')
+}
+
+async function enrichIntakeFiles(files: IntakeFileMeta[]) {
+  const repoRoot = path.resolve(process.cwd(), '../..')
+
+  return Promise.all(files.map(async (file) => {
+    const enriched: IntakeFileMeta = { ...file }
+    if (typeof enriched.content === 'string' && enriched.content.trim()) return enriched
+
+    const storageUri = String(enriched.storage_uri || '').trim()
+    if (!storageUri || !isTextFile(storageUri, enriched.type)) return enriched
+
+    try {
+      const candidate = path.isAbsolute(storageUri) ? storageUri : path.resolve(repoRoot, storageUri)
+      const relative = path.relative(repoRoot, candidate)
+      if (relative.startsWith('..') || path.isAbsolute(relative)) return enriched
+
+      enriched.content = await readFile(candidate, 'utf8')
+    } catch (e) {
+      // Non-text or unavailable files fall back to metadata-only analysis.
+    }
+
+    return enriched
+  }))
 }
 
 export async function intakeRoutes(app: FastifyInstance) {
@@ -53,14 +85,19 @@ export async function intakeRoutes(app: FastifyInstance) {
 
     const job_id = genId()
 
+    const enrichedFiles = await enrichIntakeFiles(files)
+
     const mock = runtime.run({
       job_id,
       matter_id,
       source,
-      files,
+      files: enrichedFiles,
     })
 
-    return reply.code(200).send(mock)
+    return reply.code(200).send({
+      ...mock,
+      matter_draft: mock.analysis.matter_draft,
+    })
   })
 
   app.post('/intake/confirm-material', async (request, reply) => {
@@ -121,7 +158,7 @@ export async function intakeRoutes(app: FastifyInstance) {
   app.post('/intake/evidence-draft', async (request, reply) => {
     const payload = (request.body || {}) as {
       matter_id?: string
-      materials?: Array<{ material_id: string; title?: string; material_type?: string; source?: string }>
+      materials?: Array<{ material_id: string; title?: string; material_type?: string; source?: string; content?: string; storage_uri?: string }>
     }
 
     const matter_id = payload.matter_id ? String(payload.matter_id) : ''
@@ -130,8 +167,44 @@ export async function intakeRoutes(app: FastifyInstance) {
     const materials = Array.isArray(payload.materials) ? payload.materials : []
     if (materials.length === 0) return reply.code(400).send({ error: 'materials required' })
 
-    const drafts = runtime.generateEvidenceDrafts({ matter_id, materials })
-    return reply.code(200).send(drafts)
+    const prisma = createPrismaClient()
+    try {
+      const ids = materials.map((m) => String(m.material_id || '')).filter(Boolean)
+      const storedMaterials = ids.length > 0
+        ? await prisma.material.findMany({ where: { matter_id, material_id: { in: ids } } }).catch(() => [])
+        : []
+      const storedById = new Map(storedMaterials.map((m: any) => [String(m.material_id), m]))
+      const materialFiles = materials.map((m) => {
+        const stored = storedById.get(String(m.material_id || '')) as any
+        return {
+          material_id: String(m.material_id || ''),
+          title: String(m.title || stored?.title || ''),
+          material_type: String(m.material_type || stored?.material_type || 'document'),
+          source: String(m.source || stored?.source || 'client'),
+          storage_uri: String(m.storage_uri || stored?.storage_uri || ''),
+          content: typeof m.content === 'string' ? m.content : undefined,
+        }
+      })
+      const enriched = await enrichIntakeFiles(materialFiles.map((m) => ({
+        name: m.title,
+        type: m.material_type,
+        content: m.content,
+        storage_uri: m.storage_uri,
+      })))
+      const enrichedMaterials = materialFiles.map((m, idx) => ({
+        ...m,
+        content: enriched[idx]?.content || m.content || '',
+      }))
+
+      const drafts = runtime.generateEvidenceDrafts({ matter_id, materials: enrichedMaterials })
+      return reply.code(200).send(drafts)
+    } finally {
+      try {
+        await prisma.$disconnect()
+      } catch (e) {
+        // ignore
+      }
+    }
   })
 
   app.post('/intake/challenge-draft', async (request, reply) => {
@@ -301,7 +374,21 @@ export async function intakeRoutes(app: FastifyInstance) {
     try {
       const payload = (request.body || {}) as {
         matter_id?: string
-        evidence_drafts?: Array<{ draft_id?: string; material_id: string; title?: string; evidence_type?: string; proof_purpose?: string; source?: string }>
+        evidence_drafts?: Array<{
+          draft_id?: string
+          material_id?: string
+          source_material_ids?: string[]
+          materials?: Array<{ material_id?: string; title?: string }>
+          title?: string
+          evidence_type?: string
+          proof_purpose?: string
+          description?: string
+          relevance?: string
+          summary?: string
+          reasoning?: string
+          confidence?: number
+          source?: string
+        }>
         idempotency_key?: string
       }
 
@@ -320,13 +407,36 @@ export async function intakeRoutes(app: FastifyInstance) {
       const created: any[] = []
       for (const d of drafts) {
         const evidence_id = `ev-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+        const sourceMaterialIds = Array.isArray(d.source_material_ids) && d.source_material_ids.length > 0
+          ? d.source_material_ids.map((id) => String(id)).filter(Boolean)
+          : [String(d.material_id || '')].filter(Boolean)
+        const material_id = String(d.material_id || sourceMaterialIds[0] || '')
+        if (!material_id) return reply.code(400).send({ error: 'material_id required' })
+
+        const sourceTitles = Array.isArray(d.materials)
+          ? d.materials.map((m) => String(m.title || m.material_id || '')).filter(Boolean)
+          : []
+        const summary = String(d.summary || d.description || '').trim()
+        const proofPurpose = String(d.proof_purpose || d.relevance || '').trim()
+        const reasoning = String(d.reasoning || '').trim()
+        const confidence = typeof d.confidence === 'number' && Number.isFinite(d.confidence)
+          ? Math.max(0, Math.min(1, d.confidence))
+          : undefined
+        const detailParts = [
+          summary ? `摘要：${summary}` : '',
+          proofPurpose ? `证明目标：${proofPurpose}` : '',
+          reasoning ? `AI判断理由：${reasoning}` : '',
+          typeof confidence === 'number' ? `可信度：${confidence}` : '',
+          sourceMaterialIds.length > 1 ? `来源材料ID：${sourceMaterialIds.join(', ')}` : '',
+          sourceTitles.length > 0 ? `来源材料：${sourceTitles.join('、')}` : '',
+        ].filter((part) => String(part).trim().length > 0)
         const createdEv = await evidenceService.createForMatter(matter_id, {
           evidence_id,
-          material_id: d.material_id,
+          material_id,
           title: d.title || 'untitled',
           evidence_type: d.evidence_type || '',
-          description: d.proof_purpose || '',
-          relevance: d.proof_purpose || '',
+          description: detailParts.join('\n'),
+          relevance: proofPurpose,
           status: 'active',
         })
         created.push(createdEv)
@@ -395,21 +505,6 @@ export async function intakeRoutes(app: FastifyInstance) {
       const pipeline = new AIPipelineService()
       const aiRes = await pipeline.run(caseSummary)
 
-      // persist generated items minimally
-      const EvidenceService = (await import('../services/evidenceService')).default
-      const FactService = (await import('../services/factService')).default
-      const IssueService = (await import('../services/issueService')).default
-      const LawService = (await import('../services/lawService')).default
-      const ArgumentService = (await import('../services/argumentService')).default
-      const DocumentService = (await import('../services/documentService')).default
-
-      const evidenceService = new EvidenceService(prisma)
-      const factService = new FactService(prisma)
-      const issueService = new IssueService(prisma)
-      const lawService = new LawService(prisma)
-      const argumentService = new ArgumentService(prisma)
-      const documentService = new DocumentService(prisma)
-
       const createdCounts: any = { evidence_count: 0, facts_count: 0, issues_count: 0, laws_count: 0, arguments_count: 0, documents_count: 0 }
       const aiErrors: string[] = []
 
@@ -432,136 +527,21 @@ export async function intakeRoutes(app: FastifyInstance) {
         }
       } catch (_) { }
 
-      try {
-        // Evidence: map strings or objects to Evidence rows
-        const evs = Array.isArray(aiRes.steps.evidence) ? aiRes.steps.evidence : []
-        for (const e of evs.slice(0, 20)) {
-          let title = ''
-          let evidence_type = 'AI推荐证据'
-          let description = ''
-          let relevance = 'AI intake pipeline'
-          let material_id = ''
-          if (typeof e === 'string') {
-            title = e
-            description = e
-            // string items have no material_id -> skip per new policy
-          } else if (e && typeof e === 'object') {
-            title = String(e.title || e.name || JSON.stringify(e))
-            description = String(e.description || e.proof_purpose || e.title || JSON.stringify(e))
-            if (typeof e.evidence_type === 'string') evidence_type = e.evidence_type
-            if (typeof e.relevance === 'string') relevance = e.relevance
-            if (typeof e.material_id === 'string' && String(e.material_id).trim().length > 0) material_id = String(e.material_id)
-          }
-
-          if (!material_id) {
-            // if we created a summary material above, attach evidence to it
-            if (summary_material_id) {
-              material_id = summary_material_id
-            } else {
-              try {
-                aiErrors.push(`evidence skipped: missing material_id (${String(title).slice(0, 120)})`)
-              } catch (_) {
-                aiErrors.push('evidence skipped: missing material_id')
-              }
-              continue
-            }
-          }
-
-          const evidence_id = `ev-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
-          await evidenceService.createForMatter(matter_id, { evidence_id, material_id, title: String(title), evidence_type, description, relevance, status: 'active' })
-          createdCounts.evidence_count++
-        }
-
-        // Facts
-        const fs = Array.isArray(aiRes.steps.facts) ? aiRes.steps.facts : []
-        for (const f of fs.slice(0, 50)) {
-          const title = typeof f === 'string' ? f : (f.title || (f.description ? String(f.description).slice(0, 120) : JSON.stringify(f)))
-          await factService.createFact(matter_id, { title: String(title), description: typeof f === 'string' ? '' : (f.description || '') })
-          createdCounts.facts_count++
-        }
-
-        // Issues
-        const iss = Array.isArray(aiRes.steps.issues) ? aiRes.steps.issues : []
-        for (const it of iss.slice(0, 20)) {
-          const title = typeof it === 'string' ? it : (it.title || JSON.stringify(it))
-          await issueService.createIssue(matter_id, { title: String(title), description: '' })
-          createdCounts.issues_count++
-        }
-
-        // Laws
-        const laws = Array.isArray(aiRes.steps.laws) ? aiRes.steps.laws : []
-        for (const l of laws.slice(0, 50)) {
-          let title = ''
-          let citation = ''
-          if (typeof l === 'string') {
-            title = l
-            citation = l
-          } else if (l && typeof l === 'object') {
-            title = String(l.code || l.title || JSON.stringify(l))
-            citation = String(l.code || '')
-          }
-          await lawService.createLaw(matter_id, { title: String(title), citation })
-          createdCounts.laws_count++
-        }
-
-        // Arguments
-        const args = Array.isArray(aiRes.steps.arguments) ? aiRes.steps.arguments : []
-        for (const a of args.slice(0, 50)) {
-          let title = ''
-          let description = ''
-          if (typeof a === 'string') {
-            title = String(a).slice(0, 80)
-            description = String(a)
-          } else if (a && typeof a === 'object') {
-            const side = String(a.side || '')
-            const point = String(a.point || a.description || '')
-            title = side ? `${side}：法律论点` : (a.title || JSON.stringify(a))
-            description = point
-          }
-          await argumentService.createArgument(matter_id, { title: String(title), description: String(description) })
-          createdCounts.arguments_count++
-        }
-
-        // Documents: do NOT persist `aiRes.steps.documents` here.
-        // Document creation must be handled solely by the DocumentPipeline below.
-        // This prevents placeholder/empty drafts being created from untrusted AI step output.
-      } catch (e) {
-        // record insert/persistence error (do not fully swallow)
-        console.error('ai create writes error', e)
-        try { aiErrors.push(`persist_error: ${String((e as any).message || e)}`) } catch (_) { aiErrors.push('persist_error') }
-      }
+      // AI output remains draft input only. Formal Evidence, Fact, Issue, Law,
+      // Argument and Document objects are created exclusively by their explicit
+      // lawyer-confirmation workflows.
+      const evidenceDrafts = Array.isArray(aiRes.steps.evidence) ? aiRes.steps.evidence.slice(0, 20) : []
 
       const meta: any = { ai: createdCounts }
       if (aiRes && aiRes.fallback_used) meta.ai.fallback_used = true
       if (aiRes && aiRes.validation) meta.ai.validation = aiRes.validation
       if (aiRes && aiRes.error) meta.ai.error = aiRes.error
       if (aiErrors.length > 0) meta.ai.errors = aiErrors
+      meta.ai.evidence_drafts = evidenceDrafts
 
-      // if nothing persisted, surface a clear top-level error
-      try {
-        const total = (createdCounts.evidence_count || 0) + (createdCounts.facts_count || 0) + (createdCounts.issues_count || 0) + (createdCounts.documents_count || 0)
-        if (total === 0) {
-          meta.ai.error = meta.ai.error || 'AI pipeline produced no persistable records'
-          meta.ai.errors = Array.isArray(meta.ai.errors) ? meta.ai.errors : []
-          if (!meta.ai.errors.includes('AI pipeline produced no persistable records')) meta.ai.errors.push('AI pipeline produced no persistable records')
-        }
-      } catch (_) { }
-
-      // attempt to run DocumentPipeline to produce a draft document synchronously
-      try {
-        const DocumentPipelineClass = (await import('../services/ai/DocumentPipeline')).default
-        const docPipeline = new DocumentPipelineClass(prisma)
-        const docRes = await docPipeline.run(matter_id)
-        meta.document_pipeline = docRes
-        // increment document count if pipeline created a draft
-        try {
-          if (docRes && docRes.draftDocumentId) meta.ai.created_documents_from_pipeline = 1
-        } catch (e) { }
-      } catch (e: any) {
-        // On pipeline failure, do not create any documents and return a clear error to the client.
-        try { await prisma.$disconnect() } catch (_) { }
-        return reply.code(502).send({ error: 'document_pipeline_failed', matter_id })
-      }
+      // Documents are produced later through the persisted Document Draft workflow.
+      // Matter creation must not create formal documents or document drafts.
+      meta.document_pipeline = { skipped: true, reason: 'document_draft_workflow_required' }
 
       return reply.code(201).send({ matter_id, created: true, ...meta })
     } finally {

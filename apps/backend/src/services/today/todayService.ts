@@ -21,6 +21,10 @@ type TodayWaitingItem = {
     waitingReason: string
     sourceStatus: string
     updatedAt: string
+    // structured fields for frontend
+    waitingType?: 'approval' | 'confirmation' | 'supplement' | 'decision' | 'other'
+    priority?: number // 1 = highest
+    needsLawyerAction?: boolean
 }
 
 type TodayNextActionItem = {
@@ -126,6 +130,14 @@ function sortByUpdatedAsc(a: TodayWaitingItem, b: TodayWaitingItem): number {
     return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
 }
 
+function sortWaitingByPriority(a: TodayWaitingItem, b: TodayWaitingItem): number {
+    const pa = typeof a.priority === 'number' ? a.priority : 5
+    const pb = typeof b.priority === 'number' ? b.priority : 5
+    if (pa !== pb) return pa - pb // lower number = higher priority
+    // tie-breaker: more recently updated first
+    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+}
+
 function sortByCompletedDesc(a: TodayCompletedItem, b: TodayCompletedItem): number {
     return new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
 }
@@ -196,6 +208,24 @@ export class TodayService {
         }
 
         const matterById = new Map(filteredMatters.map((matter) => [matter.matter_id, matter]))
+
+        function sanitizeDisplayText(raw?: string | null): string {
+            if (!raw) return '暂无下一步建议'
+            const s = String(raw).trim()
+            if (s.length === 0) return '暂无下一步建议'
+            if ((s.startsWith('{') || s.startsWith('['))) {
+                try {
+                    const parsed = JSON.parse(s)
+                    if (typeof parsed === 'object' && parsed !== null) {
+                        if ('summary' in parsed && typeof parsed.summary === 'string' && parsed.summary.trim().length > 0) return parsed.summary
+                        return '暂无下一步建议'
+                    }
+                } catch (err) {
+                    // fallthrough
+                }
+            }
+            return s
+        }
         const matterIds = filteredMatters.map((matter) => matter.matter_id)
 
         const load = async <T>(source: string, loader: () => Promise<T[]>): Promise<T[]> => {
@@ -258,6 +288,7 @@ export class TodayService {
 
         const completed: TodayCompletedItem[] = []
         const waiting: TodayWaitingItem[] = []
+        const aiWaitingCandidates: TodayWaitingItem[] = []
         const nextActions: TodayNextActionItem[] = []
         const activeMatters: Array<TodayActiveMatterItem & { _score: number; _overdueTaskCount: number }> = []
 
@@ -282,7 +313,7 @@ export class TodayService {
                         type: 'task',
                         matterId,
                         matterTitle,
-                        title: row.title,
+                        title: sanitizeDisplayText(row.title),
                         completedAt: row.updated_at.toISOString(),
                         sourceStatus: row.status,
                     })
@@ -294,10 +325,13 @@ export class TodayService {
                         type: 'task',
                         matterId,
                         matterTitle,
-                        title: row.title,
-                        waitingReason: '待律师执行任务',
+                        title: sanitizeDisplayText(row.title),
+                        waitingReason: sanitizeDisplayText('待律师执行任务'),
                         sourceStatus: row.status,
                         updatedAt: row.updated_at.toISOString(),
+                        waitingType: 'decision',
+                        priority: 4,
+                        needsLawyerAction: true,
                     })
                 }
             }
@@ -309,7 +343,7 @@ export class TodayService {
                         type: 'document',
                         matterId,
                         matterTitle,
-                        title: row.title,
+                        title: sanitizeDisplayText(row.title),
                         completedAt: row.updated_at.toISOString(),
                         sourceStatus: row.status,
                     })
@@ -321,10 +355,13 @@ export class TodayService {
                         type: 'document',
                         matterId,
                         matterTitle,
-                        title: row.title,
-                        waitingReason: '待律师补全文书内容',
+                        title: sanitizeDisplayText(row.title),
+                        waitingReason: sanitizeDisplayText('待律师补全文书内容'),
                         sourceStatus: row.status,
                         updatedAt: row.updated_at.toISOString(),
+                        waitingType: 'supplement',
+                        priority: 3,
+                        needsLawyerAction: true,
                     })
                 }
             }
@@ -338,7 +375,7 @@ export class TodayService {
                         type: 'evidence',
                         matterId,
                         matterTitle,
-                        title: row.title,
+                        title: sanitizeDisplayText(row.title),
                         completedAt: row.updated_at.toISOString(),
                         sourceStatus: row.status,
                     })
@@ -350,10 +387,13 @@ export class TodayService {
                         type: 'evidence',
                         matterId,
                         matterTitle,
-                        title: row.title,
-                        waitingReason: '待律师补强证据说明/关联',
+                        title: sanitizeDisplayText(row.title),
+                        waitingReason: sanitizeDisplayText('待律师补强证据说明/关联'),
                         sourceStatus: row.status,
                         updatedAt: row.updated_at.toISOString(),
+                        waitingType: 'supplement',
+                        priority: 3,
+                        needsLawyerAction: true,
                     })
                 }
             }
@@ -365,7 +405,7 @@ export class TodayService {
                         type: 'fact',
                         matterId,
                         matterTitle,
-                        title: row.title,
+                        title: sanitizeDisplayText(row.title),
                         completedAt: row.updated_at.toISOString(),
                         sourceStatus: row.status,
                     })
@@ -379,7 +419,7 @@ export class TodayService {
                         type: 'issue',
                         matterId,
                         matterTitle,
-                        title: row.title,
+                        title: sanitizeDisplayText(row.title),
                         completedAt: row.updated_at.toISOString(),
                         sourceStatus: row.status,
                     })
@@ -391,10 +431,13 @@ export class TodayService {
                         type: 'issue',
                         matterId,
                         matterTitle,
-                        title: row.title,
-                        waitingReason: '待律师确认争议焦点',
+                        title: sanitizeDisplayText(row.title),
+                        waitingReason: sanitizeDisplayText('待律师确认争议焦点'),
                         sourceStatus: row.status,
                         updatedAt: row.updated_at.toISOString(),
+                        waitingType: 'confirmation',
+                        priority: 2,
+                        needsLawyerAction: true,
                     })
                 }
             }
@@ -406,7 +449,7 @@ export class TodayService {
                         type: 'law',
                         matterId,
                         matterTitle,
-                        title: row.title,
+                        title: sanitizeDisplayText(row.title),
                         completedAt: row.updated_at.toISOString(),
                         sourceStatus: row.status,
                     })
@@ -420,7 +463,7 @@ export class TodayService {
                         type: 'argument',
                         matterId,
                         matterTitle,
-                        title: row.title,
+                        title: sanitizeDisplayText(row.title),
                         completedAt: row.updated_at.toISOString(),
                         sourceStatus: row.status,
                     })
@@ -432,10 +475,13 @@ export class TodayService {
                         type: 'argument',
                         matterId,
                         matterTitle,
-                        title: row.title,
-                        waitingReason: '待律师确认法律论证草稿',
+                        title: sanitizeDisplayText(row.title),
+                        waitingReason: sanitizeDisplayText('待律师确认法律论证草稿'),
                         sourceStatus: row.status,
                         updatedAt: row.updated_at.toISOString(),
+                        waitingType: 'confirmation',
+                        priority: 2,
+                        needsLawyerAction: true,
                     })
                 }
             }
@@ -447,22 +493,25 @@ export class TodayService {
                         type: 'ai_record',
                         matterId,
                         matterTitle,
-                        title: row.ai_task_type,
+                        title: sanitizeDisplayText(row.ai_task_type),
                         completedAt: row.updated_at.toISOString(),
                         sourceStatus: row.status,
                     })
                 }
 
                 if (WAITING_AI_STATUS_SET.has(row.status)) {
-                    waiting.push({
+                    aiWaitingCandidates.push({
                         id: row.ai_record_id,
                         type: 'ai_record',
                         matterId,
                         matterTitle,
-                        title: row.ai_task_type,
-                        waitingReason: '待律师确认AI结果',
+                        title: sanitizeDisplayText(row.ai_task_type),
+                        waitingReason: sanitizeDisplayText('待律师确认AI结果'),
                         sourceStatus: row.status,
                         updatedAt: row.updated_at.toISOString(),
+                        waitingType: 'approval',
+                        priority: 1,
+                        needsLawyerAction: true,
                     })
                 }
             }
@@ -499,8 +548,8 @@ export class TodayService {
                     id: `na-${matterId}-${actionCandidates.length + 1}`,
                     matterId,
                     matterTitle,
-                    action,
-                    reason,
+                    action: sanitizeDisplayText(action),
+                    reason: sanitizeDisplayText(reason),
                     priority,
                     etaMinutes,
                     source: 'rule_engine_v1',
@@ -569,15 +618,42 @@ export class TodayService {
             }
         }
 
+        // If there are AI waiting candidates, only surface the most recent one globally
+        if (aiWaitingCandidates.length > 0) {
+            aiWaitingCandidates.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+            // push only the most recent AI waiting item
+            waiting.push(aiWaitingCandidates[0])
+        }
+
         const dedupCompleted = new Map<string, TodayCompletedItem>()
         for (const row of completed) {
             const key = `${row.type}:${row.id}`
             if (!dedupCompleted.has(key)) dedupCompleted.set(key, row)
         }
 
-        const sortedCompleted = Array.from(dedupCompleted.values()).sort(sortByCompletedDesc)
-        const sortedWaiting = waiting.sort(sortByUpdatedAsc)
-        const sortedNextActions = nextActions.sort(sortByNextAction).slice(0, 20)
+        const sortedCompleted = Array.from(dedupCompleted.values()).sort(sortByCompletedDesc).slice(0, 5)
+
+        const sortedWaiting = waiting.sort(sortWaitingByPriority).slice(0, 5)
+
+        // Global dedupe of nextActions by action text to avoid repeated identical actions
+        const actionByName = new Map<string, TodayNextActionItem>()
+        for (const a of nextActions) {
+            const key = a.action
+            const existing = actionByName.get(key)
+            if (!existing) {
+                actionByName.set(key, a)
+            } else {
+                // prefer higher priority (P1 > P2 > P3), then shorter eta
+                const existingRank = priorityRank(existing.priority)
+                const thisRank = priorityRank(a.priority)
+                if (thisRank > existingRank || (thisRank === existingRank && a.etaMinutes < existing.etaMinutes)) {
+                    actionByName.set(key, a)
+                }
+            }
+        }
+        const uniqueNextActions = Array.from(actionByName.values()).sort(sortByNextAction).slice(0, 5)
+        const sortedNextActions = uniqueNextActions
+
         const sortedActiveMatters = activeMatters
             .sort((a, b) => {
                 const levelCmp = priorityRank(b.priority) - priorityRank(a.priority)
@@ -586,7 +662,7 @@ export class TodayService {
                 if (b._overdueTaskCount !== a._overdueTaskCount) return b._overdueTaskCount - a._overdueTaskCount
                 return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
             })
-            .slice(0, limit)
+            .slice(0, 5)
             .map(({ _score, _overdueTaskCount, ...row }) => row)
 
         const response: TodayDashboardResponse = {
