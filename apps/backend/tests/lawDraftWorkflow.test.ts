@@ -1,6 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import buildApp from '../src/server'
 import { createPrismaClient } from '@lawdesk/database'
+import { MockLlmAdapter } from '../src/ai/mockLlmAdapter'
+import { buildDeterministicLawCandidates } from '../src/services/ai/legalRuleClassifier'
+import { assertFormalLawContent, normalizeLawSuggestionsForDrafts } from '../src/services/lawDraftService'
+import { inferIssueTypeFromFacts } from '../src/services/ai/legalConceptClassifier'
 
 const RUN_ID = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 const matterId = `test-law-draft-${RUN_ID}`
@@ -27,7 +31,7 @@ async function cleanup(id: string) {
 async function seedMatter(id: string, issueCount = 0) {
   await prisma.matter.create({ data: { matter_id: id, title: `Law Draft ${id}`, description: '', matter_type: 'test', status: 'active' } })
   for (let index = 0; index < issueCount; index += 1) {
-    await prisma.issue.create({
+    const issue = await prisma.issue.create({
       data: {
         issue_id: `issue-${id}-${index}`,
         matter_id: id,
@@ -36,6 +40,16 @@ async function seedMatter(id: string, issueCount = 0) {
         status: 'active',
       },
     })
+    const fact = await prisma.fact.create({
+      data: {
+        fact_id: `fact-${id}-${index}`,
+        matter_id: id,
+        title: ['双方形成借贷合意', '款项已经通过银行转账交付', '债务到期后仍未清偿'][index] || `普通事实 ${index + 1}`,
+        description: ['借条反映合同成立。', '银行流水反映资金到账。', '催收后仍未还款并构成违约。'][index] || '普通正式事实',
+        status: 'active',
+      },
+    })
+    await prisma.issueFact.create({ data: { issue_id: issue.issue_id, fact_id: fact.fact_id } })
   }
 }
 
@@ -58,6 +72,100 @@ afterAll(async () => {
 })
 
 describe('Persisted Laws Draft Workflow', () => {
+  it('recovers one Issue type only from consistent formal source Facts', () => {
+    expect(inferIssueTypeFromFacts([{ title: '双方形成借贷合意' }])).toBe('agreement')
+    expect(inferIssueTypeFromFacts([{ title: '款项已经通过银行转账交付' }])).toBe('delivery')
+    expect(inferIssueTypeFromFacts([{ title: '债务到期后仍未清偿' }])).toBe('default')
+    expect(inferIssueTypeFromFacts([])).toBeNull()
+    expect(inferIssueTypeFromFacts([{ title: '形成借贷合意' }, { title: '款项已经转账交付' }])).toBeNull()
+  })
+
+  it('builds deterministic Laws by issue_type regardless of Issue order', async () => {
+    const adapter = new MockLlmAdapter()
+    const issues = [
+      { issue_id: 'issue-agreement', issue_type: 'agreement' as const },
+      { issue_id: 'issue-delivery', issue_type: 'delivery' as const },
+      { issue_id: 'issue-default', issue_type: 'default' as const },
+    ]
+    const generate = async (input: typeof issues) => (await adapter.generate({
+      task: 'analyze_laws',
+      matter_id: 'generic-matter',
+      prompt_version: 'law-draft-v1',
+      issues: input,
+      context_pack: { matter: { title: '不参与 Law 分类的案件标题' } },
+    })).response.laws
+
+    const first = await generate(issues)
+    const second = await generate([issues[2], issues[0], issues[1]])
+    expect(second).toEqual(first)
+    expect(first.map((law: any) => law.issue_type)).toEqual(['agreement', 'delivery', 'default'])
+    expect(first.map((law: any) => law.source_issue_ids)).toEqual([
+      ['issue-agreement'],
+      ['issue-delivery'],
+      ['issue-default'],
+    ])
+    expect(`${first[0].title}\n${first[0].rule_content}\n${first[0].application}`).toMatch(/借款合同.*成立|合同成立/)
+    expect(`${first[0].title}\n${first[0].rule_content}\n${first[0].application}`).toMatch(/借贷关系.*成立|借贷关系是否依法成立/)
+    expect(`${first[0].title}\n${first[0].rule_content}\n${first[0].application}`).toMatch(/借贷合意/)
+    expect(`${first[0].rule_content}\n${first[0].application}\n${first[0].limitations}`).toMatch(/借款合同/)
+    expect(`${first[0].rule_content}\n${first[0].application}\n${first[0].limitations}`).toMatch(/民间借贷关系/)
+    expect(`${first[0].rule_content}\n${first[0].application}\n${first[0].limitations}`).toMatch(/借据/)
+    expect(`${first[0].rule_content}\n${first[0].application}\n${first[0].limitations}`).toMatch(/聊天记录/)
+    expect(`${first[0].rule_content}\n${first[0].application}\n${first[0].limitations}`).toMatch(/实际履行/)
+    expect(`${first[0].rule_content}\n${first[0].application}\n${first[0].limitations}`).toMatch(/综合判断/)
+    expect(`${first[1].title}\n${first[1].rule_content}\n${first[1].application}`).toMatch(/资金交付/)
+    expect(`${first[1].title}\n${first[1].rule_content}\n${first[1].application}`).toMatch(/转账/)
+    expect(`${first[1].title}\n${first[1].rule_content}\n${first[1].application}`).toMatch(/举证责任/)
+    expect(`${first[1].rule_content}\n${first[1].application}\n${first[1].limitations}`).toMatch(/银行流水/)
+    expect(`${first[1].rule_content}\n${first[1].application}\n${first[1].limitations}`).toMatch(/转账记录/)
+    expect(`${first[1].rule_content}\n${first[1].application}\n${first[1].limitations}`).toMatch(/举证/)
+    expect(`${first[2].title}\n${first[2].rule_content}\n${first[2].application}`).toMatch(/到期/)
+    expect(`${first[2].title}\n${first[2].rule_content}\n${first[2].application}`).toMatch(/未履行/)
+    expect(`${first[2].title}\n${first[2].rule_content}\n${first[2].application}`).toMatch(/违约责任/)
+    expect(`${first[2].title}\n${first[2].rule_content}\n${first[2].application}`).toMatch(/利息责任/)
+  })
+
+  it('aggregates duplicate Issue types into one Law with sorted sources', () => {
+    const laws = buildDeterministicLawCandidates([
+      { issue_id: 'delivery-b', issue_type: 'delivery' },
+      { issue_id: 'delivery-a', issue_type: 'delivery' },
+    ])
+    expect(laws).toHaveLength(1)
+    expect(laws[0].issue_type).toBe('delivery')
+    expect(laws[0].source_issue_ids).toEqual(['delivery-a', 'delivery-b'])
+  })
+
+  it('rejects missing, invalid or concept-mismatched source Issue IDs', () => {
+    const issues = [
+      {
+        issue_id: 'issue-agreement',
+        facts: [{ fact: { title: '双方形成借贷合意' } }],
+      },
+      {
+        issue_id: 'issue-delivery',
+        facts: [{ fact: { title: '资金已经通过银行转账交付' } }],
+      },
+    ]
+    const base = {
+      title: '借贷关系规则',
+      citation: '《中华人民共和国民法典》第六百六十七条',
+      rule_content: '借款合同依法成立后对当事人具有约束力。',
+      issue_type: 'agreement',
+    }
+    expect(normalizeLawSuggestionsForDrafts([{ ...base, source_issue_ids: [] }], issues)).toEqual([])
+    expect(normalizeLawSuggestionsForDrafts([{ ...base, source_issue_ids: ['missing'] }], issues)).toEqual([])
+    expect(normalizeLawSuggestionsForDrafts([{ ...base, source_issue_ids: ['issue-delivery'] }], issues)).toEqual([])
+    expect(normalizeLawSuggestionsForDrafts([{ ...base, source_issue_ids: ['issue-agreement'] }], issues)).toHaveLength(1)
+  })
+
+  it('rejects unsafe Law placeholders and keeps generic rules free of case details', () => {
+    for (const unsafe of ['第X条', '第Y条', 'TODO', 'placeholder']) {
+      expect(() => assertFormalLawContent({ title: '规则', citation: unsafe, rule_content: '正式规则内容' })).toThrow()
+    }
+    const output = JSON.stringify(buildDeterministicLawCandidates([{ issue_id: 'generic-issue', issue_type: 'agreement' }]))
+    expect(output).not.toMatch(/张建国|李海涛|2026年|100万元/)
+  })
+
   it('rejects generation when no formal Issues exist', async () => {
     const emptyMatterId = `${matterId}-empty`
     await cleanup(emptyMatterId)
@@ -78,6 +186,7 @@ describe('Persisted Laws Draft Workflow', () => {
     expect(first.statusCode).toBe(200)
     const firstBody = JSON.parse(first.body)
     expect(firstBody.idempotent).toBe(false)
+    expect(firstBody.ai_audit).toEqual({ provider: 'mock', model: 'mock-lawdesk-v1', prompt_version: 'law-draft-v1', fallback_used: false })
     expect(firstBody.law_drafts.length).toBe(3)
     expect(firstBody.law_drafts.every((draft: any) => draft.review_status === 'pending')).toBe(true)
     expect(firstBody.law_drafts.every((draft: any) => Array.isArray(draft.source_issue_ids) && draft.source_issue_ids.length > 0)).toBe(true)
@@ -87,6 +196,7 @@ describe('Persisted Laws Draft Workflow', () => {
     expect(second.statusCode).toBe(200)
     const secondBody = JSON.parse(second.body)
     expect(secondBody.idempotent).toBe(true)
+    expect(secondBody.ai_audit).toBeNull()
     expect(secondBody.law_drafts.map((draft: any) => draft.id)).toEqual(firstBody.law_drafts.map((draft: any) => draft.id))
 
     const count = await prisma.lawDraft.count({ where: { matter_id: matterId } })

@@ -1,5 +1,14 @@
 export type GoldenProvider = 'mock' | 'minimax'
 
+export type AIAudit = {
+  provider: string
+  model: string
+  prompt_version: string
+  fallback_used: boolean
+}
+
+export type StageAIAudit = AIAudit & { stage: string }
+
 export type GoldenCaseConfig = {
   case_id: string
   name: string
@@ -27,6 +36,8 @@ export type GoldenRunJson = {
   model_actual: string | null
   prompt_version: string | null
   fallback_used: boolean | null
+  ai_audits: StageAIAudit[]
+  audit_conflicts: string[]
   caller_declared_database: string
   matter_id: string | null
   started_at: string

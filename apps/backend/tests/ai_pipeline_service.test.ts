@@ -10,7 +10,10 @@ function mockAdapterWithResponses(responses: any[]) {
 }
 
 function jsonResponse(value: any) {
-    return { response: JSON.stringify(value) }
+    return {
+        response: JSON.stringify(value),
+        ai_audit: { provider: 'mock', model: 'mock-lawdesk-v1', prompt_version: 'test-v1', fallback_used: false },
+    }
 }
 
 describe('AIPipelineService evidence normalization', () => {
@@ -75,6 +78,10 @@ describe('AIPipelineService evidence normalization', () => {
             { title: '银行转账记录', description: '证明借款交付', evidence_type: 'bank_record' },
             { title: '微信聊天记录' },
         ])
+        expect(result.ai_audits).toHaveLength(6)
+        expect(result.provider).toBe('mock')
+        expect(result.model).toBe('mock-lawdesk-v1')
+        expect(result.fallback_used).toBe(false)
     })
 
     it('returns empty evidence when parsing fails', async () => {

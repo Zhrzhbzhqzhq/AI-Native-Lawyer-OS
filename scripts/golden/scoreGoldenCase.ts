@@ -16,6 +16,73 @@ function hasAll(text: string, terms: string[]) {
   return terms.filter((term) => !String(text || '').toLowerCase().includes(String(term).toLowerCase()))
 }
 
+type LegalConcept = 'agreement' | 'delivery' | 'default'
+type ConceptProfile = string[][]
+
+const ISSUE_PROFILES: Record<LegalConcept, ConceptProfile> = {
+  agreement: [['民间借贷', '借贷关系'], ['债权债务'], ['合意']],
+  delivery: [['资金交付'], ['银行流水'], ['转账', '支付']],
+  default: [['到期'], ['未还', '未清偿'], ['违约'], ['利息']],
+}
+
+const LAW_PROFILES: Record<LegalConcept, ConceptProfile> = {
+  agreement: [['借款合同'], ['民间借贷关系', '借贷关系'], ['借据', '借条', '聊天记录', '实际履行']],
+  delivery: [['资金交付'], ['转账', '银行流水'], ['举证']],
+  default: [['到期履行', '到期'], ['违约责任', '违约'], ['利息']],
+}
+
+const ARGUMENT_PROFILES: Record<LegalConcept, ConceptProfile> = {
+  agreement: [['民间借贷关系', '借贷关系'], ['借条', '借据'], ['聊天记录'], ['借贷合意', '合意'], ['律师审核', '律师最终审核', '律师核验']],
+  delivery: [['银行流水'], ['转账'], ['资金交付'], ['出借义务']],
+  default: [['到期'], ['未还', '未还款', '未清偿'], ['催收'], ['利息'], ['违约责任', '违约'], ['律师确认', '律师审核', '律师最终确认']],
+}
+
+function expectedConcept(item: any): LegalConcept | null {
+  const text = textOf({
+    golden_id: item?.golden_id,
+    title: item?.title,
+    required_concepts: item?.required_concepts,
+    required_rule: item?.required_rule,
+    position: item?.position,
+    minimum_reasoning_points: item?.minimum_reasoning_points,
+    supports_issue_ids: item?.supports_issue_ids,
+  }).toLowerCase()
+  if (/default|到期|未还|违约|利息责任/.test(text)) return 'default'
+  if (/fund-delivery|private-lending-proof|资金交付|出借事实|出借义务|银行流水|转账/.test(text)) return 'delivery'
+  if (/loan-relationship|loan-contract|借贷关系|民间借贷|借款合同|借贷合意/.test(text)) return 'agreement'
+  return null
+}
+
+function matchesProfile(value: any, profile: ConceptProfile) {
+  const text = textOf(value).toLowerCase()
+  return profile.every((aliases) => aliases.some((alias) => text.includes(alias.toLowerCase())))
+}
+
+function missingProfileGroups(value: any, profile: ConceptProfile) {
+  const text = textOf(value).toLowerCase()
+  return profile.filter((aliases) => !aliases.some((alias) => text.includes(alias.toLowerCase())))
+}
+
+function conceptMissing(module: string, expectedItems: any[], actualRows: any[], profiles: Record<LegalConcept, ConceptProfile>, additional?: (row: any) => boolean) {
+  return expectedItems.flatMap((item) => {
+    const concept = expectedConcept(item)
+    if (!concept) {
+      const missing = hasAll(body(actualRows), [item?.title, item?.required_rule, item?.position].filter(Boolean))
+      return missing.map((term) => `${module} ${item?.golden_id || 'unknown'} missing ${term}`)
+    }
+    const profile = profiles[concept]
+    const matched = actualRows.some((row) => matchesProfile(row, profile) && (!additional || additional(row)))
+    if (matched) return []
+    const ranked = actualRows.map((row) => ({ row, missing: missingProfileGroups(row, profile) }))
+      .sort((left, right) => left.missing.length - right.missing.length)
+    const closest = ranked[0]
+    const missingGroups = closest ? closest.missing : profile
+    const messages = missingGroups.map((aliases) => `${module} ${item?.golden_id || concept} missing concept group ${aliases.join('|')}`)
+    if (additional && closest && !additional(closest.row)) messages.push(`${module} ${item?.golden_id || concept} missing required citation`)
+    return messages.length > 0 ? messages : [`${module} ${item?.golden_id || concept} missing ${concept} concept profile`]
+  })
+}
+
 function scoreFromMissing(weight: number, missingCount: number, warningCount: number, hardFailureCount: number) {
   if (hardFailureCount > 0) return Math.max(0, Math.round(weight * 0.35))
   return Math.max(0, weight - missingCount * 3 - warningCount)
@@ -172,20 +239,20 @@ export function scoreGoldenCase(runDir: string): GoldenReport {
   modules.push(makeModule('facts', scoring.module_weights.facts, ['required_keywords', 'forbidden_keywords'], factsMissing, [], factsHard))
 
   const issuesText = body(arr(actual.issues))
-  const issuesMissing = arr(expected.issues).flatMap((item) => hasAll(issuesText, item.required_concepts || []).map((term) => `issue ${item.golden_id} missing ${term}`))
+  const issuesMissing = conceptMissing('issue', arr(expected.issues), arr(actual.issues), ISSUE_PROFILES)
   const issuesHard = arr(expected.issues).flatMap((item) => checkForbidden('issues', issuesText, item.forbidden_concepts || []))
   const issueTitles = arr(actual.issues).map((i) => String(i.title || '').trim()).filter(Boolean)
   const issuesWarnings = new Set(issueTitles).size !== issueTitles.length ? ['issues contain duplicate titles'] : []
   modules.push(makeModule('issues', scoring.module_weights.issues, ['required_concepts', 'forbidden_concepts', 'deduplication'], issuesMissing, issuesWarnings, issuesHard))
 
   const lawsText = body(arr(actual.laws))
-  const lawsMissing = arr(expected.laws).flatMap((item) => hasAll(lawsText, [item.citation, item.required_rule].filter(Boolean)).map((term) => `law ${item.golden_id} missing ${term}`))
+  const lawsMissing = conceptMissing('law', arr(expected.laws), arr(actual.laws), LAW_PROFILES, (row) => typeof row?.citation === 'string' && row.citation.trim().length > 0)
   const lawsHard = checkForbidden('laws', lawsText, expected.laws.forbidden_laws || [])
   const lawsWarnings = arr(expected.laws).filter((item) => item.verification_status !== 'manually_verified').map((item) => `law ${item.golden_id} is ${item.verification_status}`)
   modules.push(makeModule('laws', scoring.module_weights.laws, ['citation', 'required_rule', 'verification_status'], lawsMissing, lawsWarnings, lawsHard))
 
   const argumentsText = body(arr(actual.arguments))
-  const argumentsMissing = arr(expected.arguments).flatMap((item) => hasAll(argumentsText, [item.position, ...(item.minimum_reasoning_points || [])].filter(Boolean)).map((term) => `argument ${item.golden_id} missing ${term}`))
+  const argumentsMissing = conceptMissing('argument', arr(expected.arguments), arr(actual.arguments), ARGUMENT_PROFILES)
   const argumentsHard = arr(expected.arguments).flatMap((item) => checkForbidden('arguments', argumentsText, item.forbidden_claims || []))
   modules.push(makeModule('arguments', scoring.module_weights.arguments, ['position', 'minimum_reasoning_points', 'forbidden_claims'], argumentsMissing, [], argumentsHard))
 

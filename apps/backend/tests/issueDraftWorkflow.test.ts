@@ -2,6 +2,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import buildApp from '../src/server'
 import { createPrismaClient } from '@lawdesk/database'
 import { normalizeIssueSuggestionsForDrafts } from '../src/services/issueDraftService'
+import { MockLlmAdapter } from '../src/ai/mockLlmAdapter'
+import { classifyFactConcept } from '../src/services/ai/legalConceptClassifier'
 
 const RUN_ID = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 const matterId = `test-issue-draft-${RUN_ID}`
@@ -62,6 +64,74 @@ afterAll(async () => {
 })
 
 describe('Persisted Issues Draft Workflow', () => {
+  it('classifies Facts by title, category, description and content priority', () => {
+    expect(classifyFactConcept({ title: '资金已经转账', description: '双方另有借贷合意' })).toEqual({ agreement: false, delivery: true, default: false })
+    expect(classifyFactConcept({ title: '事实记录', category: '合同成立', description: '资金已经支付' })).toEqual({ agreement: true, delivery: false, default: false })
+    expect(classifyFactConcept({ title: '普通借款记录' })).toEqual({ agreement: false, delivery: false, default: false })
+  })
+
+  it('generates deterministic semantic Issues regardless of Fact order', async () => {
+    const adapter = new MockLlmAdapter()
+    const orderA = normalizationFacts
+    const orderB = [normalizationFacts[2], normalizationFacts[0], normalizationFacts[1]]
+    const generate = async (facts: any[]) => (await adapter.generate({
+      task: 'analyze_issues',
+      matter_id: 'm',
+      prompt_version: 'issue-draft-v1',
+      facts,
+      context_pack: { matter: { title: '不应参与分类的民间借贷纠纷标题' } },
+    })).response.issues
+
+    const first = await generate(orderA)
+    const second = await generate(orderB)
+    expect(second).toEqual(first)
+    expect(first.map((issue: any) => issue.issue_type)).toEqual(['agreement', 'delivery', 'default'])
+    expect(first.map((issue: any) => issue.source_fact_ids)).toEqual([
+      ['fact-agreement'],
+      ['fact-delivery'],
+      ['fact-default'],
+    ])
+    expect(`${first[0].title}\n${first[0].description}`).toMatch(/民间借贷关系/)
+    expect(`${first[0].title}\n${first[0].description}`).toMatch(/债权债务关系/)
+    expect(`${first[0].title}\n${first[0].description}`).toMatch(/借贷合意/)
+    expect(`${first[1].title}\n${first[1].description}`).toMatch(/资金交付/)
+    expect(`${first[1].title}\n${first[1].description}`).toMatch(/银行流水/)
+    expect(`${first[1].title}\n${first[1].description}`).toMatch(/转账证据/)
+    expect(`${first[2].title}\n${first[2].description}`).toMatch(/到期/)
+    expect(`${first[2].title}\n${first[2].description}`).toMatch(/未还/)
+    expect(`${first[2].title}\n${first[2].description}`).toMatch(/违约责任/)
+    expect(`${first[2].title}\n${first[2].description}`).toMatch(/利息责任/)
+  })
+
+  it('aggregates same-concept Facts and ignores Matter title and unsupported liability types', async () => {
+    const adapter = new MockLlmAdapter()
+    const response = await adapter.generate({
+      task: 'analyze_issues',
+      matter_id: 'm',
+      prompt_version: 'issue-draft-v1',
+      context_pack: { matter: { title: '张三民间借贷纠纷' } },
+      facts: [
+        { fact_id: 'delivery-b', title: '第二笔资金已到账' },
+        { fact_id: 'delivery-a', title: '银行流水证明已经转账' },
+        { fact_id: 'unsupported', title: '某主体担任公司负责人', description: '没有保证、配偶共同债务或公司责任事实' },
+      ],
+    })
+
+    expect(response.response.issues).toHaveLength(1)
+    expect(response.response.issues[0].issue_type).toBe('delivery')
+    expect(response.response.issues[0].source_fact_ids).toEqual(['delivery-a', 'delivery-b'])
+    expect(JSON.stringify(response.response.issues)).not.toMatch(/保证责任|夫妻共同债务|公司责任/)
+  })
+
+  it('rejects core Issue candidates whose source Facts belong to another concept', () => {
+    const result = normalizeIssueSuggestionsForDrafts([
+      { title: '双方是否成立民间借贷法律关系', issue_type: 'agreement', source_fact_ids: ['fact-delivery'] },
+    ], normalizationFacts)
+
+    expect(result.drafts).toEqual([])
+    expect(result.warnings).toContain('candidate_0:source_fact_concept_mismatch:agreement')
+  })
+
   it('filters unsupported or untraceable issue candidates before persistence', () => {
     const result = normalizeIssueSuggestionsForDrafts([
       { title: '双方是否成立民间借贷法律关系', description: '应审查借贷合意。', source_fact_ids: ['fact-agreement'], confidence: 0.94 },
@@ -135,6 +205,7 @@ describe('Persisted Issues Draft Workflow', () => {
     expect(first.statusCode).toBe(200)
     const firstBody = JSON.parse(first.body)
     expect(firstBody.idempotent).toBe(false)
+    expect(firstBody.ai_audit).toEqual({ provider: 'mock', model: 'mock-lawdesk-v1', prompt_version: 'issue-draft-v1', fallback_used: false })
     expect(firstBody.issue_drafts.length).toBe(3)
     expect(firstBody.issue_drafts.every((draft: any) => draft.review_status === 'pending')).toBe(true)
     expect(firstBody.issue_drafts.every((draft: any) => Array.isArray(draft.source_fact_ids) && draft.source_fact_ids.length > 0)).toBe(true)
@@ -149,6 +220,7 @@ describe('Persisted Issues Draft Workflow', () => {
     expect(second.statusCode).toBe(200)
     const secondBody = JSON.parse(second.body)
     expect(secondBody.idempotent).toBe(true)
+    expect(secondBody.ai_audit).toBeNull()
     expect(secondBody.issue_drafts.map((draft: any) => draft.id)).toEqual(firstBody.issue_drafts.map((draft: any) => draft.id))
 
     const count = await prisma.issueDraft.count({ where: { matter_id: matterId } })

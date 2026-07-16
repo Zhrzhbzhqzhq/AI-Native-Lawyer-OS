@@ -1,4 +1,6 @@
 import type { PrismaClient } from '@lawdesk/database'
+import type { AIAudit } from './ai/aiAudit'
+import { inferIssueTypeFromFacts, ISSUE_CONCEPT_ORDER, type IssueConcept } from './ai/legalConceptClassifier'
 
 type LawDraftInput = {
   title: string
@@ -11,6 +13,7 @@ type LawDraftInput = {
   confidence?: number | null
   ai_reasoning?: string
   source_issue_ids: string[]
+  issue_type?: IssueConcept
 }
 
 export type LawDraftRow = {
@@ -38,6 +41,7 @@ type LawDraftGenerateResult = {
   status: 'law_draft_ready'
   idempotent: boolean
   law_drafts: LawDraftRow[]
+  ai_audit: AIAudit | null
 }
 
 type LawDraftPublishResult = {
@@ -102,39 +106,65 @@ function composeLawDescription(draft: any) {
   return parts.join('\n')
 }
 
-function getSourceIssueIds(suggestion: any, issues: any[], index: number) {
+function getSourceIssueIds(suggestion: any, issues: any[]) {
   const validIssueIds = new Set(issues.map((issue) => String(issue.issue_id)))
   const explicit = [
     ...(Array.isArray(suggestion?.source_issue_ids) ? suggestion.source_issue_ids : []),
     ...(Array.isArray(suggestion?.issue_ids) ? suggestion.issue_ids : []),
   ]
-  const explicitValid = uniqueStrings(explicit).filter((id) => validIssueIds.has(id))
-  if (explicitValid.length > 0) return explicitValid
+  const ids = uniqueStrings(explicit).sort()
+  if (ids.length === 0 || ids.some((id) => !validIssueIds.has(id))) return []
+  return ids
+}
 
-  const issueTitles = [
-    ...(Array.isArray(suggestion?.issue_titles) ? suggestion.issue_titles : []),
-    suggestion?.issue_title,
-  ].map((title) => String(title || '').trim()).filter(Boolean)
-  if (issueTitles.length > 0) {
-    const lowerTitles = issueTitles.map((title) => title.toLowerCase())
-    const matched = issues
-      .filter((issue) => lowerTitles.some((title) => String(issue.title || '').toLowerCase().includes(title) || title.includes(String(issue.title || '').toLowerCase())))
-      .map((issue) => issue.issue_id)
-    if (matched.length > 0) return uniqueStrings(matched)
+function inferFormalIssueType(issue: any): IssueConcept | null {
+  const sourceFacts = Array.isArray(issue?.facts)
+    ? issue.facts.map((link: any) => link?.fact).filter(Boolean)
+    : []
+  return inferIssueTypeFromFacts(sourceFacts)
+}
+
+export function normalizeLawSuggestionsForDrafts(suggestions: any[], issues: any[]): LawDraftInput[] {
+  if (!Array.isArray(suggestions)) return []
+  const issueById = new Map(issues.map((issue) => [String(issue.issue_id), issue]))
+  const candidates = suggestions.flatMap((suggestion) => {
+    const title = String(suggestion?.title || suggestion?.name || '').trim()
+    const issueType = String(suggestion?.issue_type || '').trim() as IssueConcept
+    if (!title || !ISSUE_CONCEPT_ORDER.includes(issueType)) return []
+    const source_issue_ids = getSourceIssueIds(suggestion, issues)
+    if (source_issue_ids.length === 0) return []
+    const sourceTypes = source_issue_ids.map((id) => inferFormalIssueType(issueById.get(id)))
+    if (sourceTypes.some((type) => type !== issueType)) return []
+    return [{
+      title,
+      citation: String(suggestion?.citation || suggestion?.article || suggestion?.ref || '').trim(),
+      rule_content: String(suggestion?.rule_content || suggestion?.content || suggestion?.description || '').trim(),
+      application: String(suggestion?.application || suggestion?.applicability || suggestion?.reason || '').trim(),
+      limitations: String(suggestion?.limitations || suggestion?.risk || suggestion?.risks || '').trim(),
+      jurisdiction: String(suggestion?.jurisdiction || '中国大陆').trim(),
+      source_reference: String(suggestion?.source_reference || suggestion?.source_url || suggestion?.source || '').trim(),
+      confidence: clampConfidence(suggestion?.confidence),
+      ai_reasoning: String(suggestion?.ai_reasoning || suggestion?.reasoning || suggestion?.reason || '').trim(),
+      source_issue_ids,
+      issue_type: issueType,
+    }]
+  }).sort((left, right) => {
+    const typeOrder = ISSUE_CONCEPT_ORDER.indexOf(left.issue_type!) - ISSUE_CONCEPT_ORDER.indexOf(right.issue_type!)
+    if (typeOrder !== 0) return typeOrder
+    return `${left.title}\n${left.citation}`.localeCompare(`${right.title}\n${right.citation}`)
+  })
+
+  const byType = new Map<IssueConcept, LawDraftInput>()
+  for (const candidate of candidates) {
+    const issueType = candidate.issue_type!
+    const existing = byType.get(issueType)
+    if (existing) {
+      existing.source_issue_ids = uniqueStrings([...existing.source_issue_ids, ...candidate.source_issue_ids]).sort()
+      continue
+    }
+    byType.set(issueType, candidate)
   }
-
-  const text = `${suggestion?.title || ''}\n${suggestion?.citation || ''}\n${suggestion?.application || ''}\n${suggestion?.description || ''}\n${suggestion?.ai_reasoning || ''}`.toLowerCase()
-  const matched = issues
-    .filter((issue) => {
-      const title = String(issue.title || '').toLowerCase()
-      return title && text.includes(title)
-    })
-    .map((issue) => issue.issue_id)
-  if (matched.length > 0) return uniqueStrings(matched)
-
-  const indexed = issues[index]
-  if (indexed?.issue_id) return [String(indexed.issue_id)]
-  return issues[0]?.issue_id ? [String(issues[0].issue_id)] : []
+  return ISSUE_CONCEPT_ORDER.map((type) => byType.get(type)).filter(Boolean) as LawDraftInput[]
 }
 
 export class LawDraftService {
@@ -153,12 +183,13 @@ export class LawDraftService {
       orderBy: { created_at: 'asc' },
     })
     if (existing.length > 0) {
-      return { status: 'law_draft_ready', idempotent: true, law_drafts: existing }
+      return { status: 'law_draft_ready', idempotent: true, law_drafts: existing, ai_audit: null }
     }
 
     const issues = await this.prisma.issue.findMany({
       where: { matter_id, status: { not: 'rejected' } },
       orderBy: { created_at: 'asc' },
+      include: { facts: { include: { fact: true } } },
     })
     if (issues.length === 0) {
       const error = new Error('formal_issues_required')
@@ -169,7 +200,7 @@ export class LawDraftService {
     const AIService = (await import('./ai/AIService')).default
     const ai = new AIService(this.prisma)
     const suggestions = await ai.analyzeLaws(matter_id)
-    const drafts = this.normalizeSuggestions(suggestions, issues)
+    const drafts = normalizeLawSuggestionsForDrafts(suggestions, issues)
     if (drafts.length === 0) {
       const error = new Error('law_draft_empty')
       ;(error as any).code = 'law_draft_empty'
@@ -199,7 +230,7 @@ export class LawDraftService {
       return rows
     })
 
-    return { status: 'law_draft_ready', idempotent: false, law_drafts: created }
+    return { status: 'law_draft_ready', idempotent: false, law_drafts: created, ai_audit: ai.getLastAudit() }
   }
 
   async updateDraft(matter_id: string, draft_id: string, payload: Partial<LawDraftInput> & { review_status?: string; lawyer_note?: string }): Promise<LawDraftRow> {
@@ -352,31 +383,6 @@ export class LawDraftService {
     })
   }
 
-  private normalizeSuggestions(suggestions: any[], issues: any[]): LawDraftInput[] {
-    if (!Array.isArray(suggestions)) return []
-    return suggestions
-      .map((suggestion, index) => {
-        const title = String(suggestion?.title || suggestion?.name || '').trim()
-        if (!title) return null
-        const source_issue_ids = getSourceIssueIds(suggestion, issues, index)
-        if (source_issue_ids.length === 0) return null
-        const rule_content = String(suggestion?.rule_content || suggestion?.content || suggestion?.description || '').trim()
-        const application = String(suggestion?.application || suggestion?.applicability || suggestion?.reason || '').trim()
-        return {
-          title,
-          citation: String(suggestion?.citation || suggestion?.article || suggestion?.ref || '').trim(),
-          rule_content,
-          application,
-          limitations: String(suggestion?.limitations || suggestion?.risk || suggestion?.risks || '').trim(),
-          jurisdiction: String(suggestion?.jurisdiction || '中国大陆').trim(),
-          source_reference: String(suggestion?.source_reference || suggestion?.source_url || suggestion?.source || '').trim(),
-          confidence: clampConfidence(suggestion?.confidence),
-          ai_reasoning: String(suggestion?.ai_reasoning || suggestion?.reasoning || suggestion?.reason || '').trim(),
-          source_issue_ids,
-        }
-      })
-      .filter(Boolean) as LawDraftInput[]
-  }
 }
 
 export default LawDraftService

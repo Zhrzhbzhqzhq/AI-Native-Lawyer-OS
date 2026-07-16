@@ -1,6 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import buildApp from '../src/server'
 import { createPrismaClient } from '@lawdesk/database'
+import { MockLlmAdapter } from '../src/ai/mockLlmAdapter'
+import { assertFormalArgumentContent, normalizeArgumentSuggestionsForDrafts } from '../src/services/argumentDraftService'
 
 const RUN_ID = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 const matterId = `test-argument-draft-${RUN_ID}`
@@ -32,7 +34,7 @@ async function cleanup(id: string) {
 async function seedMatter(id: string, count = 0) {
   await prisma.matter.create({ data: { matter_id: id, title: `Argument Draft ${id}`, description: '', matter_type: 'test', status: 'active' } })
   for (let index = 0; index < count; index += 1) {
-    await prisma.fact.create({
+    const fact = await prisma.fact.create({
       data: {
         fact_id: `fact-${id}-${index}`,
         matter_id: id,
@@ -41,7 +43,7 @@ async function seedMatter(id: string, count = 0) {
         status: 'active',
       },
     })
-    await prisma.issue.create({
+    const issue = await prisma.issue.create({
       data: {
         issue_id: `issue-${id}-${index}`,
         matter_id: id,
@@ -50,7 +52,7 @@ async function seedMatter(id: string, count = 0) {
         status: 'active',
       },
     })
-    await prisma.law.create({
+    const law = await prisma.law.create({
       data: {
         law_id: `law-${id}-${index}`,
         matter_id: id,
@@ -61,6 +63,8 @@ async function seedMatter(id: string, count = 0) {
         status: 'active',
       },
     })
+    await prisma.issueFact.create({ data: { issue_id: issue.issue_id, fact_id: fact.fact_id } })
+    await prisma.lawIssue.create({ data: { law_id: law.law_id, issue_id: issue.issue_id } })
   }
 }
 
@@ -83,6 +87,106 @@ afterAll(async () => {
 })
 
 describe('Persisted Argument Draft Workflow', () => {
+  const typedSources = {
+    facts: [
+      { fact_id: 'fact-agreement', issue_type: 'agreement' },
+      { fact_id: 'fact-delivery', issue_type: 'delivery' },
+      { fact_id: 'fact-default', issue_type: 'default' },
+    ],
+    issues: [
+      { issue_id: 'issue-agreement', issue_type: 'agreement', source_fact_ids: ['fact-agreement'] },
+      { issue_id: 'issue-delivery', issue_type: 'delivery', source_fact_ids: ['fact-delivery'] },
+      { issue_id: 'issue-default', issue_type: 'default', source_fact_ids: ['fact-default'] },
+    ],
+    laws: [
+      { law_id: 'law-agreement', issue_type: 'agreement', source_issue_ids: ['issue-agreement'] },
+      { law_id: 'law-delivery', issue_type: 'delivery', source_issue_ids: ['issue-delivery'] },
+      { law_id: 'law-default', issue_type: 'default', source_issue_ids: ['issue-default'] },
+    ],
+  }
+
+  it('generates deterministic typed Arguments regardless of source order', async () => {
+    const adapter = new MockLlmAdapter()
+    const generate = async (facts: any[], issues: any[], laws: any[]) => (await adapter.generate({
+      task: 'analyze_arguments',
+      matter_id: 'generic-matter',
+      prompt_version: 'argument-draft-v1',
+      facts,
+      issues,
+      laws,
+      context_pack: { matter: { title: '不参与 Argument 分类的案件标题' } },
+    })).response.arguments
+    const first = await generate(typedSources.facts, typedSources.issues, typedSources.laws)
+    const second = await generate([...typedSources.facts].reverse(), [...typedSources.issues].reverse(), [...typedSources.laws].reverse())
+    expect(second).toEqual(first)
+    expect(first.map((argument: any) => argument.issue_type)).toEqual(['agreement', 'delivery', 'default'])
+    expect(first.every((argument: any) => argument.source_fact_ids.length && argument.source_issue_ids.length && argument.source_law_ids.length)).toBe(true)
+    expect(first[0].reasoning).toMatch(/民间借贷关系/)
+    expect(first[0].reasoning).toMatch(/借条/)
+    expect(first[0].reasoning).toMatch(/聊天记录/)
+    expect(first[0].reasoning).toMatch(/借贷合意/)
+    expect(first[0].conclusion).toMatch(/借贷关系成立|民间借贷关系成立/)
+    expect(first[0].conclusion).toMatch(/律师.*最终审核/)
+    expect(first[1].reasoning).toMatch(/银行流水/)
+    expect(first[1].reasoning).toMatch(/转账/)
+    expect(first[1].reasoning).toMatch(/资金交付/)
+    expect(first[1].conclusion).toMatch(/出借义务.*履行/)
+    expect(first[2].reasoning).toMatch(/到期/)
+    expect(first[2].reasoning).toMatch(/未还款/)
+    expect(first[2].reasoning).toMatch(/催收/)
+    expect(first[2].reasoning).toMatch(/利息/)
+    expect(first[2].conclusion).toMatch(/违约责任主张/)
+    expect(first[2].risk_note).toMatch(/日期.*核验/)
+    expect(first[2].risk_note).toMatch(/利息计算.*律师确认/)
+    for (const argument of first) {
+      expect(argument.risk_note).toMatch(/日期.*核验/)
+      expect(argument.risk_note).toMatch(/利息计算.*确认/)
+      expect(argument.risk_note).toMatch(/证据真实性.*审核/)
+    }
+  })
+
+  it('aggregates multiple delivery sources into one Argument', async () => {
+    const adapter = new MockLlmAdapter()
+    const result = await adapter.generate({
+      task: 'analyze_arguments',
+      matter_id: 'generic-matter',
+      prompt_version: 'argument-draft-v1',
+      facts: [{ fact_id: 'fact-b', issue_type: 'delivery' }, { fact_id: 'fact-a', issue_type: 'delivery' }],
+      issues: [{ issue_id: 'issue-b', issue_type: 'delivery', source_fact_ids: ['fact-b'] }, { issue_id: 'issue-a', issue_type: 'delivery', source_fact_ids: ['fact-a'] }],
+      laws: [{ law_id: 'law-b', issue_type: 'delivery', source_issue_ids: ['issue-b'] }, { law_id: 'law-a', issue_type: 'delivery', source_issue_ids: ['issue-a'] }],
+    })
+    expect(result.response.arguments).toHaveLength(1)
+    expect(result.response.arguments[0].source_fact_ids).toEqual(['fact-a', 'fact-b'])
+    expect(result.response.arguments[0].source_issue_ids).toEqual(['issue-a', 'issue-b'])
+    expect(result.response.arguments[0].source_law_ids).toEqual(['law-a', 'law-b'])
+  })
+
+  it('rejects empty, invalid and type-mismatched source closures', () => {
+    const facts = [
+      { fact_id: 'fact-agreement', title: '双方形成借贷合意' },
+      { fact_id: 'fact-delivery', title: '资金已经转账交付' },
+    ]
+    const issues = [
+      { issue_id: 'issue-agreement', facts: [{ fact: facts[0] }] },
+      { issue_id: 'issue-delivery', facts: [{ fact: facts[1] }] },
+    ]
+    const laws = [
+      { law_id: 'law-agreement', issues: [{ issue_id: 'issue-agreement' }] },
+      { law_id: 'law-delivery', issues: [{ issue_id: 'issue-delivery' }] },
+    ]
+    const base = { title: '成立论证', reasoning: '正式论证过程', conclusion: '正式结论', issue_type: 'agreement' }
+    expect(normalizeArgumentSuggestionsForDrafts([{ ...base, source_fact_ids: [], source_issue_ids: ['issue-agreement'], source_law_ids: ['law-agreement'] }], facts, issues, laws)).toEqual([])
+    expect(normalizeArgumentSuggestionsForDrafts([{ ...base, source_fact_ids: ['missing'], source_issue_ids: ['issue-agreement'], source_law_ids: ['law-agreement'] }], facts, issues, laws)).toEqual([])
+    expect(normalizeArgumentSuggestionsForDrafts([{ ...base, source_fact_ids: ['fact-agreement'], source_issue_ids: ['issue-delivery'], source_law_ids: ['law-delivery'] }], facts, issues, laws)).toEqual([])
+    expect(normalizeArgumentSuggestionsForDrafts([{ ...base, source_fact_ids: ['fact-agreement'], source_issue_ids: ['issue-agreement'], source_law_ids: ['law-agreement'] }], facts, issues, laws)).toHaveLength(1)
+  })
+
+  it('rejects internal metadata and placeholder content', () => {
+    for (const unsafe of ['Prompt', 'ai_reasoning', 'source_fact_ids', '第X条', 'placeholder']) {
+      expect(() => assertFormalArgumentContent({ title: '正式论证', reasoning: `论证包含 ${unsafe}`, conclusion: '正式结论' })).toThrow()
+    }
+  })
+
   it('rejects generation when no formal Laws exist', async () => {
     const emptyMatterId = `${matterId}-empty`
     await cleanup(emptyMatterId)
@@ -103,6 +207,7 @@ describe('Persisted Argument Draft Workflow', () => {
     expect(first.statusCode).toBe(200)
     const firstBody = JSON.parse(first.body)
     expect(firstBody.idempotent).toBe(false)
+    expect(firstBody.ai_audit).toEqual({ provider: 'mock', model: 'mock-lawdesk-v1', prompt_version: 'argument-draft-v1', fallback_used: false })
     expect(firstBody.argument_drafts.length).toBe(3)
     expect(firstBody.argument_drafts.every((draft: any) => draft.review_status === 'pending')).toBe(true)
     expect(firstBody.argument_drafts.every((draft: any) => Array.isArray(draft.source_fact_ids) && draft.source_fact_ids.length > 0)).toBe(true)
@@ -113,6 +218,7 @@ describe('Persisted Argument Draft Workflow', () => {
     expect(second.statusCode).toBe(200)
     const secondBody = JSON.parse(second.body)
     expect(secondBody.idempotent).toBe(true)
+    expect(secondBody.ai_audit).toBeNull()
     expect(secondBody.argument_drafts.map((draft: any) => draft.id)).toEqual(firstBody.argument_drafts.map((draft: any) => draft.id))
 
     const count = await prisma.argumentDraft.count({ where: { matter_id: matterId } })

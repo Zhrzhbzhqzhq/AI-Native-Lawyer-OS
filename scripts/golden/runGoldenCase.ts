@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { GoldenApiClient, ApiError } from './apiClient'
 import { validateGoldenCase } from './validateGoldenCase'
-import { EndpointResult, GoldenProvider, GoldenRunJson } from './types'
+import { AIAudit, EndpointResult, GoldenProvider, GoldenRunJson, StageAIAudit } from './types'
 import { assertFile, caseDirFor, compact, datasetConfig, ensureDir, gitCommit, listMaterialFiles, makeRunId, readJson, requireGoldenDatabaseName, writeJson } from './utils'
 
 type RunOptions = {
@@ -87,6 +87,56 @@ function documentRelations(draft: any) {
   }
 }
 
+function isAIAudit(value: unknown): value is AIAudit {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const audit = value as Record<string, unknown>
+  return typeof audit.provider === 'string' && audit.provider.trim().length > 0
+    && typeof audit.model === 'string' && audit.model.trim().length > 0
+    && typeof audit.prompt_version === 'string' && audit.prompt_version.trim().length > 0
+    && typeof audit.fallback_used === 'boolean'
+}
+
+export function collectStageAIAudits(value: unknown, responseStage: string): StageAIAudit[] {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return []
+  const response = value as Record<string, unknown>
+  const audits: StageAIAudit[] = []
+
+  if (isAIAudit(response.ai_audit)) audits.push({ stage: responseStage, ...response.ai_audit })
+  if (Array.isArray(response.ai_audits)) {
+    for (const candidate of response.ai_audits) {
+      if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) continue
+      const stageAudit = candidate as Record<string, unknown>
+      if (typeof stageAudit.stage !== 'string' || !stageAudit.stage.trim() || !isAIAudit(stageAudit)) continue
+      audits.push({
+        stage: stageAudit.stage.trim(),
+        provider: stageAudit.provider,
+        model: stageAudit.model,
+        prompt_version: stageAudit.prompt_version,
+        fallback_used: stageAudit.fallback_used,
+      })
+    }
+  }
+  return audits
+}
+
+export function summarizeStageAIAudits(aiAudits: StageAIAudit[]) {
+  const providerAudits = aiAudits.filter((audit) => audit.provider !== 'runtime')
+  const providers = Array.from(new Set(providerAudits.map((audit) => audit.provider)))
+  const models = Array.from(new Set(providerAudits.map((audit) => audit.model)))
+  const promptVersions = Array.from(new Set(aiAudits.map((audit) => audit.prompt_version)))
+  const auditConflicts: string[] = []
+  if (providers.length > 1) auditConflicts.push(`provider_conflict:${providers.join(',')}`)
+  if (models.length > 1) auditConflicts.push(`model_conflict:${models.join(',')}`)
+
+  return {
+    provider_actual: providers.length === 1 ? providers[0] : null,
+    model_actual: models.length === 1 ? models[0] : null,
+    prompt_version: promptVersions.length > 0 ? promptVersions.join(',') : null,
+    fallback_used: aiAudits.length > 0 ? aiAudits.some((audit) => audit.fallback_used) : null,
+    audit_conflicts: auditConflicts,
+  }
+}
+
 export async function runGoldenCase(options: RunOptions) {
   requireProvider(options.provider)
   const callerDeclaredDatabase = requireGoldenDatabaseName()
@@ -112,21 +162,15 @@ export async function runGoldenCase(options: RunOptions) {
   const workflowCounts: Record<string, number> = {}
   const wordExport = { status: null as number | null, content_type: null as string | null, size_bytes: null as number | null }
   let matterId: string | null = null
-  let providerActual: string | null = null
-  let modelActual: string | null = null
-  let promptVersion: string | null = null
-  let fallbackUsed: boolean | null = null
+  const aiAudits: StageAIAudit[] = []
   const acceptedAudit: Record<string, any[]> = { facts: [], issues: [], laws: [], arguments: [], documents: [] }
 
-  const captureAuditMetadata = (value: any, depth = 0) => {
-    if (!value || typeof value !== 'object') return
-    if (typeof value.provider === 'string' && value.provider.trim()) providerActual = value.provider.trim()
-    if (typeof value.model === 'string' && value.model.trim()) modelActual = value.model.trim()
-    if (typeof value.prompt_version === 'string' && value.prompt_version.trim()) promptVersion = value.prompt_version.trim()
-    if (typeof value.fallback_used === 'boolean') fallbackUsed = value.fallback_used
-    else if (typeof value.fallback === 'boolean') fallbackUsed = value.fallback
-    if (depth < 3) {
-      for (const key of ['analysis', 'ai', 'metadata', 'runtime', 'provider_metadata']) captureAuditMetadata(value[key], depth + 1)
+  const captureAuditMetadata = (value: unknown, stage: string) => {
+    for (const audit of collectStageAIAudits(value, stage)) {
+      const key = `${audit.stage}|${audit.provider}|${audit.model}|${audit.prompt_version}|${audit.fallback_used}`
+      if (!aiAudits.some((existing) => `${existing.stage}|${existing.provider}|${existing.model}|${existing.prompt_version}|${existing.fallback_used}` === key)) {
+        aiAudits.push(audit)
+      }
     }
   }
 
@@ -137,7 +181,7 @@ export async function runGoldenCase(options: RunOptions) {
   const call = async <T>(step: string, method: 'get' | 'post' | 'patch', endpoint: string, body?: unknown): Promise<T> => {
     try {
       const result = await (api as any)[method](endpoint, body)
-      if (step !== 'preflight') captureAuditMetadata(result)
+      if (step !== 'preflight') captureAuditMetadata(result, step)
       record(step, endpoint, 200, true, compact(result, 240))
       return result as T
     } catch (err: any) {
@@ -149,16 +193,19 @@ export async function runGoldenCase(options: RunOptions) {
 
   const savePartialRun = (pass: boolean, error?: { step: string; message: string }) => {
     const finishedAt = new Date().toISOString()
+    const auditSummary = summarizeStageAIAudits(aiAudits)
     const runJson: GoldenRunJson = {
       run_id: runId,
       case_id: options.caseId,
       dataset_version: String(dataset.dataset_version || dataset.version || ''),
       git_commit: gitCommit(),
       provider_requested: options.provider,
-      provider_actual: providerActual,
-      model_actual: modelActual,
-      prompt_version: promptVersion,
-      fallback_used: fallbackUsed,
+      provider_actual: auditSummary.provider_actual,
+      model_actual: auditSummary.model_actual,
+      prompt_version: auditSummary.prompt_version,
+      fallback_used: auditSummary.fallback_used,
+      ai_audits: aiAudits,
+      audit_conflicts: auditSummary.audit_conflicts,
       caller_declared_database: callerDeclaredDatabase,
       matter_id: matterId,
       started_at: startedAt,
