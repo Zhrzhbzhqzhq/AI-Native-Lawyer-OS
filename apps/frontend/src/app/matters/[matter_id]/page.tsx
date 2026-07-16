@@ -1,6 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { apiUrl } from '../../../lib/api'
 
 type Workspace = {
   matter: { matter_id: string; title?: string; status?: string }
@@ -40,7 +41,7 @@ function TwoLineTitle({ zh, en, size = 'md' }: { zh: string; en?: string; size?:
   )
 }
 
-function SummaryCard({ title, value }: { title: string; value: number }) {
+function SummaryCard({ title, value }: { title: string; value: number | string }) {
   return (
     <div style={{ padding: tokens.spacing, borderRadius: tokens.radius, background: tokens.cardBg, border: `1px solid ${tokens.border}`, minWidth: 140 }}>
       <div style={{ fontSize: 12, color: tokens.muted }}>{title}</div>
@@ -212,6 +213,132 @@ function formatWaitingForDisplay(value: any): string {
   return '无'
 }
 
+type MaterialRequirement = {
+  key: string
+  label: string
+  patterns: string[]
+}
+
+const coreMaterialRequirements: MaterialRequirement[] = [
+  { key: 'client_consultation', label: '客户咨询资料', patterns: ['客户咨询', '咨询记录', '咨询录音整理', '咨询资料'] },
+  { key: 'bank_statement', label: '银行流水', patterns: ['银行流水', '转账', '银行记录', 'bank'] },
+  { key: 'wechat_chat', label: '微信聊天记录', patterns: ['微信聊天', '微信', '聊天记录', '催收'] },
+  { key: 'iou', label: '借条', patterns: ['借条', '借款凭证', '借据'] },
+  { key: 'recording', label: '录音', patterns: ['录音', '电话录音', '录音整理'] },
+]
+
+function getMaterialSearchText(material: any): string {
+  if (!material || typeof material !== 'object') return ''
+  return [
+    material.title,
+    material.name,
+    material.file_name,
+    material.filename,
+    material.original_name,
+    material.material_type,
+    material.type,
+    material.source,
+    material.description,
+    material.storage_uri,
+  ]
+    .filter((value) => value != null)
+    .map((value) => String(value))
+    .join(' ')
+    .toLowerCase()
+}
+
+function getMaterialChecklist(materials: any[]) {
+  const source = Array.isArray(materials) ? materials.map(getMaterialSearchText) : []
+  return coreMaterialRequirements.map((item) => ({
+    ...item,
+    done: source.some((text) => item.patterns.some((pattern) => text.includes(pattern.toLowerCase()))),
+  }))
+}
+
+function getMatterNextStep(counts: { materials: number; evidence: number; facts: number; issues: number; laws: number; arguments: number; documents: number }, missingMaterials: string[], matterId: string) {
+  if (missingMaterials.length > 0) {
+    return {
+      title: '补充核心材料',
+      suggestions: missingMaterials.slice(0, 3).map((name) => `补充${name}`),
+      estimate: '20 分钟',
+      primaryLabel: '补充材料',
+      primaryHref: `/matters/${matterId}/evidence`,
+      secondaryLabel: '查看资料',
+      secondaryHref: `/matters/${matterId}/evidence`,
+      bottomLabel: '下一步：补充材料',
+      bottomHref: `/matters/${matterId}/evidence`,
+    }
+  }
+
+  if (counts.materials > 0 && counts.evidence < counts.materials) {
+    return {
+      title: '进入证据整理',
+      suggestions: ['核对材料与证据的对应关系', '补齐尚未形成证据的材料', '确认核心证据强度'],
+      estimate: '30 分钟',
+      primaryLabel: '进入证据工作区',
+      primaryHref: `/matters/${matterId}/evidence`,
+      secondaryLabel: '查看事实',
+      secondaryHref: `/matters/${matterId}/facts`,
+      bottomLabel: '下一步：证据整理',
+      bottomHref: `/matters/${matterId}/evidence`,
+    }
+  }
+
+  if (counts.evidence > 0 && (counts.facts === 0 || counts.issues === 0)) {
+    return {
+      title: '继续案件分析',
+      suggestions: ['梳理案件事实', '确认争议焦点', '补强事实与证据关联'],
+      estimate: '30 分钟',
+      primaryLabel: '继续案件分析',
+      primaryHref: counts.facts === 0 ? `/matters/${matterId}/facts` : `/matters/${matterId}/issues`,
+      secondaryLabel: '查看证据',
+      secondaryHref: `/matters/${matterId}/evidence`,
+      bottomLabel: counts.facts === 0 ? '下一步：事实整理' : '下一步：分析争议焦点',
+      bottomHref: counts.facts === 0 ? `/matters/${matterId}/facts` : `/matters/${matterId}/issues`,
+    }
+  }
+
+  if ((counts.laws > 0 || counts.arguments > 0) && counts.documents === 0) {
+    return {
+      title: '起草文书',
+      suggestions: ['进入文书工作区', '基于现有法律依据与论证起草文书', '完成后提交律师审核'],
+      estimate: '30 分钟',
+      primaryLabel: '进入文书工作区',
+      primaryHref: `/matters/${matterId}/documents`,
+      secondaryLabel: '查看法律论证',
+      secondaryHref: `/matters/${matterId}/arguments`,
+      bottomLabel: '下一步：起草文书',
+      bottomHref: `/matters/${matterId}/documents`,
+    }
+  }
+
+  if (counts.documents > 0) {
+    return {
+      title: '进入律师审核',
+      suggestions: ['审核已生成文书', '确认提交材料清单', '准备后续执行安排'],
+      estimate: '20 分钟',
+      primaryLabel: '进入文书审核',
+      primaryHref: `/matters/${matterId}/documents`,
+      secondaryLabel: '执行准备',
+      secondaryHref: `/matters/${matterId}/execution`,
+      bottomLabel: '下一步：律师审核',
+      bottomHref: `/matters/${matterId}/documents`,
+    }
+  }
+
+  return {
+    title: '进入案件工作区',
+    suggestions: ['查看案件材料', '确认下一步工作内容', '补齐案件基础信息'],
+    estimate: '20 分钟',
+    primaryLabel: '查看案件材料',
+    primaryHref: `/matters/${matterId}/evidence`,
+    secondaryLabel: '法律检索',
+    secondaryHref: `/matters/${matterId}/research`,
+    bottomLabel: '下一步：查看材料',
+    bottomHref: `/matters/${matterId}/evidence`,
+  }
+}
+
 function TimelineNode({ idx, title, state }: { idx: number; title: string; state: 'done' | 'current' | 'future' }) {
   const color = state === 'done' ? tokens.blue : state === 'current' ? '#0ea5a4' : '#cbd5e1'
   return (
@@ -240,12 +367,13 @@ export default function MatterWorkspacePage() {
   const [laws, setLaws] = useState<any[]>([])
   const [argumentsList, setArgumentsList] = useState<any[]>([])
   const [documents, setDocuments] = useState<any[]>([])
+  const [overviewError, setOverviewError] = useState<string | null>(null)
 
   // Dynamic values populated from backend
   const caseName = matterTitle || ''
-  const client = clientName ?? '未填写'
-  const stage = matterStatus || '进行中'
-  const status = matterStatus || '进行中'
+  const client = clientName ?? '—'
+  const stage = matterStatus || '—'
+  const status = matterStatus || '—'
 
   const cardStyle: React.CSSProperties = {
     background: '#fff',
@@ -259,55 +387,30 @@ export default function MatterWorkspacePage() {
     async function loadAll() {
       if (!params?.matter_id) return
       setLoadingMaterials(true)
-      const API = (process.env.NEXT_PUBLIC_API_BASE_URL as string) || 'http://localhost:4000'
+      setOverviewError(null)
       const endpoints = {
-        matter: `${API}/matters/${encodeURIComponent(params.matter_id)}`,
-        materials: `${API}/matters/${encodeURIComponent(params.matter_id)}/materials`,
-        evidence: `${API}/matters/${encodeURIComponent(params.matter_id)}/evidence`,
-        facts: `${API}/matters/${encodeURIComponent(params.matter_id)}/facts`,
-        issues: `${API}/matters/${encodeURIComponent(params.matter_id)}/issues`,
-        laws: `${API}/matters/${encodeURIComponent(params.matter_id)}/laws`,
-        arguments: `${API}/matters/${encodeURIComponent(params.matter_id)}/arguments`,
-        documents: `${API}/matters/${encodeURIComponent(params.matter_id)}/documents`,
+        matter: apiUrl(`/matters/${encodeURIComponent(params.matter_id)}`),
+        materials: apiUrl(`/matters/${encodeURIComponent(params.matter_id)}/materials`),
+        evidence: apiUrl(`/matters/${encodeURIComponent(params.matter_id)}/evidence`),
+        facts: apiUrl(`/matters/${encodeURIComponent(params.matter_id)}/facts`),
+        issues: apiUrl(`/matters/${encodeURIComponent(params.matter_id)}/issues`),
+        laws: apiUrl(`/matters/${encodeURIComponent(params.matter_id)}/laws`),
+        arguments: apiUrl(`/matters/${encodeURIComponent(params.matter_id)}/arguments`),
+        documents: apiUrl(`/matters/${encodeURIComponent(params.matter_id)}/documents`),
       }
 
       try {
-        const settled = await Promise.allSettled(Object.values(endpoints).map((u) => fetch(u).catch((e) => null)))
+        const responses = await Promise.all(Object.values(endpoints).map((url) => fetch(url)))
         if (!mounted) return
-
-        // matter
-        try {
-          const mResp = settled[0].status === 'fulfilled' && settled[0].value && settled[0].value.ok ? await (settled[0] as any).value.json() : null
-          if (mResp && typeof mResp === 'object') {
-            setMatterTitle(mResp.title || '')
-            setMatterStatus(mResp.status || '')
-            setClientName((mResp.client && (mResp.client.name || mResp.client)) || null)
-          }
-        } catch (e) {
-          // ignore
-        }
-
-        // helper to parse arrays
-        const parseArr = async (idx: number) => {
-          try {
-            const r = (settled[idx] as any).value
-            if (r && r.ok) {
-              const j = await r.json().catch(() => null)
-              return Array.isArray(j) ? j : []
-            }
-          } catch (e) { }
-          return []
-        }
-
-        const materialsArr = await parseArr(1)
-        const evidenceArr = await parseArr(2)
-        const factsArr = await parseArr(3)
-        const issuesArr = await parseArr(4)
-        const lawsArr = await parseArr(5)
-        const argsArr = await parseArr(6)
-        const docsArr = await parseArr(7)
+        if (responses.some((response) => !response.ok)) throw new Error('request_failed')
+        const payloads = await Promise.all(responses.map((response) => response.json())).catch(() => { throw new Error('invalid_response') })
+        const [matter, materialsArr, evidenceArr, factsArr, issuesArr, lawsArr, argsArr, docsArr] = payloads
+        if (!matter || typeof matter !== 'object' || Array.isArray(matter) || typeof matter.matter_id !== 'string' || typeof matter.title !== 'string' || ![materialsArr, evidenceArr, factsArr, issuesArr, lawsArr, argsArr, docsArr].every(Array.isArray)) throw new Error('invalid_response')
 
         if (!mounted) return
+        setMatterTitle(matter.title)
+        setMatterStatus(typeof matter.status === 'string' ? matter.status : '')
+        setClientName((matter.client && (matter.client.name || matter.client)) || null)
         setMaterials(materialsArr)
         setEvidenceCount(Array.isArray(evidenceArr) ? evidenceArr.length : 0)
         setCounts({ materials: materialsArr.length, evidence: evidenceArr.length, facts: factsArr.length, issues: issuesArr.length, laws: lawsArr.length, arguments: argsArr.length, documents: docsArr.length })
@@ -316,13 +419,8 @@ export default function MatterWorkspacePage() {
         setLaws(lawsArr)
         setArgumentsList(argsArr)
         setDocuments(docsArr)
-      } catch (e) {
-        console.error('loadAll failed', e)
-        if (mounted) {
-          setMaterials([])
-          setEvidenceCount(0)
-          setCounts({ materials: 0, evidence: 0, facts: 0, issues: 0, laws: 0, arguments: 0, documents: 0 })
-        }
+      } catch (error: any) {
+        if (mounted) setOverviewError(error?.message === 'invalid_response' ? '案件概览返回数据暂不可用' : '案件概览加载失败，请稍后重试')
       } finally {
         if (mounted) setLoadingMaterials(false)
       }
@@ -352,8 +450,18 @@ export default function MatterWorkspacePage() {
     cursor: 'pointer',
   }
 
+  const materialChecklist = getMaterialChecklist(materials)
+  const missingMaterialLabels = materialChecklist.filter((item) => !item.done).map((item) => item.label)
+  const nextStep = getMatterNextStep(counts, missingMaterialLabels, params.matter_id)
+
+  if (overviewError) return <main style={{ padding: 32 }}><div style={{ color: '#b91c1c' }}>{overviewError}<button onClick={() => window.location.reload()} style={{ marginLeft: 12 }}>重新加载</button></div></main>
+
   return (
     <main style={{ padding: 32, background: '#ffffff', color: '#0f172a', minHeight: '80vh' }}>
+      <div style={{ marginBottom: 12, display: 'flex', gap: 12, alignItems: 'center' }}>
+        <button onClick={() => router.push('/')} style={{ background: 'transparent', border: 'none', color: tokens.muted, fontSize: 14, padding: 0, cursor: 'pointer' }}>← 返回今日工作台</button>
+        <button onClick={() => router.push('/matters')} style={{ background: 'transparent', border: 'none', color: tokens.muted, fontSize: 14, padding: 0, cursor: 'pointer' }}>← 返回案件中心</button>
+      </div>
       {/* 案件资料区域 */}
       <section style={{ marginBottom: 24 }}>
         <div style={{ background: '#fff', border: '1px solid #e6e7eb', padding: 20, borderRadius: 12 }}>
@@ -395,13 +503,13 @@ export default function MatterWorkspacePage() {
             <div>案件阶段：{stage}</div>
             <div>案件状态：{status}</div>
             <div style={{ marginTop: 8, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <SummaryCard title="Materials" value={counts.materials} />
-              <SummaryCard title="Evidence" value={counts.evidence} />
-              <SummaryCard title="Facts" value={counts.facts} />
-              <SummaryCard title="Issues" value={counts.issues} />
-              <SummaryCard title="Laws" value={counts.laws} />
-              <SummaryCard title="Arguments" value={counts.arguments} />
-              <SummaryCard title="Documents" value={counts.documents} />
+              <SummaryCard title="Materials" value={overviewError ? '—' : counts.materials} />
+              <SummaryCard title="Evidence" value={overviewError ? '—' : counts.evidence} />
+              <SummaryCard title="Facts" value={overviewError ? '—' : counts.facts} />
+              <SummaryCard title="Issues" value={overviewError ? '—' : counts.issues} />
+              <SummaryCard title="Laws" value={overviewError ? '—' : counts.laws} />
+              <SummaryCard title="Arguments" value={overviewError ? '—' : counts.arguments} />
+              <SummaryCard title="Documents" value={overviewError ? '—' : counts.documents} />
             </div>
           </div>
         </div>
@@ -415,13 +523,13 @@ export default function MatterWorkspacePage() {
             <div style={{ color: '#374151', lineHeight: 1.8 }}>
               <div style={{ fontWeight: 700, marginBottom: 8 }}>建议今天完成：</div>
               <ol style={{ marginLeft: 18 }}>
-                <li>① 上传银行流水</li>
-                <li>② 上传微信聊天记录</li>
-                <li>③ 补充借条</li>
+                {nextStep.suggestions.map((suggestion, idx) => (
+                  <li key={`${nextStep.title}-${idx}`}>{idx + 1}. {suggestion}</li>
+                ))}
               </ol>
 
               <div style={{ marginTop: 12, fontWeight: 700 }}>预计耗时：</div>
-              <div style={{ marginTop: 6 }}>20 分钟</div>
+              <div style={{ marginTop: 6 }}>{nextStep.estimate}</div>
             </div>
           </div>
         </div>
@@ -431,28 +539,25 @@ export default function MatterWorkspacePage() {
           <div style={{ ...cardStyle }}>
             <div style={{ fontWeight: 800, marginBottom: 10 }}>当前资料</div>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#374151' }}>
-              <li style={{ marginBottom: 8 }}>✓ 客户资料</li>
-              <li style={{ marginBottom: 8 }}>✓ 委托合同</li>
-              <li style={{ marginBottom: 8 }}>□ 银行流水</li>
-              <li style={{ marginBottom: 8 }}>□ 微信聊天记录</li>
-              <li style={{ marginBottom: 8 }}>□ 借条</li>
-              <li style={{ marginBottom: 8 }}>□ 录音</li>
+              {materialChecklist.map((item) => (
+                <li key={item.key} style={{ marginBottom: 8 }}>{item.done ? '✓' : '□'} {item.label}</li>
+              ))}
             </ul>
           </div>
 
           <div style={{ ...cardStyle }}>
             <div style={{ fontWeight: 800, marginBottom: 12 }}>开始今天工作</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <button onClick={() => router.push(`/matters/${params.matter_id}/documents`)} style={primaryBtn}>上传资料</button>
+              <button onClick={() => router.push(nextStep.primaryHref)} style={primaryBtn}>{nextStep.primaryLabel}</button>
+              <button onClick={() => router.push(nextStep.secondaryHref)} style={secondaryBtn}>{nextStep.secondaryLabel}</button>
               <button onClick={() => router.push(`/matters/${params.matter_id}/research`)} style={secondaryBtn}>法律检索</button>
-              <button onClick={() => router.push(`/matters/${params.matter_id}/documents`)} style={secondaryBtn}>生成文书</button>
             </div>
           </div>
         </aside>
       </div>
       {/* 下一步 按钮 */}
       <div style={{ padding: 24, background: '#ffffff', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'center' }}>
-        <button onClick={() => router.push(`/matters/${params.matter_id}/evidence`)} style={{ width: '720px', maxWidth: '90%', padding: '12px 16px', background: '#111827', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 800 }}>下一步：证据整理</button>
+        <button onClick={() => router.push(nextStep.bottomHref)} style={{ width: '720px', maxWidth: '90%', padding: '12px 16px', background: '#111827', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 800 }}>{nextStep.bottomLabel}</button>
       </div>
     </main>
   )

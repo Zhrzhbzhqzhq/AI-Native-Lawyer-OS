@@ -1,364 +1,162 @@
 "use client"
-import React, { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
 
-const theme = {
-  pageBg: '#f8fafc',
-  cardBg: '#ffffff',
-  border: '#e2e8f0',
-  text: '#0f172a',
-  muted: '#64748b',
-  blue: '#2563eb',
+import React, { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { apiUrl } from '../../../../lib/api'
+
+const card: React.CSSProperties = { padding: 18, border: '1px solid #e2e8f0', borderRadius: 12, background: '#fff' }
+const finalDocumentStatuses = new Set(['published', 'completed', 'final'])
+
+function asArray(value: unknown): any[] {
+  return Array.isArray(value) ? value : []
 }
 
-function TwoLineTitle({ zh, en, size = 'md' }: { zh: string; en?: string; size?: 'xl' | 'md' }) {
-  const token = size === 'xl'
-    ? { zh: 24, en: 14 }
-    : { zh: 16, en: 10 }
+function label(item: any): string {
+  return String(item?.title || item?.name || item?.description || item?.action || item?.queue_id || item?.action_id || '').trim()
+}
 
-  return (
-    <div style={{ lineHeight: 1.06 }}>
-      <div style={{ fontSize: token.zh, fontWeight: 800, color: theme.text }}>{zh}</div>
-      {en ? <div style={{ fontSize: token.en, fontWeight: 400, color: theme.muted, marginTop: 2 }}>{en}</div> : null}
-    </div>
-  )
+function isRecord(value: unknown): value is Record<string, any> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value))
+}
+
+function isRuntimeDisplayValue(value: unknown): boolean {
+  return value === null || typeof value === 'string' || (isRecord(value) && ['title', 'name', 'description', 'action'].some((key) => typeof value[key] === 'string'))
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value)
+}
+
+function isValidDateString(value: unknown): value is string {
+  return isNonEmptyString(value) && Number.isFinite(new Date(value).getTime())
+}
+
+function isRuntimeStateItem(value: unknown): boolean {
+  return Boolean(isRecord(value) && isNonEmptyString(value.code) && (typeof value.value === 'boolean' || typeof value.value === 'string' || isFiniteNumber(value.value)))
+}
+
+function isRuntimeAction(value: unknown): boolean {
+  return Boolean(isRecord(value) && isNonEmptyString(value.action_id) && isNonEmptyString(value.type) && isNonEmptyString(value.work_id) && ['READY', 'BLOCKED'].includes(value.status) && isRecord(value.payload))
+}
+
+function isTodayQueueItem(value: unknown): boolean {
+  return Boolean(isRecord(value) && isNonEmptyString(value.queue_id) && isNonEmptyString(value.action_id) && isNonEmptyString(value.work_id) && ['NOW', 'TODAY', 'LATER'].includes(value.slot) && ['READY', 'BLOCKED'].includes(value.status) && isFiniteNumber(value.order) && (value.execution_status === undefined || isNonEmptyString(value.execution_status)))
+}
+
+function isRuntimeNextStep(value: unknown): boolean {
+  return Boolean(isRecord(value) && isNonEmptyString(value.title) && isNonEmptyString(value.reason) && isFiniteNumber(value.estimated_minutes) && isNonEmptyString(value.next_state) && isNonEmptyString(value.lawyer_action) && isFiniteNumber(value.priority) && isNonEmptyString(value.target_workspace) && (value.action === undefined || typeof value.action === 'string') && (value.priority_label === undefined || typeof value.priority_label === 'string'))
+}
+
+function isRuntimeData(value: unknown, currentMatterId: string): value is Record<string, any> {
+  if (!isRecord(value)) return false
+  if (!isRecord(value.matter) || value.matter.matter_id !== currentMatterId) return false
+  if (!Array.isArray(value.runtime_state) || !value.runtime_state.every(isRuntimeStateItem)) return false
+  if (!isRecord(value.runtime_decision) || !isNonEmptyString(value.runtime_decision.code) || !Array.isArray(value.runtime_decision.source) || !value.runtime_decision.source.every(isNonEmptyString)) return false
+  if (!isRecord(value.runtime_plan) || !isNonEmptyString(value.runtime_plan.goal) || !isNonEmptyString(value.runtime_plan.priority) || !isNonEmptyString(value.runtime_plan.source_decision) || !Array.isArray(value.runtime_plan.steps) || !value.runtime_plan.steps.every((step: unknown) => typeof step === 'string') || !isValidDateString(value.runtime_plan.generated_at)) return false
+  if (!isRuntimeNextStep(value.runtime_next_step)) return false
+  if (!Array.isArray(value.runtime_actions) || !value.runtime_actions.every(isRuntimeAction)) return false
+  if (!Array.isArray(value.today_queue) || !value.today_queue.every(isTodayQueueItem)) return false
+  if (!isRecord(value.snapshot_facts) || value.snapshot_facts.matter_id !== currentMatterId || !isRecord(value.snapshot_facts.counts) || !['tasks', 'documents', 'evidence', 'research', 'timeline'].every((key) => isFiniteNumber(value.snapshot_facts.counts[key])) || !isValidDateString(value.snapshot_facts.generated_at)) return false
+  if (!isValidDateString(value.generated_at)) return false
+  if (value.execution_advice !== undefined && !isRuntimeDisplayValue(value.execution_advice)) return false
+  for (const key of ['execution_plan', 'asset_clues', 'confirmed_asset_clues', 'execution_materials']) {
+    if (value[key] !== undefined && (!Array.isArray(value[key]) || !value[key].every(isRuntimeDisplayValue))) return false
+  }
+  return true
 }
 
 export default function ExecutionWorkspacePage() {
-  const params = useParams() as { matter_id: string }
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const params = useParams() as { matter_id?: string }
+  const router = useRouter()
+  const matterId = String(params?.matter_id || '')
   const [runtime, setRuntime] = useState<any | null>(null)
-  const [executionRows, setExecutionRows] = useState<any[] | null>(null)
+  const [execution, setExecution] = useState<any[] | null>(null)
+  const [documents, setDocuments] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [runtimeLoaded, setRuntimeLoaded] = useState(false)
+  const [runtimeError, setRuntimeError] = useState<string | null>(null)
+  const [executionError, setExecutionError] = useState<string | null>(null)
+  const [documentsError, setDocumentsError] = useState<string | null>(null)
+  const [documentsLoaded, setDocumentsLoaded] = useState(false)
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true)
-      setError(null)
-      // If no matter_id provided, keep local fallback
-      if (!params.matter_id) {
-        setRuntime(null)
-        setLoading(false)
-        return
-      }
-      try {
-        const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000'
-        const resRuntime = await fetch(`${API}/matters/${params.matter_id}/runtime`).catch(() => null)
-        if (resRuntime && resRuntime.ok) {
-          try { setRuntime(await resRuntime.json()) } catch (e) { setRuntime(null) }
-        }
-      } catch (e: any) {
-        setError(e?.message || 'Failed')
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
-  }, [params.matter_id])
-
-  useEffect(() => {
-    async function loadExecution() {
-      if (!params.matter_id) {
-        setExecutionRows([])
-        return
-      }
-      try {
-        const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000'
-        const res = await fetch(`${API}/matters/${params.matter_id}/execution`).catch(() => null)
-        if (res && res.ok) {
-          try { const json = await res.json(); setExecutionRows(Array.isArray(json) ? json : []) } catch (e) { setExecutionRows([]) }
-        } else {
-          setExecutionRows([])
-        }
-      } catch (e) {
-        setExecutionRows([])
-      }
-    }
-    loadExecution()
-  }, [params.matter_id])
-
-  if (loading) return <main style={{ padding: 24 }}><div>正在加载执行工作区...</div></main>
-  if (error) return <main style={{ padding: 24 }}><div style={{ color: '#b91c1c' }}>错误：{error}</div></main>
-
-  const runtimeHint = runtime ? '当前展示为执行工作台标准视图。' : '当前展示为执行工作台标准视图。'
-
-  const executionStatus = [
-    { label: '当前阶段', value: '执行前准备' },
-    { label: '法院状态', value: '尚未立案执行' },
-    { label: '执行依据', value: '待确认' },
-    { label: '完成度', value: '0%' },
-  ]
-
-  // Map backend execution rows to UI shape and provide fallback
-  const realExecutionStatus: any[] = Array.isArray(executionRows) ? executionRows.map((r) => ({ label: String(r.action_id || r.queue_id || ''), value: String(r.execution_status || '') })) : []
-
-
-  // No demo fallbacks — empty arrays when backend provides nothing
-  const executionMaterials: string[] = []
-
-  // derive execution advice from runtime snapshot when available
-  const runtimeData: any = runtime || null
-  let realExecutionAdvice = ''
-  try {
-    if (runtimeData) {
-      // prefer runtime_next_step if it's a string or has description/title
-      const rns = runtimeData.runtime_next_step
-      if (rns) {
-        if (typeof rns === 'string') realExecutionAdvice = rns
-        else if (typeof rns === 'object') realExecutionAdvice = rns.description || rns.title || JSON.stringify(rns)
-      }
-
-      // fallback to runtime_plan summary or ai.last_summary
-      if (!realExecutionAdvice) {
-        const plan = runtimeData.runtime_plan
-        if (plan) realExecutionAdvice = plan.summary || plan.description || JSON.stringify(plan)
-      }
-
-      if (!realExecutionAdvice) {
-        const ai = runtimeData.ai
-        if (ai && ai.last_summary) realExecutionAdvice = ai.last_summary.summary || ai.last_summary.message || JSON.stringify(ai.last_summary)
-      }
-
-      // final fallback to snapshot_facts hints
-      if (!realExecutionAdvice) {
-        const sf = runtimeData.snapshot_facts
-        if (sf) {
-          realExecutionAdvice = `文书：${sf.documents?.draft ?? 0} 草稿，${sf.documents?.final ?? 0} 已定稿；证据弱项：${sf.evidence?.weak ?? 0} 项。建议补强关键证据与材料。`
-        }
-      }
-    }
-  } catch (e) {
-    realExecutionAdvice = ''
-  }
-
-  const realExecutionAdviceOrFallback = realExecutionAdvice || '下一步建议律师补强执行依据、确认被执行人财产线索、准备执行申请材料。'
-
-  // derive asset clues from runtime snapshot and related runtime fields
-  let realAssetClues: Array<{ name: string; status: string }> = []
-  try {
-    if (runtime) {
-      const sf = runtime.snapshot_facts
-      if (sf) {
-        // accounts
-        if (sf.accounts && Array.isArray(sf.accounts)) {
-          const cnt = sf.accounts.length
-          realAssetClues.push({ name: '银行账户', status: cnt ? `发现 ${cnt} 条疑似账户` : '未发现' })
-        }
-
-        // vehicles
-        if (sf.vehicles && Array.isArray(sf.vehicles)) {
-          const cnt = sf.vehicles.length
-          realAssetClues.push({ name: '车辆信息', status: cnt ? `发现 ${cnt} 辆相关车辆` : '未发现' })
-        }
-
-        // real estate / properties
-        if (sf.real_estate && Array.isArray(sf.real_estate)) {
-          const cnt = sf.real_estate.length
-          realAssetClues.push({ name: '不动产', status: cnt ? `发现 ${cnt} 处不动产` : '未发现' })
-        }
-
-        // business / equity
-        if (sf.companies && Array.isArray(sf.companies)) {
-          const cnt = sf.companies.length
-          realAssetClues.push({ name: '工商/股权', status: cnt ? `发现 ${cnt} 条工商线索` : '未发现' })
-        }
-
-        // payment flows hints
-        if (sf.payment_flows && (Array.isArray(sf.payment_flows) || typeof sf.payment_flows === 'number')) {
-          const cnt = Array.isArray(sf.payment_flows) ? sf.payment_flows.length : sf.payment_flows
-          realAssetClues.push({ name: '微信/支付宝流水', status: cnt ? `发现 ${cnt} 条流水线索` : '未发现' })
-        }
-
-        // generic clues count
-        if (sf.clues && Array.isArray(sf.clues)) {
-          const cnt = sf.clues.length
-          realAssetClues.push({ name: '其他线索', status: cnt ? `共 ${cnt} 条` : '无' })
-        }
-      }
-
-      // runtime actions / works: look for investigations or asset-related tasks
-      const actions = runtime.runtime_actions || runtime.runtime_works || []
-      if (actions && Array.isArray(actions)) {
-        const assetActions = actions.filter((a: any) => {
-          const t = String(a.type || a.action_type || a.name || '').toLowerCase()
-          return t.includes('asset') || t.includes('account') || t.includes('property') || t.includes('investig') || t.includes('clue') || t.includes('trace')
-        })
-        if (assetActions.length) {
-          assetActions.forEach((a: any, idx: number) => {
-            const label = a.name || a.action_id || a.type || `资产任务 ${idx + 1}`
-            const status = a.status || a.state || a.execution_status || '进行中'
-            realAssetClues.push({ name: String(label), status: String(status) })
-          })
-        }
-      }
-
-      // runtime_plan may contain planned investigations
-      if (runtime.runtime_plan && typeof runtime.runtime_plan === 'object') {
-        const rp = runtime.runtime_plan
-        if (rp.asset_focus) {
-          realAssetClues.push({ name: '计划中的资产调查', status: rp.asset_focus })
-        }
-        if (rp.next_actions && Array.isArray(rp.next_actions)) {
-          rp.next_actions.filter((na: any) => String(na).toLowerCase().includes('account') || String(na).toLowerCase().includes('asset')).slice(0, 3).forEach((na: any, i: number) => {
-            realAssetClues.push({ name: `计划动作 ${i + 1}`, status: String(na) })
-          })
-        }
-      }
-
-      // dedupe by name keeping first status
-      const seen = new Set<string>()
-      realAssetClues = realAssetClues.filter((it) => {
-        if (seen.has(it.name)) return false
-        seen.add(it.name)
-        return true
+  async function load() {
+    setLoading(true)
+    setRuntimeLoaded(false)
+    setRuntimeError(null)
+    setExecutionError(null)
+    setDocumentsError(null)
+    setDocumentsLoaded(false)
+    const runtimeRequest = fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/runtime`), { cache: 'no-store' })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`runtime_http_${response.status}`)
+        const body = await response.json().catch(() => { throw new Error('runtime_invalid_response') })
+        if (!isRuntimeData(body, matterId)) throw new Error('runtime_invalid_response')
+        return body
       })
-    }
-  } catch (e) {
-    realAssetClues = []
-  }
+      .then((data) => { setRuntime(data); setRuntimeLoaded(true) })
+      .catch((error: any) => { setRuntime(null); setRuntimeLoaded(false); setRuntimeError(error?.message === 'runtime_invalid_response' ? 'AI Runtime 返回数据暂不可用' : 'AI Runtime 加载失败，请稍后重试') })
 
-  const realAssetCluesOrFallback = realAssetClues
+    const executionRequest = fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/execution`), { cache: 'no-store' })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`execution_http_${response.status}`)
+        const body = await response.json().catch(() => { throw new Error('execution_invalid_response') })
+        if (!Array.isArray(body)) throw new Error('execution_invalid_response')
+        setExecution(body)
+      })
+      .catch((error: any) => { setExecution(null); setExecutionError(error?.message === 'execution_invalid_response' ? 'Execution 返回数据暂不可用' : 'Execution 数据加载失败，请稍后重试') })
 
-  // derive execution materials from runtime (runtime_works, runtime_actions, snapshot_facts, documents, evidence)
-  let realExecutionMaterials: string[] = []
-  try {
-    if (runtime) {
-      const works = Array.isArray(runtime.runtime_works) ? runtime.runtime_works : (Array.isArray(runtime.runtime_actions) ? runtime.runtime_actions : [])
-
-      // Inspect works/actions for material-related hints
-      works.forEach((w: any) => {
-        const t = String(w.type || w.name || w.action_type || '').toLowerCase()
-        const title = w.title || w.name || w.document_name || w.type || w.action_id || ''
-        if (t.includes('judg') || String(title).toLowerCase().includes('判决') || String(title).toLowerCase().includes('裁判')) {
-          realExecutionMaterials.push('判决书')
-        }
-        if (t.includes('application') || String(title).toLowerCase().includes('申请')) {
-          realExecutionMaterials.push('执行申请书')
-        }
-        if (t.includes('investig') || t.includes('invest') || String(title).toLowerCase().includes('调查')) {
-          realExecutionMaterials.push('财产调查材料')
-        }
-        if (t.includes('bank') || t.includes('flow') || String(title).toLowerCase().includes('流水')) {
-          realExecutionMaterials.push('银行流水')
-        }
-        if (t.includes('clue') || String(title).toLowerCase().includes('线索')) {
-          realExecutionMaterials.push('财产线索')
-        }
-        if (t.includes('id') || String(title).toLowerCase().includes('身份') || String(title).toLowerCase().includes('身份证')) {
-          realExecutionMaterials.push('身份信息')
-        }
-        if (t.includes('check') || String(title).toLowerCase().includes('查控') || String(title).toLowerCase().includes('查封')) {
-          realExecutionMaterials.push('查控申请')
-        }
+    const documentRequest = fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/documents`), { cache: 'no-store' })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('documents_request_failed')
+        const body = await response.json().catch(() => { throw new Error('documents_invalid_response') })
+        if (!Array.isArray(body)) throw new Error('documents_invalid_response')
+        setDocuments(body)
+        setDocumentsLoaded(true)
+      })
+      .catch((error: any) => {
+        setDocumentsError(error?.message === 'documents_invalid_response' ? '正式文书返回数据暂不可用' : '无法加载正式文书状态，请稍后重试')
       })
 
-      // snapshot_facts may include documents/evidence counts or named items
-      const sf = runtime.snapshot_facts || {}
-      if (sf.documents && Array.isArray(sf.documents)) {
-        sf.documents.forEach((d: any) => {
-          const name = String(d.title || d.name || d.type || '')
-          if (name.toLowerCase().includes('判决') || name.toLowerCase().includes('裁判')) realExecutionMaterials.push('判决书')
-          if (name.toLowerCase().includes('申请')) realExecutionMaterials.push('执行申请书')
-        })
-      }
-      if (sf.evidence && Array.isArray(sf.evidence)) {
-        sf.evidence.forEach((e: any) => {
-          const name = String(e.type || e.title || e.name || '')
-          if (name.toLowerCase().includes('流水') || name.toLowerCase().includes('银行')) realExecutionMaterials.push('银行流水')
-          if (name.toLowerCase().includes('线索') || name.toLowerCase().includes('线索')) realExecutionMaterials.push('财产线索')
-        })
-      }
-
-      // runtime.documents / runtime.evidence at top-level
-      if (Array.isArray(runtime.documents)) {
-        runtime.documents.forEach((d: any) => {
-          const title = String(d.title || d.name || '')
-          if (title.toLowerCase().includes('判决') || title.toLowerCase().includes('裁判')) realExecutionMaterials.push('判决书')
-        })
-      }
-      if (Array.isArray(runtime.evidence)) {
-        runtime.evidence.forEach((e: any) => {
-          const t = String(e.type || e.title || e.name || '')
-          if (t.toLowerCase().includes('流水') || t.toLowerCase().includes('银行')) realExecutionMaterials.push('银行流水')
-        })
-      }
-
-      // generic hints: if any bank/account clues exist in snapshot_facts
-      if ((sf.accounts && sf.accounts.length) || (sf.payment_flows && sf.payment_flows.length)) realExecutionMaterials.push('银行流水')
-      if ((sf.real_estate && sf.real_estate.length) || (sf.properties && sf.properties.length)) realExecutionMaterials.push('财产线索')
-
-      // always include basic expected materials if nothing specific found
-      // dedupe and keep ordering
-      const dedup = Array.from(new Set(realExecutionMaterials))
-      realExecutionMaterials = dedup
-    }
-  } catch (e) {
-    realExecutionMaterials = []
+    await Promise.all([runtimeRequest, executionRequest, documentRequest])
+    setLoading(false)
   }
 
-  const realExecutionMaterialsOrFallback = realExecutionMaterials
+  useEffect(() => { if (matterId) load() }, [matterId])
+
+  if (loading) return <main style={{ padding: 28 }}>正在加载执行工作区…</main>
+
+  const adviceValue = runtime?.runtime_next_step || runtime?.execution_advice
+  const advice = typeof adviceValue === 'string' ? adviceValue : label(adviceValue)
+  const plan = asArray(runtime?.execution_plan || runtime?.runtime_plan?.steps)
+  const assetClues = asArray(runtime?.asset_clues || runtime?.confirmed_asset_clues)
+  const materials = asArray(runtime?.execution_materials)
+  const hasFinalDocument = documents.some((document) => finalDocumentStatuses.has(String(document?.status || '').toLowerCase()))
 
   return (
-    <main style={{ padding: 24, background: theme.pageBg }}>
-      <div style={{ padding: 20, borderRadius: 16, background: theme.cardBg, border: `1px solid ${theme.border}`, boxShadow: '0 8px 24px rgba(2,6,23,0.04)' }}>
-        <TwoLineTitle zh="执行工作台" en="Execution Workspace" size="xl" />
-        <div style={{ color: theme.muted, marginTop: 10 }}>AI 正在跟踪执行线索、财产状态与法院进展。</div>
-        <div style={{ color: theme.muted, marginTop: 8, fontSize: 13 }}>{runtimeHint}</div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 16, marginTop: 16 }}>
-        <section style={{ background: theme.cardBg, padding: 16, borderRadius: 12, border: `1px solid ${theme.border}` }}>
-          <TwoLineTitle zh="执行状态" en="Execution Status" size="md" />
-          <div style={{ marginTop: 10, display: 'grid', gap: 10 }}>
-            {realExecutionStatus.length ? realExecutionStatus.map((it) => (
-              <div key={it.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 8, borderBottom: `1px solid ${theme.border}` }}>
-                <div style={{ color: theme.muted }}>{it.label}</div>
-                <div style={{ color: theme.text, fontWeight: 600 }}>{it.value}</div>
-              </div>
-            )) : (
-              <div style={{ color: theme.muted }}>暂无执行数据</div>
-            )}
-          </div>
-        </section>
-
-        <section style={{ background: theme.cardBg, padding: 16, borderRadius: 12, border: `1px solid ${theme.border}` }}>
-          <TwoLineTitle zh="财产线索" en="Asset Clues" size="md" />
-          <div style={{ marginTop: 10, display: 'grid', gap: 10 }}>
-            {realAssetCluesOrFallback && realAssetCluesOrFallback.length ? realAssetCluesOrFallback.map((it) => (
-              <div key={it.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 8, borderBottom: `1px solid ${theme.border}` }}>
-                <div style={{ color: theme.text, fontWeight: 600 }}>{it.name}</div>
-                <div style={{ color: theme.muted }}>{it.status}</div>
-              </div>
-            )) : (
-              <div style={{ color: theme.muted }}>暂无线索</div>
-            )}
-          </div>
-        </section>
-
-        <section style={{ background: theme.cardBg, padding: 16, borderRadius: 12, border: `1px solid ${theme.border}` }}>
-          <TwoLineTitle zh="AI 执行建议" en="AI Execution Advice" size="md" />
-          <div style={{ color: theme.text, marginTop: 12, lineHeight: 1.65 }}>
-            {runtime ? (realExecutionAdviceOrFallback) : '暂无运行数据'}
-          </div>
-          {/* Runtime entry hidden in V1 showcase; link removed to avoid automatic runtime requests */}
-        </section>
-
-        <section style={{ background: theme.cardBg, padding: 16, borderRadius: 12, border: `1px solid ${theme.border}` }}>
-          <TwoLineTitle zh="执行材料" en="Execution Materials" size="md" />
-          <div style={{ marginTop: 10, display: 'grid', gap: 10 }}>
-            {realExecutionMaterialsOrFallback && realExecutionMaterialsOrFallback.length ? realExecutionMaterialsOrFallback.map((it) => (
-              <div key={it} style={{ paddingBottom: 8, borderBottom: `1px solid ${theme.border}`, color: theme.text, fontWeight: 600 }}>
-                {it}
-              </div>
-            )) : (
-              <div style={{ color: theme.muted }}>暂无执行材料</div>
-            )}
-          </div>
-        </section>
-      </div>
-
-      <div style={{ marginTop: 16, background: theme.cardBg, padding: 14, borderRadius: 12, border: `1px solid ${theme.border}`, color: theme.muted, fontSize: 13 }}>
-        执行工作区当前为第一阶段设计样式，数据展示以执行办案流程为核心，不改变既有业务逻辑。
+    <main style={{ padding: 28, background: '#f8fafc', minHeight: '100vh', color: '#0f172a' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+        <button onClick={() => router.push(`/matters/${encodeURIComponent(matterId)}`)} style={{ border: 0, background: 'transparent', color: '#64748b', cursor: 'pointer' }}>← 返回案件概览</button>
+        <h1>执行工作区</h1>
+        {runtimeError ? <div style={{ ...card, color: '#b91c1c' }}>{runtimeError}<button onClick={load} style={{ marginLeft: 12 }}>重新加载</button></div> : null}
+        {executionError ? <div style={{ ...card, color: '#b91c1c', marginTop: 12 }}>{executionError}<button onClick={load} style={{ marginLeft: 12 }}>重新加载</button></div> : null}
+        {documentsError ? <div style={{ ...card, color: '#b91c1c', marginTop: 12 }}>{documentsError}<button onClick={load} style={{ marginLeft: 12 }}>重新加载</button></div> : null}
+        <div style={{ display: 'grid', gap: 16, marginTop: 16 }}>
+          {runtimeLoaded && !runtimeError ? (
+            <>
+              <section style={card}><h2>AI 状态</h2>AI Runtime 已启动</section>
+              <section style={card}><h2>执行建议</h2>{advice || '暂无执行建议'}</section>
+              <section style={card}><h2>执行计划</h2>{plan.length ? plan.map((item, index) => <div key={item?.id || index}>{typeof item === 'string' ? item : label(item)}</div>) : '尚未建立执行计划'}</section>
+              <section style={card}><h2>财产线索</h2>{assetClues.length ? assetClues.map((item, index) => <div key={item?.id || index}>{typeof item === 'string' ? item : label(item)}</div>) : '暂无已确认的财产线索'}</section>
+              <section style={card}><h2>执行材料</h2>{materials.length ? materials.map((item, index) => <div key={item?.id || index}>{typeof item === 'string' ? item : label(item)}</div>) : '暂无执行材料'}</section>
+            </>
+          ) : null}
+          <section style={card}><h2>执行状态</h2>{execution && execution.length ? execution.map((item, index) => <div key={item?.queue_id || item?.action_id || index}>{label(item) || '未命名执行事项'} · {String(item?.execution_status || item?.status || '')}</div>) : execution ? '尚未建立执行计划' : '—'}</section>
+          {documentsLoaded && !hasFinalDocument ? <section style={card}>请先完成并发布正式 Document。<button onClick={() => router.push(`/matters/${encodeURIComponent(matterId)}/documents`)} style={{ marginLeft: 12 }}>前往文书工作区</button></section> : null}
+        </div>
       </div>
     </main>
   )

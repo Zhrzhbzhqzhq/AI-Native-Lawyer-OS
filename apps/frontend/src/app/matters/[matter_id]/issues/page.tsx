@@ -1,389 +1,402 @@
 "use client"
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { apiUrl } from '../../../../lib/api'
 
 const tokens = {
-    pageBg: '#f7fafc',
-    cardBg: '#ffffff',
-    border: '#e6eef6',
-    text: '#0f172a',
-    muted: '#6b7280',
-    blue: '#2563eb',
-    radius: 10,
+  pageBg: '#f7fafc',
+  cardBg: '#ffffff',
+  border: '#e6eef6',
+  text: '#0f172a',
+  muted: '#6b7280',
+  blue: '#2563eb',
+  radius: 10,
+}
+
+type Fact = {
+  fact_id: string
+  title?: string
+  description?: string
+  status?: string
+}
+
+type IssueDraft = {
+  id: string
+  matter_id: string
+  title: string
+  description?: string
+  confidence?: number | null
+  ai_reasoning?: string | null
+  source_fact_ids?: string[]
+  review_status: 'pending' | 'accepted' | 'edited' | 'ignored'
+  lawyer_note?: string | null
+  published_issue_id?: string | null
+  published_at?: string | null
+}
+
+const reviewStatuses = new Set(['pending', 'accepted', 'edited', 'ignored'])
+function isIssueDraft(value: any): value is IssueDraft {
+  return Boolean(value && typeof value === 'object' && typeof value.id === 'string' && typeof value.matter_id === 'string' && typeof value.title === 'string' && reviewStatuses.has(value.review_status) && (value.description === undefined || value.description === null || typeof value.description === 'string') && (value.published_issue_id === undefined || value.published_issue_id === null || typeof value.published_issue_id === 'string'))
+}
+
+type Issue = {
+  issue_id: string
+  title: string
+  description?: string
+  priority?: string
+  status?: string
+}
+
+function sourceIdsOf(draft: IssueDraft) {
+  return Array.isArray(draft.source_fact_ids) ? draft.source_fact_ids.map(String) : []
+}
+
+function statusLabel(status: string) {
+  if (status === 'accepted') return '已接受'
+  if (status === 'edited') return '已修改'
+  if (status === 'ignored') return '已忽略'
+  return '待审核'
+}
+
+function formatConfidence(value: number | null | undefined) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return '-'
+  const percent = value <= 1 ? value * 100 : value
+  return `${Math.round(percent)}%`
+}
+
+function fieldLabel(label: string) {
+  return <div style={{ fontSize: 12, fontWeight: 800, color: tokens.text, marginBottom: 4 }}>{label}</div>
+}
+
+function isTechnicalValue(value: string) {
+  const text = value.trim()
+  if (!text) return true
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(text)) return true
+  if (/^(fact|iss|issue)-/i.test(text)) return true
+  return /\.(md|txt|json|pdf|docx?|png|jpe?g|mp3|m4a)$/i.test(text)
+}
+
+function cleanDisplayText(value: unknown, fallback: string) {
+  const text = String(value || '').trim()
+  if (!text || isTechnicalValue(text)) return fallback
+  return text
 }
 
 export default function IssuesWorkspace() {
-    const params = useParams() as { matter_id?: string }
-    const matterId = params?.matter_id || ''
-    const router = useRouter()
+  const params = useParams() as { matter_id?: string }
+  const matterId = params?.matter_id || ''
+  const router = useRouter()
 
-    const [facts, setFacts] = useState<any[]>([])
-    const [loadingFacts, setLoadingFacts] = useState<boolean>(true)
-    const [selectedFactIds, setSelectedFactIds] = useState<string[]>([])
-    const [factQuery, setFactQuery] = useState<string>('')
+  const [facts, setFacts] = useState<Fact[]>([])
+  const [issues, setIssues] = useState<Issue[]>([])
+  const [drafts, setDrafts] = useState<IssueDraft[]>([])
+  const [loading, setLoading] = useState(true)
+  const [generating, setGenerating] = useState(false)
+  const [publishing, setPublishing] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [editingDraftId, setEditingDraftId] = useState<string | null>(null)
+  const [editTitle, setEditTitle] = useState('')
+  const [editDescription, setEditDescription] = useState('')
+  const [didAutoGenerate, setDidAutoGenerate] = useState(false)
 
-    const [issues, setIssues] = useState<any[]>([])
-    const [loadingIssues, setLoadingIssues] = useState<boolean>(true)
-    const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null)
-    const [issueFacts, setIssueFacts] = useState<any[]>([])
-    const [loadingIssueFacts, setLoadingIssueFacts] = useState<boolean>(false)
+  const factTitleById = useMemo(() => {
+    const map = new Map<string, string>()
+    facts.forEach((fact, index) => map.set(String(fact.fact_id), cleanDisplayText(fact.title, `来源事实 ${index + 1}`)))
+    return map
+  }, [facts])
 
-    const [showCreate, setShowCreate] = useState<boolean>(false)
-    const [newTitle, setNewTitle] = useState<string>('')
-    const [newDescription, setNewDescription] = useState<string>('')
-    const [creating, setCreating] = useState<boolean>(false)
-    const [errorMsg, setErrorMsg] = useState<string | null>(null)
-    // AI suggestions state
-    const [suggestions, setSuggestions] = useState<Array<{ title: string; description: string; id?: string }>>([])
-    const [analyzing, setAnalyzing] = useState<boolean>(false)
+  const allDraftsReviewed = drafts.length > 0 && drafts.every((draft) => draft.review_status === 'accepted' || draft.review_status === 'ignored')
+  const canPublish = issues.length === 0 && allDraftsReviewed
+  const canContinueAi = issues.length > 0
 
-    const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-
-    async function fetchFacts() {
-        setLoadingFacts(true)
-        try {
-            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/facts`)
-            if (!res.ok) throw new Error('加载事实失败')
-            const json = await res.json()
-            setFacts(Array.isArray(json) ? json : [])
-        } catch (e) {
-            setFacts([])
-        } finally {
-            setLoadingFacts(false)
-        }
+  async function loadAll() {
+    if (!matterId) return
+    setLoading(true)
+    setMessage(null)
+    setLoadError(null)
+    try {
+      const [factsRes, issuesRes, draftsRes] = await Promise.all([
+        fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/facts`)),
+        fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/issues`)),
+        fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/issue-drafts`)),
+      ])
+      if (!factsRes.ok || !issuesRes.ok || !draftsRes.ok) throw new Error('争议焦点工作区加载失败，请稍后重试')
+      const [factsJson, issuesJson, draftsJson] = await Promise.all([factsRes.json(), issuesRes.json(), draftsRes.json()]).catch(() => { throw new Error('争议焦点工作区返回数据暂不可用') })
+      if (!Array.isArray(factsJson) || !Array.isArray(issuesJson) || !Array.isArray(draftsJson) || !draftsJson.every(isIssueDraft)) throw new Error('争议焦点工作区返回数据暂不可用')
+      setFacts(factsJson)
+      setIssues(issuesJson)
+      setDrafts(draftsJson)
+    } catch (error: any) {
+      setLoadError(String(error?.message || error))
+    } finally {
+      setLoading(false)
     }
+  }
 
-    async function fetchIssues() {
-        setLoadingIssues(true)
-        try {
-            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/issues`)
-            if (!res.ok) throw new Error('加载议题失败')
-            const json = await res.json()
-            setIssues(Array.isArray(json) ? json : [])
-        } catch (e) {
-            setIssues([])
-        } finally {
-            setLoadingIssues(false)
-        }
+  async function generateDrafts() {
+    if (!matterId || generating) return
+    setGenerating(true)
+    setMessage(null)
+    try {
+      const res = await fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/issue-drafts/generate`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        throw new Error(`生成争议焦点草稿失败 ${res.status} ${text}`)
+      }
+      const json = await res.json().catch(() => { throw new Error('争议焦点草稿返回数据暂不可用') })
+      if (!json || typeof json !== 'object' || !Array.isArray(json.issue_drafts) || !json.issue_drafts.every((draft: any) => isIssueDraft(draft) && draft.id.trim().length > 0 && draft.matter_id === matterId)) throw new Error('争议焦点草稿返回数据暂不可用')
+      setDrafts(json.issue_drafts)
+    } catch (error: any) {
+      setMessage(String(error?.message || error))
+    } finally {
+      setGenerating(false)
     }
+  }
 
-    async function fetchIssueFacts(issueId: string | null) {
-        if (!issueId) {
-            setIssueFacts([])
-            return
-        }
-        setLoadingIssueFacts(true)
-        try {
-            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/issues/${encodeURIComponent(issueId)}/facts`)
-            if (!res.ok) throw new Error('加载关联事实失败')
-            const json = await res.json()
-            setIssueFacts(Array.isArray(json) ? json : [])
-        } catch (e) {
-            setIssueFacts([])
-        } finally {
-            setLoadingIssueFacts(false)
-        }
+  async function patchDraft(draftId: string, payload: Record<string, unknown>) {
+    const res = await fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/issue-drafts/${encodeURIComponent(draftId)}`), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      const text = await res.text().catch(() => '')
+      throw new Error(`更新争议焦点草稿失败 ${res.status} ${text}`)
     }
+    const updated = await res.json().catch(() => { throw new Error('更新返回数据暂不可用') })
+    if (!isIssueDraft(updated) || updated.matter_id !== matterId || updated.id !== draftId) throw new Error('更新返回数据暂不可用')
+    setDrafts((current) => current.map((draft) => draft.id === draftId ? updated : draft))
+  }
 
-    useEffect(() => {
-        if (!matterId) return
-        fetchFacts()
-        fetchIssues()
-    }, [matterId])
-
-    function toggleSelectFact(fid: string) {
-        setSelectedFactIds((s) => {
-            if (s.includes(fid)) return s.filter((x) => x !== fid)
-            return [...s, fid]
-        })
+  async function acceptDraft(draftId: string) {
+    setMessage(null)
+    try {
+      await patchDraft(draftId, { review_status: 'accepted' })
+    } catch (error: any) {
+      setMessage(String(error?.message || error))
     }
+  }
 
-    function filteredFacts() {
-        const q = String(factQuery || '').trim().toLowerCase()
-        if (!q) return facts
-        return facts.filter((f: any) => String(f.title || '').toLowerCase().includes(q))
+  async function ignoreDraft(draftId: string) {
+    setMessage(null)
+    try {
+      await patchDraft(draftId, { review_status: 'ignored' })
+    } catch (error: any) {
+      setMessage(String(error?.message || error))
     }
+  }
 
-    async function createIssueAndAttach() {
-        setErrorMsg(null)
-        if (!newTitle || newTitle.trim().length === 0) {
-            setErrorMsg('标题为必填')
-            return
-        }
-        setCreating(true)
-        try {
-            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/issues`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newTitle.trim(), description: newDescription || '' })
-            })
-            if (!res.ok) {
-                const txt = await res.text().catch(() => '')
-                throw new Error(`创建议题失败 ${res.status} ${txt}`)
-            }
-            const created = await res.json()
-            const createdIssueId = created.issue_id || created.id || null
-            if (createdIssueId && Array.isArray(selectedFactIds) && selectedFactIds.length > 0) {
-                for (const fid of selectedFactIds) {
-                    try {
-                        await fetch(`${base}/matters/${encodeURIComponent(matterId)}/issues/${encodeURIComponent(createdIssueId)}/facts`, {
-                            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fact_id: fid })
-                        })
-                    } catch (e) {
-                        console.error('attach fact failed', e)
-                    }
-                }
-            }
+  function startEdit(draft: IssueDraft) {
+    setEditingDraftId(draft.id)
+    setEditTitle(draft.title || '')
+    setEditDescription(draft.description || '')
+  }
 
-            await fetchIssues()
-            setShowCreate(false)
-            setNewTitle('')
-            setNewDescription('')
-            setSelectedFactIds([])
-        } catch (err: any) {
-            setErrorMsg(String(err?.message || err))
-        } finally {
-            setCreating(false)
-        }
+  async function saveEdit(draftId: string) {
+    const title = editTitle.trim()
+    if (!title) {
+      setMessage('争议焦点标题不能为空')
+      return
     }
-
-    async function openIssue(issueId: string) {
-        setSelectedIssueId(issueId)
-        await fetchIssueFacts(issueId)
+    setMessage(null)
+    try {
+      await patchDraft(draftId, { title, description: editDescription })
+      setEditingDraftId(null)
+      setEditTitle('')
+      setEditDescription('')
+    } catch (error: any) {
+      setMessage(String(error?.message || error))
     }
+  }
 
-    async function removeFactFromIssue(issueId: string, factId: string) {
-        try {
-            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/issues/${encodeURIComponent(issueId)}/facts/${encodeURIComponent(factId)}`, { method: 'DELETE' })
-            if (!res.ok) {
-                const txt = await res.text().catch(() => '')
-                throw new Error(`删除关联失败 ${res.status} ${txt}`)
-            }
-            // refresh only current issue facts
-            await fetchIssueFacts(issueId)
-        } catch (e: any) {
-            console.error('detach failed', e)
-            setErrorMsg(String(e?.message || e))
-        }
+  async function publishDrafts() {
+    setPublishing(true)
+    setMessage(null)
+    try {
+      const res = await fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/issue-drafts/publish`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        throw new Error(`发布争议焦点失败 ${res.status} ${text}`)
+      }
+      await loadAll()
+    } catch (error: any) {
+      setMessage(String(error?.message || error))
+    } finally {
+      setPublishing(false)
     }
+  }
 
-    return (
-        <div style={{ padding: 16, background: tokens.pageBg, minHeight: '100vh' }}>
-            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-                <div style={{ display: 'flex', gap: 16 }}>
-                    {/* Left: Facts */}
-                    <div style={{ flex: 1 }}>
-                        <div style={{ background: tokens.cardBg, padding: 12, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ fontWeight: 800 }}>事实（Facts）</div>
-                                <div style={{ color: tokens.muted }}>{loadingFacts ? '加载中…' : `${facts.length} 条`}</div>
-                            </div>
+  useEffect(() => {
+    setDidAutoGenerate(false)
+    loadAll()
+  }, [matterId])
 
-                            <div style={{ marginTop: 12, marginBottom: 8, display: 'flex', gap: 8 }}>
-                                <input placeholder="搜索事实" value={factQuery} onChange={(e) => setFactQuery(e.target.value)} style={{ flex: 1, padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <button onClick={() => { setSelectedFactIds(filteredFacts().map((f: any) => f.fact_id)) }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>全选</button>
-                                </div>
-                            </div>
+  useEffect(() => {
+    if (loading || didAutoGenerate || generating) return
+    if (issues.length === 0 && drafts.length === 0 && facts.length > 0) {
+      setDidAutoGenerate(true)
+      generateDrafts()
+    }
+  }, [loading, didAutoGenerate, generating, issues.length, drafts.length, facts.length])
 
-                            <div>
-                                {loadingFacts ? (
-                                    <div style={{ color: tokens.muted }}>加载事实中…</div>
-                                ) : filteredFacts().length === 0 ? (
-                                    <div style={{ color: tokens.muted }}>暂无事实</div>
-                                ) : (
-                                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                                        {filteredFacts().map((f: any) => (
-                                            <li key={f.fact_id} style={{ padding: 8, borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                <input type="checkbox" checked={selectedFactIds.includes(f.fact_id)} onChange={() => toggleSelectFact(f.fact_id)} />
-                                                <div style={{ flex: 1 }}>
-                                                    <div style={{ fontWeight: 700 }}>{f.title}</div>
-                                                    <div style={{ color: tokens.muted, fontSize: 12 }}>{f.status || 'draft'}</div>
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </div>
-                        </div>
-                    </div>
+  if (loadError) return <main style={{ padding: 28 }}><div style={{ color: '#b91c1c' }}>{loadError}<button onClick={loadAll} style={{ marginLeft: 12 }}>重新加载</button></div></main>
 
-                    {/* AI Suggestions box */}
-                    <div style={{ marginTop: 12, background: tokens.cardBg, padding: 12, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ fontWeight: 800 }}>AI 建议</div>
-                            {suggestions && suggestions.length > 0 ? (
-                                <button onClick={async () => {
-                                    for (const s of suggestions.slice()) {
-                                        try {
-                                            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/issues`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: s.title, description: s.description }) })
-                                            if (!res.ok) throw new Error(`status:${res.status}`)
-                                        } catch (e) {
-                                            console.error('accept all issues failed', e)
-                                        }
-                                    }
-                                    try { await fetchIssues() } catch (e) { }
-                                    setSuggestions([])
-                                }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>全部接受</button>
-                            ) : null}
-                        </div>
-
-                        {suggestions && suggestions.length > 0 ? (
-                            <div style={{ marginTop: 10 }}>
-                                {suggestions.map((s) => (
-                                    <div key={s.id} style={{ padding: 10, borderRadius: 8, marginBottom: 8, background: '#fff', border: '1px solid #f1f5f9' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                            <div>
-                                                <div style={{ fontWeight: 700 }}>{s.title}</div>
-                                                <div style={{ color: tokens.muted, marginTop: 6 }}>{s.description}</div>
-                                            </div>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
-                                                <button onClick={async () => {
-                                                    try {
-                                                        const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/issues`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: s.title, description: s.description }) })
-                                                        if (!res.ok) throw new Error(`status:${res.status}`)
-                                                        setSuggestions((prev) => prev.filter((x) => x.id !== s.id))
-                                                        try { await fetchIssues() } catch (e) { }
-                                                    } catch (e) {
-                                                        console.error('accept issue failed', e)
-                                                        alert('创建议题失败，请稍后重试')
-                                                    }
-                                                }} style={{ padding: '6px 10px', borderRadius: 6, background: '#111827', color: '#fff', border: 'none' }}>接受</button>
-
-                                                <button onClick={() => setSuggestions((prev) => prev.filter((x) => x.id !== s.id))} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', color: '#111827', border: '1px solid #e6e7ef' }}>忽略</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div style={{ marginTop: 10, color: tokens.muted }}>AI 建议将显示在此处</div>
-                        )}
-                    </div>
-
-                    {/* Right: Issues */}
-                    <div style={{ width: 520 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                            <div style={{ fontWeight: 800 }}>议题（Issues）</div>
-                            <div style={{ display: 'flex', gap: 8 }}>
-                                <button onClick={() => setShowCreate(true)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>新建议题</button>
-                                <button disabled={analyzing} onClick={async () => {
-                                    setAnalyzing(true)
-                                    try {
-                                        const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/issues/analyze`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-                                        if (!res.ok) throw new Error(`status:${res.status}`)
-                                        const json = await res.json()
-                                        const s = Array.isArray(json) ? json.map((it: any, i: number) => ({ id: it.id || `s-${i}`, title: String(it.title || ''), description: String(it.description || it.reason || '') })) : []
-                                        setSuggestions(s)
-                                    } catch (e) {
-                                        console.error('issues analyze failed', e)
-                                        setSuggestions([])
-                                    } finally {
-                                        setAnalyzing(false)
-                                    }
-                                }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>{analyzing ? 'AI 正在提炼争议焦点……' : 'AI 提炼争议焦点'}</button>
-                            </div>
-                        </div>
-
-                        <div style={{ background: tokens.cardBg, padding: 12, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
-                            {loadingIssues ? (
-                                <div style={{ color: tokens.muted }}>加载议题中…</div>
-                            ) : issues.length === 0 ? (
-                                <div style={{ color: tokens.muted }}>暂无议题</div>
-                            ) : (
-                                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                                    {issues.map((it: any) => (
-                                        <li key={it.issue_id} style={{ padding: 10, borderBottom: '1px solid #f3f6f9' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, cursor: 'pointer' }} onClick={async () => { await openIssue(it.issue_id) }}>
-                                                <div>
-                                                    <div style={{ fontWeight: 700 }}>{it.title}</div>
-                                                    <div style={{ color: tokens.muted, fontSize: 12 }}>{it.status || 'draft'} • 优先级 {it.priority || 'medium'}</div>
-                                                </div>
-                                                <div style={{ color: tokens.muted, fontSize: 12 }}>{it.created_at ? new Date(it.created_at).toLocaleString() : ''}</div>
-                                            </div>
-
-                                            {selectedIssueId === it.issue_id ? (
-                                                <div style={{ marginTop: 8, padding: 8, borderRadius: 6, background: '#fafafa' }}>
-                                                    <div style={{ fontWeight: 700, marginBottom: 6 }}>议题详情</div>
-                                                    <div style={{ marginBottom: 8 }}>
-                                                        <div style={{ fontWeight: 700 }}>标题</div>
-                                                        <div style={{ color: tokens.muted }}>{it.title}</div>
-                                                    </div>
-
-                                                    <div style={{ marginBottom: 8 }}>
-                                                        <div style={{ fontWeight: 700 }}>说明</div>
-                                                        <div style={{ color: tokens.muted }}>{it.description || '—'}</div>
-                                                    </div>
-
-                                                    <div style={{ marginBottom: 8 }}>
-                                                        <div style={{ fontWeight: 700 }}>状态 / 优先级</div>
-                                                        <div style={{ color: tokens.muted }}>{it.status || 'draft'} • {it.priority || 'medium'}</div>
-                                                    </div>
-
-                                                    <div style={{ fontWeight: 700, marginBottom: 6 }}>关联事实</div>
-                                                    {loadingIssueFacts ? (
-                                                        <div style={{ color: tokens.muted }}>加载中…</div>
-                                                    ) : issueFacts.length === 0 ? (
-                                                        <div style={{ color: tokens.muted }}>暂无关联事实</div>
-                                                    ) : (
-                                                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                                                            {issueFacts.map((f: any) => (
-                                                                <li key={f.fact_id} style={{ padding: '6px 0' }}>
-                                                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'space-between' }}>
-                                                                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                                                            <div style={{ fontWeight: 700 }}>{f.title || f.fact_id}</div>
-                                                                            <div style={{ color: tokens.muted, fontSize: 12 }}>{f.status || ''}</div>
-                                                                        </div>
-                                                                        <div>
-                                                                            <button onClick={() => removeFactFromIssue(it.issue_id, f.fact_id)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #e6eef6', background: '#fff', color: tokens.muted, fontSize: 12 }}>移除关联</button>
-                                                                        </div>
-                                                                    </div>
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    )}
-                                                </div>
-                                            ) : null}
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Create dialog */}
-                {showCreate ? (
-                    <div style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div style={{ width: 560, background: '#fff', borderRadius: 8, padding: 16 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ fontWeight: 800 }}>新建议题</div>
-                                <div><button onClick={() => { setShowCreate(false); setErrorMsg(null) }} style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}>关闭</button></div>
-                            </div>
-
-                            <div style={{ marginTop: 12 }}>
-                                <div style={{ fontWeight: 700, marginBottom: 6 }}>标题</div>
-                                <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
-                            </div>
-
-                            <div style={{ marginTop: 12 }}>
-                                <div style={{ fontWeight: 700, marginBottom: 6 }}>说明（可选）</div>
-                                <textarea value={newDescription} onChange={(e) => setNewDescription(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6', minHeight: 100 }} />
-                            </div>
-
-                            {errorMsg ? <div style={{ color: '#b91c1c', marginTop: 8 }}>{errorMsg}</div> : null}
-
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
-                                <button onClick={() => { setShowCreate(false); setErrorMsg(null) }} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff' }}>取消</button>
-                                <button onClick={() => createIssueAndAttach()} disabled={creating} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: tokens.blue, color: '#fff' }}>{creating ? '保存中…' : '保存并关联所选事实'}</button>
-                            </div>
-                        </div>
-                    </div>
-                ) : null}
-
-            </div>
-            {/* 下一步 按钮 */}
-            <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
-                <button onClick={() => router.push(`/matters/${matterId}/laws`)} style={{ width: 720, maxWidth: '90%', padding: '12px 16px', background: '#111827', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 800 }}>下一步：查找适用法律</button>
-            </div>
+  return (
+    <div style={{ padding: 16, background: tokens.pageBg, minHeight: '100vh' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <div style={{ marginBottom: 12 }}>
+          <button onClick={() => router.push(`/matters/${matterId}`)} style={{ background: 'transparent', border: 'none', color: tokens.muted, fontSize: 14, padding: 0, cursor: 'pointer' }}>← 返回案件概览</button>
         </div>
-    )
+
+        <header style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', marginBottom: 12 }}>
+          <div>
+            <h2 style={{ margin: 0 }}>争议焦点工作区</h2>
+            <div style={{ color: tokens.muted, marginTop: 6 }}>AI 基于已发布事实生成争议焦点草稿，律师审核后发布正式争议焦点。</div>
+          </div>
+          <button disabled={!canContinueAi} onClick={() => router.push(`/matters/${matterId}/laws`)} style={{ padding: '8px 12px', borderRadius: 8, background: canContinueAi ? '#111827' : '#94a3b8', color: '#fff', border: 'none', fontWeight: 700, cursor: canContinueAi ? 'pointer' : 'default' }}>AI 继续工作</button>
+        </header>
+
+        {message ? <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: '#fff7ed', color: '#92400e', border: '1px solid #fed7aa' }}>{message}</div> : null}
+
+        <div style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 16 }}>
+          <section style={{ background: tokens.cardBg, padding: 12, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontWeight: 800 }}>来源事实</div>
+              <div style={{ color: tokens.muted }}>{loading ? '加载中…' : `${facts.length} 条`}</div>
+            </div>
+            <div style={{ marginTop: 12 }}>
+              {loading ? (
+                <div style={{ color: tokens.muted }}>加载事实中…</div>
+              ) : facts.length === 0 ? (
+                <div style={{ color: tokens.muted }}>请先完成事实草稿审核并发布正式事实。</div>
+              ) : (
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  {facts.map((fact, index) => (
+                    <li key={fact.fact_id} style={{ padding: 10, borderBottom: index < facts.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
+                      <div style={{ fontWeight: 700 }}>{cleanDisplayText(fact.title, `来源事实 ${index + 1}`)}</div>
+                      {fact.description ? <div style={{ color: tokens.muted, fontSize: 12, marginTop: 4, lineHeight: 1.6 }}>{cleanDisplayText(fact.description, '')}</div> : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </section>
+
+          <section style={{ background: tokens.cardBg, padding: 12, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
+              <div>
+                <div style={{ fontWeight: 800 }}>争议焦点</div>
+                <div style={{ color: tokens.muted, marginTop: 4 }}>{issues.length > 0 ? '正式争议焦点已发布' : '争议焦点草稿待律师审核'}</div>
+              </div>
+              {canPublish ? (
+                <button disabled={publishing} onClick={publishDrafts} style={{ padding: '8px 12px', borderRadius: 8, background: tokens.blue, color: '#fff', border: 'none', fontWeight: 800 }}>{publishing ? '发布中…' : '发布争议焦点'}</button>
+              ) : null}
+            </div>
+
+            <div style={{ marginTop: 12 }}>
+              {loading || generating ? (
+                <div style={{ color: tokens.muted }}>{generating ? '正在生成争议焦点草稿…' : '加载争议焦点中…'}</div>
+              ) : issues.length > 0 ? (
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  {issues.map((issue, index) => (
+                    <li key={issue.issue_id} style={{ padding: 12, borderRadius: 8, marginBottom: 8, background: '#fff', border: '1px solid #f1f5f9' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                        <div>
+                          <div style={{ fontWeight: 800 }}>{cleanDisplayText(issue.title, `争议焦点 ${index + 1}`)}</div>
+                          <div style={{ color: tokens.muted, marginTop: 6 }}>{cleanDisplayText(issue.description, '暂无说明')}</div>
+                        </div>
+                        <div style={{ color: tokens.muted, fontSize: 12 }}>争点 {index + 1}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : facts.length === 0 ? (
+                <div style={{ color: tokens.muted }}>暂无正式事实。请先完成事实流程。</div>
+              ) : drafts.length === 0 ? (
+                <div style={{ color: tokens.muted }}>暂无争议焦点草稿。系统将自动尝试生成。</div>
+              ) : (
+                <div>
+                  {drafts.map((draft) => {
+                    const isEditing = editingDraftId === draft.id
+                    const sourceTitles = sourceIdsOf(draft)
+                      .map((id) => factTitleById.get(id))
+                      .filter((title): title is string => Boolean(title))
+                    return (
+                      <article key={draft.id} style={{ padding: 16, borderRadius: 10, marginBottom: 12, background: '#fff', border: '1px solid #f1f5f9' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
+                          <div style={{ flex: 1 }}>
+                            {fieldLabel('标题')}
+                            {isEditing ? (
+                              <input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6', fontWeight: 700 }} />
+                            ) : (
+                              <div style={{ fontWeight: 800, fontSize: 16, lineHeight: 1.5 }}>{cleanDisplayText(draft.title, '待确认争议焦点')}</div>
+                            )}
+                          </div>
+                          <div style={{ color: draft.review_status === 'pending' ? '#92400e' : '#047857', fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap' }}>{statusLabel(draft.review_status)}</div>
+                        </div>
+
+                        <div style={{ marginTop: 12 }}>
+                          {fieldLabel('摘要')}
+                          {isEditing ? (
+                            <textarea value={editDescription} onChange={(event) => setEditDescription(event.target.value)} style={{ width: '100%', minHeight: 86, padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
+                          ) : (
+                            <div style={{ color: tokens.muted, lineHeight: 1.7 }}>{cleanDisplayText(draft.description, '暂无摘要')}</div>
+                          )}
+                        </div>
+
+                        <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                          <div>
+                            {fieldLabel('来源事实')}
+                            <div style={{ color: tokens.muted, lineHeight: 1.7 }}>{sourceTitles.length > 0 ? sourceTitles.join('、') : '未匹配来源事实'}</div>
+                          </div>
+                          <div>
+                            {fieldLabel('可信度')}
+                            <div style={{ color: tokens.muted, lineHeight: 1.7 }}>{formatConfidence(draft.confidence)}</div>
+                          </div>
+                        </div>
+
+                        <div style={{ marginTop: 12 }}>
+                          {fieldLabel('AI判断')}
+                          <div style={{ color: tokens.muted, lineHeight: 1.7 }}>{cleanDisplayText(draft.ai_reasoning, '基于已发布事实自动归纳。')}</div>
+                        </div>
+
+                        <div style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                          {isEditing ? (
+                            <>
+                              <button onClick={() => setEditingDraftId(null)} style={{ padding: '7px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff' }}>取消</button>
+                              <button onClick={() => saveEdit(draft.id)} style={{ padding: '7px 10px', borderRadius: 8, border: 'none', background: tokens.blue, color: '#fff', fontWeight: 700 }}>保存修改</button>
+                            </>
+                          ) : (
+                            <>
+                              <button disabled={Boolean(draft.published_at)} onClick={() => acceptDraft(draft.id)} style={{ padding: '7px 10px', borderRadius: 8, border: 'none', background: '#111827', color: '#fff', fontWeight: 700 }}>接受</button>
+                              <button disabled={Boolean(draft.published_at)} onClick={() => startEdit(draft)} style={{ padding: '7px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff' }}>修改</button>
+                              <button disabled={Boolean(draft.published_at)} onClick={() => ignoreDraft(draft.id)} style={{ padding: '7px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff' }}>忽略</button>
+                            </>
+                          )}
+                        </div>
+                      </article>
+                    )
+                  })}
+                  {!allDraftsReviewed ? <div style={{ color: '#92400e', marginTop: 8 }}>请先完成全部争议焦点草稿审核。</div> : null}
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
+
+        <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
+          <button disabled={!canContinueAi} onClick={() => router.push(`/matters/${matterId}/laws`)} style={{ width: 720, maxWidth: '90%', padding: '12px 16px', background: canContinueAi ? '#111827' : '#94a3b8', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 800, cursor: canContinueAi ? 'pointer' : 'default' }}>AI 继续工作</button>
+        </div>
+      </div>
+    </div>
+  )
 }

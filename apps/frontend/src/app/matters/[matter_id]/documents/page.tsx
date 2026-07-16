@@ -1,6 +1,7 @@
 "use client"
-import React, { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import React, { useEffect, useMemo, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { apiUrl } from '../../../../lib/api'
 
 const tokens = {
   pageBg: '#ffffff',
@@ -11,432 +12,393 @@ const tokens = {
   radius: 8,
 }
 
+type CountKey = 'materials' | 'evidence' | 'facts' | 'issues' | 'laws' | 'arguments'
+
+const DOCUMENT_TYPES = [
+  { value: 'complaint', label: '民事起诉状' },
+]
+
+const documentDraftStatuses = new Set(['generated', 'editing', 'ready_to_publish', 'published'])
+const exportableDocumentStatuses = new Set(['published', 'completed', 'final'])
+function isDocumentDraft(value: any) {
+  return Boolean(value && typeof value === 'object' && typeof value.id === 'string' && typeof value.matter_id === 'string' && typeof value.document_type === 'string' && typeof value.title === 'string' && typeof value.content === 'string' && documentDraftStatuses.has(value.review_status) && (value.published_document_id === undefined || value.published_document_id === null || typeof value.published_document_id === 'string'))
+}
+
+function isFormalDocument(value: any) {
+  return Boolean(value && typeof value === 'object' && typeof value.document_id === 'string' && typeof value.matter_id === 'string' && typeof value.title === 'string' && typeof value.status === 'string')
+}
+
+function arrayFromResponse(json: any, key?: string) {
+  if (Array.isArray(json)) return json
+  if (key && Array.isArray(json?.[key])) return json[key]
+  return []
+}
+
+function toPercent(value: unknown) {
+  const number = typeof value === 'number' ? value : Number(value)
+  if (!Number.isFinite(number)) return '—'
+  return `${Math.round(Math.max(0, Math.min(1, number)) * 100)}%`
+}
+
+function idsFrom(value: unknown) {
+  return Array.isArray(value) ? value.map((item) => String(item)).filter(Boolean) : []
+}
+
+function namesFor(ids: string[], rows: any[], idField: string) {
+  if (ids.length === 0) return ['暂无正式来源']
+  return ids.map((id) => rows.find((row) => String(row?.[idField]) === id)?.title || id)
+}
+
 export default function DocumentsWorkspace() {
   const params = useParams() as { matter_id?: string }
   const matterId = params?.matter_id || ''
+  const router = useRouter()
 
-  // Left: Arguments
-  const [argumentsList, setArgumentsList] = useState<any[]>([])
-  const [loadingArgs, setLoadingArgs] = useState<boolean>(true)
-  const [issueQuery, setIssueQuery] = useState<string>('')
-  const [selectedArgId, setSelectedArgId] = useState<string | null>(null)
-
-  // Right: Documents
   const [documents, setDocuments] = useState<any[]>([])
-  const [loadingDocs, setLoadingDocs] = useState<boolean>(true)
+  const [drafts, setDrafts] = useState<any[]>([])
+  const [argumentsList, setArgumentsList] = useState<any[]>([])
+  const [facts, setFacts] = useState<any[]>([])
+  const [issues, setIssues] = useState<any[]>([])
+  const [laws, setLaws] = useState<any[]>([])
+  const [moduleCounts, setModuleCounts] = useState<Record<CountKey, number>>({
+    materials: 0,
+    evidence: 0,
+    facts: 0,
+    issues: 0,
+    laws: 0,
+    arguments: 0,
+  })
+  const [documentType, setDocumentType] = useState('complaint')
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [selectedDraftId, setSelectedDraftId] = useState<string | null>(null)
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null)
+  const [draftTitle, setDraftTitle] = useState('')
+  const [draftContent, setDraftContent] = useState('')
+  const [lawyerNote, setLawyerNote] = useState('')
 
-  // Create / Edit dialog state
-  const [showCreate, setShowCreate] = useState(false)
-  const [newTitle, setNewTitle] = useState('')
-  const [newType, setNewType] = useState('')
-  const [newContent, setNewContent] = useState('')
-  const [newStatus, setNewStatus] = useState('draft')
-  const [creating, setCreating] = useState(false)
+  const activeDraft = useMemo(() => drafts.find((draft) => draft.id === selectedDraftId) || drafts.find((draft) => !draft.published_at) || null, [drafts, selectedDraftId])
+  const exportableDocuments = useMemo(() => documents.filter((document) => exportableDocumentStatuses.has(String(document.status).toLowerCase())), [documents])
+  const activeDocument = useMemo(() => exportableDocuments.find((doc) => doc.document_id === selectedDocId) || exportableDocuments[0] || null, [exportableDocuments, selectedDocId])
+  const hasPublishedDocument = exportableDocuments.length > 0
 
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editingPatch, setEditingPatch] = useState<any>({})
-  const [savingEdit, setSavingEdit] = useState(false)
-  const [reviewLoading, setReviewLoading] = useState<boolean>(false)
-  const [reviewMessage, setReviewMessage] = useState<string | null>(null)
-  // AI suggestions state
-  const [suggestions, setSuggestions] = useState<Array<{ id?: string; title: string; document_type?: string; content?: string }>>([])
-  const [analyzing, setAnalyzing] = useState<boolean>(false)
-
-  const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-
-  async function fetchArguments() {
-    setLoadingArgs(true)
+  async function loadAll() {
+    if (!matterId) return
+    setLoading(true)
+    setLoadError(null)
     try {
-      const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/arguments`)
-      if (!res.ok) throw new Error('加载议题失败')
-      const json = await res.json()
-      setArgumentsList(Array.isArray(json) ? json : [])
-    } catch (e) {
-      setArgumentsList([])
-    } finally {
-      setLoadingArgs(false)
-    }
-  }
-
-  async function fetchDocuments() {
-    setLoadingDocs(true)
-    try {
-      const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/documents`)
-      if (!res.ok) throw new Error('加载文书失败')
-      const json = await res.json()
-      const arr = Array.isArray(json) ? json : []
-      setDocuments(arr)
-      // default-select first document when present
-      if (arr.length > 0) {
-        const firstId = arr[0].document_id ?? arr[0].id ?? null
-        if (firstId) openDoc(firstId)
-      } else {
-        setSelectedDocId(null)
+      const endpoints = {
+        documents: apiUrl(`/matters/${encodeURIComponent(matterId)}/documents`),
+        drafts: apiUrl(`/matters/${encodeURIComponent(matterId)}/document-drafts`),
+        arguments: apiUrl(`/matters/${encodeURIComponent(matterId)}/arguments`),
+        facts: apiUrl(`/matters/${encodeURIComponent(matterId)}/facts`),
+        issues: apiUrl(`/matters/${encodeURIComponent(matterId)}/issues`),
+        laws: apiUrl(`/matters/${encodeURIComponent(matterId)}/laws`),
+        materials: apiUrl(`/matters/${encodeURIComponent(matterId)}/materials`),
+        evidence: apiUrl(`/matters/${encodeURIComponent(matterId)}/evidence`),
       }
-    } catch (e) {
-      setDocuments([])
+      const entries = Object.entries(endpoints)
+      const responses = await Promise.all(entries.map(([, url]) => fetch(url)))
+      if (responses.some((response) => !response.ok)) throw new Error('request_failed')
+      const payloads = await Promise.all(responses.map((response) => response.json())).catch(() => { throw new Error('invalid_response') })
+      if (payloads.some((payload, index) => index === 1 ? (!payload || typeof payload !== 'object' || !Array.isArray(payload.document_drafts) || !payload.document_drafts.every(isDocumentDraft)) : !Array.isArray(payload))) throw new Error('invalid_response')
+      if (!payloads[0].every((document: any) => isFormalDocument(document) && document.document_id.trim().length > 0 && document.matter_id === matterId)) throw new Error('invalid_response')
+      if (!payloads[1].document_drafts.every((draft: any) => draft.id.trim().length > 0 && draft.matter_id === matterId)) throw new Error('invalid_response')
+      const data = Object.fromEntries(entries.map(([key], index) => [key, payloads[index]]))
+      const nextDocuments = arrayFromResponse(data.documents)
+      const nextDrafts = data.drafts.document_drafts
+      const nextArguments = arrayFromResponse(data.arguments)
+      const nextFacts = arrayFromResponse(data.facts)
+      const nextIssues = arrayFromResponse(data.issues)
+      const nextLaws = arrayFromResponse(data.laws)
+      setDocuments(nextDocuments)
+      setDrafts(nextDrafts)
+      setArgumentsList(nextArguments)
+      setFacts(nextFacts)
+      setIssues(nextIssues)
+      setLaws(nextLaws)
+      setModuleCounts({
+        materials: arrayFromResponse(data.materials).length,
+        evidence: arrayFromResponse(data.evidence).length,
+        facts: nextFacts.length,
+        issues: nextIssues.length,
+        laws: nextLaws.length,
+        arguments: nextArguments.length,
+      })
+      if (nextDrafts.length > 0 && !selectedDraftId) setSelectedDraftId(nextDrafts[0].id)
+      const firstExportable = nextDocuments.find((document: any) => exportableDocumentStatuses.has(String(document.status).toLowerCase()))
+      if (firstExportable && !selectedDocId) setSelectedDocId(firstExportable.document_id)
+    } catch (error: any) {
+      setLoadError(error?.message === 'invalid_response' ? '文书工作区返回数据暂不可用' : '文书工作区加载失败，请稍后重试')
     } finally {
-      setLoadingDocs(false)
+      setLoading(false)
     }
   }
-
-  // computed selected document object (may be null)
-  // support APIs that return either `document_id` or `id` as the primary identifier
-  const selectedDocument = documents.find((d: any) => ((d.document_id ?? d.id) === selectedDocId)) || null
 
   useEffect(() => {
-    if (!matterId) return
-    fetchArguments()
-    fetchDocuments()
+    loadAll()
   }, [matterId])
 
-  const filteredArgs = argumentsList.filter((it) => String(it.title || '').toLowerCase().includes(issueQuery.trim().toLowerCase()))
-  const filteredDocs = documents.filter((it) => String(it.title || '').toLowerCase().includes(issueQuery.trim().toLowerCase()))
+  useEffect(() => {
+    if (!activeDraft) return
+    setDraftTitle(activeDraft.title || '')
+    setDraftContent(activeDraft.content || '')
+    setLawyerNote(activeDraft.lawyer_note || '')
+  }, [activeDraft?.id])
 
-  function openDoc(docId: string) {
-    setSelectedDocId(docId)
-    setEditingId(null)
-    setEditingPatch({})
-  }
-
-  function startEdit(doc: any) {
-    const id = doc?.document_id ?? doc?.id
-    setEditingId(id)
-    setEditingPatch({ title: doc?.title || '', document_type: doc?.document_type || '', content: doc?.content || '', status: doc?.status || 'draft' })
-  }
-
-  async function saveEdit(docId: string) {
-    setSavingEdit(true)
+  async function generateDraft() {
+    setBusy(true)
+    setMessage(null)
     try {
-      const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/documents/${encodeURIComponent(docId)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editingPatch) })
-      if (!res.ok) { const txt = await res.text().catch(() => ''); throw new Error(`保存失败 ${res.status} ${txt}`) }
-      await fetchDocuments()
-      setEditingId(null)
-      if (selectedDocId === docId) openDoc(docId)
+      const res = await fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/document-drafts/generate`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ document_type: documentType }),
+      })
+      if (!res.ok) throw new Error(`status:${res.status}`)
+      const json = await res.json().catch(() => { throw new Error('invalid_response') })
+      const allowedGenerateStatuses = json?.idempotent ? new Set(['generated', 'editing', 'ready_to_publish']) : new Set(['generated'])
+      if (!json || typeof json !== 'object' || json.status !== 'document_draft_ready' || typeof json.idempotent !== 'boolean' || !isDocumentDraft(json.document_draft) || json.document_draft.matter_id !== matterId || !json.document_draft.id.trim() || !allowedGenerateStatuses.has(json.document_draft.review_status)) throw new Error('invalid_response')
+      setMessage(json.idempotent ? '已恢复现有文书草稿' : '已生成文书草稿')
+      setSelectedDraftId(json.document_draft?.id || null)
+      await loadAll()
     } catch (e: any) {
-      console.error(e)
+      setMessage(e?.message === 'invalid_response' ? '文书草稿返回数据暂不可用' : e?.message === 'formal_arguments_required' ? '请先完成法律论证流程' : '生成文书草稿失败')
     } finally {
-      setSavingEdit(false)
+      setBusy(false)
     }
   }
 
-  async function deleteDoc(docId: string) {
+  async function saveDraft(nextStatus?: 'editing' | 'ready_to_publish') {
+    if (!activeDraft) return
+    setBusy(true)
+    setMessage(null)
     try {
-      const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/documents/${encodeURIComponent(docId)}`, { method: 'DELETE' })
-      if (!res.ok) { const txt = await res.text().catch(() => ''); throw new Error(`删除失败 ${res.status} ${txt}`) }
-      await fetchDocuments()
-      if (selectedDocId === docId) setSelectedDocId(null)
+      const payload: any = nextStatus
+        ? { review_status: nextStatus, lawyer_note: lawyerNote }
+        : { title: draftTitle, content: draftContent, lawyer_note: lawyerNote }
+      const res = await fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/document-drafts/${encodeURIComponent(activeDraft.id)}`), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) throw new Error(`status:${res.status}`)
+      const updated = await res.json().catch(() => { throw new Error('invalid_response') })
+      const expectedStatus = nextStatus || 'editing'
+      if (!isDocumentDraft(updated) || updated.id !== activeDraft.id || updated.matter_id !== matterId || updated.review_status !== expectedStatus) throw new Error('invalid_response')
+      setMessage(nextStatus === 'ready_to_publish' ? '草稿已标记为可发布' : '草稿已保存')
+      await loadAll()
     } catch (e: any) {
-      console.error(e)
+      setMessage(e?.message === 'invalid_response' ? '更新返回数据暂不可用' : '保存草稿失败')
+    } finally {
+      setBusy(false)
     }
   }
 
-  async function createDocument() {
-    if (!newTitle || newTitle.trim().length === 0) return
-    setCreating(true)
+  async function regenerateDraft() {
+    if (!activeDraft) return
+    setBusy(true)
+    setMessage(null)
     try {
-      const payload: any = { title: newTitle.trim(), document_type: newType || '', content: newContent || '', status: newStatus || 'draft' }
-      const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/documents`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-      if (!res.ok) { const txt = await res.text().catch(() => ''); throw new Error(`创建失败 ${res.status} ${txt}`) }
-      await fetchDocuments()
-      setShowCreate(false)
-      setNewTitle(''); setNewType(''); setNewContent(''); setNewStatus('draft')
+      const res = await fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/document-drafts/${encodeURIComponent(activeDraft.id)}/regenerate`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lawyer_note: lawyerNote }),
+      })
+      if (!res.ok) throw new Error(`status:${res.status}`)
+      const updated = await res.json().catch(() => { throw new Error('invalid_response') })
+      if (!isDocumentDraft(updated) || updated.id !== activeDraft.id || updated.matter_id !== matterId || updated.review_status !== 'generated') throw new Error('invalid_response')
+      setMessage('已根据律师意见重新生成')
+      await loadAll()
     } catch (e: any) {
-      console.error(e)
-    } finally { setCreating(false) }
+      setMessage(e?.message === 'invalid_response' ? '文书草稿返回数据暂不可用' : '重新生成失败')
+    } finally {
+      setBusy(false)
+    }
   }
+
+  async function publishDraft() {
+    if (!activeDraft) return
+    setBusy(true)
+    setMessage(null)
+    try {
+      const res = await fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/document-drafts/${encodeURIComponent(activeDraft.id)}/publish`), {
+        method: 'POST',
+      })
+      if (!res.ok) throw new Error(`status:${res.status}`)
+      const json = await res.json().catch(() => { throw new Error('invalid_response') })
+      if (!json || typeof json !== 'object' || json.status !== 'document_published' || json.matter_id !== matterId || !isFormalDocument(json.document) || json.document.matter_id !== matterId || !json.document.document_id.trim() || !exportableDocumentStatuses.has(String(json.document.status).toLowerCase())) throw new Error('invalid_response')
+      setMessage('正式文书已发布')
+      setSelectedDocId(json.document?.document_id || null)
+      await loadAll()
+    } catch (e: any) {
+      setMessage(e?.message === 'invalid_response' ? '发布返回数据暂不可用' : e?.message === 'content_required' ? '正文为空，不能发布' : '发布正式文书失败')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const draftSourceNames = activeDraft ? {
+    arguments: namesFor(idsFrom(activeDraft.source_argument_ids), argumentsList, 'argument_id'),
+    facts: namesFor(idsFrom(activeDraft.source_fact_ids), facts, 'fact_id'),
+    issues: namesFor(idsFrom(activeDraft.source_issue_ids), issues, 'issue_id'),
+    laws: namesFor(idsFrom(activeDraft.source_law_ids), laws, 'law_id'),
+  } : null
 
   return (
     <div style={{ padding: 16, background: tokens.pageBg, minHeight: '100vh' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ display: 'flex', gap: 16 }}>
-          {/* Left: Documents list */}
-          <div style={{ flex: 1 }}>
-            <div style={{ background: tokens.cardBg, padding: 12, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontWeight: 800 }}>文书（Documents）</div>
-                <div style={{ color: tokens.muted }}>{loadingDocs ? '加载中…' : `${documents.length} 条`}</div>
-              </div>
+        <div style={{ marginBottom: 12 }}>
+          <button onClick={() => router.push(`/matters/${encodeURIComponent(matterId)}`)} style={{ background: 'transparent', border: 'none', color: tokens.muted, fontSize: 14, padding: 0, cursor: 'pointer' }}>← 返回案件概览</button>
+        </div>
 
-              <div style={{ marginTop: 8 }}>
-                <input placeholder="搜索文书" value={issueQuery} onChange={(e) => setIssueQuery(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
-              </div>
-
-              <div style={{ marginTop: 12 }}>
-                {loadingDocs ? <div style={{ color: tokens.muted }}>加载文书中…</div> : filteredDocs.length === 0 ? <div style={{ color: tokens.muted }}>暂无文书草稿</div> : (
-                  <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                    {filteredDocs.map((it: any) => {
-                      const docId = it?.document_id ?? it?.id ?? null
-                      const isSel = selectedDocId === docId
-                      return (
-                        <li key={docId ?? Math.random()} onClick={() => docId && openDoc(docId)} style={{ padding: 8, borderBottom: '1px solid #f1f1f1', cursor: 'pointer', background: isSel ? '#f3f4f6' : 'transparent', borderLeft: isSel ? '3px solid #111' : '3px solid transparent' }}>
-                          <div style={{ fontWeight: 700 }}>{it?.title ?? '(无标题)'}</div>
-                          <div style={{ color: tokens.muted, fontSize: 12 }}>{it?.status || 'draft'}</div>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                )}
-              </div>
-            </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, marginBottom: 14 }}>
+          <div>
+            <div style={{ fontSize: 24, fontWeight: 900, color: tokens.text }}>文书工作区</div>
+            <div style={{ color: tokens.muted, marginTop: 4 }}>Document Draft Workspace</div>
           </div>
-
-          {/* Right: Documents CRUD */}
-          <div style={{ width: 520 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <div style={{ fontWeight: 800 }}>文书（Documents）</div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={() => setShowCreate(true)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>新建文书</button>
-                <button disabled={analyzing} onClick={async () => {
-                  setAnalyzing(true)
-                  try {
-                    const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/documents/analyze`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-                    if (!res.ok) throw new Error(`status:${res.status}`)
-                    const json = await res.json()
-                    const s = Array.isArray(json) ? json.map((it: any, i: number) => ({ id: it.id || `s-${i}`, title: String(it.title || ''), document_type: String(it.document_type || ''), content: String(it.content || '') })) : []
-                    setSuggestions(s)
-                  } catch (e) {
-                    console.error('documents analyze failed', e)
-                    setSuggestions([])
-                  } finally {
-                    setAnalyzing(false)
-                  }
-                }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>{analyzing ? 'AI 正在生成文书初稿……' : 'AI 生成文书初稿'}</button>
-              </div>
-            </div>
-
-            <div style={{ background: tokens.cardBg, padding: 12, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
-              {loadingDocs ? (
-                <div style={{ color: tokens.muted }}>加载文书中…</div>
-              ) : documents.length === 0 ? (
-                <div style={{ color: tokens.muted }}>暂无文书草稿</div>
-              ) : (
-                (() => {
-                  if (!selectedDocument) return <div style={{ color: tokens.muted }}>请选择文书</div>
-                  const docId = selectedDocument?.document_id ?? selectedDocument?.id ?? null
-                  return (
-                    <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                        <div>
-                          <div style={{ fontWeight: 800 }}>{selectedDocument?.title ?? '(无标题)'}</div>
-                          <div style={{ color: tokens.muted, fontSize: 12 }}>{selectedDocument?.document_type ? `${selectedDocument.document_type}` : ''} {selectedDocument?.status ? ` • ${selectedDocument.status}` : ''}</div>
-                        </div>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <button onClick={() => startEdit(selectedDocument)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #e6eef6', background: '#fff', fontSize: 12 }}>编辑</button>
-                          <button onClick={() => docId && deleteDoc(docId)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #fee2e2', background: '#fff', color: '#b91c1c', fontSize: 12 }}>删除</button>
-                        </div>
-                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                          <button disabled={!docId || reviewLoading} onClick={async () => {
-                            if (!docId) return
-                            setReviewMessage(null)
-                            setReviewLoading(true)
-                            try {
-                              const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-                              const url = `${base}/matters/${encodeURIComponent(matterId)}/documents/${encodeURIComponent(docId)}`
-                              const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ review: 'approved' }) })
-                              if (!res.ok) throw new Error(`status:${res.status}`)
-                              const json = await res.json().catch(() => ({}))
-                              await fetchDocuments()
-                              setReviewMessage('已审核通过')
-                              if (json && typeof json.task_status === 'string') {
-                                const map: Record<string, string> = { waiting_lawyer: '等待律师确认', approved: '已通过', revision_requested: '需要修改', ai_revising: 'AI 修改中', finalized: '已归档', completed: '已完成' }
-                                const label = map[String(json.task_status)]
-                                if (label) setReviewMessage((m) => (m ? `${m} · 任务状态：${label}` : `任务状态：${label}`))
-                              }
-                            } catch (e) {
-                              console.error(e)
-                              setReviewMessage('审核操作失败，请重试')
-                            } finally {
-                              setReviewLoading(false)
-                              setTimeout(() => setReviewMessage(null), 4000)
-                            }
-                          }} style={{ padding: '8px 12px', borderRadius: 6, background: '#fff', border: '1px solid #e6eef6', fontSize: 12 }}>审核通过</button>
-
-                          <button disabled={!docId || reviewLoading} onClick={async () => {
-                            if (!docId) return
-                            setReviewMessage(null)
-                            setReviewLoading(true)
-                            try {
-                              const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-                              const url = `${base}/matters/${encodeURIComponent(matterId)}/documents/${encodeURIComponent(docId)}`
-                              const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ review: 'revision' }) })
-                              if (!res.ok) throw new Error(`status:${res.status}`)
-                              const json = await res.json().catch(() => ({}))
-                              await fetchDocuments()
-                              setReviewMessage('已提交修改意见')
-                              if (json && typeof json.task_status === 'string') {
-                                const map: Record<string, string> = { waiting_lawyer: '等待律师确认', approved: '已通过', revision_requested: '需要修改', ai_revising: 'AI 修改中', finalized: '已归档', completed: '已完成' }
-                                const label = map[String(json.task_status)]
-                                if (label) setReviewMessage((m) => (m ? `${m} · 任务状态：${label}` : `任务状态：${label}`))
-                              }
-                            } catch (e) {
-                              console.error(e)
-                              setReviewMessage('审核操作失败，请重试')
-                            } finally {
-                              setReviewLoading(false)
-                              setTimeout(() => setReviewMessage(null), 4000)
-                            }
-                          }} style={{ padding: '8px 12px', borderRadius: 6, background: '#fff', border: '1px solid #e6eef6', fontSize: 12 }}>要求修改</button>
-                        </div>
-                      </div>
-                      {reviewMessage ? <div style={{ marginTop: 8, color: reviewMessage === '审核操作失败，请重试' ? '#b91c1c' : '#111827' }}>{reviewMessage}</div> : null}
-
-                      {!editingId || editingId !== docId ? (
-                        <div style={{ marginTop: 8, padding: 8, borderRadius: 6, background: '#fff' }}>
-                          <div style={{ fontWeight: 700, marginBottom: 6 }}>类型</div>
-                          <div style={{ color: tokens.muted }}>{selectedDocument?.document_type ?? '—'}</div>
-                          <div style={{ marginTop: 8, fontWeight: 700 }}>版本</div>
-                          <div style={{ color: tokens.muted }}>{selectedDocument?.version ?? '—'}</div>
-                          <div style={{ marginTop: 8, fontWeight: 700 }}>正文</div>
-                          <div style={{ color: tokens.muted, whiteSpace: 'pre-wrap' }}>{selectedDocument?.content ?? selectedDocument?.content_uri ?? '—'}</div>
-                          <div style={{ marginTop: 8, fontWeight: 700 }}>状态</div>
-                          <div style={{ color: tokens.muted }}>{selectedDocument?.status ?? 'draft'}</div>
-                          <div style={{ marginTop: 8, color: tokens.muted, fontSize: 12 }}>{selectedDocument?.created_at ? `创建: ${new Date(selectedDocument.created_at).toLocaleString()}` : ''}{selectedDocument?.updated_at ? ` • 更新: ${new Date(selectedDocument.updated_at).toLocaleString()}` : ''}</div>
-                        </div>
-                      ) : (
-                        <div style={{ marginTop: 8, padding: 8, borderRadius: 6, background: '#fff' }}>
-                          <div style={{ fontWeight: 700, marginBottom: 6 }}>编辑文书</div>
-                          <div style={{ marginBottom: 8 }}>
-                            <input value={editingPatch.title || ''} onChange={(e) => setEditingPatch((p: any) => ({ ...p, title: e.target.value }))} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
-                          </div>
-                          <div style={{ marginBottom: 8 }}>
-                            <input value={editingPatch.document_type || ''} onChange={(e) => setEditingPatch((p: any) => ({ ...p, document_type: e.target.value }))} placeholder="类型" style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
-                          </div>
-                          <div style={{ marginBottom: 8 }}>
-                            <textarea value={editingPatch.content || ''} onChange={(e) => setEditingPatch((p: any) => ({ ...p, content: e.target.value }))} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6', minHeight: 120 }} />
-                          </div>
-                          <div style={{ marginBottom: 8 }}>
-                            <select value={editingPatch.status || 'draft'} onChange={(e) => setEditingPatch((p: any) => ({ ...p, status: e.target.value }))} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }}>
-                              <option value="draft">draft</option>
-                              <option value="completed">completed</option>
-                              <option value="need_review">need_review</option>
-                              <option value="archived">archived</option>
-                            </select>
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-                            <button onClick={() => setEditingId(null)} style={{ padding: '6px 10px', borderRadius: 6 }}>取消</button>
-                            <button onClick={() => docId && saveEdit(docId)} disabled={savingEdit} style={{ padding: '6px 10px', borderRadius: 6, background: '#111', color: '#fff' }}>{savingEdit ? '保存中…' : '保存'}</button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })()
-              )}
-            </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {DOCUMENT_TYPES.map((type) => (
+              <button key={type.value} onClick={() => setDocumentType(type.value)} style={{ padding: '8px 12px', borderRadius: tokens.radius, border: `1px solid ${documentType === type.value ? '#111827' : tokens.border}`, background: documentType === type.value ? '#111827' : '#fff', color: documentType === type.value ? '#fff' : tokens.text, fontWeight: 700 }}>{type.label}</button>
+            ))}
           </div>
         </div>
 
-        {/* Create dialog */}
-        {
-          showCreate ? (
-            <div style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ width: 560, background: '#fff', borderRadius: 8, padding: 16 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ fontWeight: 800 }}>新建文书</div>
-                  <div><button onClick={() => { setShowCreate(false) }} style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}>关闭</button></div>
-                </div>
+        {loadError ? <div style={{ marginBottom: 12, padding: 10, border: '1px solid #fee2e2', borderRadius: tokens.radius, background: '#fef2f2', color: '#b91c1c' }}>{loadError}<button onClick={loadAll} style={{ marginLeft: 12 }}>重新加载</button></div> : null}
+        {message ? <div style={{ marginBottom: 12, padding: 10, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, background: '#fff', color: tokens.text }}>{message}</div> : null}
+        {!loading && !loadError && documents.length > 0 && exportableDocuments.length === 0 ? <div style={{ marginBottom: 12, padding: 10, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, background: '#fff', color: tokens.muted }}>暂无可导出的正式文书</div> : null}
 
-                <div style={{ marginTop: 12 }}>
-                  <div style={{ fontWeight: 700, marginBottom: 6 }}>标题</div>
-                  <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
-                </div>
-
-                <div style={{ marginTop: 12 }}>
-                  <div style={{ fontWeight: 700, marginBottom: 6 }}>类型（可选）</div>
-                  <input value={newType} onChange={(e) => setNewType(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
-                </div>
-
-                <div style={{ marginTop: 12 }}>
-                  <div style={{ fontWeight: 700, marginBottom: 6 }}>正文</div>
-                  <textarea value={newContent} onChange={(e) => setNewContent(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6', minHeight: 160 }} />
-                </div>
-
-                <div style={{ marginTop: 12 }}>
-                  <div style={{ fontWeight: 700, marginBottom: 6 }}>状态</div>
-                  <select value={newStatus} onChange={(e) => setNewStatus(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }}>
-                    <option value="draft">draft</option>
-                    <option value="completed">completed</option>
-                    <option value="need_review">need_review</option>
-                    <option value="archived">archived</option>
-                  </select>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
-                  <button onClick={() => { setShowCreate(false) }} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff' }}>取消</button>
-                  <button onClick={() => createDocument()} disabled={creating} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: '#111', color: '#fff' }}>{creating ? '保存中…' : '保存'}</button>
-                </div>
-              </div>
-            </div>
-          ) : null
-        }
-
-        {/* AI Suggestions area */}
-        <div style={{ maxWidth: 1200, margin: '12px auto 0', display: 'flex', justifyContent: 'flex-end' }}>
-          <div style={{ width: 520, background: '#fff', borderRadius: tokens.radius, padding: 12, border: `1px solid ${tokens.border}` }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontWeight: 700 }}>AI 建议</div>
-              {suggestions && suggestions.length > 0 ? (
-                <button onClick={async () => {
-                  for (const s of suggestions.slice()) {
-                    try {
-                      const body: any = { title: s.title, document_type: s.document_type || '', content: s.content || '' }
-                      if (selectedArgId) body.argument_id = selectedArgId
-                      const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/documents`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-                      if (!res.ok) throw new Error(`status:${res.status}`)
-                    } catch (e) {
-                      console.error('accept all documents failed', e)
-                    }
-                  }
-                  try { await fetchDocuments() } catch (e) { }
-                  setSuggestions([])
-                }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>全部接受</button>
-              ) : null}
-            </div>
-
-            {suggestions && suggestions.length > 0 ? (
-              <div style={{ marginTop: 10 }}>
-                {suggestions.map((s) => (
-                  <div key={s.id} style={{ padding: 10, borderRadius: 8, marginBottom: 8, background: '#fff', border: '1px solid #f1f5f9' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div>
-                        <div style={{ fontWeight: 700 }}>{s.title}</div>
-                        <div style={{ color: tokens.muted, marginTop: 6 }}>类型：{s.document_type || '—'}</div>
-                        <div style={{ fontWeight: 700, marginTop: 8 }}>正文</div>
-                        <div style={{ color: tokens.muted, marginTop: 6, whiteSpace: 'pre-wrap' }}>{s.content}</div>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
-                        <button onClick={async () => {
-                          try {
-                            const body: any = { title: s.title, document_type: s.document_type || '', content: s.content || '' }
-                            if (selectedArgId) body.argument_id = selectedArgId
-                            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/documents`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-                            if (!res.ok) throw new Error(`status:${res.status}`)
-                            setSuggestions((prev) => prev.filter((x) => x.id !== s.id))
-                            try { await fetchDocuments() } catch (e) { }
-                          } catch (e) {
-                            console.error('accept document failed', e)
-                            alert('创建文书失败，请稍后重试')
-                          }
-                        }} style={{ padding: '6px 10px', borderRadius: 6, background: '#111827', color: '#fff', border: 'none' }}>接受</button>
-
-                        <button onClick={() => setSuggestions((prev) => prev.filter((x) => x.id !== s.id))} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', color: '#111827', border: '1px solid #e6e7ef' }}>忽略</button>
-                      </div>
-                    </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '360px minmax(0, 1fr)', gap: 16 }}>
+          <aside style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <section style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 12 }}>
+              <div style={{ fontWeight: 800 }}>办案成果来源</div>
+              <div style={{ color: tokens.muted, fontSize: 12, marginTop: 3 }}>Published Case Work</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 12 }}>
+                {Object.entries(moduleCounts).map(([key, value]) => (
+                  <div key={key} style={{ background: '#fff', border: `1px solid ${tokens.border}`, borderRadius: 8, padding: 8 }}>
+                    <div style={{ fontSize: 12, color: tokens.muted }}>{key}</div>
+                    <div style={{ fontSize: 20, fontWeight: 900 }}>{value}</div>
                   </div>
                 ))}
               </div>
+            </section>
+
+            <section style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 12 }}>
+              <div style={{ fontWeight: 800 }}>正式论证</div>
+              <div style={{ color: tokens.muted, fontSize: 12, marginTop: 3 }}>Arguments</div>
+              <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {argumentsList.length === 0 ? <div style={{ color: tokens.muted }}>请先完成法律论证流程</div> : argumentsList.map((argument) => (
+                  <div key={argument.argument_id || argument.id} style={{ background: '#fff', border: `1px solid ${tokens.border}`, borderRadius: 8, padding: 10 }}>
+                    <div style={{ fontWeight: 800 }}>{argument.title || '未命名论证'}</div>
+                    {argument.conclusion ? <div style={{ color: tokens.muted, marginTop: 6, fontSize: 13 }}>{argument.conclusion}</div> : null}
+                  </div>
+                ))}
+              </div>
+            </section>
+          </aside>
+
+          <main style={{ minWidth: 0 }}>
+            {loading ? (
+              <div style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 16, color: tokens.muted }}>正在加载文书工作区…</div>
+            ) : loadError ? null : hasPublishedDocument ? (
+              <section style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 14 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                  <div>
+                    <div style={{ fontSize: 18, fontWeight: 900 }}>正式文书</div>
+                    <div style={{ color: tokens.muted, fontSize: 12, marginTop: 3 }}>Published Document</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {exportableDocuments.map((doc) => {
+                      const docId = doc.document_id || doc.id
+                      return (
+                        <button key={docId} onClick={() => setSelectedDocId(docId)} style={{ padding: '7px 10px', borderRadius: 8, border: `1px solid ${selectedDocId === docId ? '#111827' : tokens.border}`, background: selectedDocId === docId ? '#111827' : '#fff', color: selectedDocId === docId ? '#fff' : tokens.text, fontWeight: 700 }}>{doc.document_type === 'complaint' ? '民事起诉状' : doc.document_type || '文书'}</button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {activeDocument ? (
+                  <div style={{ marginTop: 14 }}>
+                    <label style={{ display: 'block', fontWeight: 800, marginBottom: 6 }}>标题</label>
+                    <input value={activeDocument.title || ''} readOnly style={{ width: '100%', padding: 10, borderRadius: 8, border: `1px solid ${tokens.border}`, background: '#f8fafc' }} />
+                    <label style={{ display: 'block', fontWeight: 800, marginTop: 12, marginBottom: 6 }}>正文</label>
+                    <textarea value={activeDocument.content || ''} readOnly style={{ width: '100%', minHeight: 560, padding: 18, borderRadius: 8, border: `1px solid ${tokens.border}`, background: '#f8fafc', lineHeight: 1.8, fontSize: 15, fontFamily: 'serif' }} />
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
+                      <a href={apiUrl(`/matters/${encodeURIComponent(matterId)}/documents/${encodeURIComponent(activeDocument.document_id || activeDocument.id)}/export.docx`)} style={{ padding: '9px 14px', borderRadius: 8, border: 'none', background: '#111827', color: '#fff', fontWeight: 800, textDecoration: 'none' }}>导出 Word</a>
+                    </div>
+                  </div>
+                ) : null}
+              </section>
+            ) : activeDraft ? (
+              <section style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 14 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                  <div>
+                    <div style={{ fontSize: 18, fontWeight: 900 }}>文书草稿</div>
+                    <div style={{ color: tokens.muted, fontSize: 12, marginTop: 3 }}>Document Draft</div>
+                  </div>
+                  <div style={{ color: tokens.muted, fontSize: 13 }}>可信度 {toPercent(activeDraft.confidence)}</div>
+                </div>
+
+                {draftSourceNames ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 12 }}>
+                    <SourceBox title="来源论证" items={draftSourceNames.arguments} />
+                    <SourceBox title="来源事实" items={draftSourceNames.facts} />
+                    <SourceBox title="来源争议焦点" items={draftSourceNames.issues} />
+                    <SourceBox title="来源法律依据" items={draftSourceNames.laws} />
+                  </div>
+                ) : null}
+
+                <div style={{ marginTop: 12, padding: 12, background: '#fff', borderRadius: 8, border: `1px solid ${tokens.border}` }}>
+                  <div style={{ fontWeight: 800 }}>AI 判断</div>
+                  <div style={{ color: tokens.muted, marginTop: 6 }}>{activeDraft.ai_reasoning || 'AI 已根据正式办案成果生成草稿，待律师审核。'}</div>
+                </div>
+
+                <div style={{ marginTop: 12 }}>
+                  <label style={{ display: 'block', fontWeight: 800, marginBottom: 6 }}>标题</label>
+                  <input value={draftTitle} onChange={(e) => setDraftTitle(e.target.value)} style={{ width: '100%', padding: 10, borderRadius: 8, border: `1px solid ${tokens.border}` }} />
+                  <label style={{ display: 'block', fontWeight: 800, marginTop: 12, marginBottom: 6 }}>正文</label>
+                  <textarea value={draftContent} onChange={(e) => setDraftContent(e.target.value)} style={{ width: '100%', minHeight: 560, padding: 18, borderRadius: 8, border: `1px solid ${tokens.border}`, background: '#fff', lineHeight: 1.8, fontSize: 15, fontFamily: 'serif' }} />
+                  <label style={{ display: 'block', fontWeight: 800, marginTop: 12, marginBottom: 6 }}>律师意见</label>
+                  <textarea value={lawyerNote} onChange={(e) => setLawyerNote(e.target.value)} placeholder="可填写需要 AI 重写或补强的意见" style={{ width: '100%', minHeight: 84, padding: 10, borderRadius: 8, border: `1px solid ${tokens.border}` }} />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
+                  <button disabled={busy} onClick={() => saveDraft()} style={{ padding: '9px 14px', borderRadius: 8, border: `1px solid ${tokens.border}`, background: '#fff', fontWeight: 800 }}>保存草稿</button>
+                  <button disabled={busy} onClick={regenerateDraft} style={{ padding: '9px 14px', borderRadius: 8, border: `1px solid ${tokens.border}`, background: '#fff', fontWeight: 800 }}>根据律师意见重新生成</button>
+                  <button disabled={busy} onClick={() => saveDraft('ready_to_publish')} style={{ padding: '9px 14px', borderRadius: 8, border: `1px solid ${tokens.border}`, background: '#fff', fontWeight: 800 }}>标记可发布</button>
+                  <button disabled={busy || activeDraft.review_status !== 'ready_to_publish'} onClick={publishDraft} style={{ padding: '9px 14px', borderRadius: 8, border: 'none', background: activeDraft.review_status === 'ready_to_publish' ? '#111827' : '#9ca3af', color: '#fff', fontWeight: 800, cursor: activeDraft.review_status === 'ready_to_publish' ? 'pointer' : 'not-allowed' }}>发布正式文书</button>
+                </div>
+              </section>
             ) : (
-              <div style={{ marginTop: 10, color: tokens.muted }}>AI 建议将显示在此处</div>
+              <section style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 18 }}>
+                <div style={{ fontSize: 18, fontWeight: 900 }}>当前尚未生成文书草稿</div>
+                <div style={{ color: tokens.muted, marginTop: 6 }}>No Document Draft Yet</div>
+                <div style={{ color: tokens.muted, marginTop: 14, lineHeight: 1.8 }}>
+                  已具备 Materials {moduleCounts.materials} 条、Evidence {moduleCounts.evidence} 条、Facts {moduleCounts.facts} 条、Issues {moduleCounts.issues} 条、Laws {moduleCounts.laws} 条、Arguments {moduleCounts.arguments} 条。
+                </div>
+                <div style={{ marginTop: 14, display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <button disabled={busy || argumentsList.length === 0} onClick={generateDraft} style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: argumentsList.length === 0 ? '#9ca3af' : '#111827', color: '#fff', fontWeight: 900, cursor: argumentsList.length === 0 ? 'not-allowed' : 'pointer' }}>{busy ? '正在生成…' : 'AI 生成文书草稿'}</button>
+                  <button onClick={() => router.push(`/matters/${encodeURIComponent(matterId)}`)} style={{ padding: '10px 14px', borderRadius: 8, border: `1px solid ${tokens.border}`, background: '#fff', color: tokens.text, fontWeight: 800 }}>返回案件概览</button>
+                </div>
+                {argumentsList.length === 0 ? <div style={{ color: tokens.muted, marginTop: 10 }}>请先完成法律论证发布，再生成文书草稿。</div> : null}
+              </section>
             )}
-          </div>
+          </main>
         </div>
-        {/* 办案主流程已完成 区域（不跳转） */}
-        <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: 720, maxWidth: '90%', padding: 16, borderRadius: 10, background: '#f3f4f6', color: '#111827', textAlign: 'center', fontWeight: 800 }}>办案主流程已完成</div>
-        </div>
-      </div >
-    </div >
+      </div>
+    </div>
+  )
+}
+
+function SourceBox({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div style={{ background: '#fff', border: `1px solid ${tokens.border}`, borderRadius: 8, padding: 10 }}>
+      <div style={{ fontWeight: 800 }}>{title}</div>
+      <div style={{ color: tokens.muted, marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {items.map((item) => <span key={`${title}-${item}`}>{item}</span>)}
+      </div>
+    </div>
   )
 }

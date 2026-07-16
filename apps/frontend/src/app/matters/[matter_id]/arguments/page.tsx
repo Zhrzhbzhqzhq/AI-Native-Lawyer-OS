@@ -1,376 +1,377 @@
 "use client"
-import React, { useEffect, useState } from 'react'
+
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { apiUrl } from '../../../../lib/api'
 
 const tokens = {
-    pageBg: '#ffffff',
-    cardBg: '#fafafa',
-    border: '#e6e6e6',
-    text: '#0f172a',
-    muted: '#6b7280',
-    radius: 8,
+  pageBg: '#ffffff',
+  cardBg: '#fafafa',
+  panelBg: '#ffffff',
+  border: '#e6e6e6',
+  text: '#0f172a',
+  muted: '#6b7280',
+  accent: '#111827',
+  radius: 8,
+}
+
+type Fact = { fact_id: string; title: string; description?: string }
+type Issue = { issue_id: string; title: string; description?: string }
+type Law = { law_id: string; title: string; citation?: string; description?: string }
+type Argument = { argument_id: string; title: string; description?: string; conclusion?: string }
+type ArgumentDraft = {
+  id: string
+  matter_id: string
+  title: string
+  position?: string
+  reasoning?: string
+  counter_argument?: string
+  response?: string
+  risk?: string
+  conclusion?: string
+  confidence?: number | null
+  ai_reasoning?: string
+  source_fact_ids?: string[]
+  source_issue_ids?: string[]
+  source_law_ids?: string[]
+  review_status: 'pending' | 'accepted' | 'edited' | 'ignored'
+  published_argument_id?: string | null
+  published_at?: string | null
+}
+
+const reviewStatuses = new Set(['pending', 'accepted', 'edited', 'ignored'])
+function isArgumentDraft(value: any): value is ArgumentDraft {
+  return Boolean(value && typeof value === 'object' && typeof value.id === 'string' && typeof value.matter_id === 'string' && typeof value.title === 'string' && reviewStatuses.has(value.review_status) && (value.reasoning === undefined || value.reasoning === null || typeof value.reasoning === 'string') && (value.conclusion === undefined || value.conclusion === null || typeof value.conclusion === 'string') && (value.published_argument_id === undefined || value.published_argument_id === null || typeof value.published_argument_id === 'string'))
+}
+
+function confidenceText(value?: number | null) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return '—'
+  return `${Math.round(Math.max(0, Math.min(1, value)) * 100)}%`
+}
+
+function normalizeIds(value: unknown): string[] {
+  return Array.isArray(value) ? value.map((id) => String(id || '')).filter(Boolean) : []
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div style={{ marginTop: 12 }}>
+      <div style={{ color: tokens.muted, fontSize: 12, fontWeight: 800, marginBottom: 6 }}>{title}</div>
+      <div style={{ color: tokens.text, lineHeight: 1.65 }}>{children || '—'}</div>
+    </div>
+  )
 }
 
 export default function ArgumentsWorkspace() {
-    const params = useParams() as { matter_id?: string }
-    const matterId = params?.matter_id || ''
-    const router = useRouter()
+  const params = useParams() as { matter_id?: string }
+  const matterId = params?.matter_id || ''
+  const router = useRouter()
 
-    const [issues, setIssues] = useState<any[]>([])
-    const [loadingIssues, setLoadingIssues] = useState<boolean>(true)
-    const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null)
-    const [issueQuery, setIssueQuery] = useState<string>('')
+  const [facts, setFacts] = useState<Fact[]>([])
+  const [issues, setIssues] = useState<Issue[]>([])
+  const [laws, setLaws] = useState<Law[]>([])
+  const [argumentsList, setArgumentsList] = useState<Argument[]>([])
+  const [drafts, setDrafts] = useState<ArgumentDraft[]>([])
+  const [loading, setLoading] = useState(true)
+  const [generating, setGenerating] = useState(false)
+  const [publishing, setPublishing] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingDraft, setEditingDraft] = useState<Partial<ArgumentDraft>>({})
+  const generatedOnce = useRef(false)
 
-    const [argumentsList, setArgumentsList] = useState<any[]>([])
-    const [loadingArgs, setLoadingArgs] = useState<boolean>(true)
-    const [selectedArgId, setSelectedArgId] = useState<string | null>(null)
+  const factMap = useMemo(() => new Map(facts.map((fact) => [fact.fact_id, fact])), [facts])
+  const issueMap = useMemo(() => new Map(issues.map((issue) => [issue.issue_id, issue])), [issues])
+  const lawMap = useMemo(() => new Map(laws.map((law) => [law.law_id, law])), [laws])
+  const pendingCount = drafts.filter((draft) => draft.review_status !== 'accepted' && draft.review_status !== 'ignored').length
+  const reviewed = drafts.length > 0 && pendingCount === 0
+  const canContinue = argumentsList.length > 0
 
-    const [showCreate, setShowCreate] = useState<boolean>(false)
-    const [newTitle, setNewTitle] = useState<string>('')
-    const [newDescription, setNewDescription] = useState<string>('')
-    const [newConclusion, setNewConclusion] = useState<string>('')
-    const [newStatus, setNewStatus] = useState<string>('draft')
-    const [newIssueId, setNewIssueId] = useState<string | undefined>(undefined)
-    const [creating, setCreating] = useState<boolean>(false)
-    const [errorMsg, setErrorMsg] = useState<string | null>(null)
-
-    const [editingArgId, setEditingArgId] = useState<string | null>(null)
-    const [editingPatch, setEditingPatch] = useState<any>({})
-    const [savingEdit, setSavingEdit] = useState<boolean>(false)
-    // AI suggestions state
-    const [suggestions, setSuggestions] = useState<Array<{ title: string; description: string; conclusion?: string; id?: string }>>([])
-    const [analyzing, setAnalyzing] = useState<boolean>(false)
-
-    const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-
-    async function fetchIssues() {
-        setLoadingIssues(true)
-        try {
-            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/issues`)
-            if (!res.ok) throw new Error('加载议题失败')
-            const json = await res.json()
-            setIssues(Array.isArray(json) ? json : [])
-        } catch (e) {
-            setIssues([])
-        } finally {
-            setLoadingIssues(false)
-        }
+  async function loadAll() {
+    if (!matterId) return
+    setLoading(true)
+    setErrorMsg(null)
+    setLoadError(null)
+    try {
+      const [factsRes, issuesRes, lawsRes, argsRes, draftsRes] = await Promise.all([
+        fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/facts`)),
+        fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/issues`)),
+        fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/laws`)),
+        fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/arguments`)),
+        fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/argument-drafts`)),
+      ])
+      if (!factsRes.ok || !issuesRes.ok || !lawsRes.ok || !argsRes.ok || !draftsRes.ok) throw new Error('法律论证工作区加载失败，请稍后重试')
+      const [factsJson, issuesJson, lawsJson, argsJson, draftsJson] = await Promise.all([factsRes.json(), issuesRes.json(), lawsRes.json(), argsRes.json(), draftsRes.json()]).catch(() => { throw new Error('法律论证工作区返回数据暂不可用') })
+      if (!Array.isArray(factsJson) || !Array.isArray(issuesJson) || !Array.isArray(lawsJson) || !Array.isArray(argsJson) || !draftsJson || typeof draftsJson !== 'object' || !Array.isArray(draftsJson.argument_drafts) || !draftsJson.argument_drafts.every(isArgumentDraft)) throw new Error('法律论证工作区返回数据暂不可用')
+      setFacts(factsJson)
+      setIssues(issuesJson)
+      setLaws(lawsJson)
+      setArgumentsList(argsJson)
+      setDrafts(draftsJson.argument_drafts.map((draft: any) => ({
+        ...draft,
+        source_fact_ids: normalizeIds(draft.source_fact_ids),
+        source_issue_ids: normalizeIds(draft.source_issue_ids),
+        source_law_ids: normalizeIds(draft.source_law_ids),
+      })))
+    } catch (error: any) {
+      setLoadError(String(error?.message || error))
+    } finally {
+      setLoading(false)
     }
+  }
 
-    async function fetchArguments() {
-        setLoadingArgs(true)
-        try {
-            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/arguments`)
-            if (!res.ok) throw new Error('加载论点失败')
-            const json = await res.json()
-            const arr = Array.isArray(json) ? json : []
-            setArgumentsList(arr)
-            // default-select first argument when present
-            if (arr.length > 0) {
-                const firstId = arr[0].argument_id ?? arr[0].id ?? null
-                if (firstId) openArgument(firstId)
-            } else {
-                setSelectedArgId(null)
-            }
-        } catch (e) {
-            setArgumentsList([])
-        } finally {
-            setLoadingArgs(false)
-        }
+  useEffect(() => {
+    loadAll()
+  }, [matterId])
+
+  useEffect(() => {
+    if (!matterId || loading || generatedOnce.current) return
+    if (argumentsList.length === 0 && drafts.length === 0 && laws.length > 0) {
+      generatedOnce.current = true
+      generateDrafts()
     }
+  }, [matterId, loading, argumentsList.length, drafts.length, laws.length])
 
-    // computed selected argument object (may be null)
-    // support APIs that return either `argument_id` or `id` as the primary identifier
-    const selectedArgument = argumentsList.find((a: any) => ((a.argument_id ?? a.id) === selectedArgId)) || null
-
-    useEffect(() => {
-        if (!matterId) return
-        fetchIssues()
-        fetchArguments()
-    }, [matterId])
-
-    const filteredIssues = issues.filter((it) => String(it.title || '').toLowerCase().includes(issueQuery.trim().toLowerCase()))
-
-    async function createArgument() {
-        setErrorMsg(null)
-        if (!newTitle || newTitle.trim().length === 0) { setErrorMsg('标题为必填'); return }
-        setCreating(true)
-        try {
-            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/arguments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newTitle.trim(), description: newDescription || '', conclusion: newConclusion || '', status: newStatus || 'draft', issue_id: newIssueId }) })
-            if (!res.ok) { const txt = await res.text().catch(() => ''); throw new Error(`创建论点失败 ${res.status} ${txt}`) }
-            await fetchArguments()
-            setShowCreate(false)
-            setNewTitle(''); setNewDescription(''); setNewConclusion(''); setNewStatus('draft'); setNewIssueId(undefined)
-        } catch (e: any) { setErrorMsg(String(e?.message || e)) } finally { setCreating(false) }
+  async function generateDrafts() {
+    setGenerating(true)
+    setErrorMsg(null)
+    try {
+      const res = await fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/argument-drafts/generate`), {
+        method: 'POST',
+        body: '{}',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        throw new Error(`生成法律论证草稿失败 ${res.status} ${text}`)
+      }
+      const json = await res.json().catch(() => { throw new Error('法律论证草稿返回数据暂不可用') })
+      if (!json || typeof json !== 'object' || !Array.isArray(json.argument_drafts) || !json.argument_drafts.every((draft: any) => isArgumentDraft(draft) && draft.id.trim().length > 0 && draft.matter_id === matterId)) throw new Error('法律论证草稿返回数据暂不可用')
+      setDrafts(json.argument_drafts.map((draft: ArgumentDraft) => ({
+        ...draft,
+        source_fact_ids: normalizeIds(draft.source_fact_ids),
+        source_issue_ids: normalizeIds(draft.source_issue_ids),
+        source_law_ids: normalizeIds(draft.source_law_ids),
+      })))
+    } catch (error: any) {
+      setErrorMsg(String(error?.message || error))
+    } finally {
+      setGenerating(false)
     }
+  }
 
-    function openArgument(argId: string) { setSelectedArgId(argId); setEditingArgId(null); setEditingPatch({}) }
-
-    function startEdit(arg: any) { const id = arg?.argument_id ?? arg?.id; setEditingArgId(id); setEditingPatch({ title: arg?.title, description: arg?.description || '', conclusion: arg?.conclusion || '', status: arg?.status || 'draft', issue_id: arg?.issue_id || '' }) }
-
-    async function saveEdit(argId: string) {
-        setSavingEdit(true)
-        try {
-            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/arguments/${encodeURIComponent(argId)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editingPatch) })
-            if (!res.ok) { const txt = await res.text().catch(() => ''); throw new Error(`保存失败 ${res.status} ${txt}`) }
-            await fetchArguments()
-            setEditingArgId(null)
-            if (selectedArgId === argId) openArgument(argId)
-        } catch (e: any) { setErrorMsg(String(e?.message || e)) } finally { setSavingEdit(false) }
+  async function updateDraft(draftId: string, payload: Record<string, unknown>) {
+    setErrorMsg(null)
+    const res = await fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/argument-drafts/${encodeURIComponent(draftId)}`), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      const text = await res.text().catch(() => '')
+      throw new Error(`更新法律论证草稿失败 ${res.status} ${text}`)
     }
+    const updated = await res.json().catch(() => { throw new Error('更新返回数据暂不可用') })
+    if (!isArgumentDraft(updated) || updated.matter_id !== matterId || updated.id !== draftId) throw new Error('更新返回数据暂不可用')
+    setDrafts((prev) => prev.map((draft) => draft.id === draftId ? {
+      ...updated,
+      source_fact_ids: normalizeIds(updated.source_fact_ids),
+      source_issue_ids: normalizeIds(updated.source_issue_ids),
+      source_law_ids: normalizeIds(updated.source_law_ids),
+    } : draft))
+  }
 
-    async function deleteArgument(argId: string) {
-        try {
-            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/arguments/${encodeURIComponent(argId)}`, { method: 'DELETE' })
-            if (!res.ok) { const txt = await res.text().catch(() => ''); throw new Error(`删除失败 ${res.status} ${txt}`) }
-            await fetchArguments()
-            if (selectedArgId === argId) setSelectedArgId(null)
-        } catch (e: any) { setErrorMsg(String(e?.message || e)) }
+  async function publishDrafts() {
+    setPublishing(true)
+    setErrorMsg(null)
+    try {
+      const res = await fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/argument-drafts/publish`), {
+        method: 'POST',
+        body: '{}',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        throw new Error(`发布法律论证失败 ${res.status} ${text}`)
+      }
+      await loadAll()
+    } catch (error: any) {
+      setErrorMsg(String(error?.message || error))
+    } finally {
+      setPublishing(false)
     }
+  }
 
-    return (
-        <div style={{ padding: 16, background: tokens.pageBg, minHeight: '100vh' }}>
-            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-                <div style={{ display: 'flex', gap: 16 }}>
-                    {/* Left: Issues */}
-                    <div style={{ flex: 1 }}>
-                        <div style={{ background: tokens.cardBg, padding: 12, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ fontWeight: 800 }}>议题（Issues）</div>
-                                <div style={{ color: tokens.muted }}>{loadingIssues ? '加载中…' : `${issues.length} 条`}</div>
-                            </div>
+  function startEdit(draft: ArgumentDraft) {
+    setEditingId(draft.id)
+    setEditingDraft({
+      title: draft.title,
+      position: draft.position || '',
+      reasoning: draft.reasoning || '',
+      counter_argument: draft.counter_argument || '',
+      response: draft.response || '',
+      risk: draft.risk || '',
+      conclusion: draft.conclusion || '',
+    })
+  }
 
-                            <div style={{ marginTop: 8 }}>
-                                <input placeholder="搜索议题" value={issueQuery} onChange={(e) => setIssueQuery(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
-                            </div>
+  async function saveEdit(draftId: string) {
+    await updateDraft(draftId, editingDraft as Record<string, unknown>)
+    setEditingId(null)
+    setEditingDraft({})
+  }
 
-                            <div style={{ marginTop: 12 }}>
-                                {loadingIssues ? <div style={{ color: tokens.muted }}>加载议题中…</div> : filteredIssues.length === 0 ? <div style={{ color: tokens.muted }}>暂无议题</div> : (
-                                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                                        {filteredIssues.map((it: any) => {
-                                            const isSel = selectedIssueId === it.issue_id
-                                            return (
-                                                <li key={it.issue_id} onClick={() => setSelectedIssueId((s) => s === it.issue_id ? null : it.issue_id)} style={{ padding: 8, borderBottom: '1px solid #f1f1f1', cursor: 'pointer', background: isSel ? '#f3f4f6' : 'transparent', borderLeft: isSel ? '3px solid #111' : '3px solid transparent' }}>
-                                                    <div style={{ fontWeight: 700 }}>{it.title}</div>
-                                                    <div style={{ color: tokens.muted, fontSize: 12 }}>{it.status || 'draft'}</div>
-                                                </li>
-                                            )
-                                        })}
-                                    </ul>
-                                )}
-                            </div>
-                            {/* 下一步 按钮 */}
-                            <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
-                                <button onClick={() => router.push(`/matters/${matterId}/documents`)} style={{ width: 720, maxWidth: '90%', padding: '12px 16px', background: '#111827', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 800 }}>下一步：生成法律文书</button>
-                            </div>
-                        </div>
-                    </div>
+  if (loadError) return <main style={{ padding: 28 }}><div style={{ color: '#b91c1c' }}>{loadError}<button onClick={loadAll} style={{ marginLeft: 12 }}>重新加载</button></div></main>
 
-                    {/* Right: Arguments */}
-                    <div style={{ width: 520 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                            <div>
-                                <div style={{ fontWeight: 800 }}>论点（Arguments）</div>
-                                <div style={{ color: tokens.muted, fontSize: 12 }}>{loadingArgs ? '加载中…' : `${argumentsList.length} 条`}</div>
-                            </div>
-                            <div style={{ display: 'flex', gap: 8 }}>
-                                <button onClick={() => setShowCreate(true)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>新建论点</button>
-                                <button disabled={analyzing} onClick={async () => {
-                                    setAnalyzing(true)
-                                    try {
-                                        const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/arguments/analyze`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-                                        if (!res.ok) throw new Error(`status:${res.status}`)
-                                        const json = await res.json()
-                                        const s = Array.isArray(json) ? json.map((it: any, i: number) => ({ id: it.id || `s-${i}`, title: String(it.title || ''), description: String(it.description || ''), conclusion: String(it.conclusion || '') })) : []
-                                        setSuggestions(s)
-                                    } catch (e) {
-                                        console.error('arguments analyze failed', e)
-                                        setSuggestions([])
-                                    } finally {
-                                        setAnalyzing(false)
-                                    }
-                                }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>{analyzing ? 'AI 正在组织法律论证……' : 'AI 组织法律论证'}</button>
-                            </div>
-                        </div>
-
-                        <div style={{ background: tokens.cardBg, padding: 12, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
-                            {loadingArgs ? (
-                                <div style={{ color: tokens.muted }}>加载论点中…</div>
-                            ) : argumentsList.length === 0 ? (
-                                <div style={{ color: tokens.muted }}>暂无法律论证</div>
-                            ) : (
-                                (() => {
-                                    const arg = selectedArgument
-                                    if (!arg) return <div style={{ color: tokens.muted }}>请选择论点</div>
-                                    const argId = arg?.argument_id ?? arg?.id ?? null
-                                    return (
-                                        <div>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                                                <div>
-                                                    <div style={{ fontWeight: 800 }}>{selectedArgument?.title ?? '(无标题)'}</div>
-                                                    <div style={{ color: tokens.muted, fontSize: 12 }}>{selectedArgument?.side ? `方位: ${selectedArgument.side}` : ''} {selectedArgument?.status ? ` • ${selectedArgument.status}` : ''}</div>
-                                                </div>
-                                                <div style={{ display: 'flex', gap: 8 }}>
-                                                    <button onClick={() => startEdit(arg)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #e6eef6', background: '#fff', fontSize: 12 }}>编辑</button>
-                                                    <button onClick={() => deleteArgument(argId as string)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #fee2e2', background: '#fff', color: '#b91c1c', fontSize: 12 }}>删除</button>
-                                                </div>
-                                            </div>
-
-                                            <div style={{ marginTop: 8, padding: 8, borderRadius: 6, background: '#fff' }}>
-                                                <div style={{ fontWeight: 700, marginBottom: 6 }}>说明</div>
-                                                <div style={{ color: tokens.muted }}>{selectedArgument?.description ?? '—'}</div>
-                                                <div style={{ marginTop: 8, fontWeight: 700 }}>结论</div>
-                                                <div style={{ color: tokens.muted }}>{selectedArgument?.conclusion ?? '—'}</div>
-                                                <div style={{ marginTop: 8, fontWeight: 700 }}>关联法规 / 议题</div>
-                                                <div style={{ color: tokens.muted }}>{selectedArgument?.law_id ?? selectedArgument?.issue_id ?? '未关联'}</div>
-                                                <div style={{ marginTop: 8, color: tokens.muted, fontSize: 12 }}>{selectedArgument?.created_at ? `创建: ${new Date(selectedArgument.created_at).toLocaleString()}` : ''}{selectedArgument?.updated_at ? ` • 更新: ${new Date(selectedArgument.updated_at).toLocaleString()}` : ''}</div>
-                                            </div>
-
-                                            {editingArgId === argId ? (
-                                                <div style={{ marginTop: 8, padding: 8, borderRadius: 6, background: '#fff' }}>
-                                                    <div style={{ fontWeight: 700, marginBottom: 6 }}>编辑论点</div>
-                                                    <div style={{ marginBottom: 8 }}>
-                                                        <input value={editingPatch.title || ''} onChange={(e) => setEditingPatch((p: any) => ({ ...p, title: e.target.value }))} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
-                                                    </div>
-                                                    <div style={{ marginBottom: 8 }}>
-                                                        <textarea value={editingPatch.description || ''} onChange={(e) => setEditingPatch((p: any) => ({ ...p, description: e.target.value }))} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6', minHeight: 80 }} />
-                                                    </div>
-                                                    <div style={{ marginBottom: 8 }}>
-                                                        <textarea value={editingPatch.conclusion || ''} onChange={(e) => setEditingPatch((p: any) => ({ ...p, conclusion: e.target.value }))} placeholder="结论" style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6', minHeight: 60 }} />
-                                                    </div>
-                                                    <div style={{ marginBottom: 8 }}>
-                                                        <select value={editingPatch.status || 'draft'} onChange={(e) => setEditingPatch((p: any) => ({ ...p, status: e.target.value }))} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }}>
-                                                            <option value="draft">draft</option>
-                                                            <option value="active">active</option>
-                                                            <option value="archived">archived</option>
-                                                        </select>
-                                                    </div>
-                                                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-                                                        <button onClick={() => setEditingArgId(null)} style={{ padding: '6px 10px', borderRadius: 6 }}>取消</button>
-                                                        <button onClick={() => saveEdit(argId as string)} disabled={savingEdit} style={{ padding: '6px 10px', borderRadius: 6, background: '#111', color: '#fff' }}>{savingEdit ? '保存中…' : '保存'}</button>
-                                                    </div>
-                                                </div>
-                                            ) : null}
-                                        </div>
-                                    )
-                                })()
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* AI Suggestions area */}
-                <div style={{ maxWidth: 1200, margin: '12px auto 0', display: 'flex', justifyContent: 'flex-end' }}>
-                    <div style={{ width: 520, background: '#fff', borderRadius: tokens.radius, padding: 12, border: `1px solid ${tokens.border}` }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ fontWeight: 700 }}>AI 建议</div>
-                            {suggestions && suggestions.length > 0 ? (
-                                <button onClick={async () => {
-                                    for (const s of suggestions.slice()) {
-                                        try {
-                                            const body: any = { title: s.title, description: s.description || '', conclusion: s.conclusion || '' }
-                                            if (selectedIssueId) body.issue_id = selectedIssueId
-                                            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/arguments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-                                            if (!res.ok) throw new Error(`status:${res.status}`)
-                                        } catch (e) {
-                                            console.error('accept all arguments failed', e)
-                                        }
-                                    }
-                                    try { await fetchArguments() } catch (e) { }
-                                    setSuggestions([])
-                                }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>全部接受</button>
-                            ) : null}
-                        </div>
-
-                        {suggestions && suggestions.length > 0 ? (
-                            <div style={{ marginTop: 10 }}>
-                                {suggestions.map((s) => (
-                                    <div key={s.id} style={{ padding: 10, borderRadius: 8, marginBottom: 8, background: '#fff', border: '1px solid #f1f5f9' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                            <div>
-                                                <div style={{ fontWeight: 700 }}>{s.title}</div>
-                                                <div style={{ color: tokens.muted, marginTop: 6 }}>{s.description}</div>
-                                                <div style={{ color: tokens.muted, marginTop: 6, fontWeight: 700 }}>结论</div>
-                                                <div style={{ color: tokens.muted, marginTop: 6 }}>{s.conclusion}</div>
-                                            </div>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
-                                                <button onClick={async () => {
-                                                    try {
-                                                        const body: any = { title: s.title, description: s.description || '', conclusion: s.conclusion || '' }
-                                                        if (selectedIssueId) body.issue_id = selectedIssueId
-                                                        const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/arguments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-                                                        if (!res.ok) throw new Error(`status:${res.status}`)
-                                                        setSuggestions((prev) => prev.filter((x) => x.id !== s.id))
-                                                        try { await fetchArguments() } catch (e) { }
-                                                    } catch (e) {
-                                                        console.error('accept argument failed', e)
-                                                        alert('创建论点失败，请稍后重试')
-                                                    }
-                                                }} style={{ padding: '6px 10px', borderRadius: 6, background: '#111827', color: '#fff', border: 'none' }}>接受</button>
-
-                                                <button onClick={() => setSuggestions((prev) => prev.filter((x) => x.id !== s.id))} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', color: '#111827', border: '1px solid #e6e7ef' }}>忽略</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div style={{ marginTop: 10, color: tokens.muted }}>AI 建议将显示在此处</div>
-                        )}
-                    </div>
-                </div>
-
-                {showCreate ? (
-                    <div style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div style={{ width: 560, background: '#fff', borderRadius: 8, padding: 16 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ fontWeight: 800 }}>新建论点</div>
-                                <div><button onClick={() => { setShowCreate(false); setErrorMsg(null) }} style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}>关闭</button></div>
-                            </div>
-
-                            <div style={{ marginTop: 12 }}>
-                                <div style={{ fontWeight: 700, marginBottom: 6 }}>标题</div>
-                                <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
-                            </div>
-
-                            <div style={{ marginTop: 12 }}>
-                                <div style={{ fontWeight: 700, marginBottom: 6 }}>说明（可选）</div>
-                                <textarea value={newDescription} onChange={(e) => setNewDescription(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6', minHeight: 100 }} />
-                            </div>
-
-                            <div style={{ marginTop: 12 }}>
-                                <div style={{ fontWeight: 700, marginBottom: 6 }}>结论（可选）</div>
-                                <textarea value={newConclusion} onChange={(e) => setNewConclusion(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6', minHeight: 60 }} />
-                            </div>
-
-                            <div style={{ marginTop: 12 }}>
-                                <div style={{ fontWeight: 700, marginBottom: 6 }}>状态</div>
-                                <select value={newStatus} onChange={(e) => setNewStatus(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }}>
-                                    <option value="draft">draft</option>
-                                    <option value="active">active</option>
-                                    <option value="archived">archived</option>
-                                </select>
-                            </div>
-
-                            <div style={{ marginTop: 12 }}>
-                                <div style={{ fontWeight: 700, marginBottom: 6 }}>关联议题（可选）</div>
-                                <select value={newIssueId || ''} onChange={(e) => setNewIssueId(e.target.value || undefined)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }}>
-                                    <option value="">不关联</option>
-                                    {issues.map((it: any) => <option key={it.issue_id} value={it.issue_id}>{it.title}</option>)}
-                                </select>
-                            </div>
-
-                            {errorMsg ? <div style={{ color: '#b91c1c', marginTop: 8 }}>{errorMsg}</div> : null}
-
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
-                                <button onClick={() => { setShowCreate(false); setErrorMsg(null) }} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff' }}>取消</button>
-                                <button onClick={() => createArgument()} disabled={creating} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: '#111', color: '#fff' }}>{creating ? '保存中…' : '保存'}</button>
-                            </div>
-                        </div>
-                    </div>
-                ) : null}
-
-            </div>
+  return (
+    <div style={{ padding: 16, background: tokens.pageBg, minHeight: '100vh' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <div>
+            <div style={{ fontSize: 22, fontWeight: 900 }}>法律论证</div>
+            <div style={{ color: tokens.muted, marginTop: 4 }}>Arguments Workspace</div>
+          </div>
+          <button
+            disabled={!canContinue}
+            onClick={() => router.push(`/matters/${matterId}/documents`)}
+            style={{ padding: '10px 14px', borderRadius: tokens.radius, border: 'none', background: canContinue ? tokens.accent : '#d1d5db', color: '#fff', fontWeight: 800, cursor: canContinue ? 'pointer' : 'not-allowed' }}
+          >
+            AI 继续工作
+          </button>
         </div>
-    )
+
+        {errorMsg ? <div style={{ marginBottom: 12, color: '#b91c1c', background: '#fef2f2', border: '1px solid #fee2e2', padding: 10, borderRadius: tokens.radius }}>{errorMsg}</div> : null}
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 0.9fr) minmax(460px, 1.4fr)', gap: 16 }}>
+          <aside style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 14 }}>
+            <div style={{ fontWeight: 900 }}>来源上下文</div>
+            <Section title={`争议焦点（${issues.length}）`}>
+              {loading ? '正在加载…' : issues.length === 0 ? '请先完成争议焦点流程。' : issues.map((issue) => (
+                <div key={issue.issue_id} style={{ padding: 10, background: tokens.panelBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, marginBottom: 8 }}>
+                  <div style={{ fontWeight: 800 }}>{issue.title}</div>
+                  {issue.description ? <div style={{ color: tokens.muted, marginTop: 6 }}>{issue.description}</div> : null}
+                </div>
+              ))}
+            </Section>
+            <Section title={`关键事实（${facts.length}）`}>
+              {facts.length === 0 ? '请先完成事实流程。' : facts.map((fact) => (
+                <div key={fact.fact_id} style={{ padding: 10, background: tokens.panelBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, marginBottom: 8 }}>
+                  <div style={{ fontWeight: 800 }}>{fact.title}</div>
+                  {fact.description ? <div style={{ color: tokens.muted, marginTop: 6 }}>{fact.description}</div> : null}
+                </div>
+              ))}
+            </Section>
+            <Section title={`适用法律依据（${laws.length}）`}>
+              {laws.length === 0 ? '请先完成法律依据流程。' : laws.map((law) => (
+                <div key={law.law_id} style={{ padding: 10, background: tokens.panelBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, marginBottom: 8 }}>
+                  <div style={{ fontWeight: 800 }}>{law.title}</div>
+                  {law.citation ? <div style={{ color: tokens.muted, marginTop: 6 }}>{law.citation}</div> : null}
+                </div>
+              ))}
+            </Section>
+          </aside>
+
+          <main style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+              <div>
+                <div style={{ fontWeight: 900 }}>{argumentsList.length > 0 ? '正式法律论证' : '法律论证草稿'}</div>
+                <div style={{ color: tokens.muted, marginTop: 4 }}>
+                  {loading ? '加载中…' : argumentsList.length > 0 ? `${argumentsList.length} 条正式论证` : drafts.length > 0 ? `${drafts.length} 条草稿，${pendingCount} 条待审核` : laws.length === 0 ? '等待法律依据发布' : '准备生成草稿'}
+                </div>
+              </div>
+              {argumentsList.length === 0 && reviewed ? (
+                <button
+                  disabled={publishing}
+                  onClick={publishDrafts}
+                  style={{ padding: '9px 12px', borderRadius: tokens.radius, border: 'none', background: tokens.accent, color: '#fff', fontWeight: 800 }}
+                >
+                  {publishing ? '发布中…' : '发布法律论证'}
+                </button>
+              ) : null}
+            </div>
+
+            {loading || generating ? (
+              <div style={{ color: tokens.muted, marginTop: 18 }}>{generating ? '正在生成法律论证草稿…' : '正在加载法律论证…'}</div>
+            ) : argumentsList.length > 0 ? (
+              <div style={{ marginTop: 14 }}>
+                {argumentsList.map((argument) => (
+                  <div key={argument.argument_id} style={{ background: tokens.panelBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 14, marginBottom: 12 }}>
+                    <div style={{ fontWeight: 900 }}>{argument.title}</div>
+                    <Section title="论证过程">{argument.description || '—'}</Section>
+                    <Section title="结论">{argument.conclusion || '—'}</Section>
+                  </div>
+                ))}
+              </div>
+            ) : laws.length === 0 ? (
+              <div style={{ color: tokens.muted, marginTop: 18 }}>请先完成法律依据流程。</div>
+            ) : drafts.length === 0 ? (
+              <div style={{ color: tokens.muted, marginTop: 18 }}>暂无法律论证草稿。</div>
+            ) : (
+              <div style={{ marginTop: 14 }}>
+                {drafts.map((draft) => {
+                  const factTitles = normalizeIds(draft.source_fact_ids).map((id) => factMap.get(id)?.title || '来源事实')
+                  const issueTitles = normalizeIds(draft.source_issue_ids).map((id) => issueMap.get(id)?.title || '来源争议焦点')
+                  const lawTitles = normalizeIds(draft.source_law_ids).map((id) => {
+                    const law = lawMap.get(id)
+                    return law ? `${law.title}${law.citation ? `（${law.citation}）` : ''}` : '来源法律依据'
+                  })
+                  const editing = editingId === draft.id && !draft.published_at
+                  return (
+                    <div key={draft.id} style={{ background: tokens.panelBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 14, marginBottom: 12 }}>
+                      {editing ? (
+                        <div>
+                          {(['title', 'position', 'reasoning', 'counter_argument', 'response', 'risk', 'conclusion'] as const).map((field) => (
+                            <div key={field} style={{ marginBottom: 10 }}>
+                              <div style={{ color: tokens.muted, fontSize: 12, fontWeight: 800, marginBottom: 5 }}>
+                                {field === 'title' ? '论证标题' : field === 'position' ? '核心观点' : field === 'reasoning' ? '论证过程' : field === 'counter_argument' ? '可能抗辩' : field === 'response' ? '抗辩回应' : field === 'risk' ? '风险与薄弱点' : '结论'}
+                              </div>
+                              {field === 'title' ? (
+                                <input value={String((editingDraft as any)[field] || '')} onChange={(e) => setEditingDraft((prev) => ({ ...prev, [field]: e.target.value }))} style={{ width: '100%', padding: 8, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius }} />
+                              ) : (
+                                <textarea value={String((editingDraft as any)[field] || '')} onChange={(e) => setEditingDraft((prev) => ({ ...prev, [field]: e.target.value }))} style={{ width: '100%', minHeight: 72, padding: 8, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius }} />
+                              )}
+                            </div>
+                          ))}
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                            <button onClick={() => { setEditingId(null); setEditingDraft({}) }} style={{ padding: '7px 10px', borderRadius: tokens.radius, border: `1px solid ${tokens.border}`, background: '#fff' }}>取消</button>
+                            <button onClick={() => saveEdit(draft.id)} style={{ padding: '7px 10px', borderRadius: tokens.radius, border: 'none', background: tokens.accent, color: '#fff', fontWeight: 800 }}>保存修改</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                            <div>
+                              <div style={{ fontWeight: 900 }}>{draft.title}</div>
+                              <div style={{ color: tokens.muted, marginTop: 4 }}>可信度 {confidenceText(draft.confidence)}</div>
+                            </div>
+                          </div>
+                          <Section title="核心观点">{draft.position || '—'}</Section>
+                          <Section title="论证过程">{draft.reasoning || '—'}</Section>
+                          <Section title="可能抗辩">{draft.counter_argument || '—'}</Section>
+                          <Section title="抗辩回应">{draft.response || '—'}</Section>
+                          <Section title="风险与薄弱点">{draft.risk || '—'}</Section>
+                          <Section title="结论">{draft.conclusion || '—'}</Section>
+                          <Section title="来源事实">{factTitles.join('、') || '—'}</Section>
+                          <Section title="来源争议焦点">{issueTitles.join('、') || '—'}</Section>
+                          <Section title="来源法律依据">{lawTitles.join('、') || '—'}</Section>
+                          <Section title="AI 判断">{draft.ai_reasoning || '—'}</Section>
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 14 }}>
+                            <button disabled={Boolean(draft.published_at)} onClick={() => updateDraft(draft.id, { review_status: 'accepted' })} style={{ padding: '7px 10px', borderRadius: tokens.radius, border: 'none', background: tokens.accent, color: '#fff', fontWeight: 800 }}>接受</button>
+                            <button disabled={Boolean(draft.published_at)} onClick={() => startEdit(draft)} style={{ padding: '7px 10px', borderRadius: tokens.radius, border: `1px solid ${tokens.border}`, background: '#fff', fontWeight: 800 }}>修改</button>
+                            <button disabled={Boolean(draft.published_at)} onClick={() => updateDraft(draft.id, { review_status: 'ignored' })} style={{ padding: '7px 10px', borderRadius: tokens.radius, border: `1px solid ${tokens.border}`, background: '#fff', color: '#991b1b', fontWeight: 800 }}>忽略</button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+                {!reviewed ? <div style={{ color: tokens.muted, marginTop: 10 }}>请先完成法律论证草稿审核。</div> : null}
+              </div>
+            )}
+          </main>
+        </div>
+      </div>
+    </div>
+  )
 }

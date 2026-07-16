@@ -1,6 +1,7 @@
 "use client"
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { apiUrl } from '../../../../lib/api'
 
 const tokens = {
     pageBg: '#f7fafc',
@@ -12,359 +13,394 @@ const tokens = {
     radius: 10,
 }
 
+type Evidence = {
+    evidence_id: string
+    title?: string
+    status?: string
+    description?: string
+    relevance?: string
+}
+
+type FactDraft = {
+    draft_id: string
+    matter_id: string
+    title: string
+    description?: string
+    confidence?: number | null
+    ai_reasoning?: string | null
+    source_evidence_ids?: string[]
+    review_status: 'pending' | 'accepted' | 'edited' | 'ignored'
+    lawyer_note?: string | null
+    published_fact_id?: string | null
+    published_at?: string | null
+}
+
+const reviewStatuses = new Set(['pending', 'accepted', 'edited', 'ignored'])
+function isFactDraft(value: any): value is FactDraft {
+    return Boolean(value && typeof value === 'object' && typeof value.draft_id === 'string' && typeof value.matter_id === 'string' && typeof value.title === 'string' && reviewStatuses.has(value.review_status) && (value.description === undefined || value.description === null || typeof value.description === 'string') && (value.published_fact_id === undefined || value.published_fact_id === null || typeof value.published_fact_id === 'string'))
+}
+
+type Fact = {
+    fact_id: string
+    title: string
+    description?: string
+    status?: string
+    created_at?: string
+}
+
+function sourceIdsOf(draft: FactDraft) {
+    return Array.isArray(draft.source_evidence_ids) ? draft.source_evidence_ids.map(String) : []
+}
+
+function statusLabel(status: string) {
+    if (status === 'accepted') return '已接受'
+    if (status === 'edited') return '已修改'
+    if (status === 'ignored') return '已忽略'
+    return '待审核'
+}
+
+function formatConfidence(value: number | null | undefined) {
+    if (typeof value !== 'number' || !Number.isFinite(value)) return '-'
+    const percent = value <= 1 ? value * 100 : value
+    return `${Math.round(percent)}%`
+}
+
+function fieldLabel(label: string) {
+    return <div style={{ fontSize: 12, fontWeight: 800, color: tokens.text, marginBottom: 4 }}>{label}</div>
+}
+
+function isTechnicalValue(value: string) {
+    const text = value.trim()
+    if (!text) return true
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(text)) return true
+    if (/^(ev|fd|fact|mat)-/i.test(text)) return true
+    return /\.(md|txt|json|pdf|docx?|png|jpe?g|mp3|m4a)$/i.test(text)
+}
+
+function cleanDisplayText(value: unknown, fallback: string) {
+    const text = String(value || '').trim()
+    if (!text || isTechnicalValue(text)) return fallback
+    return text
+}
+
+function evidenceDisplayTitle(evidence: Evidence, index: number) {
+    const fallback = `来源证据 ${index + 1}`
+    return cleanDisplayText(evidence.title, cleanDisplayText(evidence.relevance, fallback))
+}
+
 export default function FactsWorkspace() {
     const params = useParams() as { matter_id?: string }
     const matterId = params?.matter_id || ''
     const router = useRouter()
 
-    const [evidences, setEvidences] = useState<any[]>([])
-    const [loadingEvidences, setLoadingEvidences] = useState<boolean>(true)
-    const [selectedEvidenceIds, setSelectedEvidenceIds] = useState<string[]>([])
+    const [evidences, setEvidences] = useState<Evidence[]>([])
+    const [facts, setFacts] = useState<Fact[]>([])
+    const [drafts, setDrafts] = useState<FactDraft[]>([])
+    const [loading, setLoading] = useState(true)
+    const [generating, setGenerating] = useState(false)
+    const [publishing, setPublishing] = useState(false)
+    const [message, setMessage] = useState<string | null>(null)
+    const [loadError, setLoadError] = useState<string | null>(null)
+    const [editingDraftId, setEditingDraftId] = useState<string | null>(null)
+    const [editTitle, setEditTitle] = useState('')
+    const [editDescription, setEditDescription] = useState('')
+    const [didAutoGenerate, setDidAutoGenerate] = useState(false)
 
-    const [facts, setFacts] = useState<any[]>([])
-    const [loadingFacts, setLoadingFacts] = useState<boolean>(true)
-    const [selectedFactId, setSelectedFactId] = useState<string | null>(null)
-    const [factEvidences, setFactEvidences] = useState<any[]>([])
-    const [loadingFactEvidences, setLoadingFactEvidences] = useState<boolean>(false)
-    const [detachingEvidenceIds, setDetachingEvidenceIds] = useState<string[]>([])
+    const evidenceTitleById = useMemo(() => {
+        const map = new Map<string, string>()
+        evidences.forEach((e, index) => map.set(String(e.evidence_id), evidenceDisplayTitle(e, index)))
+        return map
+    }, [evidences])
 
-    const [showCreate, setShowCreate] = useState<boolean>(false)
-    const [newTitle, setNewTitle] = useState<string>('')
-    const [newDescription, setNewDescription] = useState<string>('')
-    const [creating, setCreating] = useState<boolean>(false)
-    const [errorMsg, setErrorMsg] = useState<string | null>(null)
-    // AI suggestions state
-    const [suggestions, setSuggestions] = useState<Array<{ title: string; description: string; id?: string }>>([])
-    const [analyzing, setAnalyzing] = useState<boolean>(false)
+    const allDraftsReviewed = drafts.length > 0 && drafts.every((draft) => draft.review_status === 'accepted' || draft.review_status === 'ignored')
+    const canPublish = facts.length === 0 && allDraftsReviewed
+    const canContinueAi = facts.length > 0
 
-    const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-
-    async function fetchEvidences() {
-        setLoadingEvidences(true)
+    async function loadAll() {
+        if (!matterId) return
+        setLoading(true)
+        setMessage(null)
+        setLoadError(null)
         try {
-            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/evidence`)
-            if (!res.ok) throw new Error('加载证据失败')
-            const json = await res.json()
-            setEvidences(Array.isArray(json) ? json.map((e: any, idx: number) => ({ ...e, _displayIndex: idx + 1 })) : [])
-        } catch (e) {
-            setEvidences([])
+            const [evidenceRes, factsRes, draftsRes] = await Promise.all([
+                fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/evidence`)),
+                fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/facts`)),
+                fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/fact-drafts`)),
+            ])
+            if (!evidenceRes.ok || !factsRes.ok || !draftsRes.ok) throw new Error('事实工作区加载失败，请稍后重试')
+            const [evidenceJson, factsJson, draftsJson] = await Promise.all([evidenceRes.json(), factsRes.json(), draftsRes.json()]).catch(() => { throw new Error('事实工作区返回数据暂不可用') })
+            if (!Array.isArray(evidenceJson) || !Array.isArray(factsJson) || !Array.isArray(draftsJson) || !draftsJson.every(isFactDraft)) throw new Error('事实工作区返回数据暂不可用')
+            setEvidences(evidenceJson)
+            setFacts(factsJson)
+            setDrafts(draftsJson)
+        } catch (error: any) {
+            setLoadError(String(error?.message || error))
         } finally {
-            setLoadingEvidences(false)
+            setLoading(false)
         }
     }
 
-    async function fetchFacts() {
-        setLoadingFacts(true)
+    async function generateDrafts() {
+        if (!matterId || generating) return
+        setGenerating(true)
+        setMessage(null)
         try {
-            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/facts`)
-            if (!res.ok) throw new Error('加载事实失败')
-            const json = await res.json()
-            setFacts(Array.isArray(json) ? json : [])
-        } catch (e) {
-            setFacts([])
+            const res = await fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/fact-drafts/generate`), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({}),
+            })
+            if (!res.ok) {
+                const text = await res.text().catch(() => '')
+                throw new Error(`生成事实草稿失败 ${res.status} ${text}`)
+            }
+            const json = await res.json().catch(() => { throw new Error('事实草稿返回数据暂不可用') })
+            if (!json || typeof json !== 'object' || !Array.isArray(json.fact_drafts) || !json.fact_drafts.every((draft: any) => isFactDraft(draft) && draft.draft_id.trim().length > 0 && draft.matter_id === matterId)) throw new Error('事实草稿返回数据暂不可用')
+            setDrafts(json.fact_drafts)
+        } catch (error: any) {
+            setMessage(String(error?.message || error))
         } finally {
-            setLoadingFacts(false)
+            setGenerating(false)
         }
     }
 
-    async function fetchFactEvidences(factId: string | null) {
-        if (!factId) {
-            setFactEvidences([])
+    async function patchDraft(draftId: string, payload: Record<string, unknown>) {
+        const res = await fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/fact-drafts/${encodeURIComponent(draftId)}`), {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        })
+        if (!res.ok) {
+            const text = await res.text().catch(() => '')
+            throw new Error(`更新事实草稿失败 ${res.status} ${text}`)
+        }
+        const updated = await res.json().catch(() => { throw new Error('更新返回数据暂不可用') })
+        if (!isFactDraft(updated) || updated.matter_id !== matterId || updated.draft_id !== draftId) throw new Error('更新返回数据暂不可用')
+        setDrafts((current) => current.map((draft) => draft.draft_id === draftId ? updated : draft))
+    }
+
+    async function acceptDraft(draftId: string) {
+        setMessage(null)
+        try {
+            await patchDraft(draftId, { review_status: 'accepted' })
+        } catch (error: any) {
+            setMessage(String(error?.message || error))
+        }
+    }
+
+    async function ignoreDraft(draftId: string) {
+        setMessage(null)
+        try {
+            await patchDraft(draftId, { review_status: 'ignored' })
+        } catch (error: any) {
+            setMessage(String(error?.message || error))
+        }
+    }
+
+    function startEdit(draft: FactDraft) {
+        setEditingDraftId(draft.draft_id)
+        setEditTitle(draft.title || '')
+        setEditDescription(draft.description || '')
+    }
+
+    async function saveEdit(draftId: string) {
+        const title = editTitle.trim()
+        if (!title) {
+            setMessage('事实内容不能为空')
             return
         }
-        setLoadingFactEvidences(true)
+        setMessage(null)
         try {
-            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/facts/${encodeURIComponent(factId)}/evidence`)
-            if (!res.ok) throw new Error('加载关联证据失败')
-            const json = await res.json()
-            setFactEvidences(Array.isArray(json) ? json : [])
-        } catch (e) {
-            setFactEvidences([])
-        } finally {
-            setLoadingFactEvidences(false)
+            await patchDraft(draftId, { title, description: editDescription })
+            setEditingDraftId(null)
+            setEditTitle('')
+            setEditDescription('')
+        } catch (error: any) {
+            setMessage(String(error?.message || error))
         }
     }
 
-    async function detachEvidence(factId: string, evidenceId: string) {
-        if (!factId || !evidenceId) return
-        setDetachingEvidenceIds((s) => (s.includes(evidenceId) ? s : [...s, evidenceId]))
+    async function publishDrafts() {
+        setPublishing(true)
+        setMessage(null)
         try {
-            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/facts/${encodeURIComponent(factId)}/evidence/${encodeURIComponent(evidenceId)}`, { method: 'DELETE' })
+            const res = await fetch(apiUrl(`/matters/${encodeURIComponent(matterId)}/fact-drafts/publish`), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({}),
+            })
             if (!res.ok) {
-                const txt = await res.text().catch(() => '')
-                throw new Error(`删除关联失败 ${res.status} ${txt}`)
+                const text = await res.text().catch(() => '')
+                throw new Error(`发布 Facts 失败 ${res.status} ${text}`)
             }
-            // refresh current fact evidences
-            await fetchFactEvidences(factId)
-        } catch (e: any) {
-            console.error('detach failed', e)
-            setErrorMsg(String(e?.message || e))
+            await loadAll()
+        } catch (error: any) {
+            setMessage(String(error?.message || error))
         } finally {
-            setDetachingEvidenceIds((s) => s.filter((id) => id !== evidenceId))
+            setPublishing(false)
         }
     }
 
     useEffect(() => {
-        if (!matterId) return
-        fetchEvidences()
-        fetchFacts()
+        setDidAutoGenerate(false)
+        loadAll()
     }, [matterId])
 
-    function toggleSelectEvidence(eid: string) {
-        setSelectedEvidenceIds((s) => {
-            if (s.includes(eid)) return s.filter((x) => x !== eid)
-            return [...s, eid]
-        })
-    }
-
-    async function createFactAndAttach() {
-        setErrorMsg(null)
-        if (!newTitle || newTitle.trim().length === 0) {
-            setErrorMsg('标题为必填')
-            return
+    useEffect(() => {
+        if (loading || didAutoGenerate || generating) return
+        if (facts.length === 0 && drafts.length === 0 && evidences.length > 0) {
+            setDidAutoGenerate(true)
+            generateDrafts()
         }
-        setCreating(true)
-        try {
-            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/facts`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newTitle.trim(), description: newDescription || '' })
-            })
-            if (!res.ok) {
-                const txt = await res.text().catch(() => '')
-                throw new Error(`创建事实失败 ${res.status} ${txt}`)
-            }
-            const created = await res.json()
-            const createdFactId = created.fact_id || created.factId || created.id || null
-            if (createdFactId && Array.isArray(selectedEvidenceIds) && selectedEvidenceIds.length > 0) {
-                for (const ev of selectedEvidenceIds) {
-                    try {
-                        await fetch(`${base}/matters/${encodeURIComponent(matterId)}/facts/${encodeURIComponent(createdFactId)}/evidence`, {
-                            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ evidence_id: ev })
-                        })
-                    } catch (e) {
-                        // ignore per-item errors but log
-                        console.error('attach failed', e)
-                    }
-                }
-            }
+    }, [loading, didAutoGenerate, generating, facts.length, drafts.length, evidences.length])
 
-            // refresh facts
-            await fetchFacts()
-            setShowCreate(false)
-            setNewTitle('')
-            setNewDescription('')
-            setSelectedEvidenceIds([])
-        } catch (err: any) {
-            setErrorMsg(String(err?.message || err))
-        } finally {
-            setCreating(false)
-        }
-    }
+    if (loadError) return <main style={{ padding: 28 }}><div style={{ color: '#b91c1c' }}>{loadError}<button onClick={loadAll} style={{ marginLeft: 12 }}>重新加载</button></div></main>
 
     return (
         <div style={{ padding: 16, background: tokens.pageBg, minHeight: '100vh' }}>
             <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-                <div style={{ display: 'flex', gap: 16 }}>
-                    {/* Left: Evidence */}
-                    <div style={{ flex: 1 }}>
-                        <div style={{ background: tokens.cardBg, padding: 12, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ fontWeight: 800 }}>证据池</div>
-                                <div style={{ color: tokens.muted }}>{loadingEvidences ? '加载中…' : `${evidences.length} 条`}</div>
-                            </div>
+                <div style={{ marginBottom: 12 }}>
+                    <button onClick={() => router.push(`/matters/${matterId}`)} style={{ background: 'transparent', border: 'none', color: tokens.muted, fontSize: 14, padding: 0, cursor: 'pointer' }}>← 返回案件概览</button>
+                </div>
 
-                            <div style={{ marginTop: 12 }}>
-                                {loadingEvidences ? (
-                                    <div style={{ color: tokens.muted }}>加载证据中…</div>
-                                ) : evidences.length === 0 ? (
-                                    <div style={{ color: tokens.muted }}>暂无证据</div>
-                                ) : (
-                                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                                        {evidences.map((e) => (
-                                            <li key={e.evidence_id} style={{ padding: 8, borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                <input type="checkbox" checked={selectedEvidenceIds.includes(e.evidence_id)} onChange={() => toggleSelectEvidence(e.evidence_id)} />
-                                                <div style={{ flex: 1 }}>
-                                                    <div style={{ fontWeight: 700 }}>{e.title || '未命名证据'}</div>
-                                                    <div style={{ color: tokens.muted, fontSize: 12 }}>{e.status || '未知状态'} • 证据 {e._displayIndex}</div>
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </div>
-                        </div>
+                <header style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', marginBottom: 12 }}>
+                    <div>
+                        <h2 style={{ margin: 0 }}>事实工作区</h2>
+                        <div style={{ color: tokens.muted, marginTop: 6 }}>AI 基于已确认的证据生成事实草稿，律师审核后发布正式事实。</div>
                     </div>
+                    <button disabled={!canContinueAi} onClick={() => router.push(`/matters/${matterId}/issues`)} style={{ padding: '8px 12px', borderRadius: 8, background: canContinueAi ? '#111827' : '#94a3b8', color: '#fff', border: 'none', fontWeight: 700, cursor: canContinueAi ? 'pointer' : 'default' }}>AI 继续工作</button>
+                </header>
 
-                    {/* Right: Facts */}
-                    <div style={{ width: 420 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                            <div style={{ fontWeight: 800 }}>事实（Facts）</div>
-                            <div style={{ display: 'flex', gap: 8 }}>
-                                <div style={{ display: 'flex', gap: 8 }}>
-                                    <button onClick={() => setShowCreate(true)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>根据所选证据创建事实</button>
-                                    <button disabled={analyzing} onClick={async () => {
-                                        setAnalyzing(true)
-                                        try {
-                                            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/facts/analyze`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-                                            if (!res.ok) throw new Error(`status:${res.status}`)
-                                            const json = await res.json()
-                                            const s = Array.isArray(json) ? json.map((it: any, i: number) => ({ id: it.id || `s-${i}`, title: String(it.title || ''), description: String(it.description || it.reason || '') })) : []
-                                            setSuggestions(s)
-                                        } catch (e) {
-                                            console.error('fact analyze failed', e)
-                                            setSuggestions([])
-                                        } finally {
-                                            setAnalyzing(false)
-                                        }
-                                    }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>{analyzing ? 'AI 正在整理事实……' : 'AI 整理事实'}</button>
-                                </div>
-                            </div>
+                {message ? <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: '#fff7ed', color: '#92400e', border: '1px solid #fed7aa' }}>{message}</div> : null}
+
+                <div style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 16 }}>
+                    <section style={{ background: tokens.cardBg, padding: 12, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ fontWeight: 800 }}>来源证据</div>
+                            <div style={{ color: tokens.muted }}>{loading ? '加载中…' : `${evidences.length} 条`}</div>
                         </div>
-
-                        <div style={{ background: tokens.cardBg, padding: 12, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
-                            {loadingFacts ? (
-                                <div style={{ color: tokens.muted }}>加载事实中…</div>
-                            ) : facts.length === 0 ? (
-                                <div style={{ color: tokens.muted }}>暂无事实</div>
+                        <div style={{ marginTop: 12 }}>
+                            {loading ? (
+                                <div style={{ color: tokens.muted }}>加载证据中…</div>
+                            ) : evidences.length === 0 ? (
+                                <div style={{ color: tokens.muted }}>请先完成证据草稿审核并发布正式证据。</div>
                             ) : (
                                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                                    {facts.map((f: any) => (
-                                        <li key={f.fact_id} style={{ padding: 10, borderBottom: '1px solid #f3f6f9' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, cursor: 'pointer' }} onClick={async () => { setSelectedFactId(f.fact_id); await fetchFactEvidences(f.fact_id) }}>
-                                                <div>
-                                                    <div style={{ fontWeight: 700 }}>{f.title}</div>
-                                                    <div style={{ color: tokens.muted, fontSize: 12 }}>{f.status || 'draft'}</div>
-                                                </div>
-                                                <div style={{ color: tokens.muted, fontSize: 12 }}>{f.created_at ? new Date(f.created_at).toLocaleString() : ''}</div>
-                                            </div>
-
-                                            {/* Expanded area when selected */}
-                                            {selectedFactId === f.fact_id ? (
-                                                <div style={{ marginTop: 8, padding: 8, borderRadius: 6, background: '#fafafa' }}>
-                                                    <div style={{ fontWeight: 700, marginBottom: 6 }}>事实说明</div>
-                                                    <div style={{ color: tokens.muted, marginBottom: 8 }}>{f.description || '—'}</div>
-
-                                                    <div style={{ fontWeight: 700, marginBottom: 6 }}>关联证据</div>
-                                                    {loadingFactEvidences ? (
-                                                        <div style={{ color: tokens.muted }}>加载中…</div>
-                                                    ) : factEvidences.length === 0 ? (
-                                                        <div style={{ color: tokens.muted }}>暂无关联证据</div>
-                                                    ) : (
-                                                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                                                            {factEvidences.map((ev: any) => (
-                                                                <li key={ev.evidence_id} style={{ padding: '6px 0' }}>
-                                                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'space-between' }}>
-                                                                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                                                            <div style={{ color: '#10b981', fontWeight: 700 }}>✓</div>
-                                                                            <div>
-                                                                                <div style={{ fontWeight: 700 }}>{ev.title || ev.evidence_id}</div>
-                                                                                <div style={{ color: tokens.muted, fontSize: 12 }}>{ev.status || ''}</div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div>
-                                                                            <button onClick={() => detachEvidence(f.fact_id, ev.evidence_id)} disabled={detachingEvidenceIds.includes(ev.evidence_id)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #e6eef6', background: '#fff', color: tokens.muted, fontSize: 12 }}>{detachingEvidenceIds.includes(ev.evidence_id) ? '移除中…' : '移除关联'}</button>
-                                                                        </div>
-                                                                    </div>
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    )}
-                                                </div>
-                                            ) : null}
+                                    {evidences.map((e, index) => (
+                                        <li key={e.evidence_id} style={{ padding: 10, borderBottom: index < evidences.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
+                                            <div style={{ fontWeight: 700 }}>{evidenceDisplayTitle(e, index)}</div>
                                         </li>
                                     ))}
                                 </ul>
                             )}
                         </div>
+                    </section>
 
-                        {/* AI Suggestions box */}
-                        <div style={{ marginTop: 12, background: tokens.cardBg, padding: 12, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ fontWeight: 800 }}>AI 建议</div>
-                                {suggestions && suggestions.length > 0 ? (
-                                    <button onClick={async () => {
-                                        // accept all suggestions
-                                        for (const s of suggestions.slice()) {
-                                            try {
-                                                const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/facts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: s.title, description: s.description }) })
-                                                if (!res.ok) throw new Error(`status:${res.status}`)
-                                            } catch (e) {
-                                                console.error('accept all facts failed', e)
-                                            }
-                                        }
-                                        try { await fetchFacts() } catch (e) { }
-                                        setSuggestions([])
-                                    }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff', fontWeight: 700 }}>全部接受</button>
-                                ) : null}
+                    <section style={{ background: tokens.cardBg, padding: 12, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
+                            <div>
+                                <div style={{ fontWeight: 800 }}>事实</div>
+                                <div style={{ color: tokens.muted, marginTop: 4 }}>{facts.length > 0 ? '正式事实已发布' : '事实草稿待律师审核'}</div>
                             </div>
+                            {canPublish ? (
+                                <button disabled={publishing} onClick={publishDrafts} style={{ padding: '8px 12px', borderRadius: 8, background: tokens.blue, color: '#fff', border: 'none', fontWeight: 800 }}>{publishing ? '发布中…' : '发布事实'}</button>
+                            ) : null}
+                        </div>
 
-                            {suggestions && suggestions.length > 0 ? (
-                                <div style={{ marginTop: 10 }}>
-                                    {suggestions.map((s) => (
-                                        <div key={s.id} style={{ padding: 10, borderRadius: 8, marginBottom: 8, background: '#fff', border: '1px solid #f1f5f9' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div style={{ marginTop: 12 }}>
+                            {loading || generating ? (
+                                <div style={{ color: tokens.muted }}>{generating ? '正在生成事实草稿…' : '加载事实中…'}</div>
+                            ) : facts.length > 0 ? (
+                                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                                    {facts.map((fact, index) => (
+                                        <li key={fact.fact_id} style={{ padding: 12, borderRadius: 8, marginBottom: 8, background: '#fff', border: '1px solid #f1f5f9' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
                                                 <div>
-                                                    <div style={{ fontWeight: 700 }}>{s.title}</div>
-                                                    <div style={{ color: tokens.muted, marginTop: 6 }}>{s.description}</div>
+                                                    <div style={{ fontWeight: 800 }}>{cleanDisplayText(fact.title, `事实 ${index + 1}`)}</div>
+                                                    <div style={{ color: tokens.muted, marginTop: 6 }}>{fact.description || '暂无说明'}</div>
                                                 </div>
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
-                                                    <button onClick={async () => {
-                                                        try {
-                                                            const res = await fetch(`${base}/matters/${encodeURIComponent(matterId)}/facts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: s.title, description: s.description }) })
-                                                            if (!res.ok) throw new Error(`status:${res.status}`)
-                                                            setSuggestions((prev) => prev.filter((x) => x.id !== s.id))
-                                                            try { await fetchFacts() } catch (e) { }
-                                                        } catch (e) {
-                                                            console.error('accept fact failed', e)
-                                                            alert('创建事实失败，请稍后重试')
-                                                        }
-                                                    }} style={{ padding: '6px 10px', borderRadius: 6, background: '#111827', color: '#fff', border: 'none' }}>接受</button>
-
-                                                    <button onClick={() => setSuggestions((prev) => prev.filter((x) => x.id !== s.id))} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', color: '#111827', border: '1px solid #e6e7ef' }}>忽略</button>
-                                                </div>
+                                                <div style={{ color: tokens.muted, fontSize: 12 }}>事实 {index + 1}</div>
                                             </div>
-                                        </div>
+                                        </li>
                                     ))}
-                                </div>
+                                </ul>
+                            ) : evidences.length === 0 ? (
+                                <div style={{ color: tokens.muted }}>暂无正式证据。请先完成证据流程。</div>
+                            ) : drafts.length === 0 ? (
+                                <div style={{ color: tokens.muted }}>暂无事实草稿。系统将自动尝试生成。</div>
                             ) : (
-                                <div style={{ marginTop: 10, color: tokens.muted }}>AI 建议将显示在此处</div>
+                                <div>
+                                    {drafts.map((draft) => {
+                                        const isEditing = editingDraftId === draft.draft_id
+                                        const sourceTitles = sourceIdsOf(draft)
+                                            .map((id) => evidenceTitleById.get(id))
+                                            .filter((title): title is string => Boolean(title))
+                                        return (
+                                            <article key={draft.draft_id} style={{ padding: 16, borderRadius: 10, marginBottom: 12, background: '#fff', border: '1px solid #f1f5f9' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
+                                                    <div style={{ flex: 1 }}>
+                                                        {fieldLabel('标题')}
+                                                        {isEditing ? (
+                                                            <input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6', fontWeight: 700 }} />
+                                                        ) : (
+                                                            <div style={{ fontWeight: 800, fontSize: 16, lineHeight: 1.5 }}>{cleanDisplayText(draft.title, '待确认事实')}</div>
+                                                        )}
+                                                    </div>
+                                                    <div style={{ color: draft.review_status === 'pending' ? '#92400e' : '#047857', fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap' }}>{statusLabel(draft.review_status)}</div>
+                                                </div>
+
+                                                <div style={{ marginTop: 12 }}>
+                                                    {fieldLabel('摘要')}
+                                                    {isEditing ? (
+                                                        <textarea value={editDescription} onChange={(event) => setEditDescription(event.target.value)} style={{ width: '100%', minHeight: 86, padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
+                                                    ) : (
+                                                        <div style={{ color: tokens.muted, lineHeight: 1.7 }}>{cleanDisplayText(draft.description, '暂无摘要')}</div>
+                                                    )}
+                                                </div>
+
+                                                <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                                                    <div>
+                                                        {fieldLabel('来源证据')}
+                                                        <div style={{ color: tokens.muted, lineHeight: 1.7 }}>{sourceTitles.length > 0 ? sourceTitles.join('、') : '未匹配来源证据'}</div>
+                                                    </div>
+                                                    <div>
+                                                        {fieldLabel('可信度')}
+                                                        <div style={{ color: tokens.muted, lineHeight: 1.7 }}>{formatConfidence(draft.confidence)}</div>
+                                                    </div>
+                                                </div>
+
+                                                <div style={{ marginTop: 12 }}>
+                                                    {fieldLabel('AI判断')}
+                                                    <div style={{ color: tokens.muted, lineHeight: 1.7 }}>{cleanDisplayText(draft.ai_reasoning, '基于已确认的证据自动归纳。')}</div>
+                                                </div>
+
+                                                <div style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                                                    {isEditing ? (
+                                                        <>
+                                                            <button onClick={() => setEditingDraftId(null)} style={{ padding: '7px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff' }}>取消</button>
+                                                            <button onClick={() => saveEdit(draft.draft_id)} style={{ padding: '7px 10px', borderRadius: 8, border: 'none', background: tokens.blue, color: '#fff', fontWeight: 700 }}>保存修改</button>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <button disabled={Boolean(draft.published_at)} onClick={() => acceptDraft(draft.draft_id)} style={{ padding: '7px 10px', borderRadius: 8, border: 'none', background: '#111827', color: '#fff', fontWeight: 700 }}>接受</button>
+                                                            <button disabled={Boolean(draft.published_at)} onClick={() => startEdit(draft)} style={{ padding: '7px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff' }}>修改</button>
+                                                            <button disabled={Boolean(draft.published_at)} onClick={() => ignoreDraft(draft.draft_id)} style={{ padding: '7px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff' }}>忽略</button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </article>
+                                        )
+                                    })}
+                                    {!allDraftsReviewed ? <div style={{ color: '#92400e', marginTop: 8 }}>请先完成全部事实草稿审核。</div> : null}
+                                </div>
                             )}
                         </div>
-                    </div>
+                    </section>
                 </div>
 
-                {/* Create dialog */}
-                {showCreate ? (
-                    <div style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div style={{ width: 560, background: '#fff', borderRadius: 8, padding: 16 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ fontWeight: 800 }}>新建事实</div>
-                                <div><button onClick={() => { setShowCreate(false); setErrorMsg(null) }} style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}>关闭</button></div>
-                            </div>
-
-                            <div style={{ marginTop: 12 }}>
-                                <div style={{ fontWeight: 700, marginBottom: 6 }}>标题</div>
-                                <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6' }} />
-                            </div>
-
-                            <div style={{ marginTop: 12 }}>
-                                <div style={{ fontWeight: 700, marginBottom: 6 }}>说明（可选）</div>
-                                <textarea value={newDescription} onChange={(e) => setNewDescription(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6', minHeight: 100 }} />
-                            </div>
-
-                            {errorMsg ? <div style={{ color: '#b91c1c', marginTop: 8 }}>{errorMsg}</div> : null}
-
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
-                                <button onClick={() => { setShowCreate(false); setErrorMsg(null) }} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff' }}>取消</button>
-                                <button onClick={() => createFactAndAttach()} disabled={creating} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: tokens.blue, color: '#fff' }}>{creating ? '保存中…' : '保存'}</button>
-                            </div>
-                        </div>
-                    </div>
-                ) : null}
-
-            </div>
-            {/* 下一步 按钮 */}
-            <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
-                <button onClick={() => router.push(`/matters/${matterId}/issues`)} style={{ width: 720, maxWidth: '90%', padding: '12px 16px', background: '#111827', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 800 }}>下一步：分析争议焦点</button>
+                <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
+                    <button disabled={!canContinueAi} onClick={() => router.push(`/matters/${matterId}/issues`)} style={{ width: 720, maxWidth: '90%', padding: '12px 16px', background: canContinueAi ? '#111827' : '#94a3b8', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 800, cursor: canContinueAi ? 'pointer' : 'default' }}>AI 继续工作</button>
+                </div>
             </div>
         </div>
     )

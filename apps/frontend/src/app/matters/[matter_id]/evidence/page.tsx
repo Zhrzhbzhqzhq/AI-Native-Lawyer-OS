@@ -1,7 +1,8 @@
 "use client"
 import React from 'react'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { apiUrl } from '../../../../lib/api'
 
 const tokens = {
     pageBg: '#f7fafc',
@@ -13,14 +14,90 @@ const tokens = {
     radius: 10,
 }
 
-const mock = {
+const EMPTY_WORKSPACE = {
     proofGoal: '',
     evidences: [],
     proofMap: { nodes: [], links: [] },
     gaps: [],
     discoveries: [],
     timeline: [],
-    score: 0,
+    score: null,
+}
+
+type EvidenceDraft = {
+    draft_id: string
+    matter_id: string
+    material_id: string
+    source_material_ids?: string[]
+    materials?: Array<{ material_id?: string; title?: string }>
+    title: string
+    evidence_type?: string
+    proof_purpose: string
+    confidence?: number
+    source?: string
+    material_title?: string
+    summary?: string
+    reasoning?: string
+    status: 'evidence_draft_ready' | 'editing' | 'confirmed' | 'ignored'
+}
+
+function isRecord(value: unknown): value is Record<string, any> { return Boolean(value && typeof value === 'object' && !Array.isArray(value)) }
+function isNonEmptyString(value: unknown): value is string { return typeof value === 'string' && value.trim().length > 0 }
+function isOptionalString(value: unknown) { return value === undefined || value === null || typeof value === 'string' }
+function isOptionalFiniteNumber(value: unknown) { return value === undefined || value === null || (typeof value === 'number' && Number.isFinite(value)) }
+function isProofText(value: unknown) { return typeof value === 'string' || Boolean(isRecord(value) && (isNonEmptyString(value.title) || isNonEmptyString(value.description)) && isOptionalString(value.title) && isOptionalString(value.description)) }
+function isDisplayItem(value: unknown) { return typeof value === 'string' || (isRecord(value) && Object.values(value).every((field) => field === null || ['string', 'number', 'boolean'].includes(typeof field))) }
+function isMaterial(value: any) { return Boolean(isRecord(value) && isNonEmptyString(value.material_id) && isNonEmptyString(value.title) && isOptionalString(value.material_type) && isOptionalString(value.source) && isOptionalString(value.storage_uri)) }
+function isFormalEvidence(value: any) { return Boolean(isRecord(value) && isNonEmptyString(value.evidence_id) && isNonEmptyString(value.matter_id) && isNonEmptyString(value.title)) }
+function isWorkspaceEvidence(value: unknown) { return Boolean(isRecord(value) && isNonEmptyString(value.evidence_id) && isNonEmptyString(value.title) && isOptionalString(value.evidence_type) && isOptionalString(value.status) && isOptionalString(value.relevance) && isOptionalString(value.description) && isOptionalString(value.material_id) && isOptionalString(value.source) && isOptionalString(value.updated_at) && isOptionalFiniteNumber(value.score) && isOptionalFiniteNumber(value.confidence)) }
+function isSourceMaterial(value: unknown) { return Boolean(isRecord(value) && isNonEmptyString(value.material_id) && isNonEmptyString(value.title)) }
+function isGraphNode(value: unknown) { return Boolean(isRecord(value) && (isNonEmptyString(value.id) || isNonEmptyString(value.node_id)) && (isNonEmptyString(value.label) || isNonEmptyString(value.title)) && isOptionalString(value.type)) }
+function isGraphLink(value: unknown) { return Boolean(isRecord(value) && (isNonEmptyString(value.source) || isNonEmptyString(value.from)) && (isNonEmptyString(value.target) || isNonEmptyString(value.to)) && isOptionalString(value.id) && isOptionalString(value.label) && isOptionalString(value.type)) }
+function isProofGraph(value: unknown) {
+    if (!isRecord(value) || !Array.isArray(value.nodes) || !value.nodes.every(isGraphNode)) return false
+    if (value.links !== undefined && (!Array.isArray(value.links) || !value.links.every(isGraphLink))) return false
+    if (value.edges !== undefined && (!Array.isArray(value.edges) || !value.edges.every(isGraphLink))) return false
+    return Array.isArray(value.links) || Array.isArray(value.edges)
+}
+function toProofMap(value: any) { return value ? { nodes: value.nodes, links: Array.isArray(value.links) ? value.links : value.edges } : EMPTY_WORKSPACE.proofMap }
+function isNavigationItem(value: unknown) { return Boolean(isRecord(value) && isNonEmptyString(value.key) && isNonEmptyString(value.label) && typeof value.count === 'number' && Number.isFinite(value.count) && isOptionalString(value.description)) }
+function isSuggestionItem(value: unknown) { return Boolean(isRecord(value) && isNonEmptyString(value.id) && isNonEmptyString(value.title) && isOptionalString(value.description) && isOptionalString(value.priority) && isOptionalString(value.reason) && isOptionalString(value.suggested_action) && isOptionalString(value.status)) }
+function isTimelineItem(value: unknown) { return Boolean(isRecord(value) && (isNonEmptyString(value.id) || isNonEmptyString(value.text) || isNonEmptyString(value.title)) && isOptionalString(value.time) && isOptionalString(value.created_at) && isOptionalString(value.updated_at)) }
+function isDiscoveryItem(value: unknown) { return typeof value === 'string' || Boolean(isRecord(value) && (isNonEmptyString(value.id) || isNonEmptyString(value.text) || isNonEmptyString(value.title)) && isOptionalFiniteNumber(value.confidence)) }
+function isAiAnalysis(value: unknown) { return typeof value === 'string' || Boolean(isRecord(value) && isNonEmptyString(value.status) && isOptionalString(value.message) && (value.discoveries === undefined || (Array.isArray(value.discoveries) && value.discoveries.every(isDiscoveryItem))) && (value.risks === undefined || (Array.isArray(value.risks) && value.risks.every(isDisplayItem))) && (value.strengths === undefined || (Array.isArray(value.strengths) && value.strengths.every(isDisplayItem))) && (value.recommendations === undefined || (Array.isArray(value.recommendations) && value.recommendations.every(isDisplayItem))) && isOptionalFiniteNumber(value.score) && isOptionalFiniteNumber(value.confidence)) }
+function isAiSummary(value: unknown) { return Boolean(isRecord(value) && isNonEmptyString(value.status) && isOptionalFiniteNumber(value.score) && isOptionalString(value.completeness) && (value.strengths === undefined || (Array.isArray(value.strengths) && value.strengths.every(isDisplayItem))) && (value.risks === undefined || (Array.isArray(value.risks) && value.risks.every(isDisplayItem))) && (value.recommendations === undefined || (Array.isArray(value.recommendations) && value.recommendations.every(isDisplayItem)))) }
+function isSelectedEvidence(value: unknown) { return value === null || Boolean(isRecord(value) && isNonEmptyString(value.evidence_id) && isNonEmptyString(value.title) && isOptionalString(value.evidence_type) && isOptionalString(value.status) && isOptionalString(value.relevance) && isOptionalString(value.description) && isOptionalString(value.source) && isOptionalString(value.updated_at) && (value.related_material === null || value.related_material === undefined || isSourceMaterial(value.related_material)) && (value.related_documents === undefined || (Array.isArray(value.related_documents) && value.related_documents.every(isDisplayItem))) && (value.related_timeline === undefined || (Array.isArray(value.related_timeline) && value.related_timeline.every(isTimelineItem))) && (value.ai_summary === undefined || isAiSummary(value.ai_summary))) }
+
+function isRawEvidenceDraft(value: unknown) {
+    return Boolean(isRecord(value) && isNonEmptyString(value.draft_id) && isNonEmptyString(value.material_id) && isNonEmptyString(value.title) && isNonEmptyString(value.evidence_type) && isNonEmptyString(value.proof_purpose) && Array.isArray(value.source_material_ids) && value.source_material_ids.length > 0 && value.source_material_ids.every(isNonEmptyString) && Array.isArray(value.materials) && value.materials.length > 0 && value.materials.every(isSourceMaterial) && typeof value.summary === 'string' && typeof value.reasoning === 'string' && typeof value.confidence === 'number' && Number.isFinite(value.confidence) && ['client', 'opponent', 'court', 'third_party'].includes(value.source) && value.suggested_action === 'confirm_as_evidence')
+}
+
+function isEvidenceDraftEnvelope(value: unknown, currentMatterId: string) {
+    return Boolean(isRecord(value) && value.status === 'evidence_draft_ready' && value.matter_id === currentMatterId && Array.isArray(value.evidence_drafts) && value.evidence_drafts.every(isRawEvidenceDraft))
+}
+
+function isEvidenceWorkspace(value: unknown, currentMatterId: string) {
+    if (!isRecord(value)) return false
+    if (value.matter_id !== undefined && (typeof value.matter_id !== 'string' || value.matter_id !== currentMatterId)) return false
+    if (!isRecord(value.matter) || value.matter.matter_id !== currentMatterId || !isNonEmptyString(value.matter.title) || !isNonEmptyString(value.matter.status)) return false
+    if (!isRecord(value.summary) || !['total', 'accepted', 'pending', 'weak', 'missing'].every((key) => typeof value.summary[key] === 'number' && Number.isFinite(value.summary[key]))) return false
+    if (!Array.isArray(value.evidence_list) || !value.evidence_list.every(isWorkspaceEvidence)) return false
+    if (!isRecord(value.navigation) || !['by_type', 'by_status', 'by_strength'].every((key) => Array.isArray(value.navigation[key]) && value.navigation[key].every(isNavigationItem))) return false
+    if (!isSelectedEvidence(value.selected_evidence)) return false
+    if (value.materials !== undefined && (!Array.isArray(value.materials) || !value.materials.every(isMaterial))) return false
+    if (value.source_materials !== undefined && (!Array.isArray(value.source_materials) || !value.source_materials.every(isSourceMaterial))) return false
+    if (value.proof_goal !== undefined && !isProofText(value.proof_goal)) return false
+    if (value.proof_purpose !== undefined && !isProofText(value.proof_purpose)) return false
+    for (const key of ['graph', 'proof_map', 'proof_graph']) if (value[key] !== undefined && !isProofGraph(value[key])) return false
+    if (value.ai_analysis !== undefined && !isAiAnalysis(value.ai_analysis)) return false
+    for (const key of ['risks', 'strengths', 'suggestions', 'next_actions']) if (value[key] !== undefined && (!Array.isArray(value[key]) || !value[key].every(isDisplayItem))) return false
+    if (!Array.isArray(value.missing_evidence) || !value.missing_evidence.every(isSuggestionItem)) return false
+    if (!Array.isArray(value.evidence_next_steps) || !value.evidence_next_steps.every(isSuggestionItem)) return false
+    if (value.score !== undefined && !isOptionalFiniteNumber(value.score)) return false
+    if (value.confidence !== undefined && !isOptionalFiniteNumber(value.confidence)) return false
+    if (value.timeline !== undefined && (!Array.isArray(value.timeline) || !value.timeline.every(isTimelineItem))) return false
+    if (value.discoveries !== undefined && (!Array.isArray(value.discoveries) || !value.discoveries.every(isDiscoveryItem))) return false
+    return true
 }
 
 function ProgressBar({ value, color = tokens.blue, height = 10 }: { value: number; color?: string; height?: number }) {
@@ -37,19 +114,21 @@ export default function EvidencePage() {
     const matterId = params?.matter_id || ''
 
     // minimal empty workspace
-    const fallbackWorkspace = mock
+    const fallbackWorkspace = EMPTY_WORKSPACE
 
-    const [data, setData] = useState<typeof mock>(fallbackWorkspace)
+    const [data, setData] = useState<typeof EMPTY_WORKSPACE>(fallbackWorkspace)
     const [loading, setLoading] = useState<boolean>(true)
     const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
     const [selectedEvidenceId, setSelectedEvidenceId] = useState<string>('')
     const [materials, setMaterials] = useState<any[]>([])
     const [loadingMaterials, setLoadingMaterials] = useState<boolean>(true)
+    const [materialsError, setMaterialsError] = useState<string | null>(null)
     const [materialsConfirmed, setMaterialsConfirmed] = useState<boolean>(false)
     const [showOrganizeNotice, setShowOrganizeNotice] = useState<boolean>(false)
     const [evidenceRecords, setEvidenceRecords] = useState<any[]>([])
     const [loadingEvidence, setLoadingEvidence] = useState<boolean>(true)
+    const [evidencesError, setEvidencesError] = useState<string | null>(null)
     const convertedMaterialIds = useMemo(() => new Set((evidenceRecords || []).map((e: any) => e.material_id).filter(Boolean)), [evidenceRecords])
     const [convertingMaterialId, setConvertingMaterialId] = useState<string | null>(null)
     const [conversionError, setConversionError] = useState<string | null>(null)
@@ -65,6 +144,11 @@ export default function EvidencePage() {
     // AI suggestions state
     const [suggestions, setSuggestions] = useState<Array<{ title: string; reason: string; id?: string }>>([])
     const [analyzing, setAnalyzing] = useState<boolean>(false)
+    const [evidenceDrafts, setEvidenceDrafts] = useState<EvidenceDraft[]>([])
+    const [draftLoading, setDraftLoading] = useState<boolean>(false)
+    const [draftError, setDraftError] = useState<string | null>(null)
+    const [confirmingDraftId, setConfirmingDraftId] = useState<string | null>(null)
+    const draftRequestKeyRef = useRef<string>('')
 
     // derive selected evidence from current data
     const selectedEvidence = (Array.isArray((data as any)?.evidences) ? (data as any).evidences.find((e: any) => e.id === selectedEvidenceId) : undefined) || (Array.isArray((data as any)?.evidences) && (data as any).evidences[0]) || null
@@ -74,41 +158,48 @@ export default function EvidencePage() {
         async function load() {
             setLoading(true)
             setErrorMsg(null)
-            const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-            const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence/workspace`
+            const url = apiUrl(`/matters/${encodeURIComponent(matterId)}/evidence/workspace`)
             try {
                 const res = await fetch(url)
                 if (!res.ok) throw new Error(`status:${res.status}`)
-                const json = await res.json()
-
-                // require evidence_list to consider success
-                if (!json || !Array.isArray(json.evidence_list)) throw new Error('missing evidence_list')
+                const json = await res.json().catch(() => { throw new Error('invalid_response') })
+                if (!isEvidenceWorkspace(json, matterId)) throw new Error('invalid_response')
 
                 const mapped = {
-                    proofGoal: json.matter?.title || fallbackWorkspace.proofGoal,
-                    evidences: (json.evidence_list || []).map((e: any, idx: number) => ({
-                        id: e.evidence_id || e.id || `ev-${idx}`,
-                        title: e.title || `Evidence ${idx + 1}`,
-                        type: e.evidence_type || e.type || 'other',
+                    proofGoal: typeof json.proof_goal === 'string' ? json.proof_goal : (json.proof_goal?.title || json.proof_goal?.description || ''),
+                    evidences: json.evidence_list.map((e: any) => ({
+                        id: e.evidence_id,
+                        title: e.title,
+                        type: e.evidence_type || '',
                         date: e.updated_at || e.created_at || '',
-                        strength: typeof e.relevance === 'string' && e.relevance.toLowerCase() === 'high' ? 90 : (e.relevance ? 70 : 50),
-                        notes: e.description || '',
+                        strength: typeof e.score === 'number' && Number.isFinite(e.score) ? e.score : null,
+                        notes: e.display_description || e.summary || e.proof_purpose || '',
+                        proof_purpose: e.proof_purpose || e.relevance || '',
+                        summary: e.summary || '',
+                        reasoning: e.reasoning || '',
+                        confidence: typeof e.confidence === 'number' ? e.confidence : null,
+                        source_materials: Array.isArray(e.source_materials) ? e.source_materials : [],
                     })),
-                    proofMap: json.graph || fallbackWorkspace.proofMap,
+                    proofMap: toProofMap(json.graph || json.proof_map || json.proof_graph),
                     // missing_evidence / gaps
-                    gaps: Array.isArray(json.missing_evidence) && json.missing_evidence.length > 0 ? json.missing_evidence.map((g: any) => ({ id: g.id || g.key || String(g.title || Math.random()), title: g.title || g.description || '', impact: g.priority || g.impact || '中' })) : fallbackWorkspace.gaps,
+                    gaps: Array.isArray(json.missing_evidence) ? json.missing_evidence.map((g: any) => ({ id: g.id || g.key, title: g.title || g.description || '', description: g.description || '', impact: g.priority || g.impact || '' })) : [],
                     // ai discoveries
-                    discoveries: Array.isArray(json.ai_analysis?.discoveries) ? json.ai_analysis.discoveries : (json.ai_analysis && json.ai_analysis.message ? [json.ai_analysis.message] : fallbackWorkspace.discoveries),
+                    discoveries: json.ai_analysis?.status !== 'placeholder' && Array.isArray(json.ai_analysis?.discoveries) ? json.ai_analysis.discoveries : [],
                     // timeline: prefer explicit timeline, else derive from evidence_list
-                    timeline: Array.isArray(json.timeline) && json.timeline.length > 0 ? json.timeline : ((Array.isArray(json.evidence_list) && json.evidence_list.length > 0) ? json.evidence_list.map((e: any, i: number) => ({ id: e.evidence_id || `ev-${i}`, text: `${e.title || '证据'}`, time: e.updated_at || e.created_at || '' })) : (json.selected_evidence?.related_timeline || fallbackWorkspace.timeline)),
-                    score: json.summary && typeof json.summary.total === 'number' ? Math.round(((json.summary.accepted || 0) / Math.max(1, (json.summary.total || 1))) * 100) : fallbackWorkspace.score,
+                    timeline: Array.isArray(json.timeline) ? json.timeline : (Array.isArray(json.selected_evidence?.related_timeline) ? json.selected_evidence.related_timeline : []),
+                    score: json.summary && typeof json.summary.score === 'number' && Number.isFinite(json.summary.score) ? json.summary.score : null,
                     selected_evidence: json.selected_evidence ? {
                         id: json.selected_evidence.evidence_id || json.selected_evidence.id,
                         title: json.selected_evidence.title || json.selected_evidence.name || '',
                         type: json.selected_evidence.evidence_type || json.selected_evidence.type || '',
                         date: json.selected_evidence.updated_at || json.selected_evidence.created_at || '',
-                        strength: json.selected_evidence.ai_summary && typeof json.selected_evidence.ai_summary.score === 'number' ? Number(json.selected_evidence.ai_summary.score) : (json.selected_evidence.relevance ? 70 : 50),
-                        notes: json.selected_evidence.description || '',
+                        strength: json.selected_evidence.ai_summary && typeof json.selected_evidence.ai_summary.score === 'number' && Number.isFinite(json.selected_evidence.ai_summary.score) ? Number(json.selected_evidence.ai_summary.score) : null,
+                        notes: json.selected_evidence.display_description || json.selected_evidence.summary || json.selected_evidence.proof_purpose || '',
+                        proof_purpose: json.selected_evidence.proof_purpose || json.selected_evidence.relevance || '',
+                        summary: json.selected_evidence.summary || '',
+                        reasoning: json.selected_evidence.reasoning || '',
+                        confidence: typeof json.selected_evidence.confidence === 'number' ? json.selected_evidence.confidence : null,
+                        source_materials: Array.isArray(json.selected_evidence.source_materials) ? json.selected_evidence.source_materials : [],
                         ai_summary: json.selected_evidence.ai_summary || json.selected_evidence.ai_analysis || null,
                     } : null,
                     // pass through next steps and missing suggestions
@@ -128,25 +219,7 @@ export default function EvidencePage() {
                 }
             } catch (err: any) {
                 if (!cancelled) {
-                    // on failure, attempt to use evidence API directly (no mock fallback)
-                    try {
-                        const recs = await fetchEvidence()
-                        // build minimal mapped data from fetched evidence
-                        const mappedFromRecords = {
-                            proofGoal: '',
-                            evidences: (recs || []).map((e: any, idx: number) => ({ id: e.evidence_id || e.evidenceId || `ev-${idx}`, title: e.title || e.description || `证据 ${idx + 1}`, type: e.evidence_type || '', date: e.updated_at || e.created_at || '', strength: e.relevance ? 70 : 50, notes: e.description || '' })),
-                            proofMap: { nodes: [], links: [] },
-                            gaps: [],
-                            discoveries: [],
-                            timeline: [],
-                            score: 0,
-                        }
-                        setData(mappedFromRecords as any)
-                        if (mappedFromRecords.evidences.length > 0) setSelectedEvidenceId(mappedFromRecords.evidences[0].id)
-                    } catch (e) {
-                        setData(fallbackWorkspace)
-                        setErrorMsg('暂无证据数据')
-                    }
+                    setErrorMsg(err?.message === 'invalid_response' ? '证据工作区返回数据暂不可用' : '证据工作区加载失败，请稍后重试')
                     setLoading(false)
                 }
             }
@@ -158,23 +231,19 @@ export default function EvidencePage() {
     // fetch evidence records (GET /matters/:matter_id/evidence)
     async function fetchEvidence() {
         setLoadingEvidence(true)
+        setEvidencesError(null)
         try {
-            const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-            const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence`
+            const url = apiUrl(`/matters/${encodeURIComponent(matterId)}/evidence`)
             const res = await fetch(url)
-            if (!res.ok) {
-                setEvidenceRecords([])
-                setLoadingEvidence(false)
-                return []
-            }
-            const d = await res.json().catch(() => [])
-            const arr = Array.isArray(d) ? d : []
-            setEvidenceRecords(arr)
-            return arr
+            if (!res.ok) throw new Error(`status:${res.status}`)
+            const data = await res.json().catch(() => { throw new Error('invalid_response') })
+            if (!Array.isArray(data) || !data.every(isFormalEvidence)) throw new Error('invalid_response')
+            setEvidenceRecords(data)
+            return data
         } catch (e) {
             console.error('load evidence failed', e)
-            setEvidenceRecords([])
-            return []
+            setEvidencesError((e as any)?.message === 'invalid_response' ? '证据返回数据暂不可用' : '正式证据加载失败，请稍后重试')
+            return null
         } finally {
             setLoadingEvidence(false)
         }
@@ -186,14 +255,14 @@ export default function EvidencePage() {
         setReviewMessage(null)
         setReviewLoading(true)
         try {
-            const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-            const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence/${encodeURIComponent(selectedEvidence.id)}`
+            const url = apiUrl(`/matters/${encodeURIComponent(matterId)}/evidence/${encodeURIComponent(selectedEvidence.id)}`)
             // ensure description is a string; prefer selectedEvidence.description, fall back to notes
             const description = String((selectedEvidence as any)?.description ?? (selectedEvidence as any)?.notes ?? '')
             const bodyPayload = { review: action, description }
             const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bodyPayload) })
             if (!res.ok) throw new Error(`status:${res.status}`)
-            const json = await res.json().catch(() => ({}))
+            const json = await res.json().catch(() => { throw new Error('invalid_response') })
+            if (!isFormalEvidence(json)) throw new Error('invalid_response')
             // refresh evidence data
             try { await fetchEvidence() } catch (e) { }
             // trigger workspace reload to refresh selected_evidence if backend provided it
@@ -228,20 +297,17 @@ export default function EvidencePage() {
     // fetch materials (GET /matters/:matter_id/materials)
     async function fetchMaterials() {
         setLoadingMaterials(true)
+        setMaterialsError(null)
         try {
-            const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-            const url = `${base}/matters/${encodeURIComponent(matterId)}/materials`
+            const url = apiUrl(`/matters/${encodeURIComponent(matterId)}/materials`)
             const res = await fetch(url)
-            if (!res.ok) {
-                setMaterials([])
-                setLoadingMaterials(false)
-                return
-            }
-            const data = await res.json().catch(() => [])
-            setMaterials(Array.isArray(data) ? data : [])
+            if (!res.ok) throw new Error(`status:${res.status}`)
+            const data = await res.json().catch(() => { throw new Error('invalid_response') })
+            if (!Array.isArray(data) || !data.every(isMaterial)) throw new Error('invalid_response')
+            setMaterials(data)
         } catch (e) {
             console.error('load materials failed', e)
-            setMaterials([])
+            setMaterialsError((e as any)?.message === 'invalid_response' ? '材料返回数据暂不可用' : '案件材料加载失败，请稍后重试')
         } finally {
             setLoadingMaterials(false)
         }
@@ -259,6 +325,84 @@ export default function EvidencePage() {
         return () => { cancelled = true }
     }, [matterId])
 
+    useEffect(() => {
+        if (!matterId || loadingMaterials || loadingEvidence || materialsError || evidencesError) return
+        if (!materials || materials.length === 0) return
+        if (evidenceRecords && evidenceRecords.length > 0) return
+        if (evidenceDrafts.length > 0) return
+
+        const draftRequestKey = `${matterId}:${materials.map((m: any) => String(m.material_id || '')).join('|')}`
+        if (draftRequestKeyRef.current === draftRequestKey) return
+        draftRequestKeyRef.current = draftRequestKey
+
+        async function generateDrafts() {
+            setDraftLoading(true)
+            setDraftError(null)
+            try {
+                const res = await fetch(apiUrl('/intake/evidence-draft'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        matter_id: matterId,
+                        materials: materials.map((m: any) => ({
+                            material_id: m.material_id,
+                            title: m.title || m.name || m.storage_uri || '未命名材料',
+                            material_type: m.material_type || m.type || 'document',
+                            source: m.source || 'client',
+                        })),
+                    }),
+                })
+                if (!res.ok) {
+                    const errorPayload = await res.json().catch(() => null)
+                    const safeError = isRecord(errorPayload) && typeof errorPayload.error === 'string' && /^[a-zA-Z0-9_ -]{1,80}$/.test(errorPayload.error) ? errorPayload.error : ''
+                    throw new Error(`draft_http:${res.status}:${safeError}`)
+                }
+                const json = await res.json().catch(() => { throw new Error('draft_invalid_json') })
+                if (!isEvidenceDraftEnvelope(json, matterId)) throw new Error('draft_invalid_response')
+                const materialTitleById = new Map(materials.map((m: any) => [String(m.material_id), String(m.title || m.name || m.storage_uri || '未命名材料')]))
+                const drafts = json.evidence_drafts
+                setEvidenceDrafts(drafts.map((draft: any) => ({
+                    draft_id: draft.draft_id,
+                    matter_id: json.matter_id,
+                    material_id: draft.material_id,
+                    source_material_ids: Array.isArray(draft.source_material_ids)
+                        ? draft.source_material_ids.map((id: unknown) => String(id)).filter(Boolean)
+                        : (draft.material_id ? [String(draft.material_id)] : []),
+                    materials: Array.isArray(draft.materials) ? draft.materials : [],
+                    title: draft.title,
+                    evidence_type: typeof draft.evidence_type === 'string' ? draft.evidence_type : undefined,
+                    proof_purpose: draft.proof_purpose,
+                    confidence: typeof draft.confidence === 'number' ? draft.confidence : undefined,
+                    source: typeof draft.source === 'string' ? draft.source : undefined,
+                    material_title: Array.isArray(draft.materials) && draft.materials.length > 0
+                        ? draft.materials.map((m: any) => String(m.title || m.material_id || '')).filter(Boolean).join('、')
+                        : materialTitleById.get(String(draft.material_id || draft.source_material_ids?.[0])) || String(draft.material_id || draft.source_material_ids?.[0] || ''),
+                    summary: typeof draft.summary === 'string' ? draft.summary : undefined,
+                    reasoning: typeof draft.reasoning === 'string' ? draft.reasoning : undefined,
+                    status: json.status,
+                })))
+            } catch (err: any) {
+                console.error('generate evidence drafts failed', err)
+                draftRequestKeyRef.current = ''
+                const code = String(err?.message || '')
+                if (code === 'draft_invalid_json' || code === 'draft_invalid_response') setDraftError('证据返回数据暂不可用')
+                else if (code.startsWith('draft_http:')) {
+                    const [, status, safeError] = code.split(':')
+                    setDraftError(`证据草稿接口返回错误（HTTP ${status}${safeError ? `：${safeError}` : ''}）`)
+                }
+                else setDraftError('证据草稿生成失败，请稍后重试')
+            } finally {
+                setDraftLoading(false)
+            }
+        }
+        generateDrafts()
+        return () => {
+            if (draftRequestKeyRef.current === draftRequestKey) {
+                draftRequestKeyRef.current = ''
+            }
+        }
+    }, [matterId, loadingMaterials, loadingEvidence, materialsError, evidencesError, materials, evidenceRecords, evidenceDrafts.length])
+
     // reconcile selectedEvidenceId when data.evidences change
     useEffect(() => {
         const evidences = (data as any)?.evidences || []
@@ -269,34 +413,65 @@ export default function EvidencePage() {
         }
     }, [(data as any)?.evidences, selectedEvidenceId])
 
-    // fetch proof graph separately (GET /matters/:id/graph) to enrich proofMap
-    useEffect(() => {
-        let cancelled = false
-        async function loadGraph() {
-            const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-            const url = `${base}/matters/${encodeURIComponent(matterId)}/graph`
-            try {
-                const res = await fetch(url)
-                if (!res.ok) return
-                const json = await res.json()
-                if (!json) return
-                if (!cancelled) {
-                    setData((prev: any) => ({ ...prev, proofMap: json || prev.proofMap }))
-                }
-            } catch (e) {
-                // ignore graph fetch errors; keep fallback
-            }
-        }
-        loadGraph()
-        return () => { cancelled = true }
-    }, [matterId])
-
     // render
-    const selectedAiSummary = (data as any)?.selected_evidence?.ai_summary ?? null
-    const globalScore = (data as any)?.score ?? fallbackWorkspace.score
+    const selectedAiSummary = (selectedEvidence as any)?.ai_summary ?? (data as any)?.selected_evidence?.ai_summary ?? null
+    const globalScore = typeof (data as any)?.score === 'number' ? (data as any).score : null
+    const proofNodes = Array.isArray((data as any)?.proofMap?.nodes) ? (data as any).proofMap.nodes : []
+    const proofLinks = Array.isArray((data as any)?.proofMap?.links) ? (data as any).proofMap.links : []
     const evidencesCount = Array.isArray((data as any)?.evidences) ? (data as any).evidences.length : fallbackWorkspace.evidences.length
     const highGapCount = Array.isArray((data as any)?.gaps) ? ((data as any).gaps.filter((g: any) => String(g.impact || '').toLowerCase() === '高' || String(g.impact || '').toLowerCase() === 'high').length) : (fallbackWorkspace.gaps.filter((g: any) => g.impact === '高').length)
     const hasSelectedEvidence = !!selectedEvidence && typeof selectedEvidence === 'object'
+    const selectedScore = typeof selectedEvidence?.strength === 'number'
+        ? selectedEvidence.strength
+        : (selectedAiSummary && typeof selectedAiSummary.score === 'number' ? selectedAiSummary.score : globalScore)
+    const hasUnreviewedDrafts = evidenceDrafts.some((draft) => draft.status === 'evidence_draft_ready' || draft.status === 'editing')
+    const canContinueAi = !hasUnreviewedDrafts && !draftLoading
+
+    function updateDraft(draftId: string, patch: Partial<EvidenceDraft>) {
+        setEvidenceDrafts((prev) => prev.map((draft) => draft.draft_id === draftId ? { ...draft, ...patch } : draft))
+    }
+
+    async function acceptDraft(draft: EvidenceDraft) {
+        if (!draft.material_id || confirmingDraftId) return
+        setConfirmingDraftId(draft.draft_id)
+        setDraftError(null)
+        try {
+            const res = await fetch(apiUrl('/intake/confirm-evidence'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    matter_id: matterId,
+                    evidence_drafts: [{
+                        draft_id: draft.draft_id,
+                        material_id: draft.material_id,
+                        source_material_ids: draft.source_material_ids && draft.source_material_ids.length > 0 ? draft.source_material_ids : [draft.material_id],
+                        materials: draft.materials && draft.materials.length > 0 ? draft.materials : [{ material_id: draft.material_id, title: draft.material_title }],
+                        title: draft.title,
+                        evidence_type: draft.evidence_type || 'document',
+                        proof_purpose: draft.proof_purpose,
+                        description: draft.summary || draft.reasoning || draft.proof_purpose,
+                        relevance: draft.proof_purpose,
+                        summary: draft.summary || '',
+                        reasoning: draft.reasoning || '',
+                        confidence: draft.confidence,
+                        source: draft.source || 'client',
+                    }],
+                    idempotency_key: `evidence-draft-${matterId}-${draft.draft_id}`,
+                }),
+            })
+            if (!res.ok) throw new Error(`status:${res.status}`)
+            const result = await res.json().catch(() => { throw new Error('invalid_response') })
+            if (!result || typeof result !== 'object' || result.status !== 'evidence_created' || result.matter_id !== matterId || !Array.isArray(result.created_evidence) || !result.created_evidence.every(isFormalEvidence)) throw new Error('invalid_response')
+            updateDraft(draft.draft_id, { status: 'confirmed' })
+            await fetchEvidence()
+            setReloadKey((key) => key + 1)
+        } catch (err: any) {
+            console.error('confirm evidence draft failed', err)
+            setDraftError(err?.message === 'invalid_response' ? '证据返回数据暂不可用' : '证据草稿确认失败，请稍后重试')
+        } finally {
+            setConfirmingDraftId(null)
+        }
+    }
 
     // render helpers (keep inside component to access state/handlers)
     const renderMaterialsSection = () => {
@@ -306,6 +481,11 @@ export default function EvidencePage() {
                 <div style={{ color: tokens.muted }}>
                     {loadingMaterials ? (
                         <div style={{ color: tokens.muted }}>加载中…</div>
+                    ) : materialsError ? (
+                        <div>
+                            <div style={{ color: '#b91c1c' }}>{materialsError}</div>
+                            <button onClick={() => void fetchMaterials()} style={{ marginTop: 8, padding: '6px 10px', borderRadius: 6, background: '#fff', border: '1px solid #e6e7eb' }}>重新加载</button>
+                        </div>
                     ) : materials && materials.length > 0 ? (
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                             {materials.map((m: any, i: number) => {
@@ -320,38 +500,7 @@ export default function EvidencePage() {
                                                 <div style={{ fontWeight: 600 }}>{filename}</div>
                                                 <div style={{ color: '#6b7280', fontSize: 13 }}>{filetype} • {typeof size === 'number' ? `${(size / 1024).toFixed(1)} KB` : size} • {time ? new Date(time).toLocaleString() : '-'}</div>
                                             </div>
-                                            <div>
-                                                <button
-                                                    onClick={async () => {
-                                                        setConversionError(null)
-                                                        if (!m || !m.material_id) return
-                                                        setConvertingMaterialId(m.material_id)
-                                                        try {
-                                                            const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-                                                            const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence`
-                                                            const body = {
-                                                                material_id: m.material_id,
-                                                                title: m.title || (m.storage_uri ? m.storage_uri.split('/').pop() : '未命名文件'),
-                                                                evidence_type: 'material',
-                                                            }
-                                                            const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-                                                            if (!res.ok) throw new Error(`status:${res.status}`)
-                                                            // refresh data locally
-                                                            try { await fetchEvidence() } catch (err) { }
-                                                            try { await fetchMaterials() } catch (err) { }
-                                                        } catch (e) {
-                                                            console.error('convert failed', e)
-                                                            setConversionError('转为证据失败，请稍后重试')
-                                                        } finally {
-                                                            setConvertingMaterialId(null)
-                                                        }
-                                                    }}
-                                                    disabled={convertingMaterialId === m.material_id}
-                                                    style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff', color: '#111827', cursor: convertingMaterialId === m.material_id ? 'not-allowed' : 'pointer' }}
-                                                >
-                                                    {convertingMaterialId === m.material_id ? '转换中…' : '转为证据'}
-                                                </button>
-                                            </div>
+                                            <div style={{ color: tokens.muted, fontSize: 13 }}>等待 AI 草稿审核</div>
                                         </div>
                                     </li>
                                 )
@@ -372,10 +521,7 @@ export default function EvidencePage() {
                             <div style={{ width: '100%', maxWidth: 720, background: '#fff', border: '1px solid #e6e7eb', padding: 14, borderRadius: 8 }}>
                                 <div style={{ fontWeight: 800, marginBottom: 6 }}>下一步：证据整理</div>
                                 <div style={{ color: tokens.muted, marginBottom: 10 }}>将已接收资料进入证据整理阶段</div>
-                                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                    <button onClick={() => setShowOrganizeNotice(true)} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff', color: '#111827', fontWeight: 700 }}>开始证据整理</button>
-                                    {showOrganizeNotice ? <div style={{ color: '#6b7280' }}>证据整理功能将在下一步接入</div> : null}
-                                </div>
+                                <div style={{ color: tokens.muted }}>系统将基于已上传材料生成 Evidence Draft，律师审核后写入正式 Evidence。</div>
                             </div>
                         ) : null}
 
@@ -388,10 +534,10 @@ export default function EvidencePage() {
                     </div>
                     <div style={{ marginTop: 12 }}>
                         <div style={{ fontWeight: 700 }}>阻塞点</div>
-                        <div style={{ color: tokens.muted, marginTop: 6 }}>{((data as any)?.missing_evidence && (data as any).missing_evidence[0]?.title) || (selectedAiSummary && ((selectedAiSummary as any).risks || [])[0]) || '无'}</div>
+                        <div style={{ color: tokens.muted, marginTop: 6 }}>{((data as any)?.missing_evidence && (data as any).missing_evidence[0]?.title) || (selectedAiSummary && ((selectedAiSummary as any).risks || [])[0]) || '暂无风险与建议'}</div>
 
                         <div style={{ fontWeight: 700, marginTop: 8 }}>建议下一步</div>
-                        <div style={{ color: tokens.muted, marginTop: 6 }}>{((data as any)?.evidence_next_steps && (data as any).evidence_next_steps[0]?.title) || (selectedAiSummary && ((selectedAiSummary as any).recommendations || [])[0]) || '请律师补强证据'}</div>
+                        <div style={{ color: tokens.muted, marginTop: 6 }}>{((data as any)?.evidence_next_steps && (data as any).evidence_next_steps[0]?.title) || (selectedAiSummary && ((selectedAiSummary as any).recommendations || [])[0]) || '暂无证据工作建议'}</div>
                     </div>
                 </div>
             </div>
@@ -403,8 +549,16 @@ export default function EvidencePage() {
             <div style={{ background: tokens.cardBg, padding: 14, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
                 <div style={{ fontWeight: 800 }}>Evidence Tree</div>
                 <div style={{ color: tokens.muted, marginTop: 6 }}>证据对象（非文件）按证明目标组织</div>
+                {loadingEvidence ? <div style={{ color: tokens.muted, marginTop: 10 }}>正式证据加载中…</div> : null}
+                {!loadingEvidence && evidencesError ? (
+                    <div style={{ marginTop: 10 }}>
+                        <div style={{ color: '#b91c1c' }}>{evidencesError}</div>
+                        <button onClick={() => void fetchEvidence()} style={{ marginTop: 8, padding: '6px 10px', borderRadius: 6, background: '#fff', border: '1px solid #e6e7eb' }}>重新加载</button>
+                    </div>
+                ) : null}
+                {!loadingEvidence && !evidencesError && evidenceRecords.length === 0 ? <div style={{ color: tokens.muted, marginTop: 10 }}>暂无正式证据</div> : null}
                 <div style={{ marginTop: 12 }}>
-                    <div style={{ fontWeight: 700 }}>{(data as any)?.proofGoal ?? fallbackWorkspace.proofGoal}</div>
+                    <div style={{ fontWeight: 700 }}>{(data as any)?.proofGoal || '暂无证明目标'}</div>
                     <div style={{ marginTop: 8 }}>
                         {(data as any)?.evidences?.map((e: any, idx: number) => (
                             <div key={e.id} style={{ padding: 8, borderRadius: 8, marginBottom: 8, background: selectedEvidenceId === e.id ? '#eef6ff' : '#fff' }}>
@@ -412,6 +566,7 @@ export default function EvidencePage() {
                                     <div style={{ cursor: 'pointer' }} onClick={() => setSelectedEvidenceId(e.id)}>
                                         <div style={{ fontSize: 12, color: tokens.muted, marginBottom: 4 }}>证据 {idx + 1}</div>
                                         <div style={{ fontWeight: 700, color: selectedEvidenceId === e.id ? tokens.blue : tokens.text }}>{e.title}</div>
+                                        {e.proof_purpose ? <div style={{ color: tokens.muted, fontSize: 12, marginTop: 4 }}>证明目标：{e.proof_purpose}</div> : null}
                                         <div style={{ color: tokens.muted, fontSize: 12 }}>{e.date}</div>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
@@ -444,8 +599,7 @@ export default function EvidencePage() {
                                                             setStatusErrorById((s) => ({ ...s, [e.id]: '' }))
                                                             setUpdatingStatusId(e.id)
                                                             try {
-                                                                const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-                                                                const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence/${encodeURIComponent(e.id)}/status`
+                                                                const url = apiUrl(`/matters/${encodeURIComponent(matterId)}/evidence/${encodeURIComponent(e.id)}/status`)
                                                                 const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) })
                                                                 if (!res.ok) throw new Error(`status:${res.status}`)
                                                                 // refresh evidence list
@@ -476,8 +630,7 @@ export default function EvidencePage() {
                                                     setSaveDescriptionError(null)
                                                     setSavingDescription(true)
                                                     try {
-                                                        const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-                                                        const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence/${encodeURIComponent(e.id)}`
+                                                        const url = apiUrl(`/matters/${encodeURIComponent(matterId)}/evidence/${encodeURIComponent(e.id)}`)
                                                         const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description: editingDescription }) })
                                                         if (!res.ok) throw new Error(`status:${res.status}`)
                                                         // refresh evidence list and exit edit mode
@@ -496,7 +649,7 @@ export default function EvidencePage() {
                                         </div>
                                     ) : (
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <div style={{ color: tokens.muted }}>{e.notes && String(e.notes).trim().length > 0 ? e.notes : '暂无备注'}</div>
+                                            <div style={{ color: tokens.muted }}>{e.notes && String(e.notes).trim().length > 0 ? e.notes : '暂无证据摘要'}</div>
                                             <div>
                                                 <button onClick={() => { setEditingEvidenceId(e.id); setEditingDescription(e.notes || '') }} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', border: '1px solid #e6e7eb' }}>编辑备注</button>
                                             </div>
@@ -511,8 +664,72 @@ export default function EvidencePage() {
         )
     }
 
+    const renderEvidenceDraftsSection = () => {
+        if (materials.length === 0) return null
+        if (evidenceRecords.length > 0 && !hasUnreviewedDrafts) return null
+
+        return (
+            <div style={{ background: tokens.cardBg, padding: 14, borderRadius: tokens.radius, border: `1px solid ${tokens.border}`, marginTop: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+                    <div>
+                        <div style={{ fontWeight: 800 }}>Evidence Draft</div>
+                        <div style={{ color: tokens.muted, marginTop: 6 }}>AI 已根据当前案件资料生成证据草稿，请律师审核。</div>
+                    </div>
+                    {draftLoading ? <div style={{ color: tokens.muted }}>正在生成草稿…</div> : null}
+                </div>
+
+                {draftError ? <div style={{ marginTop: 10, color: '#b91c1c' }}>{draftError}</div> : null}
+
+                <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
+                    {evidenceDrafts.length > 0 ? evidenceDrafts.map((draft) => {
+                        const disabled = draft.status === 'confirmed' || draft.status === 'ignored'
+                        return (
+                            <div key={draft.draft_id} style={{ padding: 12, borderRadius: 8, border: '1px solid #f1f5f9', background: draft.status === 'ignored' ? '#f8fafc' : '#fff' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12 }}>
+                                    <div style={{ display: 'grid', gap: 8 }}>
+                                        <label>
+                                            <div style={{ fontSize: 12, color: tokens.muted }}>名称</div>
+                                            {draft.status === 'editing' ? (
+                                                <input value={draft.title} onChange={(e) => updateDraft(draft.draft_id, { title: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e6e7eb' }} />
+                                            ) : (
+                                                <div style={{ fontWeight: 800 }}>{draft.title}</div>
+                                            )}
+                                        </label>
+                                        <label>
+                                            <div style={{ fontSize: 12, color: tokens.muted }}>证明目标</div>
+                                            {draft.status === 'editing' ? (
+                                                <textarea value={draft.proof_purpose} onChange={(e) => updateDraft(draft.draft_id, { proof_purpose: e.target.value })} style={{ width: '100%', minHeight: 64, padding: 8, borderRadius: 8, border: '1px solid #e6e7eb' }} />
+                                            ) : (
+                                                <div style={{ color: tokens.text }}>{draft.proof_purpose}</div>
+                                            )}
+                                        </label>
+                                        <div style={{ color: tokens.muted, fontSize: 13 }}>来源材料：{draft.material_title || draft.material_id}</div>
+                                        <div style={{ color: tokens.muted, fontSize: 13 }}>AI 摘要或判断理由：{draft.summary || draft.reasoning || draft.proof_purpose}</div>
+                                        <div style={{ color: tokens.muted, fontSize: 13 }}>可信度：{typeof draft.confidence === 'number' ? `${Math.round(draft.confidence * 100)}%` : '待律师确认'}</div>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+                                        {draft.status === 'confirmed' ? <div style={{ color: '#047857', fontWeight: 700 }}>已确认</div> : null}
+                                        {draft.status === 'ignored' ? <div style={{ color: tokens.muted, fontWeight: 700 }}>已忽略</div> : null}
+                                        <button disabled={disabled || confirmingDraftId === draft.draft_id} onClick={() => acceptDraft(draft)} style={{ padding: '6px 10px', borderRadius: 6, background: disabled ? '#94a3b8' : '#111827', color: '#fff', border: 'none' }}>{confirmingDraftId === draft.draft_id ? '确认中…' : '接受'}</button>
+                                        <button disabled={disabled} onClick={() => updateDraft(draft.draft_id, { status: draft.status === 'editing' ? 'evidence_draft_ready' : 'editing' })} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', color: '#111827', border: '1px solid #e6e7eb' }}>{draft.status === 'editing' ? '完成修改' : '修改'}</button>
+                                        <button disabled={disabled} onClick={() => updateDraft(draft.draft_id, { status: 'ignored' })} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', color: '#111827', border: '1px solid #e6e7eb' }}>忽略</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    }) : (
+                        <div style={{ color: tokens.muted }}>{draftLoading ? '正在读取案件资料并生成证据草稿。' : '暂无可审核的证据草稿。'}</div>
+                    )}
+                </div>
+            </div>
+        )
+    }
+
     return (
         <main style={{ minHeight: '80vh', padding: 20, background: tokens.pageBg, fontFamily: 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial' }}>
+            <div style={{ marginBottom: 12 }}>
+                <button onClick={() => router.push(`/matters/${matterId}`)} style={{ background: 'transparent', border: 'none', color: tokens.muted, fontSize: 14, padding: 0, cursor: 'pointer' }}>← 返回案件概览</button>
+            </div>
             <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <div>
                     <h2 style={{ margin: 0 }}>证据工作区</h2>
@@ -522,24 +739,7 @@ export default function EvidencePage() {
                 <div>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                         <button onClick={() => alert('上传证据')} style={{ padding: '8px 12px', borderRadius: 8, background: tokens.blue, color: '#fff', border: 'none' }}>上传证据</button>
-                        <button disabled={analyzing} onClick={async () => {
-                            setAnalyzing(true)
-                            try {
-                                const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-                                const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence/analyze`
-                                const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-                                if (!res.ok) throw new Error(`status:${res.status}`)
-                                const json = await res.json()
-                                // normalize suggestions
-                                const s = Array.isArray(json) ? json.map((it: any, i: number) => ({ id: it.id || `s-${i}`, title: String(it.title || it.name || ''), reason: String(it.reason || it.description || '') })) : []
-                                setSuggestions(s)
-                            } catch (e) {
-                                console.error('analyze failed', e)
-                                setSuggestions([])
-                            } finally {
-                                setAnalyzing(false)
-                            }
-                        }} style={{ padding: '8px 12px', borderRadius: 8, background: '#fff', color: '#111827', border: '1px solid #e6e7eb', fontWeight: 700 }}>{analyzing ? 'AI 正在分析……' : 'AI 分析证据'}</button>
+                        <button disabled={analyzing || !canContinueAi} onClick={() => router.push(`/matters/${matterId}/facts`)} style={{ padding: '8px 12px', borderRadius: 8, background: canContinueAi ? '#111827' : '#94a3b8', color: '#fff', border: 'none', fontWeight: 700, cursor: canContinueAi ? 'pointer' : 'default' }}>AI 继续工作</button>
                     </div>
                 </div>
             </header>
@@ -547,26 +747,21 @@ export default function EvidencePage() {
             {/* 案件资料列表（来自 materials） */}
             <section style={{ marginBottom: 12 }}>
                 {renderMaterialsSection()}
+                {renderEvidenceDraftsSection()}
                 {renderEvidenceRecordsSection()}
 
                 {/* Proof Map */}
                 <div style={{ background: tokens.cardBg, padding: 14, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
                     <div style={{ fontWeight: 800 }}>Proof Map</div>
                     <div style={{ color: tokens.muted, marginTop: 6 }}>关系示意</div>
-                    <div style={{ marginTop: 12, height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width="100%" height="120" viewBox="0 0 400 120">
-                            {/* nodes */}
-                            <circle cx="60" cy="60" r="28" fill="#eef2ff" stroke="#c7ddff" />
-                            <text x="60" y="65" fontSize="12" textAnchor="middle" fill="#1e293b">{(data as any)?.proofMap?.nodes?.[0]?.label ?? '借款合意'}</text>
-                            <circle cx="200" cy="60" r="28" fill="#eef2ff" stroke="#c7ddff" />
-                            <text x="200" y="65" fontSize="12" textAnchor="middle" fill="#1e293b">{(data as any)?.proofMap?.nodes?.[1]?.label ?? '资金交付'}</text>
-                            <circle cx="340" cy="60" r="28" fill="#eef2ff" stroke="#c7ddff" />
-                            <text x="340" y="65" fontSize="12" textAnchor="middle" fill="#1e293b">{(data as any)?.proofMap?.nodes?.[2]?.label ?? '未归还'}</text>
-                            {/* links */}
-                            <line x1="88" y1="60" x2="172" y2="60" stroke="#c7ddff" strokeWidth="2" />
-                            <line x1="228" y1="60" x2="312" y2="60" stroke="#c7ddff" strokeWidth="2" />
-                        </svg>
-                    </div>
+                    {proofNodes.length === 0 && proofLinks.length === 0 ? (
+                        <div style={{ marginTop: 12, color: tokens.muted }}>暂无证明体系数据</div>
+                    ) : (
+                        <div style={{ marginTop: 12, display: 'grid', gap: 8 }}>
+                            {proofNodes.map((node: any, index: number) => <div key={node.id || index} style={{ padding: 8, background: '#fff', border: '1px solid #f1f5f9', borderRadius: 8 }}>{node.label || node.title}</div>)}
+                            {proofLinks.map((link: any, index: number) => <div key={link.id || index} style={{ color: tokens.muted, fontSize: 13 }}>{link.label || `${link.source || ''} → ${link.target || ''}`}</div>)}
+                        </div>
+                    )}
                 </div>
             </section>
 
@@ -582,17 +777,9 @@ export default function EvidencePage() {
                                     <div style={{ fontWeight: 700 }}>{g.title}</div>
                                     <div style={{ color: (String(g.impact || '').toLowerCase() === '高' || String(g.impact || '').toLowerCase() === 'high') ? '#b91c1c' : '#d97706' }}>{g.impact}</div>
                                 </div>
-                                <div style={{ color: tokens.muted, marginTop: 6 }}>建议：联系客户补充或寻求替代证据。</div>
+                                {g.description ? <div style={{ color: tokens.muted, marginTop: 6 }}>{g.description}</div> : null}
                             </div>
-                        )) : fallbackWorkspace.gaps.map((g: any) => (
-                            <div key={g.id} style={{ padding: 10, borderRadius: 8, marginBottom: 8, background: '#fff', border: '1px solid #f1f5f9' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <div style={{ fontWeight: 700 }}>{g.title}</div>
-                                    <div style={{ color: g.impact === '高' ? '#b91c1c' : '#d97706' }}>{g.impact}</div>
-                                </div>
-                                <div style={{ color: tokens.muted, marginTop: 6 }}>建议：联系客户补充或寻求替代证据。</div>
-                            </div>
-                        ))}
+                        )) : <div style={{ color: tokens.muted }}>暂无风险与建议</div>}
                     </div>
                 </div>
 
@@ -601,12 +788,12 @@ export default function EvidencePage() {
                     <div style={{ fontWeight: 800 }}>AI Discovery</div>
                     <div style={{ color: tokens.muted, marginTop: 6 }}>AI 自动发现</div>
                     <div style={{ marginTop: 10 }}>
-                        {((data as any)?.discoveries || fallbackWorkspace.discoveries).map((d: any) => (
+                        {(data as any)?.discoveries?.length > 0 ? (data as any).discoveries.map((d: any) => (
                             <div key={d.id || d.text} style={{ padding: 10, borderRadius: 8, marginBottom: 8, background: '#fff', border: '1px solid #f1f5f9' }}>
                                 <div style={{ fontSize: 14 }}>{d.text || String(d)}</div>
                                 {d.confidence ? <div style={{ marginTop: 6, color: tokens.muted, fontSize: 12 }}>可信度：{Math.round((d.confidence || 0) * 100)}%</div> : null}
                             </div>
-                        ))}
+                        )) : <div style={{ color: tokens.muted }}>暂无 AI 证据分析</div>}
                     </div>
                 </div>
 
@@ -615,14 +802,14 @@ export default function EvidencePage() {
                     <div style={{ fontWeight: 800 }}>Evidence Timeline</div>
                     <div style={{ color: tokens.muted, marginTop: 6 }}>按时间排列关键证据事件</div>
                     <div style={{ marginTop: 10 }}>
-                        {((data as any)?.timeline || fallbackWorkspace.timeline).map((t: any) => (
+                        {(data as any)?.timeline?.length > 0 ? (data as any).timeline.map((t: any) => (
                             <div key={t.id || t.time || t.text} style={{ padding: 8, borderBottom: '1px dashed #f1f5f9' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                     <div style={{ fontWeight: 700 }}>{t.text}</div>
                                     <div style={{ color: tokens.muted }}>{t.time}</div>
                                 </div>
                             </div>
-                        ))}
+                        )) : <div style={{ color: tokens.muted }}>暂无证据时间线</div>}
                     </div>
                 </div>
             </section>
@@ -640,12 +827,30 @@ export default function EvidencePage() {
                             <div style={{ fontWeight: 800 }}>证据详情</div>
                             <div style={{ color: tokens.muted, marginTop: 6 }}>{selectedEvidence.title} • {selectedEvidence.type}</div>
                             <div style={{ marginTop: 10 }}>
-                                <div style={{ fontWeight: 700 }}>说明</div>
-                                <div style={{ marginTop: 6, color: tokens.muted }}>{selectedEvidence.notes}</div>
+                                <div style={{ fontWeight: 700 }}>证明目标</div>
+                                <div style={{ marginTop: 6, color: tokens.muted }}>{selectedEvidence.proof_purpose || '暂无证明目标'}</div>
+                                <div style={{ fontWeight: 700, marginTop: 10 }}>说明</div>
+                                <div style={{ marginTop: 6, color: tokens.muted }}>{selectedEvidence.summary || selectedEvidence.notes || '暂无证据摘要'}</div>
+                                {selectedEvidence.reasoning ? (
+                                    <>
+                                        <div style={{ fontWeight: 700, marginTop: 10 }}>AI 判断</div>
+                                        <div style={{ marginTop: 6, color: tokens.muted }}>{selectedEvidence.reasoning}</div>
+                                    </>
+                                ) : null}
+                                {Array.isArray(selectedEvidence.source_materials) && selectedEvidence.source_materials.length > 0 ? (
+                                    <>
+                                        <div style={{ fontWeight: 700, marginTop: 10 }}>来源材料</div>
+                                        <div style={{ marginTop: 6, color: tokens.muted }}>{selectedEvidence.source_materials.map((m: any) => m.title || m.material_id).join('、')}</div>
+                                    </>
+                                ) : null}
                                 <div style={{ marginTop: 10, display: 'flex', gap: 12 }}>
                                     <div style={{ flex: 1 }}>
                                         <div style={{ fontSize: 12, color: tokens.muted }}>强度</div>
-                                        <div style={{ marginTop: 6 }}><ProgressBar value={selectedEvidence.strength} /></div>
+                                        <div style={{ marginTop: 6 }}>{typeof selectedEvidence.strength === 'number' ? <ProgressBar value={selectedEvidence.strength} /> : '—'}</div>
+                                    </div>
+                                    <div style={{ width: 120 }}>
+                                        <div style={{ fontSize: 12, color: tokens.muted }}>可信度</div>
+                                        <div style={{ marginTop: 6 }}>{typeof selectedEvidence.confidence === 'number' ? `${Math.round(selectedEvidence.confidence * 100)}%` : '-'}</div>
                                     </div>
                                     <div style={{ width: 120 }}>
                                         <div style={{ fontSize: 12, color: tokens.muted }}>日期</div>
@@ -684,8 +889,8 @@ export default function EvidencePage() {
                             <div style={{ fontWeight: 800 }}>Evidence Score</div>
                             <div style={{ color: tokens.muted, marginTop: 6 }}>综合分析</div>
                             <div style={{ marginTop: 12 }}>
-                                <div style={{ fontSize: 22, fontWeight: 800 }}>{selectedAiSummary && typeof selectedAiSummary.score === 'number' ? selectedAiSummary.score : globalScore}%</div>
-                                <div style={{ marginTop: 8 }}><ProgressBar value={selectedAiSummary && typeof selectedAiSummary.score === 'number' ? selectedAiSummary.score : globalScore} /></div>
+                                <div style={{ fontSize: 22, fontWeight: 800 }}>{typeof selectedScore === 'number' ? `${selectedScore}%` : '—'}</div>
+                                {typeof selectedScore === 'number' ? <div style={{ marginTop: 8 }}><ProgressBar value={selectedScore} /></div> : null}
                                 <div style={{ marginTop: 10, color: tokens.muted }}>说明：分数基于证据完整度、可靠性与可验证性。</div>
                             </div>
                             {/* AI Suggestions box */}
@@ -693,23 +898,7 @@ export default function EvidencePage() {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div style={{ fontWeight: 800 }}>AI 建议</div>
                                     {suggestions && suggestions.length > 0 ? (
-                                        <button onClick={async () => {
-                                            // accept all suggestions
-                                            for (const s of suggestions.slice()) {
-                                                try {
-                                                    const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-                                                    const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence`
-                                                    const body = { title: s.title, description: s.reason }
-                                                    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-                                                    if (!res.ok) throw new Error(`status:${res.status}`)
-                                                } catch (e) {
-                                                    console.error('accept all failed', e)
-                                                }
-                                            }
-                                            // refresh evidence list and clear suggestions
-                                            try { await fetchEvidence() } catch (e) { }
-                                            setSuggestions([])
-                                        }} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e6e7eb', background: '#fff', color: '#111827', fontWeight: 700 }}>全部接受</button>
+                                        <div style={{ color: tokens.muted, fontSize: 13 }}>请在 Evidence Draft 中审核后确认</div>
                                     ) : null}
                                 </div>
 
@@ -723,34 +912,16 @@ export default function EvidencePage() {
                                                         <div style={{ color: tokens.muted, marginTop: 6 }}>{s.reason}</div>
                                                     </div>
                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
-                                                        <button onClick={async () => {
-                                                            // accept single suggestion -> create evidence
-                                                            try {
-                                                                const base = (process.env.NEXT_PUBLIC_API_BASE as string) || 'http://localhost:4000'
-                                                                const url = `${base}/matters/${encodeURIComponent(matterId)}/evidence`
-                                                                const body = { title: s.title, description: s.reason }
-                                                                const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-                                                                if (!res.ok) throw new Error(`status:${res.status}`)
-                                                                // on success remove suggestion and refresh evidence list
-                                                                setSuggestions((prev) => prev.filter((x) => x.id !== s.id))
-                                                                try { await fetchEvidence() } catch (e) { }
-                                                            } catch (e) {
-                                                                console.error('accept failed', e)
-                                                                alert('创建证据失败，请稍后重试')
-                                                            }
-                                                        }} style={{ padding: '6px 10px', borderRadius: 6, background: '#111827', color: '#fff', border: 'none' }}>接受</button>
-
                                                         <button onClick={() => {
-                                                            // ignore suggestion locally
                                                             setSuggestions((prev) => prev.filter((x) => x.id !== s.id))
-                                                        }} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', color: '#111827', border: '1px solid #e6e7eb' }}>忽略</button>
+                                                        }} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', color: '#111827', border: '1px solid #e6e7eb' }}>移除</button>
                                                     </div>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <div style={{ marginTop: 10, color: tokens.muted }}>AI 建议将显示在此处</div>
+                                    <div style={{ marginTop: 10, color: tokens.muted }}>证据草稿审核后，AI 将继续基于正式 Evidence 推进后续工作。</div>
                                 )}
                             </div>
                         </div>
@@ -760,11 +931,12 @@ export default function EvidencePage() {
 
             <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
                 <button onClick={() => router.push(`/matters/${matterId}`)} style={{ padding: '8px 12px', borderRadius: 8, background: '#f1f5f9', border: 'none', color: tokens.text }}>返回案件</button>
-                <button onClick={() => alert('已保存')} style={{ padding: '8px 12px', borderRadius: 8, background: tokens.blue, border: 'none', color: '#fff' }}>保存</button>
             </div>
-            {/* 下一步 按钮 */}
+            {!canContinueAi ? (
+                <div style={{ marginTop: 12, textAlign: 'center', color: '#92400e' }}>请先完成证据草稿审核</div>
+            ) : null}
             <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
-                <button onClick={() => router.push(`/matters/${matterId}/facts`)} style={{ width: 720, maxWidth: '90%', padding: '12px 16px', background: '#111827', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 800 }}>下一步：整理事实</button>
+                <button disabled={!canContinueAi} onClick={() => router.push(`/matters/${matterId}/facts`)} style={{ width: 720, maxWidth: '90%', padding: '12px 16px', background: canContinueAi ? '#111827' : '#94a3b8', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 800, cursor: canContinueAi ? 'pointer' : 'default' }}>AI 继续工作</button>
             </div>
         </main >
     )
