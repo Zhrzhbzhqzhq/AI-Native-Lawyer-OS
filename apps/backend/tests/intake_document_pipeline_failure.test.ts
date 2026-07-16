@@ -1,6 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import fetch from 'node-fetch'
-import { createPrismaClient } from '@lawdesk/database'
 
 // Mock DocumentPipeline to simulate failure
 vi.mock('../src/services/ai/DocumentPipeline', () => {
@@ -15,14 +14,21 @@ vi.mock('../src/services/ai/DocumentPipeline', () => {
     }
 })
 
-import buildApp from '../src/server'
-
 let app: any
 let BASE = ''
 let prisma: any
 
+function requireRcTestDatabase() {
+    const databaseUrl = process.env.DATABASE_URL
+    if (!databaseUrl) throw new Error('DATABASE_URL_required_for_rc_tests')
+    const databaseName = new URL(databaseUrl).pathname.replace(/^\//, '')
+    if (databaseName !== 'lawdesk_rc_test') throw new Error(`unsafe_test_database:${databaseName}`)
+}
+
 beforeAll(async () => {
-    process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://qingzhang@localhost:5432/lawdesk'
+    requireRcTestDatabase()
+    const { createPrismaClient } = await import('@lawdesk/database')
+    const { default: buildApp } = await import('../src/server')
     prisma = createPrismaClient()
 
     app = await buildApp()
@@ -38,17 +44,17 @@ afterAll(async () => {
 })
 
 describe('Intake document pipeline failure integration', () => {
-    it('returns 502 and does not create any documents when pipeline fails', async () => {
+    it('ignores legacy document pipeline failure path because matter creation no longer runs it', async () => {
         const res = await fetch(`${BASE}/intake/ai-create-matter`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ title: 'Failing Pipeline Matter', client_name: 'A', opponent_name: 'B' }),
         })
 
-        expect(res.status).toBe(502)
+        expect(res.status).toBe(201)
         const body = await res.json()
-        expect(body.error).toBe('document_pipeline_failed')
         expect(body.matter_id).toBeDefined()
+        expect(body.document_pipeline.skipped).toBe(true)
 
         // confirm no documents were created for this matter
         const docsRes = await fetch(`${BASE}/matters/${encodeURIComponent(body.matter_id)}/documents`)

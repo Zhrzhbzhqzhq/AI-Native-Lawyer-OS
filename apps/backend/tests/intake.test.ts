@@ -1,14 +1,21 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import fetch from 'node-fetch'
-import buildApp from '../src/server'
-import { createPrismaClient } from '@lawdesk/database'
 
 let app: any
 let BASE = ''
 let prisma: any
 
+function requireRcTestDatabase() {
+  const databaseUrl = process.env.DATABASE_URL
+  if (!databaseUrl) throw new Error('DATABASE_URL_required_for_rc_tests')
+  const databaseName = new URL(databaseUrl).pathname.replace(/^\//, '')
+  if (databaseName !== 'lawdesk_rc_test') throw new Error(`unsafe_test_database:${databaseName}`)
+}
+
 beforeAll(async () => {
-  process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://qingzhang@localhost:5432/lawdesk'
+  requireRcTestDatabase()
+  const { createPrismaClient } = await import('@lawdesk/database')
+  const { default: buildApp } = await import('../src/server')
   prisma = createPrismaClient()
 
   app = await buildApp()
@@ -19,8 +26,8 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  await app.close()
-  await prisma.$disconnect()
+  if (app) await app.close()
+  if (prisma) await prisma.$disconnect()
 })
 
 describe('Unified Intake API', () => {
@@ -180,7 +187,7 @@ describe('Unified Intake API', () => {
       SELECT COUNT(*)::bigint AS count FROM timelines WHERE matter_id = ${markerMatterId}
     `
 
-    const materials = [{ material_id: `mat-${Date.now()}`, title: 'file.pdf', material_type: 'document', source: 'client' }]
+    const materials = [{ material_id: `mat-${Date.now()}`, title: '借条.pdf', material_type: 'document', source: 'client', content: '借条载明借款金额、借款人、出借人和还款期限。' }]
 
     const res = await fetch(`${BASE}/intake/evidence-draft`, {
       method: 'POST',
@@ -219,13 +226,13 @@ describe('Unified Intake API', () => {
     await prisma.matter.create({ data: { matter_id: markerMatterId, title: 'EV Matter', description: '', matter_type: 'test', status: 'active' } })
 
     // create material fixture
-    const material = await prisma.material.create({ data: { material_id: `mat-${Date.now()}`, matter_id: markerMatterId, title: 'file.pdf', material_type: 'document', source: 'client', storage_uri: '', status: 'active' } })
+    const material = await prisma.material.create({ data: { material_id: `mat-${Date.now()}`, matter_id: markerMatterId, title: '借条.pdf', material_type: 'document', source: 'client', storage_uri: '', status: 'active' } })
 
     // generate drafts using the API
     const draftRes = await fetch(`${BASE}/intake/evidence-draft`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ matter_id: markerMatterId, materials: [{ material_id: material.material_id, title: material.title, material_type: material.material_type, source: 'client' }] }),
+      body: JSON.stringify({ matter_id: markerMatterId, materials: [{ material_id: material.material_id, title: material.title, material_type: material.material_type, source: 'client', content: '借条载明借款金额、借款人、出借人和还款期限。' }] }),
     })
     expect(draftRes.status).toBe(200)
     const draftBody = await draftRes.json()
@@ -277,6 +284,103 @@ describe('Unified Intake API', () => {
     expect(afterTimeline[0].count).toBe(beforeTimeline[0].count)
   })
 
+  it('confirm-evidence publishes aggregate draft fields without regenerating evidence', async () => {
+    const markerMatterId = `mock-intake-${Date.now()}-publish`
+
+    await prisma.matter.create({ data: { matter_id: markerMatterId, title: 'Publish Matter', description: '', matter_type: 'test', status: 'active' } })
+    const materialIds = [`mat-${Date.now()}-1`, `mat-${Date.now()}-2`, `mat-${Date.now()}-3`]
+    await prisma.material.createMany({
+      data: [
+        { material_id: materialIds[0], matter_id: markerMatterId, title: '001_客户咨询记录.md', material_type: 'markdown', source: 'client', storage_uri: '', status: 'active' },
+        { material_id: materialIds[1], matter_id: markerMatterId, title: '003_微信聊天_借款形成.md', material_type: 'markdown', source: 'client', storage_uri: '', status: 'active' },
+        { material_id: materialIds[2], matter_id: markerMatterId, title: '005_借条.md', material_type: 'markdown', source: 'client', storage_uri: '', status: 'active' },
+      ],
+    })
+
+    const draft = {
+      draft_id: 'draft-agreement',
+      material_id: materialIds[0],
+      source_material_ids: materialIds,
+      materials: [
+        { material_id: materialIds[0], title: '001_客户咨询记录.md' },
+        { material_id: materialIds[1], title: '003_微信聊天_借款形成.md' },
+        { material_id: materialIds[2], title: '005_借条.md' },
+      ],
+      title: '借贷合意证据',
+      evidence_type: 'document',
+      proof_purpose: '证明双方达成民间借贷合意',
+      description: '借条、聊天与咨询记录共同指向借款合意。',
+      relevance: '证明双方达成民间借贷合意',
+      summary: '借条、聊天与咨询记录共同指向借款合意。',
+      reasoning: '多份材料可相互印证借款关系成立。',
+      confidence: 0.95,
+      source: 'client',
+    }
+
+    const confirmRes = await fetch(`${BASE}/intake/confirm-evidence`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ matter_id: markerMatterId, evidence_drafts: [draft] }),
+    })
+
+    expect(confirmRes.status).toBe(200)
+    const confirmBody = await confirmRes.json()
+    expect(confirmBody.created_evidence).toHaveLength(1)
+    const created = confirmBody.created_evidence[0]
+    expect(created.title).toBe('借贷合意证据')
+    expect(created.relevance).toBe('证明双方达成民间借贷合意')
+    expect(created.description).toContain('摘要：借条、聊天与咨询记录共同指向借款合意。')
+    expect(created.description).toContain('证明目标：证明双方达成民间借贷合意')
+    expect(created.description).toContain('AI判断理由：多份材料可相互印证借款关系成立。')
+    expect(created.description).toContain('可信度：0.95')
+    expect(created.description).toContain(`来源材料ID：${materialIds.join(', ')}`)
+    expect(created.description).toContain('来源材料：001_客户咨询记录.md、003_微信聊天_借款形成.md、005_借条.md')
+    expect(created.title).not.toBe('008_律师函.md')
+    expect(created.relevance).not.toBe('Support claim')
+    expect(created.description).not.toContain('Support claim')
+  })
+
+  it('confirm-evidence publishes every draft without overwriting prior evidence', async () => {
+    const markerMatterId = `mock-intake-${Date.now()}-batch`
+
+    await prisma.matter.create({ data: { matter_id: markerMatterId, title: 'Batch Publish Matter', description: '', matter_type: 'test', status: 'active' } })
+    const materialIds = [`mat-${Date.now()}-a`, `mat-${Date.now()}-b`, `mat-${Date.now()}-c`]
+    await prisma.material.createMany({
+      data: materialIds.map((material_id, index) => ({
+        material_id,
+        matter_id: markerMatterId,
+        title: `材料 ${index + 1}.md`,
+        material_type: 'markdown',
+        source: 'client',
+        storage_uri: '',
+        status: 'active',
+      })),
+    })
+
+    const drafts = [
+      { draft_id: 'draft-1', material_id: materialIds[0], source_material_ids: [materialIds[0], materialIds[1]], materials: [{ material_id: materialIds[0], title: '材料 1.md' }, { material_id: materialIds[1], title: '材料 2.md' }], title: '借贷合意证据', evidence_type: 'document', proof_purpose: '证明双方达成民间借贷合意', summary: '合意摘要', reasoning: '合意理由', confidence: 0.95 },
+      { draft_id: 'draft-2', material_id: materialIds[1], source_material_ids: [materialIds[1]], materials: [{ material_id: materialIds[1], title: '材料 2.md' }], title: '借款资金交付证据', evidence_type: 'document', proof_purpose: '证明资金已经实际交付', summary: '交付摘要', reasoning: '交付理由', confidence: 0.92 },
+      { draft_id: 'draft-3', material_id: materialIds[2], source_material_ids: [materialIds[2]], materials: [{ material_id: materialIds[2], title: '材料 3.md' }], title: '到期未还与催收证据', evidence_type: 'document', proof_purpose: '证明到期后未按约还款', summary: '催收摘要', reasoning: '催收理由', confidence: 0.93 },
+    ]
+
+    const beforeEvidence = await prisma.evidence.count({ where: { matter_id: markerMatterId } })
+    const confirmRes = await fetch(`${BASE}/intake/confirm-evidence`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ matter_id: markerMatterId, evidence_drafts: drafts }),
+    })
+
+    expect(confirmRes.status).toBe(200)
+    const confirmBody = await confirmRes.json()
+    expect(confirmBody.created_evidence).toHaveLength(3)
+
+    const stored = await prisma.evidence.findMany({ where: { matter_id: markerMatterId }, orderBy: { created_at: 'asc' } })
+    expect(stored.length - beforeEvidence).toBe(3)
+    expect(stored.map((e: any) => e.title)).toEqual(['借贷合意证据', '借款资金交付证据', '到期未还与催收证据'])
+    expect(new Set(stored.map((e: any) => e.evidence_id)).size).toBe(3)
+    expect(stored.every((e: any) => String(e.description || '').includes('摘要：'))).toBe(true)
+  })
+
   it('confirm-evidence validation failures', async () => {
     const res1 = await fetch(`${BASE}/intake/confirm-evidence`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ evidence_drafts: [] }) })
     expect(res1.status).toBe(400)
@@ -311,7 +415,7 @@ describe('Unified Intake API', () => {
     `
 
     // generate opponent evidence drafts via API
-    const materials = [{ material_id: `mat-${Date.now()}`, title: 'op.pdf', material_type: 'document', source: 'opponent' }]
+    const materials = [{ material_id: `mat-${Date.now()}`, title: '对方借条.pdf', material_type: 'document', source: 'opponent', content: '借条载明借款金额、借款人、出借人和还款期限。' }]
 
     const draftRes = await fetch(`${BASE}/intake/evidence-draft`, {
       method: 'POST',
@@ -382,7 +486,7 @@ describe('Unified Intake API', () => {
     `
 
     // generate opponent evidence drafts
-    const materials = [{ material_id: `mat-${Date.now()}`, title: 'op.pdf', material_type: 'document', source: 'opponent' }]
+    const materials = [{ material_id: `mat-${Date.now()}`, title: '对方借条.pdf', material_type: 'document', source: 'opponent', content: '借条载明借款金额、借款人、出借人和还款期限。' }]
     const draftRes = await fetch(`${BASE}/intake/evidence-draft`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matter_id: markerMatterId, materials }) })
     expect(draftRes.status).toBe(200)
     const draftBody = await draftRes.json()

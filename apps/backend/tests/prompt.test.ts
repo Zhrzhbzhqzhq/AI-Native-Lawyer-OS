@@ -11,6 +11,7 @@ beforeAll(async () => {
   app = await buildApp()
   await app.listen({ port: 0 })
   prisma = createPrismaClient()
+  testMatterId = `test-matter-prompt-${RUN_ID}`
 
   // cleanup
   await prisma.aiRecord.deleteMany({ where: { ai_record_id: { startsWith: `test-prompt-conv-${RUN_ID}` } } })
@@ -21,7 +22,6 @@ beforeAll(async () => {
   await prisma.material.deleteMany({ where: { material_id: { startsWith: `test-prompt-mat-${RUN_ID}` } } })
   await prisma.timeline.deleteMany({ where: { timeline_id: { startsWith: `test-prompt-tl-${RUN_ID}` } } })
 
-  testMatterId = `test-matter-prompt-${RUN_ID}`
   await prisma.matter.create({ data: { matter_id: testMatterId, title: 'Prompt Test Matter', description: 'ctx', matter_type: 'test', status: 'active' } })
 
   // create minimal records

@@ -1,22 +1,26 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import fetch from 'node-fetch'
-import buildApp from '../src/server'
-import { createPrismaClient } from '@lawdesk/database'
 
 const RUN_ID = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`
 const TEST_ID = `test-evidence-ws-${RUN_ID}`
 
 let app: any
 let BASE = ''
+let prisma: any
+
+function requireRcTestDatabase() {
+  const databaseUrl = process.env.DATABASE_URL
+  if (!databaseUrl) throw new Error('DATABASE_URL_required_for_rc_tests')
+  const databaseName = new URL(databaseUrl).pathname.replace(/^\//, '')
+  if (databaseName !== 'lawdesk_rc_test') throw new Error(`unsafe_test_database:${databaseName}`)
+}
 
 beforeAll(async () => {
-  process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://qingzhang@localhost:5432/lawdesk'
-  const prisma = createPrismaClient()
-  try {
-    await prisma.matter.deleteMany({ where: { matter_id: TEST_ID } })
-  } finally {
-    await prisma.$disconnect()
-  }
+  requireRcTestDatabase()
+  const { createPrismaClient } = await import('@lawdesk/database')
+  const { default: buildApp } = await import('../src/server')
+  prisma = createPrismaClient()
+  await prisma.matter.deleteMany({ where: { matter_id: TEST_ID } })
 
   app = await buildApp()
   await app.listen({ port: 0 })
@@ -26,16 +30,15 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  try {
+  if (app) try {
     await fetch(`${BASE}/matters/${TEST_ID}`, { method: 'DELETE' })
   } catch (e) {}
-  const prisma = createPrismaClient()
-  try {
+  if (prisma) try {
     await prisma.matter.deleteMany({ where: { matter_id: TEST_ID } })
   } finally {
     await prisma.$disconnect()
   }
-  await app.close()
+  if (app) await app.close()
 })
 
 describe('Evidence Workspace Read-only', () => {
@@ -50,19 +53,30 @@ describe('Evidence Workspace Read-only', () => {
     const mid = `${WORK_ID}-mat-1`
     const mres = await fetch(`${BASE}/matters/${WORK_ID}/materials`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ material_id: mid, title: 'Source Material' }) })
     expect(mres.status).toBe(201)
+    const mid2 = `${WORK_ID}-mat-2`
+    const mres2 = await fetch(`${BASE}/matters/${WORK_ID}/materials`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ material_id: mid2, title: '005_借条.md' }) })
+    expect(mres2.status).toBe(201)
 
     // create sample evidence entries
     const e1 = await fetch(`${BASE}/matters/${WORK_ID}/evidence`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ evidence_id: `${WORK_ID}-ev-1`, material_id: mid, title: 'Ev 1', evidence_type: 'screenshot', description: 'desc', status: 'accepted', relevance: 'high' }) })
     expect(e1.status).toBe(201)
     const e2 = await fetch(`${BASE}/matters/${WORK_ID}/evidence`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ evidence_id: `${WORK_ID}-ev-2`, material_id: mid, title: 'Ev 2', evidence_type: 'contract', description: '', status: 'pending', relevance: '' }) })
     expect(e2.status).toBe(201)
+    const publishDescription = [
+      '摘要：借条、聊天与咨询记录共同指向借款合意。',
+      '证明目标：证明双方达成民间借贷合意',
+      'AI判断理由：多份材料可相互印证借款关系成立。',
+      '可信度：0.95',
+      `来源材料ID：${mid}, ${mid2}`,
+      '来源材料：001_客户咨询记录.md、005_借条.md',
+    ].join('\n')
+    const e3 = await fetch(`${BASE}/matters/${WORK_ID}/evidence`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ evidence_id: `${WORK_ID}-ev-3`, material_id: mid, title: '借贷合意证据', evidence_type: 'document', description: publishDescription, status: 'active', relevance: '证明双方达成民间借贷合意' }) })
+    expect(e3.status).toBe(201)
 
     // counts before
-    const prisma = createPrismaClient()
     const beforeEvidence = await prisma.evidence.count({ where: { matter_id: WORK_ID } })
     const beforeDocuments = await prisma.document.count({ where: { matter_id: WORK_ID } })
     const beforeTimeline = await prisma.timeline.count({ where: { matter_id: WORK_ID } }).catch(() => 0)
-    await prisma.$disconnect()
 
     const res = await fetch(`${BASE}/matters/${WORK_ID}/evidence/workspace`)
     expect(res.status).toBe(200)
@@ -79,6 +93,17 @@ describe('Evidence Workspace Read-only', () => {
     expect(typeof body.summary.missing).toBe('number')
 
     expect(Array.isArray(body.evidence_list)).toBe(true)
+    const publishedEvidence = body.evidence_list.find((e: any) => e.evidence_id === `${WORK_ID}-ev-3`)
+    expect(publishedEvidence).toBeTruthy()
+    expect(publishedEvidence.title).toBe('借贷合意证据')
+    expect(publishedEvidence.evidence_type).toBe('document')
+    expect(publishedEvidence.status).toBe('active')
+    expect(publishedEvidence.relevance).toBe('证明双方达成民间借贷合意')
+    expect(publishedEvidence.description).toBe(publishDescription)
+    expect(publishedEvidence.material_id).toBe(mid)
+    expect(typeof publishedEvidence.source).toBe('string')
+    expect(publishedEvidence.updated_at === null || typeof publishedEvidence.updated_at === 'string').toBe(true)
+    expect(publishedEvidence).not.toHaveProperty('proof_purpose')
     expect(body.selected_evidence).not.toBeNull()
     const se = body.selected_evidence
     expect(typeof se.evidence_id).toBe('string')
@@ -102,6 +127,8 @@ describe('Evidence Workspace Read-only', () => {
     expect(Array.isArray(se.ai_summary.risks)).toBe(true)
     expect(Array.isArray(se.ai_summary.recommendations)).toBe(true)
     expect(body.ai_analysis).toBeTruthy()
+    expect(typeof body.ai_analysis.status).toBe('string')
+    expect(typeof body.ai_analysis.message).toBe('string')
     expect(Array.isArray(body.missing_evidence)).toBe(true)
     // missing_evidence items structure
     for (const me of body.missing_evidence) {
@@ -141,11 +168,9 @@ describe('Evidence Workspace Read-only', () => {
     }
 
     // counts after - ensure no new objects were created by endpoint
-    const prisma2 = createPrismaClient()
-    const afterEvidence = await prisma2.evidence.count({ where: { matter_id: WORK_ID } })
-    const afterDocuments = await prisma2.document.count({ where: { matter_id: WORK_ID } })
-    const afterTimeline = await prisma2.timeline.count({ where: { matter_id: WORK_ID } }).catch(() => 0)
-    await prisma2.$disconnect()
+    const afterEvidence = await prisma.evidence.count({ where: { matter_id: WORK_ID } })
+    const afterDocuments = await prisma.document.count({ where: { matter_id: WORK_ID } })
+    const afterTimeline = await prisma.timeline.count({ where: { matter_id: WORK_ID } }).catch(() => 0)
 
     expect(afterEvidence - beforeEvidence).toBe(0)
     expect(afterDocuments - beforeDocuments).toBe(0)

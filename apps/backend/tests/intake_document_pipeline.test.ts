@@ -1,6 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import fetch from 'node-fetch'
-import { createPrismaClient } from '@lawdesk/database'
 
 // Mock DocumentPipeline before building the app
 vi.mock('../src/services/ai/DocumentPipeline', () => {
@@ -15,14 +14,21 @@ vi.mock('../src/services/ai/DocumentPipeline', () => {
     }
 })
 
-import buildApp from '../src/server'
-
 let app: any
 let BASE = ''
 let prisma: any
 
+function requireRcTestDatabase() {
+    const databaseUrl = process.env.DATABASE_URL
+    if (!databaseUrl) throw new Error('DATABASE_URL_required_for_rc_tests')
+    const databaseName = new URL(databaseUrl).pathname.replace(/^\//, '')
+    if (databaseName !== 'lawdesk_rc_test') throw new Error(`unsafe_test_database:${databaseName}`)
+}
+
 beforeAll(async () => {
-    process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://qingzhang@localhost:5432/lawdesk'
+    requireRcTestDatabase()
+    const { createPrismaClient } = await import('@lawdesk/database')
+    const { default: buildApp } = await import('../src/server')
     prisma = createPrismaClient()
 
     app = await buildApp()
@@ -38,7 +44,7 @@ afterAll(async () => {
 })
 
 describe('Intake document pipeline integration', () => {
-    it('runs document pipeline and returns draft id in response meta', async () => {
+    it('does not create documents during matter creation', async () => {
         const res = await fetch(`${BASE}/intake/ai-create-matter`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -49,8 +55,11 @@ describe('Intake document pipeline integration', () => {
         expect(body.matter_id).toBeDefined()
         expect(body.created).toBe(true)
         expect(body.ai).toBeDefined()
-        // pipeline result surfaced under meta.document_pipeline
         expect(body.document_pipeline).toBeDefined()
-        expect(body.document_pipeline.draftDocumentId).toBe('doc-mocked-1')
+        expect(body.document_pipeline.skipped).toBe(true)
+        const docs = await prisma.document.count({ where: { matter_id: body.matter_id } })
+        const drafts = await (prisma as any).documentDraft.count({ where: { matter_id: body.matter_id } })
+        expect(docs).toBe(0)
+        expect(drafts).toBe(0)
     })
 })

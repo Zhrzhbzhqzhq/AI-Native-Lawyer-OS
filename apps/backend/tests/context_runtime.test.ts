@@ -11,6 +11,7 @@ beforeAll(async () => {
   app = await buildApp()
   await app.listen({ port: 0 })
   prisma = createPrismaClient()
+  testMatterId = `test-matter-ctxrt-${RUN_ID}`
 
   await prisma.aiRecord.deleteMany({ where: { ai_record_id: { startsWith: `test-conv-ctxrt-${RUN_ID}` } } })
   await prisma.task.deleteMany({ where: { task_id: { startsWith: `test-task-ctxrt-${RUN_ID}` } } })
@@ -20,7 +21,6 @@ beforeAll(async () => {
   await prisma.material.deleteMany({ where: { material_id: { startsWith: `test-mat-ctxrt-${RUN_ID}` } } })
   await prisma.timeline.deleteMany({ where: { timeline_id: { startsWith: `test-tl-ctxrt-${RUN_ID}` } } })
 
-  testMatterId = `test-matter-ctxrt-${RUN_ID}`
   await prisma.matter.create({
     data: {
       matter_id: testMatterId,

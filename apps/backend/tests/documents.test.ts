@@ -11,9 +11,9 @@ beforeAll(async () => {
   app = await buildApp()
   await app.listen({ port: 0 })
   prisma = createPrismaClient()
+  testMatterId = `test-matter-${RUN_ID}`
   // remove any documents created for this matter in this run
   await prisma.document.deleteMany({ where: { matter_id: testMatterId } }).catch(() => { })
-  testMatterId = `test-matter-${RUN_ID}`
   await prisma.matter.create({ data: { matter_id: testMatterId, title: 'Test Matter', description: '', matter_type: 'test', status: 'active' } })
 })
 

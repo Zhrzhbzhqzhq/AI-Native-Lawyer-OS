@@ -11,6 +11,7 @@ beforeAll(async () => {
   app = await buildApp()
   await app.listen({ port: 0 })
   prisma = createPrismaClient()
+  testMatterId = `test-matter-${RUN_ID}`
 
   // cleanup any previous test artifacts
   // delete dependents first to avoid FK constraint failures
@@ -22,7 +23,6 @@ beforeAll(async () => {
   await prisma.material.deleteMany({ where: { material_id: { startsWith: `test-mat-${RUN_ID}` } } })
   await prisma.timeline.deleteMany({ where: { timeline_id: { startsWith: `test-tl-${RUN_ID}` } } })
 
-  testMatterId = `test-matter-${RUN_ID}`
   await prisma.matter.create({ data: { matter_id: testMatterId, title: 'Context Test Matter', description: 'ctx', matter_type: 'test', status: 'active' } })
 })
 
