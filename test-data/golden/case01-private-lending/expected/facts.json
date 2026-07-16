@@ -1,0 +1,60 @@
+{
+  "case_id": "case01-private-lending",
+  "items": [
+    {
+      "golden_id": "fact-001-loan-agreement",
+      "statement": "张建国与李海涛之间形成民间借贷合意，双方材料能够反映借款安排和债权债务关系。",
+      "source_evidence_ids": [
+        "ev-001-loan-agreement"
+      ],
+      "required_keywords": [
+        "民间借贷",
+        "借贷合意",
+        "张建国",
+        "李海涛"
+      ],
+      "forbidden_keywords": [
+        "来源材料ID",
+        "AI判断",
+        "可信度",
+        "mat-"
+      ]
+    },
+    {
+      "golden_id": "fact-002-fund-delivery",
+      "statement": "张建国已经向李海涛实际交付借款资金，银行流水和借条等材料可以相互印证交付事实。",
+      "source_evidence_ids": [
+        "ev-002-fund-delivery"
+      ],
+      "required_keywords": [
+        "实际交付",
+        "银行流水",
+        "借款资金"
+      ],
+      "forbidden_keywords": [
+        "来源材料ID",
+        "AI判断",
+        "可信度",
+        "mat-"
+      ]
+    },
+    {
+      "golden_id": "fact-003-default-and-collection",
+      "statement": "借款到期后李海涛未按约偿还，张建国已经通过微信、电话和律师函等方式持续催收。",
+      "source_evidence_ids": [
+        "ev-003-default-and-collection"
+      ],
+      "required_keywords": [
+        "到期",
+        "未偿还",
+        "催收"
+      ],
+      "forbidden_keywords": [
+        "来源材料ID",
+        "AI判断",
+        "可信度",
+        "mat-"
+      ]
+    }
+  ]
+}

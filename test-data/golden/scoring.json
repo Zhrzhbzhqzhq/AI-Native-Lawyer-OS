@@ -1,0 +1,41 @@
+{
+  "max_score": 100,
+  "pass_score": 85,
+  "excellent_score": 92,
+  "module_weights": {
+    "evidence": 15,
+    "facts": 15,
+    "issues": 20,
+    "laws": 20,
+    "arguments": 20,
+    "document": 10
+  },
+  "dimensions": [
+    "completeness",
+    "correctness",
+    "relevance",
+    "deduplication",
+    "hallucination_control",
+    "traceability"
+  ],
+  "hard_failures": [
+    "unconfirmed_formal_object",
+    "cross_matter_relation",
+    "empty_source_ids",
+    "missing_source_object",
+    "unsafe_law_placeholder",
+    "internal_metadata_leak",
+    "invalid_document_status",
+    "formal_content_empty",
+    "mock_formal_output",
+    "provider_audit_metadata_missing",
+    "prompt_version_missing",
+    "forbidden_concept_present",
+    "extra_party_or_legal_relationship",
+    "cross_matter_source_id",
+    "document_contains_internal_technical_field",
+    "empty_formal_output",
+    "workflow_not_completed"
+  ],
+  "notes": "Counts are helper assertions only. Quality, traceability, and forbidden concepts determine pass/fail."
+}

@@ -1,0 +1,42 @@
+{
+  "case_id": "case01-private-lending",
+  "items": [
+    {
+      "golden_id": "law-001-loan-contract",
+      "title": "借款合同与民间借贷关系成立规则",
+      "citation": "《中华人民共和国民法典》第六百六十七条、第六百六十八条",
+      "supports_issue_ids": [
+        "issue-001-loan-relationship"
+      ],
+      "required_rule": "借款合同是借款人向贷款人借款，到期返还借款并支付利息的合同；自然人之间借款关系应结合借据、聊天记录、实际履行等材料判断。",
+      "verification_status": "pending_legal_database_verification"
+    },
+    {
+      "golden_id": "law-002-private-lending-proof",
+      "title": "民间借贷出借事实举证规则",
+      "citation": "《最高人民法院关于审理民间借贷案件适用法律若干问题的规定》第二条",
+      "supports_issue_ids": [
+        "issue-002-fund-delivery"
+      ],
+      "required_rule": "出借人主张民间借贷关系成立，应提交借据、收据、欠条等债权凭证以及其他能够证明借贷法律关系存在的证据。",
+      "verification_status": "pending_legal_database_verification"
+    },
+    {
+      "golden_id": "law-003-performance-and-default",
+      "title": "债务履行与违约责任规则",
+      "citation": "《中华人民共和国民法典》第五百零九条、第五百七十七条",
+      "supports_issue_ids": [
+        "issue-003-default-interest"
+      ],
+      "required_rule": "当事人应当按照约定全面履行义务；一方不履行合同义务或者履行不符合约定的，应当承担继续履行、赔偿损失等违约责任。",
+      "verification_status": "pending_legal_database_verification"
+    }
+  ],
+  "forbidden_laws": [
+    "保证责任",
+    "夫妻共同债务",
+    "关联公司人格混同",
+    "实际控制人责任",
+    "第三人担保责任"
+  ]
+}

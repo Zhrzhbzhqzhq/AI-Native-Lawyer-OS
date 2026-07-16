@@ -10,6 +10,9 @@
     "dev:local": "bash scripts/dev-local.sh",
     "dev:frontend:clean": "bash scripts/dev-frontend-clean.sh",
     "validate:v1": "bash scripts/validate-v1-workflow.sh",
+    "golden:run": "tsx scripts/golden/cli.ts run",
+    "golden:validate": "tsx scripts/golden/cli.ts validate",
+    "golden:report": "tsx scripts/golden/cli.ts report",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "format": "turbo run format"

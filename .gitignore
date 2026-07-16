@@ -8,3 +8,5 @@ build/
 
 .turbo/
 .logs/
+test-data/golden/*/runs/*
+!test-data/golden/*/runs/.gitkeep

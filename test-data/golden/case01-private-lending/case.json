@@ -1,0 +1,26 @@
+{
+  "case_id": "case01-private-lending",
+  "name": "张建国诉李海涛民间借贷纠纷",
+  "case_type": "民间借贷纠纷",
+  "document_type": "complaint",
+  "difficulty": "basic",
+  "status": "golden",
+  "version": "1.0.0",
+  "dataset_version": "1.0.0",
+  "provenance_status": "confirmed_synthetic",
+  "synthetic_data_confirmed": true,
+  "description": "出借人张建国依据借条、聊天记录、银行流水、催收记录和律师函，向借款人李海涛主张民间借贷本金、利息及违约责任的基础型民间借贷纠纷。",
+  "material_count": 8,
+  "expected_counts": {
+    "evidence": 3,
+    "facts": 3,
+    "issues": 3,
+    "laws": 3,
+    "arguments": 3,
+    "documents": 1
+  },
+  "materials_path": "materials",
+  "expected_path": "expected",
+  "review_path": "review",
+  "runs_path": "runs"
+}

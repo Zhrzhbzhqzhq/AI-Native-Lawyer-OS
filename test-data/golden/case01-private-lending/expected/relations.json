@@ -1,0 +1,114 @@
+{
+  "case_id": "case01-private-lending",
+  "evidence_to_materials": {
+    "ev-001-loan-agreement": [
+      "001_客户咨询记录.md",
+      "002_咨询录音整理.md",
+      "003_微信聊天_借款形成.md",
+      "005_借条.md"
+    ],
+    "ev-002-fund-delivery": [
+      "001_客户咨询记录.md",
+      "005_借条.md",
+      "006_银行流水.md"
+    ],
+    "ev-003-default-and-collection": [
+      "004_微信聊天_催收.md",
+      "005_借条.md",
+      "007_电话录音整理.md",
+      "008_律师函.md"
+    ]
+  },
+  "facts_to_evidence": {
+    "fact-001-loan-agreement": [
+      "ev-001-loan-agreement"
+    ],
+    "fact-002-fund-delivery": [
+      "ev-002-fund-delivery"
+    ],
+    "fact-003-default-and-collection": [
+      "ev-003-default-and-collection"
+    ]
+  },
+  "issues_to_facts": {
+    "issue-001-loan-relationship": [
+      "fact-001-loan-agreement"
+    ],
+    "issue-002-fund-delivery": [
+      "fact-002-fund-delivery"
+    ],
+    "issue-003-default-interest": [
+      "fact-003-default-and-collection"
+    ]
+  },
+  "laws_to_issues": {
+    "law-001-loan-contract": [
+      "issue-001-loan-relationship"
+    ],
+    "law-002-private-lending-proof": [
+      "issue-002-fund-delivery"
+    ],
+    "law-003-performance-and-default": [
+      "issue-003-default-interest"
+    ]
+  },
+  "arguments_to_sources": {
+    "arg-001-loan-established": {
+      "facts": [
+        "fact-001-loan-agreement"
+      ],
+      "issues": [
+        "issue-001-loan-relationship"
+      ],
+      "laws": [
+        "law-001-loan-contract"
+      ]
+    },
+    "arg-002-funds-delivered": {
+      "facts": [
+        "fact-002-fund-delivery"
+      ],
+      "issues": [
+        "issue-002-fund-delivery"
+      ],
+      "laws": [
+        "law-002-private-lending-proof"
+      ]
+    },
+    "arg-003-default-liability": {
+      "facts": [
+        "fact-003-default-and-collection"
+      ],
+      "issues": [
+        "issue-003-default-interest"
+      ],
+      "laws": [
+        "law-003-performance-and-default"
+      ]
+    }
+  },
+  "document_to_sources": {
+    "complaint": {
+      "facts": [
+        "fact-001-loan-agreement",
+        "fact-002-fund-delivery",
+        "fact-003-default-and-collection"
+      ],
+      "issues": [
+        "issue-001-loan-relationship",
+        "issue-002-fund-delivery",
+        "issue-003-default-interest"
+      ],
+      "laws": [
+        "law-001-loan-contract",
+        "law-002-private-lending-proof",
+        "law-003-performance-and-default"
+      ],
+      "arguments": [
+        "arg-001-loan-established",
+        "arg-002-funds-delivered",
+        "arg-003-default-liability"
+      ]
+    }
+  }
+}
