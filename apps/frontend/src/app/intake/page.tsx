@@ -2,18 +2,13 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Uploader from './uploader/Uploader'
+import Uploader, { isUploadedFile, type UploadedFile } from './uploader/Uploader'
 
 export default function IntakePage() {
   const router = useRouter()
-  const [caseName, setCaseName] = useState('')
-  const [client, setClient] = useState('')
-  const [opponent, setOpponent] = useState('')
-  const [caseType, setCaseType] = useState('')
-  const [files, setFiles] = useState<Array<{ name: string; size: number; type?: string; upload_time: string }>>([])
+  const [files, setFiles] = useState<UploadedFile[]>([])
   const [derivedMatterId, setDerivedMatterId] = useState<string | null>(null)
   const [receivedConfirmed, setReceivedConfirmed] = useState(false)
-  const [processing, setProcessing] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   useEffect(() => {
@@ -36,66 +31,70 @@ export default function IntakePage() {
     }
   }, [])
 
-  async function handleStart() {
-    setErrorMessage(null)
-    setProcessing(true)
+  function saveValidatedUpload(saved: unknown) {
+    if (!Array.isArray(saved) || saved.length === 0 || !saved.every(isUploadedFile)) {
+      setFiles([])
+      setReceivedConfirmed(false)
+      setErrorMessage('上传返回数据暂不可用')
+      return
+    }
+
+    const readableFiles = saved.filter((file) => isUploadedFile(file) && file.storage_uri.startsWith('storage/intake-uploads/'))
+    if (readableFiles.length === 0) {
+      setFiles([])
+      setReceivedConfirmed(false)
+      setErrorMessage('未收到可用的已保存文件')
+      return
+    }
+
     try {
-      const base = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'
-      const res = await fetch(`${base}/intake/ai-create-matter`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: caseName, client_name: client, opponent_name: opponent, matter_type: caseType }) })
-      if (res.status === 201) {
-        const data = await res.json()
-        try { sessionStorage.setItem('intake_analysis', JSON.stringify(data)) } catch (e) { }
-        const matterId = data && data.matter_id ? String(data.matter_id) : null
-        const draftId = data && data.document_pipeline && data.document_pipeline.draftDocumentId ? String(data.document_pipeline.draftDocumentId) : null
-        if (matterId) {
-          // navigate to documents workspace; documents page will auto-select newest draft
-          router.push(`/matters/${encodeURIComponent(matterId)}/documents`)
-          return
-        }
-      }
-      // non-201 or missing matter id -> treat as failure
-      throw new Error('create_failed')
-    } catch (e) {
-      // restore button and show error
-      setErrorMessage('分析失败，请稍后重试')
-      try { const draft = { caseName, client, opponent, caseType, files }; sessionStorage.setItem('new_matter_draft', JSON.stringify(draft)) } catch (e) { }
-    } finally {
-      setProcessing(false)
+      const draft = { caseName: '', client: '', opponent: '', caseType: '', files: readableFiles }
+      sessionStorage.setItem('lawdesk_intake_uploaded_files', JSON.stringify(readableFiles))
+      sessionStorage.setItem('new_matter_draft', JSON.stringify(draft))
+      setFiles(readableFiles)
+      setReceivedConfirmed(true)
+      setErrorMessage(null)
+    } catch {
+      sessionStorage.removeItem('lawdesk_intake_uploaded_files')
+      sessionStorage.removeItem('new_matter_draft')
+      setFiles([])
+      setReceivedConfirmed(false)
+      setErrorMessage('无法保存上传结果，请重新上传')
     }
   }
+
+  async function handleStart() {
+    setErrorMessage(null)
+    if (files.length === 0 || !files.every(isUploadedFile)) {
+      setErrorMessage('请先成功上传咨询资料，再开始 AI 分析')
+      return
+    }
+
+    try {
+      const draft = { caseName: '', client: '', opponent: '', caseType: '', files }
+      sessionStorage.setItem('new_matter_draft', JSON.stringify(draft))
+      sessionStorage.setItem('lawdesk_intake_uploaded_files', JSON.stringify(files))
+      router.push('/intake/analyzing')
+    } catch {
+      setErrorMessage('无法保存上传结果，请重试')
+    }
+  }
+
+  const canStartAnalysis = files.length > 0 && files.every(isUploadedFile)
 
   return (
     <main style={{ padding: 24 }}>
       <div style={{ maxWidth: 760, margin: '0 auto' }}>
-        <h2 style={{ marginTop: 0 }}>新建案件</h2>
+        <h2 style={{ marginTop: 0 }}>上传咨询资料</h2>
+        <div style={{ color: '#6b7280', lineHeight: 1.7, marginBottom: 18 }}>
+          AI 将根据上传材料自动生成案件名称、当事人和案件类型，律师审核后建立案件。
+        </div>
 
         <div style={{ display: 'grid', gap: 12 }}>
-          <label style={{ display: 'block' }}>
-            <div style={{ fontWeight: 600 }}>案件名称</div>
-            <input value={caseName} onChange={(e) => setCaseName(e.target.value)} placeholder="填写案件名称" style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e6eef6', marginTop: 6 }} />
-          </label>
-
-          <label style={{ display: 'block' }}>
-            <div style={{ fontWeight: 600 }}>委托人</div>
-            <input value={client} onChange={(e) => setClient(e.target.value)} placeholder="填写委托人姓名或单位" style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e6eef6', marginTop: 6 }} />
-          </label>
-
-          <label style={{ display: 'block' }}>
-            <div style={{ fontWeight: 600 }}>对方当事人</div>
-            <input value={opponent} onChange={(e) => setOpponent(e.target.value)} placeholder="填写对方当事人" style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e6eef6', marginTop: 6 }} />
-          </label>
-
-          <label style={{ display: 'block' }}>
-            <div style={{ fontWeight: 600 }}>案件类型</div>
-            <input value={caseType} onChange={(e) => setCaseType(e.target.value)} placeholder="例如：民间借贷 / 合同 / 劳动" style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e6eef6', marginTop: 6 }} />
-          </label>
-
-          {/* 手动填写 Matter ID 已移除 — matter_id 应来自当前 intake 流程状态（若存在） */}
-
           <div>
-            <div style={{ fontWeight: 600, marginBottom: 6 }}>案件资料</div>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>已上传文件</div>
 
-            <Uploader matterId={derivedMatterId || undefined} onUploaded={(saved) => { setFiles(saved); setReceivedConfirmed(true); try { sessionStorage.setItem('lawdesk_intake_uploaded_files', JSON.stringify(saved || [])) } catch (e) { } }} />
+            <Uploader matterId={derivedMatterId || undefined} onUploaded={saveValidatedUpload} />
 
             {receivedConfirmed && files.length > 0 && (
               <div style={{ marginTop: 12, padding: 12, borderRadius: 8, border: '1px solid #f1f5f9', background: '#ffffff', color: '#111827' }}>
@@ -103,7 +102,7 @@ export default function IntakePage() {
                 <div style={{ color: '#6b7280', marginBottom: 8 }}>已上传文件：{files.length} 个</div>
                 <div style={{ color: '#6b7280', marginBottom: 12 }}>最近上传时间：{files.length > 0 ? new Date(files.reduce((a, b) => (new Date(a.upload_time) > new Date(b.upload_time) ? a : b)).upload_time).toLocaleString() : '-'}</div>
                 <div style={{ textAlign: 'right' }}>
-                  <button onClick={() => router.push('/intake/analyzing')} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: '#111827', color: '#fff', fontWeight: 700 }}>开始整理案件资料</button>
+                  <button disabled={!canStartAnalysis} onClick={handleStart} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: canStartAnalysis ? '#111827' : '#94a3b8', color: '#fff', fontWeight: 700 }}>开始 AI 分析</button>
                 </div>
               </div>
             )}
@@ -132,7 +131,7 @@ export default function IntakePage() {
           </div>
 
           <div style={{ marginTop: 12 }}>
-            <button disabled={processing} onClick={handleStart} style={{ width: '100%', padding: '12px 16px', borderRadius: 10, border: 'none', background: '#2563eb', color: '#fff', fontWeight: 600 }}>{processing ? 'AI 正在分析……' : '开始整理案件'}</button>
+            <button disabled={!canStartAnalysis} onClick={handleStart} style={{ width: '100%', padding: '12px 16px', borderRadius: 10, border: 'none', background: canStartAnalysis ? '#2563eb' : '#94a3b8', color: '#fff', fontWeight: 600 }}>开始 AI 分析</button>
             {errorMessage ? <div style={{ marginTop: 8, color: '#b91c1c' }}>{errorMessage}</div> : null}
           </div>
         </div>
