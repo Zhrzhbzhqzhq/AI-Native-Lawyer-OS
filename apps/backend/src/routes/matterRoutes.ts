@@ -3,12 +3,52 @@ import { createPrismaClient } from '@lawdesk/database';
 import MatterService from '../services/matterService';
 import TimelineService from '../services/timelineService';
 
+function sendDraftError(reply: any, err: any, fallbackError: string) {
+  const code = String(err?.code || err?.message || '')
+  if (code === 'draft_not_found' || code === 'matter_not_found') {
+    return reply.code(404).send({ error: code })
+  }
+  if (code === 'draft_matter_mismatch') {
+    return reply.code(403).send({ error: code })
+  }
+  if (
+    code === 'draft_already_published'
+    || code === 'document_draft_not_ready'
+    || code.startsWith('pending_')
+    || /^published_(fact|issue|law|argument|document)_not_found$/.test(code)
+  ) {
+    return reply.code(409).send({ error: code })
+  }
+  if (
+    code === 'invalid_review_status'
+    || code.startsWith('invalid_source_')
+    || code.endsWith('_drafts_required')
+    || code === 'unsupported_document_type'
+    || code === 'title_required'
+    || code === 'content_required'
+    || code === 'nothing_to_update'
+  ) {
+    return reply.code(400).send({ error: code })
+  }
+  if (code.startsWith('unsafe_') || code.startsWith('formal_') && code.endsWith('_content_required') || code.endsWith('_draft_empty')) {
+    return reply.code(422).send({ error: code })
+  }
+  return reply.code(500).send({ error: fallbackError, detail: err?.message || String(err) })
+}
+
 export async function matterRoutes(app: FastifyInstance) {
   const prisma = createPrismaClient();
   const service = new MatterService(prisma);
   const timelineService = new TimelineService(prisma);
   const evidenceService = new (await import('../services/evidenceService')).default(prisma);
   const factService = new (await import('../services/factService')).default(prisma);
+  const factDraftService = new (await import('../services/factDraftService')).default(prisma);
+  const issueDraftService = new (await import('../services/issueDraftService')).default(prisma);
+  const lawDraftService = new (await import('../services/lawDraftService')).default(prisma);
+  const argumentDraftService = new (await import('../services/argumentDraftService')).default(prisma);
+  const documentDraftModule = await import('../services/documentDraftService');
+  const documentDraftService = new documentDraftModule.default(prisma);
+  const buildSimpleDocx = documentDraftModule.buildSimpleDocx;
   const materialService = new (await import('../services/materialService')).default(prisma);
   const issueService = new (await import('../services/issueService')).default(prisma);
   const researchService = new (await import('../services/researchService')).default(prisma);
@@ -209,6 +249,30 @@ export async function matterRoutes(app: FastifyInstance) {
     } catch (err: any) {
       if (String(err.message) === 'Not found') return reply.code(404).send({ error: 'not_found' });
       return reply.code(500).send({ error: 'delete_failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.get('/matters/:matter_id/documents/:document_id/export.docx', async (request, reply) => {
+    const { matter_id, document_id } = request.params as any;
+    try {
+      const doc = await documentService.getDocument(document_id);
+      if (!doc) return reply.code(404).send({ error: 'not_found' });
+      if (String(doc.matter_id) !== String(matter_id)) return reply.code(400).send({ error: 'document_mismatch' });
+      const exportableStatuses = new Set(['published', 'completed', 'final']);
+      if (!exportableStatuses.has(String(doc.status || '').toLowerCase())) {
+        return reply.code(409).send({ error: 'document_not_exportable' });
+      }
+      const matter = await service.get(matter_id);
+      const safeMatterTitle = String(matter?.title || matter_id).replace(/[\\/:*?"<>|]/g, '').slice(0, 60) || 'Matter';
+      const safeType = String(doc.document_type || 'document').replace(/[\\/:*?"<>|]/g, '').slice(0, 30) || 'document';
+      const filename = `${safeMatterTitle}-${safeType}.docx`;
+      const buf = buildSimpleDocx(doc.title || filename, doc.content || '');
+      return reply
+        .header('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+        .header('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`)
+        .send(buf);
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'export_failed', detail: err?.message || String(err) });
     }
   });
 
@@ -1152,7 +1216,7 @@ export async function matterRoutes(app: FastifyInstance) {
     }
   })
 
-  // AI: analyze evidence suggestions (mock if service not available)
+  // Legacy analyze endpoint: never fabricate evidence suggestions when AI is unavailable.
   app.post('/matters/:matter_id/evidence/analyze', async (request, reply) => {
     const { matter_id } = request.params as any
     try {
@@ -1168,18 +1232,13 @@ export async function matterRoutes(app: FastifyInstance) {
         // fall back to other suggesters
       }
 
-      // Mock suggestions (stable, deterministic)
-      const mock = [
-        { title: '银行转账记录', reason: '存在资金交付事实' },
-        { title: '微信聊天记录', reason: '证明双方借贷意思表示' },
-      ]
-      return reply.code(200).send(mock)
+      return reply.code(200).send([])
     } catch (err: any) {
       return reply.code(500).send({ error: 'analyze_failed', detail: err?.message || String(err) })
     }
   })
 
-  // AI: analyze facts suggestions (mock if service not available)
+  // Legacy analyze endpoint: never fabricate fact suggestions when AI is unavailable.
   app.post('/matters/:matter_id/facts/analyze', async (request, reply) => {
     const { matter_id } = request.params as any
     try {
@@ -1202,20 +1261,16 @@ export async function matterRoutes(app: FastifyInstance) {
           return reply.code(200).send(out)
         }
       } catch (e) {
-        // fall back to mock
+        // Do not convert provider failure into fabricated legal analysis.
       }
 
-      const mock = [
-        { title: '借款事实', description: '2023-01-10，张三向李四转账100000元。' },
-        { title: '催收事实', description: '微信聊天记录显示张三多次催收。' },
-      ]
-      return reply.code(200).send(mock)
+      return reply.code(503).send({ error: 'ai_analysis_unavailable', suggestions: [] })
     } catch (err: any) {
       return reply.code(500).send({ error: 'analyze_failed', detail: err?.message || String(err) })
     }
   })
 
-  // AI: analyze issues suggestions (mock if service not available)
+  // Legacy analyze endpoint: never fabricate issue suggestions when AI is unavailable.
   app.post('/matters/:matter_id/issues/analyze', async (request, reply) => {
     const { matter_id } = request.params as any
     try {
@@ -1238,20 +1293,16 @@ export async function matterRoutes(app: FastifyInstance) {
           return reply.code(200).send(out)
         }
       } catch (e) {
-        // fall back to mock
+        // Do not convert provider failure into fabricated legal analysis.
       }
 
-      const mock = [
-        { title: '双方是否形成借款合同', description: '转账记录与聊天记录共同证明借贷合意。' },
-        { title: '借款是否已经超过诉讼时效', description: '需要进一步核查催款记录。' },
-      ]
-      return reply.code(200).send(mock)
+      return reply.code(503).send({ error: 'ai_analysis_unavailable', suggestions: [] })
     } catch (err: any) {
       return reply.code(500).send({ error: 'analyze_failed', detail: err?.message || String(err) })
     }
   })
 
-  // AI: analyze laws suggestions (mock if service not available)
+  // Legacy analyze endpoint: never fabricate law suggestions when AI is unavailable.
   app.post('/matters/:matter_id/laws/analyze', async (request, reply) => {
     const { matter_id } = request.params as any
     try {
@@ -1274,20 +1325,16 @@ export async function matterRoutes(app: FastifyInstance) {
           return reply.code(200).send(out)
         }
       } catch (e) {
-        // fall back to mock
+        // Do not convert provider failure into fabricated legal analysis.
       }
 
-      const mock = [
-        { title: '合同法 - 债权转让', citation: '合同法 第X条', description: '债权转让相关规则，适用于借贷转移情形。' },
-        { title: '民法典 - 合同法部分', citation: '民法典 第Y条', description: '关于合同成立与履行的规则，可能适用于本案。' },
-      ]
-      return reply.code(200).send(mock)
+      return reply.code(503).send({ error: 'ai_analysis_unavailable', suggestions: [] })
     } catch (err: any) {
       return reply.code(500).send({ error: 'analyze_failed', detail: err?.message || String(err) })
     }
   })
 
-  // AI: analyze arguments suggestions (mock if service not available)
+  // Legacy analyze endpoint: never fabricate argument suggestions when AI is unavailable.
   app.post('/matters/:matter_id/arguments/analyze', async (request, reply) => {
     const { matter_id } = request.params as any
     try {
@@ -1310,34 +1357,124 @@ export async function matterRoutes(app: FastifyInstance) {
           return reply.code(200).send(out)
         }
       } catch (e) {
-        // fall back to mock
+        // Do not convert provider failure into fabricated legal analysis.
       }
 
-      const mock = [
-        { title: '主张合同成立', description: '基于转账记录与聊天记录，可主张存在合同关系。', conclusion: '请求法院确认债务关系成立并判令还款' },
-        { title: '请求保全证据', description: '建议先行申请证据保全以防数据丢失。', conclusion: '向人民法院申请保全' },
-      ]
-      return reply.code(200).send(mock)
+      return reply.code(503).send({ error: 'ai_analysis_unavailable', suggestions: [] })
     } catch (err: any) {
       return reply.code(500).send({ error: 'analyze_failed', detail: err?.message || String(err) })
     }
   })
 
-  // AI: generate document drafts — use DocumentPipeline to produce and persist a draft.
-  app.post('/matters/:matter_id/documents/analyze', async (request, reply) => {
+  app.post('/matters/:matter_id/document-drafts/generate', async (request, reply) => {
+    const { matter_id } = request.params as any
+    const body = (request.body || {}) as any
+    try {
+      const result = await documentDraftService.generateDraft(matter_id, String(body.document_type || 'complaint'))
+      return reply.code(200).send(result)
+    } catch (err: any) {
+      const code = String(err?.code || err?.message || '')
+      if (code === 'unsupported_document_type') return reply.code(400).send({ error: 'unsupported_document_type' })
+      if (code === 'formal_arguments_required') return reply.code(409).send({ error: 'formal_arguments_required' })
+      if (code === 'matter_not_found') return reply.code(404).send({ error: 'matter_not_found' })
+      return sendDraftError(reply, err, 'document_draft_generate_failed')
+    }
+  })
+
+  app.get('/matters/:matter_id/document-drafts', async (request, reply) => {
     const { matter_id } = request.params as any
     try {
-      const DocumentPipelineClass = (await import('../services/ai/DocumentPipeline')).default
-      const pipeline = new DocumentPipelineClass(prisma)
-      const res = await pipeline.run(matter_id)
-      // Expected pipeline response shape: { success: true, draftDocumentId, provider, model }
-      if (res && res.success) {
-        return reply.code(200).send({ success: true, draftDocumentId: res.draftDocumentId, provider: res.provider || null, model: res.model || null })
-      }
-      // treat unexpected shapes as failure
-      return reply.code(502).send({ error: 'document_pipeline_failed', matter_id })
-    } catch (e) {
-      return reply.code(502).send({ error: 'document_pipeline_failed', matter_id })
+      const document_drafts = await documentDraftService.listDrafts(matter_id)
+      return reply.code(200).send({ document_drafts })
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'document_draft_list_failed', detail: err?.message || String(err) })
+    }
+  })
+
+  app.get('/matters/:matter_id/document-drafts/:draft_id', async (request, reply) => {
+    const { matter_id, draft_id } = request.params as any
+    try {
+      const draft = await documentDraftService.getDraft(matter_id, draft_id)
+      if (!draft) return reply.code(404).send({ error: 'draft_not_found' })
+      return reply.code(200).send(draft)
+    } catch (err: any) {
+      const code = String(err?.code || err?.message || '')
+      if (code === 'draft_matter_mismatch') return reply.code(403).send({ error: 'draft_matter_mismatch' })
+      return sendDraftError(reply, err, 'document_draft_get_failed')
+    }
+  })
+
+  app.patch('/matters/:matter_id/document-drafts/:draft_id', async (request, reply) => {
+    const { matter_id, draft_id } = request.params as any
+    try {
+      const updated = await documentDraftService.updateDraft(matter_id, draft_id, request.body as any || {})
+      return reply.code(200).send(updated)
+    } catch (err: any) {
+      const code = String(err?.code || err?.message || '')
+      if (code === 'draft_not_found') return reply.code(404).send({ error: 'draft_not_found' })
+      if (code === 'draft_matter_mismatch') return reply.code(403).send({ error: 'draft_matter_mismatch' })
+      if (code === 'draft_already_published') return reply.code(409).send({ error: 'draft_already_published' })
+      if (code === 'invalid_review_status') return reply.code(400).send({ error: 'invalid_review_status' })
+      if (code === 'title_required') return reply.code(400).send({ error: 'title_required' })
+      if (code === 'nothing_to_update') return reply.code(400).send({ error: 'nothing_to_update' })
+      if (code === 'unsafe_document_content') return reply.code(422).send({ error: 'unsafe_document_content' })
+      return sendDraftError(reply, err, 'document_draft_update_failed')
+    }
+  })
+
+  app.post('/matters/:matter_id/document-drafts/:draft_id/regenerate', async (request, reply) => {
+    const { matter_id, draft_id } = request.params as any
+    try {
+      const updated = await documentDraftService.regenerateDraft(matter_id, draft_id, request.body as any || {})
+      return reply.code(200).send(updated)
+    } catch (err: any) {
+      const code = String(err?.code || err?.message || '')
+      if (code === 'draft_not_found') return reply.code(404).send({ error: 'draft_not_found' })
+      if (code === 'draft_matter_mismatch') return reply.code(403).send({ error: 'draft_matter_mismatch' })
+      if (code === 'draft_already_published') return reply.code(409).send({ error: 'draft_already_published' })
+      return sendDraftError(reply, err, 'document_draft_regenerate_failed')
+    }
+  })
+
+  app.post('/matters/:matter_id/document-drafts/:draft_id/publish', async (request, reply) => {
+    const { matter_id, draft_id } = request.params as any
+    try {
+      const result = await documentDraftService.publishDraft(matter_id, draft_id)
+      return reply.code(200).send(result)
+    } catch (err: any) {
+      const code = String(err?.code || err?.message || '')
+      if (code === 'draft_not_found') return reply.code(404).send({ error: 'draft_not_found' })
+      if (code === 'draft_matter_mismatch') return reply.code(403).send({ error: 'draft_matter_mismatch' })
+      if (code === 'content_required') return reply.code(400).send({ error: 'content_required' })
+      if (code === 'invalid_source_argument_ids') return reply.code(400).send({ error: 'invalid_source_argument_ids' })
+      if (code === 'invalid_source_fact_ids') return reply.code(400).send({ error: 'invalid_source_fact_ids' })
+      if (code === 'invalid_source_issue_ids') return reply.code(400).send({ error: 'invalid_source_issue_ids' })
+      if (code === 'invalid_source_law_ids') return reply.code(400).send({ error: 'invalid_source_law_ids' })
+      if (code === 'unsafe_document_content') return reply.code(422).send({ error: 'unsafe_document_content' })
+      return sendDraftError(reply, err, 'document_draft_publish_failed')
+    }
+  })
+
+  // V1 compatibility endpoint: delegates to DocumentDraft workflow and never creates a formal Document.
+  app.post('/matters/:matter_id/documents/analyze', async (request, reply) => {
+    const { matter_id } = request.params as any
+    const body = (request.body || {}) as any
+    try {
+      const result = await documentDraftService.generateDraft(matter_id, String(body.document_type || 'complaint'))
+      return reply.code(200).send({
+        success: true,
+        result_type: 'document_draft',
+        documentDraftId: result.document_draft.id,
+        document_draft: result.document_draft,
+        idempotent: result.idempotent,
+        formal_document_created: false,
+        requires_lawyer_confirmation: true,
+      })
+    } catch (err: any) {
+      const code = String(err?.code || err?.message || '')
+      if (code === 'unsupported_document_type') return reply.code(400).send({ error: 'unsupported_document_type' })
+      if (code === 'formal_arguments_required') return reply.code(409).send({ error: 'formal_arguments_required' })
+      return sendDraftError(reply, err, 'document_draft_generate_failed')
     }
   })
 
@@ -1529,6 +1666,61 @@ export async function matterRoutes(app: FastifyInstance) {
   })
 
   // Facts CRUD - minimal API
+  app.post('/matters/:matter_id/fact-drafts/generate', async (request, reply) => {
+    const { matter_id } = request.params as any
+    try {
+      const result = await factDraftService.generateDrafts(matter_id)
+      return reply.code(200).send(result)
+    } catch (err: any) {
+      const code = String(err?.code || err?.message || '')
+      if (code === 'formal_evidence_required') return reply.code(409).send({ error: 'formal_evidence_required' })
+      if (code === 'fact_draft_empty') return reply.code(422).send({ error: 'fact_draft_empty' })
+      return sendDraftError(reply, err, 'fact_draft_generate_failed')
+    }
+  })
+
+  app.get('/matters/:matter_id/fact-drafts', async (request, reply) => {
+    const { matter_id } = request.params as any
+    try {
+      const list = await factDraftService.listDrafts(matter_id)
+      return reply.code(200).send(list)
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'fact_draft_list_failed', detail: err?.message || String(err) })
+    }
+  })
+
+  app.patch('/matters/:matter_id/fact-drafts/:draft_id', async (request, reply) => {
+    const { matter_id, draft_id } = request.params as any
+    try {
+      const updated = await factDraftService.updateDraft(matter_id, draft_id, request.body as any || {})
+      return reply.code(200).send(updated)
+    } catch (err: any) {
+      const code = String(err?.code || err?.message || '')
+      if (code === 'draft_not_found') return reply.code(404).send({ error: 'draft_not_found' })
+      if (code === 'draft_matter_mismatch') return reply.code(403).send({ error: 'draft_matter_mismatch' })
+      if (code === 'draft_already_published') return reply.code(409).send({ error: 'draft_already_published' })
+      if (code === 'invalid_review_status') return reply.code(400).send({ error: 'invalid_review_status' })
+      if (code === 'title_required') return reply.code(400).send({ error: 'title_required' })
+      if (code === 'nothing_to_update') return reply.code(400).send({ error: 'nothing_to_update' })
+      return sendDraftError(reply, err, 'fact_draft_update_failed')
+    }
+  })
+
+  app.post('/matters/:matter_id/fact-drafts/publish', async (request, reply) => {
+    const { matter_id } = request.params as any
+    try {
+      const result = await factDraftService.publishDrafts(matter_id)
+      return reply.code(200).send(result)
+    } catch (err: any) {
+      const code = String(err?.code || err?.message || '')
+      if (code === 'fact_drafts_required') return reply.code(400).send({ error: 'fact_drafts_required' })
+      if (code === 'pending_fact_drafts') return reply.code(409).send({ error: 'pending_fact_drafts' })
+      if (code === 'unsafe_formal_fact_content') return reply.code(422).send({ error: 'unsafe_formal_fact_content' })
+      if (code === 'formal_fact_content_required') return reply.code(422).send({ error: 'formal_fact_content_required' })
+      return sendDraftError(reply, err, 'fact_draft_publish_failed')
+    }
+  })
+
   app.post('/matters/:id/facts', async (request, reply) => {
     const { id } = request.params as any;
     const payload = request.body as any || {};
@@ -1641,6 +1833,61 @@ export async function matterRoutes(app: FastifyInstance) {
     }
   });
 
+  app.post('/matters/:matter_id/issue-drafts/generate', async (request, reply) => {
+    const { matter_id } = request.params as any
+    try {
+      const result = await issueDraftService.generateDrafts(matter_id)
+      return reply.code(200).send(result)
+    } catch (err: any) {
+      const code = String(err?.code || err?.message || '')
+      if (code === 'formal_facts_required') return reply.code(409).send({ error: 'formal_facts_required' })
+      if (code === 'issue_draft_empty') return reply.code(422).send({ error: 'issue_draft_empty' })
+      return sendDraftError(reply, err, 'issue_draft_generate_failed')
+    }
+  })
+
+  app.get('/matters/:matter_id/issue-drafts', async (request, reply) => {
+    const { matter_id } = request.params as any
+    try {
+      const list = await issueDraftService.listDrafts(matter_id)
+      return reply.code(200).send(list)
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'issue_draft_list_failed', detail: err?.message || String(err) })
+    }
+  })
+
+  app.patch('/matters/:matter_id/issue-drafts/:draft_id', async (request, reply) => {
+    const { matter_id, draft_id } = request.params as any
+    try {
+      const updated = await issueDraftService.updateDraft(matter_id, draft_id, request.body as any || {})
+      return reply.code(200).send(updated)
+    } catch (err: any) {
+      const code = String(err?.code || err?.message || '')
+      if (code === 'draft_not_found') return reply.code(404).send({ error: 'draft_not_found' })
+      if (code === 'draft_matter_mismatch') return reply.code(403).send({ error: 'draft_matter_mismatch' })
+      if (code === 'draft_already_published') return reply.code(409).send({ error: 'draft_already_published' })
+      if (code === 'invalid_review_status') return reply.code(400).send({ error: 'invalid_review_status' })
+      if (code === 'title_required') return reply.code(400).send({ error: 'title_required' })
+      if (code === 'nothing_to_update') return reply.code(400).send({ error: 'nothing_to_update' })
+      return sendDraftError(reply, err, 'issue_draft_update_failed')
+    }
+  })
+
+  app.post('/matters/:matter_id/issue-drafts/publish', async (request, reply) => {
+    const { matter_id } = request.params as any
+    try {
+      const result = await issueDraftService.publishDrafts(matter_id)
+      return reply.code(200).send(result)
+    } catch (err: any) {
+      const code = String(err?.code || err?.message || '')
+      if (code === 'issue_drafts_required') return reply.code(400).send({ error: 'issue_drafts_required' })
+      if (code === 'pending_issue_drafts') return reply.code(409).send({ error: 'pending_issue_drafts' })
+      if (code === 'invalid_source_fact_ids') return reply.code(400).send({ error: 'invalid_source_fact_ids' })
+      if (code === 'unsafe_formal_issue_content') return reply.code(400).send({ error: 'unsafe_formal_issue_content' })
+      return sendDraftError(reply, err, 'issue_draft_publish_failed')
+    }
+  })
+
   // Issues CRUD
   app.post('/matters/:id/issues', async (request, reply) => {
     const { id } = request.params as any;
@@ -1735,6 +1982,116 @@ export async function matterRoutes(app: FastifyInstance) {
       if (msg === 'fact_not_found') return reply.code(404).send({ error: 'fact_not_found' });
       if (msg === 'fact_mismatch') return reply.code(400).send({ error: 'fact_mismatch' });
       return reply.code(500).send({ error: 'delete_failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.post('/matters/:matter_id/law-drafts/generate', async (request, reply) => {
+    const { matter_id } = request.params as any;
+    try {
+      const result = await lawDraftService.generateDrafts(matter_id);
+      return reply.code(200).send(result);
+    } catch (err: any) {
+      const code = err?.code || err?.message;
+      if (code === 'formal_issues_required') return reply.code(409).send({ error: 'formal_issues_required' });
+      if (code === 'law_draft_empty') return reply.code(422).send({ error: 'law_draft_empty' });
+      return sendDraftError(reply, err, 'law_draft_generate_failed');
+    }
+  });
+
+  app.get('/matters/:matter_id/law-drafts', async (request, reply) => {
+    const { matter_id } = request.params as any;
+    try {
+      const law_drafts = await lawDraftService.listDrafts(matter_id);
+      return reply.code(200).send({ law_drafts });
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'law_draft_list_failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.patch('/matters/:matter_id/law-drafts/:draft_id', async (request, reply) => {
+    const { matter_id, draft_id } = request.params as any;
+    try {
+      const updated = await lawDraftService.updateDraft(matter_id, draft_id, request.body as any || {});
+      return reply.code(200).send(updated);
+    } catch (err: any) {
+      const code = err?.code || err?.message;
+      if (code === 'draft_not_found') return reply.code(404).send({ error: 'draft_not_found' });
+      if (code === 'draft_matter_mismatch') return reply.code(403).send({ error: 'draft_matter_mismatch' });
+      if (code === 'draft_already_published') return reply.code(409).send({ error: 'draft_already_published' });
+      if (code === 'invalid_review_status') return reply.code(400).send({ error: 'invalid_review_status' });
+      if (code === 'title_required') return reply.code(400).send({ error: 'title_required' });
+      if (code === 'nothing_to_update') return reply.code(400).send({ error: 'nothing_to_update' });
+      return sendDraftError(reply, err, 'law_draft_update_failed');
+    }
+  });
+
+  app.post('/matters/:matter_id/law-drafts/publish', async (request, reply) => {
+    const { matter_id } = request.params as any;
+    try {
+      const result = await lawDraftService.publishDrafts(matter_id);
+      return reply.code(200).send(result);
+    } catch (err: any) {
+      const code = err?.code || err?.message;
+      if (code === 'law_drafts_required') return reply.code(400).send({ error: 'law_drafts_required' });
+      if (code === 'pending_law_drafts') return reply.code(409).send({ error: 'pending_law_drafts' });
+      if (code === 'invalid_source_issue_ids') return reply.code(400).send({ error: 'invalid_source_issue_ids' });
+      return sendDraftError(reply, err, 'law_draft_publish_failed');
+    }
+  });
+
+  app.post('/matters/:matter_id/argument-drafts/generate', async (request, reply) => {
+    const { matter_id } = request.params as any;
+    try {
+      const result = await argumentDraftService.generateDrafts(matter_id);
+      return reply.code(200).send(result);
+    } catch (err: any) {
+      const code = err?.code || err?.message;
+      if (code === 'formal_laws_required') return reply.code(409).send({ error: 'formal_laws_required' });
+      if (code === 'argument_draft_empty') return reply.code(422).send({ error: 'argument_draft_empty' });
+      return sendDraftError(reply, err, 'argument_draft_generate_failed');
+    }
+  });
+
+  app.get('/matters/:matter_id/argument-drafts', async (request, reply) => {
+    const { matter_id } = request.params as any;
+    try {
+      const argument_drafts = await argumentDraftService.listDrafts(matter_id);
+      return reply.code(200).send({ argument_drafts });
+    } catch (err: any) {
+      return reply.code(500).send({ error: 'argument_draft_list_failed', detail: err?.message || String(err) });
+    }
+  });
+
+  app.patch('/matters/:matter_id/argument-drafts/:draft_id', async (request, reply) => {
+    const { matter_id, draft_id } = request.params as any;
+    try {
+      const updated = await argumentDraftService.updateDraft(matter_id, draft_id, request.body as any || {});
+      return reply.code(200).send(updated);
+    } catch (err: any) {
+      const code = err?.code || err?.message;
+      if (code === 'draft_not_found') return reply.code(404).send({ error: 'draft_not_found' });
+      if (code === 'draft_matter_mismatch') return reply.code(403).send({ error: 'draft_matter_mismatch' });
+      if (code === 'draft_already_published') return reply.code(409).send({ error: 'draft_already_published' });
+      if (code === 'invalid_review_status') return reply.code(400).send({ error: 'invalid_review_status' });
+      if (code === 'title_required') return reply.code(400).send({ error: 'title_required' });
+      if (code === 'nothing_to_update') return reply.code(400).send({ error: 'nothing_to_update' });
+      return sendDraftError(reply, err, 'argument_draft_update_failed');
+    }
+  });
+
+  app.post('/matters/:matter_id/argument-drafts/publish', async (request, reply) => {
+    const { matter_id } = request.params as any;
+    try {
+      const result = await argumentDraftService.publishDrafts(matter_id);
+      return reply.code(200).send(result);
+    } catch (err: any) {
+      const code = err?.code || err?.message;
+      if (code === 'argument_drafts_required') return reply.code(400).send({ error: 'argument_drafts_required' });
+      if (code === 'pending_argument_drafts') return reply.code(409).send({ error: 'pending_argument_drafts' });
+      if (code === 'invalid_source_fact_ids') return reply.code(400).send({ error: 'invalid_source_fact_ids' });
+      if (code === 'invalid_source_issue_ids') return reply.code(400).send({ error: 'invalid_source_issue_ids' });
+      if (code === 'invalid_source_law_ids') return reply.code(400).send({ error: 'invalid_source_law_ids' });
+      return sendDraftError(reply, err, 'argument_draft_publish_failed');
     }
   });
 
