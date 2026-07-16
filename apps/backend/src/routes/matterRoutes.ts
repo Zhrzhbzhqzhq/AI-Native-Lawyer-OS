@@ -14,6 +14,8 @@ function sendDraftError(reply: any, err: any, fallbackError: string) {
   if (
     code === 'draft_already_published'
     || code === 'document_draft_not_ready'
+    || code === 'published_document_matter_mismatch'
+    || code === 'published_document_invalid_status'
     || code.startsWith('pending_')
     || /^published_(fact|issue|law|argument|document)_not_found$/.test(code)
   ) {

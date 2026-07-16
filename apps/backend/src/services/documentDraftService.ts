@@ -33,6 +33,7 @@ export type DocumentDraftRow = {
 }
 
 const SUPPORTED_DOCUMENT_TYPES = ['complaint']
+const FORMAL_DOCUMENT_STATUSES = new Set(['published', 'completed', 'final'])
 const CLIENT_STATUSES = ['editing', 'ready_to_publish']
 
 function uniqueStrings(values: unknown[]) {
@@ -400,8 +401,21 @@ export class DocumentDraftService {
   }
 
   async publishDraft(matter_id: string, draft_id: string) {
+    return (this.prisma as any).$transaction((tx: any) => this.publishDraftInTransaction(tx, matter_id, draft_id))
+  }
+
+  async publishDrafts(matter_id: string, draft_ids: string[]) {
     return (this.prisma as any).$transaction(async (tx: any) => {
-      const draft = await tx.documentDraft.findUnique({ where: { id: draft_id } })
+      const results = []
+      for (const draft_id of draft_ids) {
+        results.push(await this.publishDraftInTransaction(tx, matter_id, draft_id))
+      }
+      return results
+    })
+  }
+
+  private async publishDraftInTransaction(tx: any, matter_id: string, draft_id: string) {
+    const draft = await tx.documentDraft.findUnique({ where: { id: draft_id } })
       if (!draft) {
         const error = new Error('draft_not_found')
         ;(error as any).code = 'draft_not_found'
@@ -414,9 +428,22 @@ export class DocumentDraftService {
       }
       if (draft.published_document_id) {
         const existing = await tx.document.findUnique({ where: { document_id: draft.published_document_id } })
-        if (existing) {
-          return await this.buildPublishResult(tx, matter_id, draft, existing, true)
+        if (!existing) {
+          const error = new Error('published_document_not_found')
+          ;(error as any).code = 'published_document_not_found'
+          throw error
         }
+        if (String(existing.matter_id) !== String(matter_id)) {
+          const error = new Error('published_document_matter_mismatch')
+          ;(error as any).code = 'published_document_matter_mismatch'
+          throw error
+        }
+        if (!FORMAL_DOCUMENT_STATUSES.has(String(existing.status || ''))) {
+          const error = new Error('published_document_invalid_status')
+          ;(error as any).code = 'published_document_invalid_status'
+          throw error
+        }
+        return await this.buildPublishResult(tx, matter_id, draft, existing, true)
       }
       if (String(draft.review_status || '') !== 'ready_to_publish') {
         const error = new Error('document_draft_not_ready')
@@ -469,7 +496,6 @@ export class DocumentDraftService {
         idempotent: false,
         ...counts,
       }
-    })
   }
 
   private async getRequiredDraft(matter_id: string, draft_id: string): Promise<DocumentDraftRow> {
