@@ -12,7 +12,8 @@
     "prisma:generate": "prisma generate --schema prisma/schema.prisma",
     "prisma:migrate:dev": "prisma migrate dev --schema prisma/schema.prisma --name init_lawdesk_v1_core",
     "prisma:migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx prisma/seed.ts",
+    "prisma:generate:desktop": "prisma generate --schema prisma-desktop/schema.prisma"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -21,6 +22,7 @@
     "@prisma/client": "^5.17.0"
   },
   "devDependencies": {
+    "@types/node": "^20.14.10",
     "prisma": "^5.17.0",
     "tsx": "^4.16.2",
     "typescript": "^5.5.4"

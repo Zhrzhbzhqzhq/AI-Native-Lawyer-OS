@@ -1,0 +1,11 @@
+{
+  "name": "lawdesk-backend-runtime",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "dependencies": {
+    "@fastify/cors": "^9.0.1",
+    "dotenv": "^16.4.5",
+    "fastify": "^4.28.1",
+    "@prisma/client": "^5.22.0"
+  }
+}
