@@ -1,0 +1,11 @@
+{
+  "materials": [
+    {
+      "material_id": "fail_mat_001",
+      "title": "错误材料",
+      "type": "note",
+      "source": "fail fixture",
+      "description": "故意错误的负向测试材料。"
+    }
+  ]
+}

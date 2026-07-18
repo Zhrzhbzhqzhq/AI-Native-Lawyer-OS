@@ -1,0 +1,137 @@
+{
+  "case_id": "case01_golden",
+  "version": "1.0.0",
+  "modules": {
+    "matter": {
+      "required": true,
+      "minimum": 1,
+      "weight": 10,
+      "critical_fields": [
+        "title",
+        "matter_type",
+        "parties",
+        "amount",
+        "loan_date",
+        "due_date"
+      ]
+    },
+    "materials": {
+      "required": true,
+      "minimum": 8,
+      "weight": 8,
+      "critical_fields": [
+        "material_id",
+        "title",
+        "type",
+        "source",
+        "description"
+      ]
+    },
+    "evidence": {
+      "required": true,
+      "minimum": 16,
+      "weight": 12,
+      "critical_fields": [
+        "evidence_id",
+        "title",
+        "purpose",
+        "strength",
+        "source_material"
+      ]
+    },
+    "facts": {
+      "required": true,
+      "minimum": 44,
+      "weight": 12,
+      "critical_fields": [
+        "fact_id",
+        "description",
+        "source_evidence"
+      ]
+    },
+    "issues": {
+      "required": true,
+      "minimum": 8,
+      "weight": 8,
+      "critical_fields": [
+        "issue_id",
+        "title",
+        "description"
+      ]
+    },
+    "laws": {
+      "required": true,
+      "minimum": 14,
+      "weight": 8,
+      "critical_fields": [
+        "law_id",
+        "name",
+        "article",
+        "purpose"
+      ]
+    },
+    "arguments": {
+      "required": true,
+      "minimum": 16,
+      "weight": 10,
+      "critical_fields": [
+        "argument_id",
+        "title",
+        "supported_facts",
+        "supported_evidence",
+        "conclusion"
+      ]
+    },
+    "research": {
+      "required": true,
+      "minimum": 1,
+      "weight": 12,
+      "critical_fields": [
+        "research_id",
+        "matter_id",
+        "summary",
+        "key_facts",
+        "issues",
+        "legal_basis",
+        "evidence_assessment",
+        "risks",
+        "preservation_recommendation",
+        "litigation_strategy",
+        "next_actions",
+        "confidence"
+      ]
+    },
+    "documents": {
+      "required": true,
+      "minimum": 5,
+      "weight": 10,
+      "critical_fields": [
+        "document_id",
+        "title",
+        "document_type",
+        "status",
+        "purpose",
+        "required_inputs",
+        "expected_sections",
+        "golden_content_summary",
+        "review_points"
+      ]
+    },
+    "execution": {
+      "required": true,
+      "minimum": 24,
+      "weight": 10,
+      "critical_fields": [
+        "task_id",
+        "title",
+        "stage",
+        "status",
+        "priority",
+        "trigger",
+        "lawyer_action_required",
+        "expected_result",
+        "next_task"
+      ]
+    }
+  }
+}

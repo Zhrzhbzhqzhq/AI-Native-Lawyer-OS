@@ -1,0 +1,19 @@
+{
+  "id": "case01_golden",
+  "name": "LawDesk Golden Case 01",
+  "version": "1.0.0",
+  "description": "Golden test case directory for LawDesk V1 validation.",
+  "materials": [],
+  "expected": {
+    "matter": "expected/matter.json",
+    "materials": "expected/materials.json",
+    "evidence": "expected/evidence.json",
+    "facts": "expected/facts.json",
+    "issues": "expected/issues.json",
+    "laws": "expected/laws.json",
+    "arguments": "expected/arguments.json",
+    "research": "expected/research.json",
+    "documents": "expected/documents.json",
+    "execution": "expected/execution.json"
+  }
+}

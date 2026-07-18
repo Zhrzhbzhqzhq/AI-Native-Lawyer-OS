@@ -72,6 +72,15 @@ function uniqueStrings(values: unknown[]) {
   return Array.from(new Set(values.map((value) => String(value || '').trim()).filter(Boolean)))
 }
 
+function parseSourceIssueIds(value: unknown) {
+  if (typeof value !== 'string') return value
+  try {
+    return JSON.parse(value)
+  } catch (_) {
+    return value
+  }
+}
+
 function clampConfidence(value: unknown) {
   const number = typeof value === 'number' ? value : Number(value)
   if (!Number.isFinite(number)) return null
@@ -124,17 +133,57 @@ function inferFormalIssueType(issue: any): IssueConcept | null {
   return inferIssueTypeFromFacts(sourceFacts)
 }
 
-export function normalizeLawSuggestionsForDrafts(suggestions: any[], issues: any[]): LawDraftInput[] {
-  if (!Array.isArray(suggestions)) return []
+export function normalizeLawSuggestionsForDrafts(suggestions: any, issues: any[]): LawDraftInput[] {
+  const suggestionList: any[] = Array.isArray(suggestions)
+    ? suggestions
+    : Array.isArray(suggestions?.laws)
+      ? suggestions.laws
+      : Array.isArray(suggestions?.suggestions)
+        ? suggestions.suggestions
+        : []
+
+  console.log('[LAW NORMALIZE DEBUG]', {
+    suggestion_count: suggestionList.length,
+    first_suggestion: suggestionList[0],
+    title: suggestionList[0]?.title,
+    issue_title: suggestionList[0]?.issue_title,
+    issue_type: suggestionList[0]?.issue_type,
+    source_issue_ids: suggestionList[0]?.source_issue_ids,
+  })
+
   const issueById = new Map(issues.map((issue) => [String(issue.issue_id), issue]))
-  const candidates = suggestions.flatMap((suggestion) => {
+  const candidates = suggestionList.flatMap((suggestion: any) => {
     const title = String(suggestion?.title || suggestion?.name || '').trim()
-    const issueType = String(suggestion?.issue_type || '').trim() as IssueConcept
-    if (!title || !ISSUE_CONCEPT_ORDER.includes(issueType)) return []
-    const source_issue_ids = getSourceIssueIds(suggestion, issues)
-    if (source_issue_ids.length === 0) return []
-    const sourceTypes = source_issue_ids.map((id) => inferFormalIssueType(issueById.get(id)))
-    if (sourceTypes.some((type) => type !== issueType)) return []
+
+    if (!title) return []
+
+    let source_issue_ids = getSourceIssueIds(suggestion, issues)
+
+    if (typeof suggestion?.issue_title === 'string' && suggestion.issue_title.trim()) {
+      const issueTitle = suggestion.issue_title.trim()
+      const matched = issues.find((issue: any) => String(issue.title || '').trim() === issueTitle)
+      if (!matched) {
+        console.log('[LAW ISSUE LINK FAILED]', {
+          law_title: title,
+          issue_title: issueTitle,
+        })
+        return []
+      }
+      source_issue_ids = [String(matched.issue_id)]
+    } else if (source_issue_ids.length !== 1) {
+      console.log('[LAW ISSUE LINK FAILED]', {
+        law_title: title,
+        issue_title: suggestion?.issue_title,
+      })
+      return []
+    }
+
+    const explicitIssueType = String(suggestion?.issue_type || '').trim() as IssueConcept
+    const issueType = ISSUE_CONCEPT_ORDER.includes(explicitIssueType)
+      ? explicitIssueType
+      : inferFormalIssueType(issueById.get(source_issue_ids[0]))
+
+
     return [{
       title,
       citation: String(suggestion?.citation || suggestion?.article || suggestion?.ref || '').trim(),
@@ -146,35 +195,29 @@ export function normalizeLawSuggestionsForDrafts(suggestions: any[], issues: any
       confidence: clampConfidence(suggestion?.confidence),
       ai_reasoning: String(suggestion?.ai_reasoning || suggestion?.reasoning || suggestion?.reason || '').trim(),
       source_issue_ids,
-      issue_type: issueType,
+      issue_type: issueType || ISSUE_CONCEPT_ORDER[0],
     }]
-  }).sort((left, right) => {
+  }).sort((left: LawDraftInput, right: LawDraftInput) => {
     const typeOrder = ISSUE_CONCEPT_ORDER.indexOf(left.issue_type!) - ISSUE_CONCEPT_ORDER.indexOf(right.issue_type!)
     if (typeOrder !== 0) return typeOrder
     return `${left.title}\n${left.citation}`.localeCompare(`${right.title}\n${right.citation}`)
   })
 
-  const byType = new Map<IssueConcept, LawDraftInput>()
-  for (const candidate of candidates) {
-    const issueType = candidate.issue_type!
-    const existing = byType.get(issueType)
-    if (existing) {
-      existing.source_issue_ids = uniqueStrings([...existing.source_issue_ids, ...candidate.source_issue_ids]).sort()
-      continue
-    }
-    byType.set(issueType, candidate)
-  }
-  return ISSUE_CONCEPT_ORDER.map((type) => byType.get(type)).filter(Boolean) as LawDraftInput[]
+  return candidates
 }
 
 export class LawDraftService {
   constructor(private prisma: PrismaClient) {}
 
   async listDrafts(matter_id: string): Promise<LawDraftRow[]> {
-    return this.prisma.lawDraft.findMany({
+    const drafts = await this.prisma.lawDraft.findMany({
       where: { matter_id },
       orderBy: { created_at: 'asc' },
     })
+    return drafts.map((draft: any) => ({
+      ...draft,
+      source_issue_ids: parseSourceIssueIds(draft.source_issue_ids),
+    }))
   }
 
   async generateDrafts(matter_id: string): Promise<LawDraftGenerateResult> {
@@ -183,7 +226,15 @@ export class LawDraftService {
       orderBy: { created_at: 'asc' },
     })
     if (existing.length > 0) {
-      return { status: 'law_draft_ready', idempotent: true, law_drafts: existing, ai_audit: null }
+      return {
+        status: 'law_draft_ready',
+        idempotent: true,
+        law_drafts: existing.map((draft: any) => ({
+          ...draft,
+          source_issue_ids: parseSourceIssueIds(draft.source_issue_ids),
+        })),
+        ai_audit: null,
+      }
     }
 
     const issues = await this.prisma.issue.findMany({
@@ -200,7 +251,32 @@ export class LawDraftService {
     const AIService = (await import('./ai/AIService')).default
     const ai = new AIService(this.prisma)
     const suggestions = await ai.analyzeLaws(matter_id)
-    const drafts = normalizeLawSuggestionsForDrafts(suggestions, issues)
+    console.log('[LAW GENERATE INPUT]', {
+      suggestions_type: typeof suggestions,
+      is_array: Array.isArray(suggestions),
+      keys: suggestions && typeof suggestions === 'object'
+        ? Object.keys(suggestions)
+        : [],
+      length: (suggestions as any)?.length,
+      first: Array.isArray(suggestions) ? suggestions[0] : suggestions,
+    })
+
+    const normalizedSuggestions = Array.isArray(suggestions)
+      ? suggestions
+      : Array.isArray((suggestions as any)?.laws)
+        ? (suggestions as any).laws
+        : Array.isArray((suggestions as any)?.suggestions)
+          ? (suggestions as any).suggestions
+          : []
+
+    const drafts = normalizeLawSuggestionsForDrafts(normalizedSuggestions, issues)
+
+    console.log('[LAW NORMALIZE RESULT]', {
+      suggestions_count: normalizedSuggestions.length,
+      issues_count: issues.length,
+      drafts_count: drafts.length,
+      first_suggestion: normalizedSuggestions[0],
+    })
     if (drafts.length === 0) {
       const error = new Error('law_draft_empty')
       ;(error as any).code = 'law_draft_empty'
@@ -222,7 +298,9 @@ export class LawDraftService {
             source_reference: draft.source_reference || '',
             confidence: draft.confidence,
             ai_reasoning: draft.ai_reasoning || '',
-            source_issue_ids: draft.source_issue_ids,
+            source_issue_ids: typeof draft.source_issue_ids === 'string'
+              ? draft.source_issue_ids
+              : JSON.stringify(draft.source_issue_ids),
             review_status: 'pending',
           },
         }))
@@ -230,7 +308,15 @@ export class LawDraftService {
       return rows
     })
 
-    return { status: 'law_draft_ready', idempotent: false, law_drafts: created, ai_audit: ai.getLastAudit() }
+    return {
+      status: 'law_draft_ready',
+      idempotent: false,
+      law_drafts: created.map((draft: any) => ({
+        ...draft,
+        source_issue_ids: parseSourceIssueIds(draft.source_issue_ids),
+      })),
+      ai_audit: ai.getLastAudit(),
+    }
   }
 
   async updateDraft(matter_id: string, draft_id: string, payload: Partial<LawDraftInput> & { review_status?: string; lawyer_note?: string }): Promise<LawDraftRow> {
@@ -287,7 +373,11 @@ export class LawDraftService {
       throw error
     }
 
-    return this.prisma.lawDraft.update({ where: { id: draft_id }, data: patch })
+    const updated = await this.prisma.lawDraft.update({ where: { id: draft_id }, data: patch })
+    return {
+      ...updated,
+      source_issue_ids: parseSourceIssueIds(updated.source_issue_ids),
+    }
   }
 
   async publishDrafts(matter_id: string): Promise<LawDraftPublishResult> {
@@ -336,8 +426,19 @@ export class LawDraftService {
           continue
         }
 
-        const sourceIds = uniqueStrings(Array.isArray(draft.source_issue_ids) ? draft.source_issue_ids : [])
+        const parsedSourceIssueIds = parseSourceIssueIds(draft.source_issue_ids)
+        const sourceIds = uniqueStrings(Array.isArray(parsedSourceIssueIds) ? parsedSourceIssueIds : [])
         if (sourceIds.length === 0 || sourceIds.some((id) => !validIssueIds.has(id))) {
+          const error = new Error('invalid_source_issue_ids')
+          ;(error as any).code = 'invalid_source_issue_ids'
+          throw error
+        }
+        if (sourceIds.length !== 1) {
+          console.log('[LAW ISSUE LINK FAILED]', {
+            law_title: draft.title,
+            issue_title: null,
+            source_issue_ids: sourceIds,
+          })
           const error = new Error('invalid_source_issue_ids')
           ;(error as any).code = 'invalid_source_issue_ids'
           throw error

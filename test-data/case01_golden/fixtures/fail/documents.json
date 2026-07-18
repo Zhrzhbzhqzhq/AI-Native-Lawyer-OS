@@ -1,0 +1,15 @@
+{
+  "documents": [
+    {
+      "document_id": "fail_doc_001",
+      "title": "空正文文书",
+      "document_type": "civil_complaint",
+      "status": "draft",
+      "purpose": "故意触发 empty_document_content",
+      "required_inputs": [],
+      "expected_sections": [],
+      "golden_content_summary": "",
+      "review_points": []
+    }
+  ]
+}

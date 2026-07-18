@@ -1,0 +1,15 @@
+{
+  "execution": [
+    {
+      "task_id": "fail_exec_001",
+      "title": "错误任务",
+      "stage": "测试",
+      "status": "pending",
+      "priority": "low",
+      "trigger": "fail fixture",
+      "lawyer_action_required": true,
+      "expected_result": "触发失败报告。",
+      "next_task": null
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "laws": [
+    {
+      "law_id": "law-mrjg2fgv-53jar1",
+      "issue_id": null,
+      "name": "可能适用法律：需确认：关于：006_银行流水.txt",
+      "title": "可能适用法律：需确认：关于：006_银行流水.txt",
+      "purpose": "Support claim",
+      "description": "Support claim",
+      "status": "draft",
+      "created_at": "2026-07-13T16:36:17.743Z",
+      "updated_at": "2026-07-13T16:36:17.743Z"
+    },
+    {
+      "law_id": "law-mrjg2fgs-ocj4bl",
+      "issue_id": null,
+      "name": "可能适用法律：需确认：关于：004_微信聊天_催收.txt",
+      "title": "可能适用法律：需确认：关于：004_微信聊天_催收.txt",
+      "purpose": "Support claim",
+      "description": "Support claim",
+      "status": "draft",
+      "created_at": "2026-07-13T16:36:17.741Z",
+      "updated_at": "2026-07-13T16:36:17.741Z"
+    },
+    {
+      "law_id": "law-mrjg2fgp-trhai9",
+      "issue_id": null,
+      "name": "可能适用法律：需确认：关于：003_微信聊天_借款形成.txt",
+      "title": "可能适用法律：需确认：关于：003_微信聊天_借款形成.txt",
+      "purpose": "Support claim",
+      "description": "Support claim",
+      "status": "draft",
+      "created_at": "2026-07-13T16:36:17.738Z",
+      "updated_at": "2026-07-13T16:36:17.738Z"
+    },
+    {
+      "law_id": "law-mrjg2fgl-59r91a",
+      "issue_id": null,
+      "name": "可能适用法律：需确认：关于：002_咨询录音整理.txt",
+      "title": "可能适用法律：需确认：关于：002_咨询录音整理.txt",
+      "purpose": "Support claim",
+      "description": "Support claim",
+      "status": "draft",
+      "created_at": "2026-07-13T16:36:17.734Z",
+      "updated_at": "2026-07-13T16:36:17.734Z"
+    },
+    {
+      "law_id": "law-mrjg2fgh-k0w6r7",
+      "issue_id": null,
+      "name": "可能适用法律：需确认：关于：001_客户咨询记录.txt",
+      "title": "可能适用法律：需确认：关于：001_客户咨询记录.txt",
+      "purpose": "Support claim",
+      "description": "Support claim",
+      "status": "draft",
+      "created_at": "2026-07-13T16:36:17.729Z",
+      "updated_at": "2026-07-13T16:36:17.729Z"
+    }
+  ]
+}

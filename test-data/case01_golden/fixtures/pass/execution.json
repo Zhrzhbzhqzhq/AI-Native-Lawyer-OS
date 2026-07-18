@@ -1,0 +1,268 @@
+{
+  "execution": [
+    {
+      "task_id": "exec_001",
+      "title": "核验案件基础信息",
+      "stage": "材料核验",
+      "status": "pending",
+      "priority": "high",
+      "trigger": "Case01 材料进入 Matter Workspace",
+      "lawyer_action_required": true,
+      "expected_result": "确认张建国、李海涛身份信息、联系方式、案由和诉讼目标。",
+      "next_task": "exec_002"
+    },
+    {
+      "task_id": "exec_002",
+      "title": "核验借条原件",
+      "stage": "材料核验",
+      "status": "pending",
+      "priority": "high",
+      "trigger": "基础信息核验完成",
+      "lawyer_action_required": true,
+      "expected_result": "确认 2023-05-10 借条原件存在，签名、捺印、金额、期限、利息和费用条款清晰。",
+      "next_task": "exec_003"
+    },
+    {
+      "task_id": "exec_003",
+      "title": "核验银行流水",
+      "stage": "材料核验",
+      "status": "pending",
+      "priority": "high",
+      "trigger": "借条原件核验完成",
+      "lawyer_action_required": true,
+      "expected_result": "确认 2023-05-10 转账 200000 元和 2023-08-20 还款 20000 元记录真实、完整、可提交。",
+      "next_task": "exec_004"
+    },
+    {
+      "task_id": "exec_004",
+      "title": "固化微信聊天记录",
+      "stage": "证据确认",
+      "status": "pending",
+      "priority": "high",
+      "trigger": "银行流水核验完成",
+      "lawyer_action_required": true,
+      "expected_result": "确认借款形成和催收微信记录的原始载体、导出文件、聊天双方身份和时间连续性。",
+      "next_task": "exec_005"
+    },
+    {
+      "task_id": "exec_005",
+      "title": "固化电话录音证据",
+      "stage": "证据确认",
+      "status": "pending",
+      "priority": "medium",
+      "trigger": "微信聊天记录固化完成",
+      "lawyer_action_required": true,
+      "expected_result": "确认 2024-02-20 电话录音原始文件、文字整理稿和录音取得合法性。",
+      "next_task": "exec_006"
+    },
+    {
+      "task_id": "exec_006",
+      "title": "确认律师函及签收记录",
+      "stage": "证据确认",
+      "status": "pending",
+      "priority": "medium",
+      "trigger": "电话录音证据核验完成",
+      "lawyer_action_required": true,
+      "expected_result": "确认 2024-03-01 律师函副本、快递轨迹和 2024-03-03 签收记录可作为诉前催告证据。",
+      "next_task": "exec_007"
+    },
+    {
+      "task_id": "exec_007",
+      "title": "确认证据目录",
+      "stage": "证据确认",
+      "status": "pending",
+      "priority": "high",
+      "trigger": "核心证据核验完成",
+      "lawyer_action_required": true,
+      "expected_result": "形成覆盖借贷关系、交付、余额、违约和催告的证据目录。",
+      "next_task": "exec_008"
+    },
+    {
+      "task_id": "exec_008",
+      "title": "确认法律研究结论",
+      "stage": "法律研究确认",
+      "status": "pending",
+      "priority": "high",
+      "trigger": "证据目录形成",
+      "lawyer_action_required": true,
+      "expected_result": "律师确认借贷关系成立、借款已交付、债务到期、被告违约、利率口径和诉讼策略。",
+      "next_task": "exec_009"
+    },
+    {
+      "task_id": "exec_009",
+      "title": "确认利息计算口径",
+      "stage": "法律研究确认",
+      "status": "pending",
+      "priority": "high",
+      "trigger": "法律研究结论待落地",
+      "lawyer_action_required": true,
+      "expected_result": "确定采用月利率 1%、年利率 6% 保守口径，或将年利率 6% 作为备选和调解底线。",
+      "next_task": "exec_010"
+    },
+    {
+      "task_id": "exec_010",
+      "title": "起草民事起诉状",
+      "stage": "文书审核",
+      "status": "pending",
+      "priority": "high",
+      "trigger": "利息计算口径确认",
+      "lawyer_action_required": false,
+      "expected_result": "生成包含当事人信息、诉讼请求、事实理由和证据概述的起诉状草稿。",
+      "next_task": "exec_011"
+    },
+    {
+      "task_id": "exec_011",
+      "title": "律师审核起诉状",
+      "stage": "文书审核",
+      "status": "pending",
+      "priority": "high",
+      "trigger": "起诉状草稿生成",
+      "lawyer_action_required": true,
+      "expected_result": "律师确认管辖、诉讼请求、事实表述、金额和证据引用准确无误。",
+      "next_task": "exec_012"
+    },
+    {
+      "task_id": "exec_012",
+      "title": "起草并审核证据目录",
+      "stage": "文书审核",
+      "status": "pending",
+      "priority": "high",
+      "trigger": "起诉状审核完成",
+      "lawyer_action_required": true,
+      "expected_result": "形成可提交法院的证据目录，明确证据名称、来源和证明目的。",
+      "next_task": "exec_013"
+    },
+    {
+      "task_id": "exec_013",
+      "title": "开展财产调查",
+      "stage": "财产调查",
+      "status": "pending",
+      "priority": "high",
+      "trigger": "准备评估财产保全",
+      "lawyer_action_required": true,
+      "expected_result": "收集李海涛银行账户、房产、车辆、经营主体、微信支付宝等财产线索。",
+      "next_task": "exec_014"
+    },
+    {
+      "task_id": "exec_014",
+      "title": "评估财产保全",
+      "stage": "财产保全评估",
+      "status": "pending",
+      "priority": "high",
+      "trigger": "财产调查形成初步线索",
+      "lawyer_action_required": true,
+      "expected_result": "律师决定是否申请财产保全，确认保全金额、担保方式和风险告知。",
+      "next_task": "exec_015"
+    },
+    {
+      "task_id": "exec_015",
+      "title": "提交网上立案",
+      "stage": "网上立案",
+      "status": "pending",
+      "priority": "high",
+      "trigger": "起诉状、证据目录和保全方案经律师确认",
+      "lawyer_action_required": true,
+      "expected_result": "在法院立案平台提交起诉状、证据材料、身份材料和保全申请材料。",
+      "next_task": "exec_016"
+    },
+    {
+      "task_id": "exec_016",
+      "title": "缴纳诉讼费",
+      "stage": "缴纳诉讼费",
+      "status": "pending",
+      "priority": "high",
+      "trigger": "法院发出缴费通知",
+      "lawyer_action_required": true,
+      "expected_result": "在法院指定期限内完成诉讼费缴纳并保存缴费凭证。",
+      "next_task": "exec_017"
+    },
+    {
+      "task_id": "exec_017",
+      "title": "等待立案受理",
+      "stage": "等待受理",
+      "status": "pending",
+      "priority": "medium",
+      "trigger": "诉讼费缴纳完成",
+      "lawyer_action_required": false,
+      "expected_result": "收到案件受理通知书、案号和承办法官或书记员信息。",
+      "next_task": "exec_018"
+    },
+    {
+      "task_id": "exec_018",
+      "title": "跟进送达",
+      "stage": "送达",
+      "status": "pending",
+      "priority": "medium",
+      "trigger": "案件受理完成",
+      "lawyer_action_required": true,
+      "expected_result": "确认起诉材料和开庭材料已向李海涛有效送达，必要时补充送达地址。",
+      "next_task": "exec_019"
+    },
+    {
+      "task_id": "exec_019",
+      "title": "分析被告答辩",
+      "stage": "答辩分析",
+      "status": "pending",
+      "priority": "high",
+      "trigger": "收到李海涛答辩状或口头抗辩",
+      "lawyer_action_required": true,
+      "expected_result": "识别已还清、非借款、未收到款、利息过高等抗辩，并匹配反驳证据。",
+      "next_task": "exec_020"
+    },
+    {
+      "task_id": "exec_020",
+      "title": "准备庭审提纲",
+      "stage": "庭审准备",
+      "status": "pending",
+      "priority": "high",
+      "trigger": "开庭通知或答辩材料已收到",
+      "lawyer_action_required": true,
+      "expected_result": "形成举证质证提纲、发问提纲、争议焦点回应和调解方案。",
+      "next_task": "exec_021"
+    },
+    {
+      "task_id": "exec_021",
+      "title": "参加开庭",
+      "stage": "开庭",
+      "status": "pending",
+      "priority": "high",
+      "trigger": "法院确定开庭时间",
+      "lawyer_action_required": true,
+      "expected_result": "完成庭审陈述、举证质证、法庭发问、辩论和调解意见确认。",
+      "next_task": "exec_022"
+    },
+    {
+      "task_id": "exec_022",
+      "title": "跟进判决",
+      "stage": "判决",
+      "status": "pending",
+      "priority": "high",
+      "trigger": "庭审结束或法院通知宣判",
+      "lawyer_action_required": true,
+      "expected_result": "取得判决书，核对本金、利息、费用承担和履行期限。",
+      "next_task": "exec_023"
+    },
+    {
+      "task_id": "exec_023",
+      "title": "申请强制执行",
+      "stage": "申请执行",
+      "status": "pending",
+      "priority": "high",
+      "trigger": "判决生效且李海涛未履行",
+      "lawyer_action_required": true,
+      "expected_result": "提交执行申请书、生效证明、判决书和财产线索，启动执行程序。",
+      "next_task": "exec_024"
+    },
+    {
+      "task_id": "exec_024",
+      "title": "执行跟踪、结案复盘和知识沉淀",
+      "stage": "执行跟踪与结案",
+      "status": "pending",
+      "priority": "medium",
+      "trigger": "执行程序启动或款项清偿",
+      "lawyer_action_required": true,
+      "expected_result": "跟踪查控、冻结、扣划、和解履行；结案后完成案件复盘，沉淀民间借贷证据链、利息口径和保全策略知识。",
+      "next_task": null
+    }
+  ]
+}

@@ -65,6 +65,7 @@ export class AIService {
 
         try {
             const resp = await this.generateWithAudit(promptPack)
+            console.log('[LAW AI RAW RESPONSE]', JSON.stringify(resp, null, 2))
             // adapter may return structured suggestions under resp.response.suggestions
             // Try multiple response shapes: resp.response.suggestions, resp.response array,
             // or MiniMax-style resp.response.choices[0].message.content (stringified JSON)
@@ -176,7 +177,7 @@ export class AIService {
                         const validation2 = AIOutputValidator.validateFacts(facts2)
                         if (validation2.ok) {
 
-                            try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Facts', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'PASS', retry: 1, fallback: false, missing_fields: [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
+                                                        try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Facts', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'PASS', retry: 1, fallback: false, missing_fields: [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
                             return facts2.map((f: any) => ({ title: String(f.title || f.name || ''), description: String(f.description || f.reason || ''), category: f.category, evidence_titles: f.evidence_titles }))
                         }
 
@@ -216,6 +217,9 @@ export class AIService {
 
         try {
             const resp = await this.generateWithAudit(promptPack)
+
+            console.log('[ISSUE AI RAW RESPONSE]', JSON.stringify(resp, null, 2))
+
             // Try multiple response shapes: resp.response.issues, resp.response.suggestions,
             // or MiniMax-style resp.response.choices[0].message.content (stringified JSON)
             let issues: any = null
@@ -243,6 +247,7 @@ export class AIService {
                     description: String(it.description || it.reason || ''),
                     issue_type: it.issue_type,
                     source_fact_ids: Array.isArray(it.source_fact_ids) ? it.source_fact_ids : [],
+                    fact_titles: Array.isArray(it.fact_titles) ? it.fact_titles : [],
                     ai_reasoning: String(it.ai_reasoning || it.reasoning || it.reason || '该争点影响案件事实认定与法律责任判断。'),
                     confidence: typeof it.confidence === 'number' ? it.confidence : 0.9,
                 }))
@@ -270,9 +275,12 @@ export class AIService {
             rows.push(link.fact)
             factsByIssue.set(String(link.issue_id), rows)
         }
-        const typedIssues = issues.flatMap((issue: any) => {
+        const typedIssues = issues.map((issue: any) => {
             const issueType = inferIssueTypeFromFacts(factsByIssue.get(String(issue.issue_id)) || [])
-            return issueType ? [{ ...issue, issue_type: issueType }] : []
+            return {
+                ...issue,
+                issue_type: issueType || 'general',
+            }
         })
 
         const context = await this.contextBuilder.buildMatterContext(matter_id)
@@ -281,14 +289,29 @@ export class AIService {
             prompt_version: 'law-draft-v1',
             task: 'analyze_laws',
             matter_id,
-            issues: typedIssues.map((it: any) => ({ issue_id: it.issue_id || '', issue_type: it.issue_type, source_issue_ids: [it.issue_id] })),
+            issues: typedIssues.map((it: any) => ({
+                issue_id: it.issue_id || '',
+                title: it.title || '',
+                description: it.description || '',
+                issue_type: it.issue_type,
+                source_issue_ids: [it.issue_id],
+            })),
             context_pack: context,
             user_prompt: userPrompt,
             created_at: new Date().toISOString(),
         }
 
+        console.log('[LAW PROMPT INPUT]', JSON.stringify({
+            issues: promptPack.issues,
+            context_keys: Object.keys(promptPack.context_pack || {}),
+            user_prompt_length: promptPack.user_prompt?.length,
+        }, null, 2))
+
         try {
             const resp = await this.generateWithAudit(promptPack)
+
+            console.log('[LAW AI RAW RESPONSE]', JSON.stringify(resp, null, 2))
+
             // Try multiple response shapes: resp.response.laws, resp.response.suggestions,
             // or MiniMax-style resp.response.choices[0].message.content (stringified JSON)
             let laws: any = null
@@ -301,7 +324,31 @@ export class AIService {
                     try {
                         const { parseAIJson } = await import('./parseAIJson')
                         const parsed = parseAIJson(txt)
-                        if (Array.isArray(parsed.data)) laws = parsed.data
+
+                        console.log('[LAW PARSE RESULT]', {
+                            raw_length: txt.length,
+                            parsed_type: typeof parsed.data,
+                            is_array: Array.isArray(parsed.data),
+                            extracted_length: parsed.extracted?.length || 0,
+                        })
+
+                        console.log('[LAW PARSED DATA]', {
+                            data_type: typeof parsed.data,
+                            is_array: Array.isArray(parsed.data),
+                            keys: parsed.data && typeof parsed.data === 'object'
+                                ? Object.keys(parsed.data)
+                                : [],
+                            length: Array.isArray(parsed.data)
+                                ? parsed.data.length
+                                : -1,
+                        })
+
+                        if (Array.isArray(parsed.data)) {
+                            laws = parsed.data
+                        } else if (parsed.data && typeof parsed.data === 'object') {
+                            if (Array.isArray(parsed.data.laws)) laws = parsed.data.laws
+                            else if (Array.isArray(parsed.data.suggestions)) laws = parsed.data.suggestions
+                        }
                     } catch (_e) {
                         // ignore
                     }
@@ -310,7 +357,14 @@ export class AIService {
 
             if (Array.isArray(laws)) {
                 // Validate laws before returning
-                let validation = AIOutputValidator.validateLaws(laws)
+                console.log('[LAW BEFORE VALIDATE]', {
+    type: typeof laws,
+    isArray: Array.isArray(laws),
+    length: Array.isArray(laws) ? laws.length : -1,
+    first: Array.isArray(laws) ? laws[0] : laws
+})
+
+let validation = AIOutputValidator.validateLaws(laws)
                 if (validation.ok) {
 
                     try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Laws', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'PASS', retry: 0, fallback: false, missing_fields: [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
@@ -345,7 +399,20 @@ export class AIService {
                             try {
                                 const { parseAIJson } = await import('./parseAIJson')
                                 const parsed2 = parseAIJson(txt2)
+
+                                console.log('[LAW PARSED DATA RETRY]', {
+                                    data_type: typeof parsed2.data,
+                                    is_array: Array.isArray(parsed2.data),
+                                    keys: parsed2.data && typeof parsed2.data === 'object'
+                                        ? Object.keys(parsed2.data)
+                                        : [],
+                                })
+
                                 if (Array.isArray(parsed2.data)) laws2 = parsed2.data
+                                else if (parsed2.data && typeof parsed2.data === 'object') {
+                                    if (Array.isArray(parsed2.data.laws)) laws2 = parsed2.data.laws
+                                    else if (Array.isArray(parsed2.data.suggestions)) laws2 = parsed2.data.suggestions
+                                }
                             } catch (_e) {
                                 // ignore
                             }
@@ -355,7 +422,7 @@ export class AIService {
                         const validation2 = AIOutputValidator.validateLaws(laws2)
                         if (validation2.ok) {
 
-                            try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Laws', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'PASS', retry: 1, fallback: false, missing_fields: [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
+                                                        try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Laws', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'PASS', retry: 1, fallback: false, missing_fields: [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
                             return laws2.map((l: any) => ({
                                 title: String(l.title || l.name || ''),
                                 citation: String(l.citation || l.ref || l.article || ''),
@@ -450,6 +517,7 @@ export class AIService {
 
         try {
             const resp = await this.generateWithAudit(promptPack)
+            console.log('[ARGUMENT AI RAW RESPONSE]', JSON.stringify(resp, null, 2))
             // adapter may return structured arguments under resp.response.arguments or resp.response.suggestions
             // Parse multiple shapes: resp.response.arguments, resp.response.suggestions,
             // or MiniMax-style resp.response.choices[0].message.content (stringified JSON)
@@ -463,6 +531,12 @@ export class AIService {
                     try {
                         const { parseAIJson } = await import('./parseAIJson')
                         const parsed = parseAIJson(txt)
+                        console.log('[ARGUMENT PARSED DATA]', {
+                            data_type: typeof parsed.data,
+                            is_array: Array.isArray(parsed.data),
+                            keys: parsed.data && typeof parsed.data === 'object' ? Object.keys(parsed.data) : [],
+                            length: Array.isArray(parsed.data) ? parsed.data.length : -1,
+                        })
                         if (Array.isArray(parsed.data)) args = parsed.data
                     } catch (_e) {
                         // ignore
@@ -508,7 +582,7 @@ export class AIService {
                         const validation2 = AIOutputValidator.validateArguments(args2)
                         if (validation2.ok) {
 
-                            try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Arguments', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'PASS', retry: 1, fallback: false, missing_fields: [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
+                                                        try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Arguments', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'PASS', retry: 1, fallback: false, missing_fields: [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
                             return args2.map((a: any) => ({
                                 ...a,
                                 source_fact_ids: Array.isArray(a.source_fact_ids) ? a.source_fact_ids : [],
@@ -604,7 +678,7 @@ export class AIService {
                         const validation2 = AIOutputValidator.validateDocuments(docs2)
                         if (validation2.ok) {
 
-                            try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Documents', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'PASS', retry: 1, fallback: false, missing_fields: [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
+                                                        try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Documents', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'PASS', retry: 1, fallback: false, missing_fields: [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
                             return docs2.map((d: any) => ({ title: String(d.title || ''), document_type: String(d.document_type || d.type || ''), content: String(d.content || d.body || ''), status: String(d.status || 'draft') }))
                         }
 

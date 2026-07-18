@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@lawdesk/database'
 import FactService from './factService'
 import AIService from './ai/AIService'
+import type { AIAudit } from './ai/aiAudit'
 
 type FactDraftInput = {
   title: string
@@ -31,6 +32,7 @@ type FactDraftGenerateResult = {
   status: 'fact_draft_ready'
   idempotent: boolean
   fact_drafts: FactDraftRow[]
+  ai_audit: AIAudit | null
 }
 
 type FactDraftPublishResult = {
@@ -182,7 +184,7 @@ export class FactDraftService {
       orderBy: { created_at: 'asc' },
     })
     if (existing.length > 0) {
-      return { status: 'fact_draft_ready', idempotent: true, fact_drafts: existing }
+      return { status: 'fact_draft_ready', idempotent: true, fact_drafts: existing, ai_audit: null }
     }
 
     const evidences = await this.prisma.evidence.findMany({
@@ -215,7 +217,7 @@ export class FactDraftService {
             description: draft.description || '',
             confidence: draft.confidence,
             ai_reasoning: draft.ai_reasoning || '',
-            source_evidence_ids: draft.source_evidence_ids,
+            source_evidence_ids: JSON.stringify(draft.source_evidence_ids),
             review_status: 'pending',
           },
         }))
@@ -223,7 +225,7 @@ export class FactDraftService {
       return rows
     })
 
-    return { status: 'fact_draft_ready', idempotent: false, fact_drafts: created }
+    return { status: 'fact_draft_ready', idempotent: false, fact_drafts: created, ai_audit: ai.getLastAudit() }
   }
 
   async updateDraft(matter_id: string, draft_id: string, payload: { title?: string; description?: string; review_status?: string; lawyer_note?: string }): Promise<FactDraftRow> {
@@ -326,7 +328,17 @@ export class FactDraftService {
           continue
         }
 
-        const sourceIds = uniqueStrings(Array.isArray(draft.source_evidence_ids) ? draft.source_evidence_ids : [])
+        const sourceIds = uniqueStrings(
+          Array.isArray(draft.source_evidence_ids)
+            ? draft.source_evidence_ids
+            : (() => {
+                try {
+                  return JSON.parse(String(draft.source_evidence_ids || '[]'))
+                } catch {
+                  return []
+                }
+              })()
+        )
         if (sourceIds.length === 0 || sourceIds.some((id) => !validEvidenceIds.has(id))) {
           const error = new Error('invalid_source_evidence_ids')
           ;(error as any).code = 'invalid_source_evidence_ids'

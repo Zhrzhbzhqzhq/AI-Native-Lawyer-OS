@@ -31,6 +31,12 @@ describe('IntakeRuntime matter_draft extraction', () => {
     expect(result.analysis.matter_draft.opponent).toBe('李海涛')
     expect(result.analysis.matter_draft.matter_type).toBe('民间借贷纠纷')
     expect(result.analysis.matter_draft.confidence?.title).toBeGreaterThanOrEqual(0.8)
+    expect(result.ai_audit).toEqual({
+      provider: 'runtime',
+      model: 'lawdesk-intake-runtime-v1',
+      prompt_version: 'intake-runtime-v1',
+      fallback_used: false,
+    })
   })
 
   it('does not fabricate matter basics when only binary metadata is available', () => {

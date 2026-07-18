@@ -6,6 +6,7 @@ import intakeRoutes from './routes/intakeRoutes'
 import executionRoutes from './routes/executionRoutes'
 import aiRoutes from './routes/aiRoutes'
 import todayRoutes from './routes/todayRoutes'
+import devRoutes from './routes/devRoutes'
 
 export async function buildApp() {
   const app = Fastify({ logger: true })
@@ -33,6 +34,7 @@ export async function buildApp() {
   await app.register(executionRoutes)
   await app.register(aiRoutes)
   await app.register(todayRoutes)
+  await app.register(devRoutes)
 
   return app
 }

@@ -16,11 +16,80 @@ export function buildFactPrompt(_context: any) {
 }
 
 export function buildIssuePrompt(_context: any) {
-    return ISSUE_PROMPT
+    const facts = Array.isArray(_context && _context.facts) ? _context.facts : []
+
+    return `${ISSUE_PROMPT}
+
+以下是本案已有事实（Facts）：
+${JSON.stringify(facts, null, 2)}
+
+每个争议焦点（Issue）必须建立在上述已有案件事实基础上，并至少引用一个 Fact。
+
+严格要求：
+1. 每个 Issue 必须输出非空的 fact_titles 数组。
+2. fact_titles 中的每个标题必须与输入 Facts 的 title 完全一致。
+3. 不允许输出空 fact_titles。
+4. 不允许编造、改写或概括 Fact 标题。
+5. 不允许生成没有现有 Fact 支持的 Issue。
+
+只返回合法 JSON 数组，不要输出 Markdown、代码块、解释或其他内容：
+[
+  {
+    "title": "",
+    "description": "",
+    "fact_titles": [
+      ""
+    ],
+    "ai_reasoning": "",
+    "confidence": 0.9
+  }
+]`
 }
 
 export function buildLawPrompt(_context: any) {
-    return LAW_PROMPT
+    const matter = _context && _context.matter ? _context.matter : {}
+    const facts = Array.isArray(_context && _context.facts) ? _context.facts : []
+    const issues = Array.isArray(_context && _context.issues) ? _context.issues : []
+    const evidence = Array.isArray(_context && _context.evidence) ? _context.evidence : []
+    const materials = Array.isArray(_context && _context.materials) ? _context.materials : []
+
+    return `${LAW_PROMPT}
+
+案件（Matter）：
+${JSON.stringify(matter, null, 2)}
+
+已确认事实（Facts）：
+${JSON.stringify(facts, null, 2)}
+
+争议焦点（Issues）：
+${JSON.stringify(issues, null, 2)}
+
+证据（Evidence）：
+${JSON.stringify(evidence, null, 2)}
+
+原始材料（Materials）：
+${JSON.stringify(materials, null, 2)}
+
+请仅依据上述案件上下文生成法律依据草稿，不得编造案件事实或法律依据。
+
+覆盖与数量要求（必须遵守）：
+1. 必须覆盖输入的每一个争议焦点（Issue）。
+2. 每个争议焦点至少返回一条法律依据，不允许只回答其中一个争议焦点。
+3. 返回的法律依据数量不得少于输入的争议焦点数量。
+4. 每条法律依据必须包含非空的 title、citation、description、issue_title。
+5. issue_title 必须明确对应输入中的争议焦点标题。
+
+只返回合法 JSON 数组，不要输出 Markdown、代码块、解释或其他内容：
+[
+  {
+    "title": "",
+    "citation": "",
+    "description": "【适用原因】\n【证明作用】\n【支持结论】",
+    "issue_title": ""
+  }
+]
+
+每条 description 必须完整包含：【适用原因】、【证明作用】、【支持结论】。`
 }
 
 export function buildArgumentPrompt(_context: any) {

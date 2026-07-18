@@ -1,0 +1,116 @@
+{
+  "arguments": [
+    {
+      "argument_id": "arg_001",
+      "title": "张建国与李海涛之间成立民间借贷法律关系",
+      "supported_facts": ["fact_001", "fact_002", "fact_004", "fact_005", "fact_007", "fact_014"],
+      "supported_evidence": ["ev_001", "ev_003", "ev_004", "ev_005", "ev_009"],
+      "conclusion": "微信沟通、借条和双方陈述共同证明双方形成明确借贷合意。"
+    },
+    {
+      "argument_id": "arg_002",
+      "title": "李海涛借款用途为经营周转，不影响借款合同效力",
+      "supported_facts": ["fact_004", "fact_006", "fact_016"],
+      "supported_evidence": ["ev_001", "ev_004", "ev_009"],
+      "conclusion": "借款用途已被双方确认，属于正常经营资金周转需求。"
+    },
+    {
+      "argument_id": "arg_003",
+      "title": "张建国已经实际交付 200000 元借款",
+      "supported_facts": ["fact_010", "fact_011", "fact_012", "fact_013"],
+      "supported_evidence": ["ev_005", "ev_010"],
+      "conclusion": "银行转账记录和李海涛微信确认可证明借款已实际交付。"
+    },
+    {
+      "argument_id": "arg_004",
+      "title": "借条能够证明借款本金、期限和利息等主要合同内容",
+      "supported_facts": ["fact_014", "fact_016", "fact_017", "fact_018", "fact_019"],
+      "supported_evidence": ["ev_009"],
+      "conclusion": "借条作为书面债权凭证，可以证明借款合同核心条款。"
+    },
+    {
+      "argument_id": "arg_005",
+      "title": "微信记录与借条相互印证借款内容",
+      "supported_facts": ["fact_005", "fact_008", "fact_009", "fact_013", "fact_016", "fact_018"],
+      "supported_evidence": ["ev_003", "ev_004", "ev_005", "ev_009"],
+      "conclusion": "电子聊天记录与借条内容一致，增强借贷合意和合同内容证明力。"
+    },
+    {
+      "argument_id": "arg_006",
+      "title": "李海涛仅偿还 20000 元",
+      "supported_facts": ["fact_020", "fact_021", "fact_022", "fact_024"],
+      "supported_evidence": ["ev_011", "ev_012"],
+      "conclusion": "银行流水显示李海涛仅有一笔 20000 元还款，未见其他清偿记录。"
+    },
+    {
+      "argument_id": "arg_007",
+      "title": "剩余本金应认定为 180000 元",
+      "supported_facts": ["fact_016", "fact_020", "fact_023", "fact_029", "fact_037"],
+      "supported_evidence": ["ev_007", "ev_011", "ev_013"],
+      "conclusion": "原借款 200000 元扣除已还 20000 元后，剩余本金为 180000 元。"
+    },
+    {
+      "argument_id": "arg_008",
+      "title": "李海涛多次承认欠款，债务确认充分",
+      "supported_facts": ["fact_029", "fact_032", "fact_035", "fact_036", "fact_037", "fact_038"],
+      "supported_evidence": ["ev_007", "ev_008", "ev_013", "ev_014"],
+      "conclusion": "李海涛在微信和电话中反复确认欠款金额及利息，否认债务的抗辩难以成立。"
+    },
+    {
+      "argument_id": "arg_009",
+      "title": "李海涛已构成逾期还款",
+      "supported_facts": ["fact_017", "fact_026", "fact_027", "fact_028", "fact_031", "fact_034", "fact_043"],
+      "supported_evidence": ["ev_006", "ev_008", "ev_015"],
+      "conclusion": "借款到期后李海涛经多次催收仍未清偿，构成逾期违约。"
+    },
+    {
+      "argument_id": "arg_010",
+      "title": "月利率 1% 具有明确约定基础",
+      "supported_facts": ["fact_008", "fact_018", "fact_032", "fact_038"],
+      "supported_evidence": ["ev_004", "ev_009", "ev_014"],
+      "conclusion": "微信、借条和电话录音均能证明双方约定月利率 1%。"
+    },
+    {
+      "argument_id": "arg_011",
+      "title": "张建国有权主张约定范围内利息",
+      "supported_facts": ["fact_008", "fact_018", "fact_038", "fact_041"],
+      "supported_evidence": ["ev_004", "ev_009", "ev_014", "ev_015"],
+      "conclusion": "在不超过法律保护上限的范围内，张建国可依据约定主张利息。"
+    },
+    {
+      "argument_id": "arg_012",
+      "title": "律师函证明张建国已进行诉前催告",
+      "supported_facts": ["fact_040", "fact_041", "fact_042", "fact_043"],
+      "supported_evidence": ["ev_015"],
+      "conclusion": "律师函及签收记录可以证明张建国在诉前给予李海涛明确履行期限。"
+    },
+    {
+      "argument_id": "arg_013",
+      "title": "实现债权费用存在合同依据",
+      "supported_facts": ["fact_019", "fact_040", "fact_041"],
+      "supported_evidence": ["ev_009", "ev_015"],
+      "conclusion": "借条约定实现债权费用由借款人承担，张建国可在举证合理性的前提下主张相关费用。"
+    },
+    {
+      "argument_id": "arg_014",
+      "title": "款项性质不应认定为投资、买卖或劳务结算",
+      "supported_facts": ["fact_004", "fact_012", "fact_013", "fact_014", "fact_025"],
+      "supported_evidence": ["ev_005", "ev_009", "ev_010", "ev_016"],
+      "conclusion": "借款备注、借条、聊天确认和双方无其他结算关系的事实可排除非借款性质抗辩。"
+    },
+    {
+      "argument_id": "arg_015",
+      "title": "李海涛关于无力偿还的陈述不免除还款义务",
+      "supported_facts": ["fact_039", "fact_043"],
+      "supported_evidence": ["ev_013", "ev_015"],
+      "conclusion": "暂时无力偿还仅说明履行困难，不影响其返还本金和支付利息的义务。"
+    },
+    {
+      "argument_id": "arg_016",
+      "title": "张建国起诉请求具有完整事实和证据基础",
+      "supported_facts": ["fact_001", "fact_002", "fact_011", "fact_016", "fact_023", "fact_038", "fact_043", "fact_044"],
+      "supported_evidence": ["ev_001", "ev_009", "ev_010", "ev_011", "ev_013", "ev_014", "ev_015"],
+      "conclusion": "现有证据链能够支持张建国请求李海涛偿还剩余本金 180000 元、利息及合理费用。"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "evidence": [
+    {
+      "evidence_id": "fail_ev_001",
+      "title": "无关截图",
+      "purpose": "不证明本案核心事实",
+      "strength": "low",
+      "source_material": "fail_mat_001"
+    }
+  ]
+}

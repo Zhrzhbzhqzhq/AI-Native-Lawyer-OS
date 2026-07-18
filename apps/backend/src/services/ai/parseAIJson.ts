@@ -20,12 +20,26 @@ export function parseAIJson(txt: string): { data: any | null; extracted?: string
         }
     }
 
-    // 3. Extract first JSON array
-    const arrayMatch = txt.match(/\[[\s\S]*?\]/)
-    if (arrayMatch && arrayMatch[0]) {
+    // 3. Extract the complete JSON array from surrounding model text
+    const arrayStart = txt.indexOf('[')
+    const arrayEnd = txt.lastIndexOf(']')
+    if (arrayStart >= 0 && arrayEnd > arrayStart) {
+        const candidate = txt.slice(arrayStart, arrayEnd + 1)
         try {
-            const parsed = JSON.parse(arrayMatch[0])
-            return { data: parsed, extracted: arrayMatch[0] }
+            const parsed = JSON.parse(candidate)
+
+            if (Array.isArray(parsed)) {
+                const cleaned = parsed.filter(
+                    (item) => item && typeof item === 'object'
+                )
+
+                return {
+                    data: cleaned,
+                    extracted: JSON.stringify(cleaned)
+                }
+            }
+
+            return { data: parsed, extracted: candidate }
         } catch (e) {
             // continue
         }

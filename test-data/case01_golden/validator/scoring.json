@@ -1,0 +1,51 @@
+{
+  "case_id": "case01_golden",
+  "version": "1.0.0",
+  "max_score": 100,
+  "pass_score": 90,
+  "excellent_score": 97,
+  "module_weights": {
+    "matter": 10,
+    "materials": 8,
+    "evidence": 12,
+    "facts": 12,
+    "issues": 8,
+    "laws": 8,
+    "arguments": 10,
+    "research": 12,
+    "documents": 10,
+    "execution": 10
+  },
+  "critical_failures": [
+    {
+      "failure_id": "wrong_parties",
+      "description": "Generated output identifies parties other than Zhang Jianguo as claimant/lender and Li Haitao as defendant/borrower.",
+      "blocking": true
+    },
+    {
+      "failure_id": "wrong_amount",
+      "description": "Generated output does not preserve the principal facts: loan amount 200000, repayment 20000, remaining principal 180000.",
+      "blocking": true
+    },
+    {
+      "failure_id": "wrong_loan_date",
+      "description": "Generated output does not preserve the loan and transfer date of 2023-05-10.",
+      "blocking": true
+    },
+    {
+      "failure_id": "wrong_due_date",
+      "description": "Generated output does not preserve the due date of 2023-11-10.",
+      "blocking": true
+    },
+    {
+      "failure_id": "missing_core_evidence",
+      "description": "Generated output omits core evidence for loan agreement, fund transfer, repayment, debt acknowledgment, or demand letter service.",
+      "blocking": true
+    },
+    {
+      "failure_id": "empty_document_content",
+      "description": "Generated document outputs are placeholders or empty summaries rather than case-specific legal work product.",
+      "blocking": true
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import type LlmAdapter from './llmAdapter'
+import { createAIAudit } from '../services/ai/aiAudit'
 
 export class MiniMaxAdapter implements LlmAdapter {
   baseUrl: string
@@ -33,7 +34,9 @@ export class MiniMaxAdapter implements LlmAdapter {
   }
 
   async generate(promptPack: any) {
-    const promptVersion = process.env.PROMPT_VERSION || 'v1'
+    const promptVersion = typeof promptPack.prompt_version === 'string' && promptPack.prompt_version.trim()
+      ? promptPack.prompt_version.trim()
+      : 'legacy-ai-v1'
 
     if (!this.apiKey) {
       throw new Error('ai_provider_key_missing:minimax')
@@ -44,6 +47,12 @@ export class MiniMaxAdapter implements LlmAdapter {
     // Ensure prompt_version travels with the user prompt
     user_prompt = `${user_prompt}\n\nPROMPT_VERSION: ${promptVersion}`
 
+    const maxTokens = promptPack.task === 'analyze_laws'
+      || promptVersion === 'law-draft-v1'
+      || promptPack.task === 'analyze_arguments'
+      || promptVersion === 'argument-draft-v1'
+      ? 4000
+      : 1200
     const payload = {
       model: this.model,
       messages: [
@@ -51,7 +60,7 @@ export class MiniMaxAdapter implements LlmAdapter {
         { role: 'user', content: user_prompt },
       ],
       temperature: 0.2,
-      max_completion_tokens: 1200,
+      max_completion_tokens: maxTokens,
       thinking: { type: 'disabled' },
     }
 
@@ -132,6 +141,7 @@ export class MiniMaxAdapter implements LlmAdapter {
           fallback: false,
           fallback_used: false,
           prompt_version: promptVersion,
+          ai_audit: createAIAudit('minimax', this.model, promptVersion),
           error: undefined as string | undefined,
         }
       } catch (err: any) {

@@ -1,0 +1,20 @@
+{
+  "matter": {
+    "matter_id": "case01_fail_wrong_matter",
+    "title": "王强诉赵明合同纠纷",
+    "matter_type": "合同纠纷",
+    "practice_area": "民事诉讼",
+    "status": "active",
+    "stage": "测试失败样本",
+    "priority": "low",
+    "risk_level": "high",
+    "parties": {
+      "claimant": "王强",
+      "defendant": "赵明"
+    },
+    "amount": 50000,
+    "loan_date": "2022-01-01",
+    "due_date": "2022-06-01",
+    "current_focus": "该文件故意使用错误当事人、金额、借款日期和到期日。"
+  }
+}

@@ -3,3 +3,24 @@
 {"timestamp":"2026-07-08T16:40:27.568Z","module":"Facts","provider":"minimax","model":"MiniMax-M3","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":10310}
 {"timestamp":"2026-07-08T16:47:14.775Z","module":"Facts","provider":"minimax","model":"MiniMax-M3","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":11962}
 {"timestamp":"2026-07-08T17:13:06.467Z","module":"Facts","provider":"minimax","model":"MiniMax-M3","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":10293}
+{"timestamp":"2026-07-16T14:14:22.548Z","module":"Laws","provider":"mock","model":"mock-lawdesk-v1","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":null}
+{"timestamp":"2026-07-16T14:14:22.557Z","module":"Arguments","provider":"mock","model":"mock-lawdesk-v1","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":null}
+{"timestamp":"2026-07-16T14:24:00.896Z","module":"Laws","provider":"mock","model":"mock-lawdesk-v1","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":null}
+{"timestamp":"2026-07-16T14:24:00.908Z","module":"Arguments","provider":"mock","model":"mock-lawdesk-v1","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":null}
+{"timestamp":"2026-07-16T14:25:06.239Z","module":"Laws","provider":"mock","model":"mock-lawdesk-v1","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":null}
+{"timestamp":"2026-07-16T14:25:06.298Z","module":"Arguments","provider":"mock","model":"mock-lawdesk-v1","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":null}
+{"timestamp":"2026-07-16T14:26:35.752Z","module":"Laws","provider":"mock","model":"mock-lawdesk-v1","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":null}
+{"timestamp":"2026-07-16T14:26:35.804Z","module":"Arguments","provider":"mock","model":"mock-lawdesk-v1","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":null}
+{"timestamp":"2026-07-16T14:33:49.763Z","module":"Laws","provider":"mock","model":"mock-lawdesk-v1","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":null}
+{"timestamp":"2026-07-16T14:33:49.841Z","module":"Arguments","provider":"mock","model":"mock-lawdesk-v1","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":null}
+{"timestamp":"2026-07-16T14:36:22.408Z","module":"Laws","provider":"mock","model":"mock-lawdesk-v1","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":null}
+{"timestamp":"2026-07-16T14:36:22.460Z","module":"Arguments","provider":"mock","model":"mock-lawdesk-v1","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":null}
+{"timestamp":"2026-07-16T14:45:04.509Z","module":"Laws","provider":"mock","model":"mock-lawdesk-v1","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":null}
+{"timestamp":"2026-07-16T14:45:04.572Z","module":"Arguments","provider":"mock","model":"mock-lawdesk-v1","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":null}
+{"timestamp":"2026-07-16T14:47:43.787Z","module":"Laws","provider":"mock","model":"mock-lawdesk-v1","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":null}
+{"timestamp":"2026-07-16T14:47:43.840Z","module":"Arguments","provider":"mock","model":"mock-lawdesk-v1","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":null}
+{"timestamp":"2026-07-16T14:57:44.369Z","module":"Laws","provider":"mock","model":"mock-lawdesk-v1","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":null}
+{"timestamp":"2026-07-16T14:57:44.437Z","module":"Arguments","provider":"mock","model":"mock-lawdesk-v1","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":null}
+{"timestamp":"2026-07-17T09:08:01.760Z","module":"Facts","provider":"minimax","model":"MiniMax-M3","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":23827}
+{"timestamp":"2026-07-17T09:08:43.991Z","module":"Facts","provider":"minimax","model":"MiniMax-M3","validation":"FAIL","retry":0,"fallback":false,"missing_fields":["fact[0].title missing or empty","fact[0].description missing or empty"],"latency_ms":5419}
+{"timestamp":"2026-07-17T09:09:11.812Z","module":"Facts","provider":"minimax","model":"MiniMax-M3","validation":"PASS","retry":1,"fallback":false,"missing_fields":[],"latency_ms":27820}

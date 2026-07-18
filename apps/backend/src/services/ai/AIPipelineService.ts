@@ -1,6 +1,8 @@
 import { ProviderManager } from '../../ai/providerManager'
 import type LlmAdapter from '../../ai/llmAdapter'
 import parseAIJson from './AIJsonParser'
+import type { StageAIAudit } from './aiAudit'
+import { readAIAudit } from './aiAudit'
 
 export default class AIPipelineService {
     adapter: LlmAdapter
@@ -13,8 +15,7 @@ export default class AIPipelineService {
         const steps: any = { evidence: [], facts: [], issues: [], laws: [], arguments: [], documents: [] }
         const raw: any = {}
         let fallback_used = false
-        let provider = ProviderManager.getConfiguredProvider()
-        let model = provider === 'mock' ? 'mock-lawdesk-v1' : (process.env.MINIMAX_MODEL || 'MiniMax-M3')
+        const ai_audits: StageAIAudit[] = []
 
         function extractAssistantContent(respObj: any) {
             if (!respObj) return ''
@@ -103,12 +104,16 @@ export default class AIPipelineService {
 
         async function callStep(name: string, userPrompt: string) {
             const system = '你是资深律师助理，输出仅包含 JSON 或可解析的 JSON 文本，用于开发测试。不要输出解释性文本。'
-            const promptPack = { system_prompt: system, user_prompt: `${userPrompt}\n\n案件摘要：\n${caseSummary}` }
+            const promptPack = {
+                system_prompt: system,
+                user_prompt: `${userPrompt}\n\n案件摘要：\n${caseSummary}`,
+                prompt_version: `${name}-pipeline-v1`,
+            }
             const resp = await adapter.generate(promptPack)
             raw[name] = resp
-            if (resp?.provider) provider = String(resp.provider)
-            if (resp?.model) model = String(resp.model)
-            if (resp && resp.fallback) fallback_used = true
+            const audit = readAIAudit(resp)
+            if (audit) ai_audits.push({ stage: name, ...audit })
+            if (audit?.fallback_used === true) fallback_used = true
 
             const responseObj = resp && resp.response ? resp.response : resp
             const text = extractAssistantContent(responseObj)
@@ -204,7 +209,17 @@ export default class AIPipelineService {
             }
         } catch (_) { }
 
-        const res: any = { provider, model, steps, raw, validation, fallback_used }
+        const providers = Array.from(new Set(ai_audits.map((audit) => audit.provider)))
+        const models = Array.from(new Set(ai_audits.map((audit) => audit.model)))
+        const res: any = {
+            provider: providers.length === 1 ? providers[0] : null,
+            model: models.length === 1 ? models[0] : null,
+            steps,
+            raw,
+            validation,
+            fallback_used,
+            ai_audits,
+        }
         if (error) res.error = error
         return res
     }

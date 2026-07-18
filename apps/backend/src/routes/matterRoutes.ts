@@ -1438,6 +1438,30 @@ export async function matterRoutes(app: FastifyInstance) {
     }
   })
 
+  app.post('/matters/:matter_id/document-drafts/publish', async (request, reply) => {
+    const { matter_id } = request.params as any
+    const body = (request.body || {}) as any
+    const draft_ids = Array.isArray(body.draft_ids)
+      ? body.draft_ids.map((draft_id: unknown) => String(draft_id || '').trim()).filter(Boolean)
+      : []
+    if (draft_ids.length === 0) return reply.code(400).send({ error: 'document_draft_ids_required' })
+    try {
+      const result = await documentDraftService.publishDrafts(matter_id, draft_ids)
+      return reply.code(200).send(result)
+    } catch (err: any) {
+      const code = String(err?.code || err?.message || '')
+      if (code === 'draft_not_found') return reply.code(404).send({ error: 'draft_not_found' })
+      if (code === 'draft_matter_mismatch') return reply.code(403).send({ error: 'draft_matter_mismatch' })
+      if (code === 'content_required') return reply.code(400).send({ error: 'content_required' })
+      if (code === 'invalid_source_argument_ids') return reply.code(400).send({ error: 'invalid_source_argument_ids' })
+      if (code === 'invalid_source_fact_ids') return reply.code(400).send({ error: 'invalid_source_fact_ids' })
+      if (code === 'invalid_source_issue_ids') return reply.code(400).send({ error: 'invalid_source_issue_ids' })
+      if (code === 'invalid_source_law_ids') return reply.code(400).send({ error: 'invalid_source_law_ids' })
+      if (code === 'unsafe_document_content') return reply.code(422).send({ error: 'unsafe_document_content' })
+      return sendDraftError(reply, err, 'document_draft_publish_failed')
+    }
+  })
+
   app.post('/matters/:matter_id/document-drafts/:draft_id/publish', async (request, reply) => {
     const { matter_id, draft_id } = request.params as any
     try {

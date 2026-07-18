@@ -104,6 +104,7 @@ describe('Persisted Facts Draft Workflow', () => {
     expect(first.statusCode).toBe(200)
     const firstBody = JSON.parse(first.body)
     expect(firstBody.idempotent).toBe(false)
+    expect(firstBody.ai_audit).toEqual({ provider: 'mock', model: 'mock-lawdesk-v1', prompt_version: 'fact-draft-v1', fallback_used: false })
     expect(firstBody.fact_drafts.length).toBe(3)
     expect(firstBody.fact_drafts.every((draft: any) => draft.review_status === 'pending')).toBe(true)
     expect(firstBody.fact_drafts.every((draft: any) => Array.isArray(draft.source_evidence_ids) && draft.source_evidence_ids.length > 0)).toBe(true)
@@ -113,6 +114,7 @@ describe('Persisted Facts Draft Workflow', () => {
     expect(second.statusCode).toBe(200)
     const secondBody = JSON.parse(second.body)
     expect(secondBody.idempotent).toBe(true)
+    expect(secondBody.ai_audit).toBeNull()
     expect(secondBody.fact_drafts.map((draft: any) => draft.draft_id)).toEqual(firstBody.fact_drafts.map((draft: any) => draft.draft_id))
 
     const count = await prisma.factDraft.count({ where: { matter_id: matterId } })

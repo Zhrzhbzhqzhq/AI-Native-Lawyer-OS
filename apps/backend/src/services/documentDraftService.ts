@@ -253,8 +253,20 @@ function buildComplaintDraft(input: {
   }
 }
 
-function asArray(value: unknown): string[] {
-  return Array.isArray(value) ? uniqueStrings(value) : []
+function parseSourceIds(value: unknown): string[] {
+  if (Array.isArray(value)) return uniqueStrings(value)
+  if (typeof value !== 'string') return []
+
+  const text = value.trim()
+  if (!text) return []
+  try {
+    const parsed = JSON.parse(text)
+    if (Array.isArray(parsed)) return uniqueStrings(parsed)
+    if (typeof parsed === 'string') return uniqueStrings([parsed])
+  } catch {
+    return uniqueStrings([text])
+  }
+  return []
 }
 
 export class DocumentDraftService {
@@ -311,10 +323,10 @@ export class DocumentDraftService {
         document_type: draft.document_type,
         title: draft.title,
         content: draft.content,
-        source_argument_ids: draft.source_argument_ids,
-        source_fact_ids: draft.source_fact_ids,
-        source_issue_ids: draft.source_issue_ids,
-        source_law_ids: draft.source_law_ids,
+        source_argument_ids: JSON.stringify(draft.source_argument_ids),
+        source_fact_ids: JSON.stringify(draft.source_fact_ids),
+        source_issue_ids: JSON.stringify(draft.source_issue_ids),
+        source_law_ids: JSON.stringify(draft.source_law_ids),
         confidence: draft.confidence,
         ai_reasoning: draft.ai_reasoning,
         review_status: 'generated',
@@ -458,10 +470,10 @@ export class DocumentDraftService {
       assertComplaintContentSafe(String(draft.content || ''))
 
       const sources = await this.validateSources(tx, matter_id, {
-        source_argument_ids: asArray(draft.source_argument_ids),
-        source_fact_ids: asArray(draft.source_fact_ids),
-        source_issue_ids: asArray(draft.source_issue_ids),
-        source_law_ids: asArray(draft.source_law_ids),
+        source_argument_ids: parseSourceIds(draft.source_argument_ids),
+        source_fact_ids: parseSourceIds(draft.source_fact_ids),
+        source_issue_ids: parseSourceIds(draft.source_issue_ids),
+        source_law_ids: parseSourceIds(draft.source_law_ids),
       })
 
       const document_id = `doc-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`

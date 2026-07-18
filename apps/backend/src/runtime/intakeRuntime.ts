@@ -1,3 +1,6 @@
+import type { AIAudit } from '../services/ai/aiAudit'
+import { createAIAudit } from '../services/ai/aiAudit'
+
 export type IntakeSource = 'Plaintiff' | 'Opponent' | 'Court' | 'Third Party'
 
 export type IntakeFileMeta = {
@@ -21,6 +24,7 @@ export type IntakeRuntimeResult = {
   source: IntakeSource
   files: IntakeFileMeta[]
   status: 'analysis_ready'
+  ai_audit: AIAudit
   analysis: {
     summary: string
     matter_draft: {
@@ -149,6 +153,7 @@ export class IntakeRuntime {
         return 'Third Party'
       })(),
       files: input.files,
+      ai_audit: createAIAudit('runtime', 'lawdesk-intake-runtime-v1', 'intake-runtime-v1'),
       analysis: {
         summary: `已接收 ${input.files.length} 份材料，完成案件基础信息抽取。`,
         matter_draft: matterDraft,
@@ -168,6 +173,7 @@ export class IntakeRuntime {
   generateEvidenceDrafts(input: { matter_id: string; materials: Array<{ material_id: string; title?: string; material_type?: string; source?: string; content?: string; storage_uri?: string }>}): {
     status: 'evidence_draft_ready'
     matter_id: string
+    ai_audit: AIAudit
     evidence_drafts: Array<{
       draft_id: string
       material_id: string
@@ -282,6 +288,7 @@ export class IntakeRuntime {
     return {
       status: 'evidence_draft_ready',
       matter_id: input.matter_id,
+      ai_audit: createAIAudit('runtime', 'lawdesk-intake-runtime-v1', 'evidence-draft-v1'),
       evidence_drafts: drafts,
     }
   }

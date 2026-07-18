@@ -1,0 +1,74 @@
+{
+  "case_id": "case01_golden",
+  "run_id": "",
+  "model": "",
+  "provider": "",
+  "started_at": "",
+  "completed_at": "",
+  "module_results": {
+    "matter": {
+      "score": 0,
+      "passed": false,
+      "missing_fields": [],
+      "notes": []
+    },
+    "materials": {
+      "score": 0,
+      "passed": false,
+      "missing_fields": [],
+      "notes": []
+    },
+    "evidence": {
+      "score": 0,
+      "passed": false,
+      "missing_fields": [],
+      "notes": []
+    },
+    "facts": {
+      "score": 0,
+      "passed": false,
+      "missing_fields": [],
+      "notes": []
+    },
+    "issues": {
+      "score": 0,
+      "passed": false,
+      "missing_fields": [],
+      "notes": []
+    },
+    "laws": {
+      "score": 0,
+      "passed": false,
+      "missing_fields": [],
+      "notes": []
+    },
+    "arguments": {
+      "score": 0,
+      "passed": false,
+      "missing_fields": [],
+      "notes": []
+    },
+    "research": {
+      "score": 0,
+      "passed": false,
+      "missing_fields": [],
+      "notes": []
+    },
+    "documents": {
+      "score": 0,
+      "passed": false,
+      "missing_fields": [],
+      "notes": []
+    },
+    "execution": {
+      "score": 0,
+      "passed": false,
+      "missing_fields": [],
+      "notes": []
+    }
+  },
+  "critical_failures": [],
+  "overall_score": 0,
+  "passed": false,
+  "notes": []
+}

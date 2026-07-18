@@ -28,6 +28,7 @@ export function validateFacts(result: any): ValidationResult {
 }
 
 export function validateLaws(result: any): ValidationResult {
+    console.log('[LAW VALIDATOR INPUT]', JSON.stringify(result?.[0], null, 2))
     const errors: string[] = []
     if (!Array.isArray(result)) {
         return { ok: false, errors: ['laws must be an array'] }

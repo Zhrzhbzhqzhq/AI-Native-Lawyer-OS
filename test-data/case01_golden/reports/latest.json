@@ -1,0 +1,224 @@
+{
+  "case_id": "case01_golden",
+  "run_id": "case01_1783957149608",
+  "model": "",
+  "provider": "",
+  "started_at": "2026-07-13T15:39:09.604Z",
+  "completed_at": "2026-07-13T15:39:09.608Z",
+  "module_results": {
+    "matter": {
+      "score": 0,
+      "max_score": 10,
+      "passed": false,
+      "expected_count": 1,
+      "actual_count": 0,
+      "minimum": 1,
+      "missing_fields": [
+        "title",
+        "matter_type",
+        "parties",
+        "amount",
+        "loan_date",
+        "due_date"
+      ],
+      "notes": [
+        "actual count 0 below minimum 1",
+        "missing critical fields: title, matter_type, parties, amount, loan_date, due_date"
+      ]
+    },
+    "materials": {
+      "score": 0,
+      "max_score": 8,
+      "passed": false,
+      "expected_count": 8,
+      "actual_count": 0,
+      "minimum": 8,
+      "missing_fields": [
+        "material_id",
+        "title",
+        "type",
+        "source",
+        "description"
+      ],
+      "notes": [
+        "actual count 0 below minimum 8",
+        "missing critical fields: material_id, title, type, source, description"
+      ]
+    },
+    "evidence": {
+      "score": 0,
+      "max_score": 12,
+      "passed": false,
+      "expected_count": 16,
+      "actual_count": 0,
+      "minimum": 16,
+      "missing_fields": [
+        "evidence_id",
+        "title",
+        "purpose",
+        "strength",
+        "source_material"
+      ],
+      "notes": [
+        "actual count 0 below minimum 16",
+        "missing critical fields: evidence_id, title, purpose, strength, source_material"
+      ]
+    },
+    "facts": {
+      "score": 0,
+      "max_score": 12,
+      "passed": false,
+      "expected_count": 44,
+      "actual_count": 0,
+      "minimum": 44,
+      "missing_fields": [
+        "fact_id",
+        "description",
+        "source_evidence"
+      ],
+      "notes": [
+        "actual count 0 below minimum 44",
+        "missing critical fields: fact_id, description, source_evidence"
+      ]
+    },
+    "issues": {
+      "score": 0,
+      "max_score": 8,
+      "passed": false,
+      "expected_count": 8,
+      "actual_count": 0,
+      "minimum": 8,
+      "missing_fields": [
+        "issue_id",
+        "title",
+        "description"
+      ],
+      "notes": [
+        "actual count 0 below minimum 8",
+        "missing critical fields: issue_id, title, description"
+      ]
+    },
+    "laws": {
+      "score": 0,
+      "max_score": 8,
+      "passed": false,
+      "expected_count": 14,
+      "actual_count": 0,
+      "minimum": 14,
+      "missing_fields": [
+        "law_id",
+        "name",
+        "article",
+        "purpose"
+      ],
+      "notes": [
+        "actual count 0 below minimum 14",
+        "missing critical fields: law_id, name, article, purpose"
+      ]
+    },
+    "arguments": {
+      "score": 0,
+      "max_score": 10,
+      "passed": false,
+      "expected_count": 16,
+      "actual_count": 0,
+      "minimum": 16,
+      "missing_fields": [
+        "argument_id",
+        "title",
+        "supported_facts",
+        "supported_evidence",
+        "conclusion"
+      ],
+      "notes": [
+        "actual count 0 below minimum 16",
+        "missing critical fields: argument_id, title, supported_facts, supported_evidence, conclusion"
+      ]
+    },
+    "research": {
+      "score": 0,
+      "max_score": 12,
+      "passed": false,
+      "expected_count": 1,
+      "actual_count": 0,
+      "minimum": 1,
+      "missing_fields": [
+        "research_id",
+        "matter_id",
+        "summary",
+        "key_facts",
+        "issues",
+        "legal_basis",
+        "evidence_assessment",
+        "risks",
+        "preservation_recommendation",
+        "litigation_strategy",
+        "next_actions",
+        "confidence"
+      ],
+      "notes": [
+        "actual count 0 below minimum 1",
+        "missing critical fields: research_id, matter_id, summary, key_facts, issues, legal_basis, evidence_assessment, risks, preservation_recommendation, litigation_strategy, next_actions, confidence"
+      ]
+    },
+    "documents": {
+      "score": 0,
+      "max_score": 10,
+      "passed": false,
+      "expected_count": 5,
+      "actual_count": 0,
+      "minimum": 5,
+      "missing_fields": [
+        "document_id",
+        "title",
+        "document_type",
+        "status",
+        "purpose",
+        "required_inputs",
+        "expected_sections",
+        "golden_content_summary",
+        "review_points"
+      ],
+      "notes": [
+        "actual count 0 below minimum 5",
+        "missing critical fields: document_id, title, document_type, status, purpose, required_inputs, expected_sections, golden_content_summary, review_points"
+      ]
+    },
+    "execution": {
+      "score": 0,
+      "max_score": 10,
+      "passed": false,
+      "expected_count": 24,
+      "actual_count": 0,
+      "minimum": 24,
+      "missing_fields": [
+        "task_id",
+        "title",
+        "stage",
+        "status",
+        "priority",
+        "trigger",
+        "lawyer_action_required",
+        "expected_result",
+        "next_task"
+      ],
+      "notes": [
+        "actual count 0 below minimum 24",
+        "missing critical fields: task_id, title, stage, status, priority, trigger, lawyer_action_required, expected_result, next_task"
+      ]
+    }
+  },
+  "critical_failures": [
+    "wrong_parties",
+    "wrong_amount",
+    "wrong_loan_date",
+    "wrong_due_date",
+    "missing_core_evidence",
+    "empty_document_content"
+  ],
+  "overall_score": 0,
+  "passed": false,
+  "notes": [
+    "Case01 golden validation failed. Review module notes and critical failures."
+  ]
+}

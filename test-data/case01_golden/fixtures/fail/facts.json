@@ -1,0 +1,11 @@
+{
+  "facts": [
+    {
+      "fact_id": "fail_fact_001",
+      "description": "错误事实：双方不是 Case01 当事人。",
+      "source_evidence": [
+        "fail_ev_001"
+      ]
+    }
+  ]
+}

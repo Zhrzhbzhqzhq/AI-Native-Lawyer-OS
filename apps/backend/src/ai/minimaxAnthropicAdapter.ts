@@ -1,4 +1,5 @@
 import type LlmAdapter from './llmAdapter'
+import { createAIAudit } from '../services/ai/aiAudit'
 
 export class MiniMaxAnthropicAdapter implements LlmAdapter {
   baseUrl: string
@@ -28,16 +29,24 @@ export class MiniMaxAnthropicAdapter implements LlmAdapter {
 
   async generate(promptPack: any) {
     const start = Date.now()
-    const promptVersion = process.env.PROMPT_VERSION || 'v1'
+    const promptVersion = typeof promptPack.prompt_version === 'string' && promptPack.prompt_version.trim()
+      ? promptPack.prompt_version.trim()
+      : 'legacy-ai-v1'
     if (!this.apiKey) {
       throw new Error('ai_provider_key_missing:minimax')
     }
 
     const system_prompt = promptPack.system_prompt ?? promptPack.systemPrompt ?? ''
     const user_prompt = promptPack.user_prompt ?? promptPack.userPrompt ?? ''
+      const maxTokens = promptPack.task === 'analyze_laws'
+        || promptVersion === 'law-draft-v1'
+        || promptPack.task === 'analyze_arguments'
+        || promptVersion === 'argument-draft-v1'
+        ? 4000
+        : 1200
       const payload = {
         model: this.model,
-        max_tokens: 1200,
+        max_tokens: maxTokens,
         system: system_prompt,
         messages: [
           {
@@ -105,6 +114,7 @@ export class MiniMaxAnthropicAdapter implements LlmAdapter {
       fallback: false,
       fallback_used: false,
       prompt_version: promptVersion,
+      ai_audit: createAIAudit('minimax', this.model, promptVersion),
     }
   }
 }

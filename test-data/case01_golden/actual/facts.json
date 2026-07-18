@@ -1,0 +1,49 @@
+{
+  "facts": [
+    {
+      "fact_id": "fct-mrjftk40-0gerf2",
+      "title": "关于：006_银行流水.txt",
+      "description": "Support claim",
+      "status": "draft",
+      "source_evidence": [],
+      "created_at": "2026-07-13T16:29:23.856Z",
+      "updated_at": "2026-07-13T16:29:23.856Z"
+    },
+    {
+      "fact_id": "fct-mrjftk3w-4l1skb",
+      "title": "关于：004_微信聊天_催收.txt",
+      "description": "Support claim",
+      "status": "draft",
+      "source_evidence": [],
+      "created_at": "2026-07-13T16:29:23.853Z",
+      "updated_at": "2026-07-13T16:29:23.853Z"
+    },
+    {
+      "fact_id": "fct-mrjftk3t-1mddih",
+      "title": "关于：003_微信聊天_借款形成.txt",
+      "description": "Support claim",
+      "status": "draft",
+      "source_evidence": [],
+      "created_at": "2026-07-13T16:29:23.850Z",
+      "updated_at": "2026-07-13T16:29:23.850Z"
+    },
+    {
+      "fact_id": "fct-mrjftk3p-mzryeh",
+      "title": "关于：002_咨询录音整理.txt",
+      "description": "Support claim",
+      "status": "draft",
+      "source_evidence": [],
+      "created_at": "2026-07-13T16:29:23.846Z",
+      "updated_at": "2026-07-13T16:29:23.846Z"
+    },
+    {
+      "fact_id": "fct-mrjftk3a-csoypp",
+      "title": "关于：001_客户咨询记录.txt",
+      "description": "Support claim",
+      "status": "draft",
+      "source_evidence": [],
+      "created_at": "2026-07-13T16:29:23.836Z",
+      "updated_at": "2026-07-13T16:29:23.836Z"
+    }
+  ]
+}
