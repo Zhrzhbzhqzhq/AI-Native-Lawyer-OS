@@ -3,12 +3,8 @@
 set -e
 
 CURRENT_DIR="$(cd "$(dirname "$0")" && pwd)"
-
-if [ -d "$CURRENT_DIR/../resources/backend" ]; then
-    BACKEND_DIR="$CURRENT_DIR/../resources/backend"
-else
-    BACKEND_DIR="$(cd "$CURRENT_DIR/.." && pwd)/resources/backend"
-fi
+RESOURCE_DIR="$(cd "$CURRENT_DIR/.." && pwd)"
+BACKEND_DIR="$RESOURCE_DIR/backend"
 
 echo "[LawDesk] Starting Backend..."
 echo "[LawDesk] Backend dir: $BACKEND_DIR"
@@ -17,9 +13,21 @@ export LAWDESK_MODE=desktop
 export AI_PROVIDER=minimax
 export API_PORT=4000
 export DATABASE_URL="file:$HOME/Documents/LawDesk/database/lawdesk.db"
+export LAWDESK_DESKTOP_MIGRATIONS_DIR="$BACKEND_DIR/node_modules/@lawdesk/database/prisma-desktop/migrations"
+
+mkdir -p "$HOME/Documents/LawDesk/database"
+mkdir -p "$HOME/Documents/LawDesk/config"
+mkdir -p "$HOME/Documents/LawDesk/logs"
 
 # Load AI configuration
 AI_CONFIG="$HOME/Documents/LawDesk/config/ai.json"
+
+if [ ! -f "$AI_CONFIG" ]; then
+    umask 077
+    printf '%s\n' '{' '  "provider": "minimax",' '  "apiKey": "",' '  "model": "MiniMax-M3",' '  "region": "cn",' '  "status": "configuration_required"' '}' > "$AI_CONFIG"
+    echo "[LawDesk] Created AI config template: $AI_CONFIG"
+    echo "[LawDesk] AI configuration required before AI-assisted workflows can run"
+fi
 
 if [ -f "$AI_CONFIG" ]; then
     echo "[LawDesk] Loading AI config..."
@@ -51,10 +59,9 @@ else
     echo "[LawDesk] No AI config found"
 fi
 
+"$RESOURCE_DIR/node-runtime/bin/node" "$CURRENT_DIR/initialize-database.cjs"
 
-mkdir -p "$HOME/Documents/LawDesk/logs"
-
-node "$BACKEND_DIR/dist/index.js" \
+"$RESOURCE_DIR/node-runtime/bin/node" "$BACKEND_DIR/dist/index.js" \
 > "$HOME/Documents/LawDesk/logs/backend.log" 2>&1 &
 
 echo $! > "$HOME/Documents/LawDesk/logs/backend.pid"

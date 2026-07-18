@@ -24,7 +24,7 @@ export class AIService {
 
     constructor(prisma: PrismaClient) {
         this.prisma = prisma
-        this.adapter = ProviderManager.getAdapter()
+        this.adapter = null
         this.contextBuilder = new AIContextBuilder(prisma)
     }
 
@@ -37,6 +37,7 @@ export class AIService {
     }
 
     private async generateWithAudit(promptPack: any) {
+        if (!this.adapter) this.adapter = ProviderManager.getAdapter()
         const response = await this.adapter.generate(promptPack)
         this.lastAudit = readAIAudit(response)
         return response
@@ -109,7 +110,11 @@ export class AIService {
     // analyzeFacts: reads evidences under the matter and asks adapter to suggest facts
     async analyzeFacts(matter_id: string) {
         this.lastAudit = null
-        const evidences = await this.prisma.evidence.findMany({ where: { matter_id }, orderBy: { created_at: 'desc' } as any })
+        const evidences = await this.prisma.evidence.findMany({
+            where: { matter_id },
+            include: { material: true },
+            orderBy: { created_at: 'desc' } as any,
+        })
 
         const context = await this.contextBuilder.buildMatterContext(matter_id)
         const factPrompt = buildFactPrompt(context)
@@ -117,32 +122,67 @@ export class AIService {
             prompt_version: 'fact-draft-v1',
             task: 'analyze_facts',
             matter_id,
-            evidences: evidences.map((e: any) => ({ title: e.title || '', description: e.description || '', evidence_type: e.evidence_type || '', status: e.status || '' })),
+            evidences: evidences.map((e: any) => ({
+                title: e.title || '',
+                description: e.description || '',
+                evidence_type: e.evidence_type || '',
+                status: e.status || '',
+                material: e.material ? {
+                    material_id: e.material.material_id || '',
+                    title: e.material.title || '',
+                    material_type: e.material.material_type || '',
+                    source: e.material.source || '',
+                    storage_uri: e.material.storage_uri || '',
+                    status: e.material.status || '',
+                } : null,
+            })),
             context_pack: context,
             user_prompt: factPrompt,
             created_at: new Date().toISOString(),
         }
 
+        const extractFactCandidates = async (response: any): Promise<any[] | null> => {
+            const body = response && response.response !== undefined ? response.response : response
+            if (Array.isArray(body)) return body
+            if (Array.isArray(body?.facts)) return body.facts
+            if (Array.isArray(body?.suggestions)) return body.suggestions
+
+            let content: unknown = body
+            if (body?.choices?.[0]?.message?.content !== undefined) {
+                content = body.choices[0].message.content
+            } else if (body?.data?.choices?.[0]?.message?.content !== undefined) {
+                content = body.data.choices[0].message.content
+            } else if (Array.isArray(body?.content)) {
+                content = body.content
+                    .map((block: any) => typeof block === 'string' ? block : block?.text)
+                    .filter((text: unknown) => typeof text === 'string')
+                    .join('\n')
+            }
+
+            if (Array.isArray(content)) {
+                content = content
+                    .map((block: any) => typeof block === 'string' ? block : block?.text)
+                    .filter((text: unknown) => typeof text === 'string')
+                    .join('\n')
+            }
+            if (typeof content !== 'string') return null
+
+            const { parseAIJson } = await import('./parseAIJson')
+            const parsed = parseAIJson(content)
+            if (Array.isArray(parsed.data)) return parsed.data
+            if (Array.isArray(parsed.data?.facts)) return parsed.data.facts
+            if (Array.isArray(parsed.data?.suggestions)) return parsed.data.suggestions
+            return null
+        }
+
         try {
             const resp = await this.generateWithAudit(promptPack)
+            if (process.env.NODE_ENV === 'development' || process.env.AI_DEBUG_LOGS === 'true') {
+                console.log('[FACT AI RAW RESPONSE]', JSON.stringify(resp?.response ?? resp, null, 2))
+            }
             // Try multiple response shapes: resp.response.facts, resp.response.suggestions,
             // or MiniMax-style resp.response.choices[0].message.content (stringified JSON)
-            let facts: any = null
-            if (resp && resp.response) {
-                if (Array.isArray(resp.response.facts)) facts = resp.response.facts
-                else if (Array.isArray(resp.response.suggestions)) facts = resp.response.suggestions
-                else if (Array.isArray(resp.response)) facts = resp.response
-                else if (resp.response.choices && Array.isArray(resp.response.choices) && resp.response.choices[0] && resp.response.choices[0].message && typeof resp.response.choices[0].message.content === 'string') {
-                    const txt = resp.response.choices[0].message.content
-                    try {
-                        const { parseAIJson } = await import('./parseAIJson')
-                        const parsed = parseAIJson(txt)
-                        if (Array.isArray(parsed.data)) facts = parsed.data
-                    } catch (_e) {
-                        // ignore
-                    }
-                }
-            }
+            const facts = await extractFactCandidates(resp)
 
             if (Array.isArray(facts)) {
                 // Validate raw facts before mapping
@@ -157,22 +197,10 @@ export class AIService {
                 // Retry once
                 try {
                     const resp2 = await this.generateWithAudit(promptPack)
-                    let facts2: any = null
-                    if (resp2 && resp2.response) {
-                        if (Array.isArray(resp2.response.facts)) facts2 = resp2.response.facts
-                        else if (Array.isArray(resp2.response.suggestions)) facts2 = resp2.response.suggestions
-                        else if (Array.isArray(resp2.response)) facts2 = resp2.response
-                        else if (resp2.response.choices && Array.isArray(resp2.response.choices) && resp2.response.choices[0] && resp2.response.choices[0].message && typeof resp2.response.choices[0].message.content === 'string') {
-                            const txt2 = resp2.response.choices[0].message.content
-                            try {
-                                const { parseAIJson } = await import('./parseAIJson')
-                                const parsed2 = parseAIJson(txt2)
-                                if (Array.isArray(parsed2.data)) facts2 = parsed2.data
-                            } catch (_e) {
-                                // ignore
-                            }
-                        }
+                    if (process.env.NODE_ENV === 'development' || process.env.AI_DEBUG_LOGS === 'true') {
+                        console.log('[FACT AI RAW RESPONSE RETRY]', JSON.stringify(resp2?.response ?? resp2, null, 2))
                     }
+                    const facts2 = await extractFactCandidates(resp2)
                     if (Array.isArray(facts2)) {
                         const validation2 = AIOutputValidator.validateFacts(facts2)
                         if (validation2.ok) {
@@ -215,6 +243,40 @@ export class AIService {
             created_at: new Date().toISOString(),
         }
 
+        const extractIssueCandidates = async (response: any): Promise<any[] | null> => {
+            const body = response && response.response !== undefined ? response.response : response
+            if (Array.isArray(body)) return body
+            if (Array.isArray(body?.issues)) return body.issues
+            if (Array.isArray(body?.suggestions)) return body.suggestions
+
+            let content: unknown = body
+            if (body?.choices?.[0]?.message?.content !== undefined) {
+                content = body.choices[0].message.content
+            } else if (body?.data?.choices?.[0]?.message?.content !== undefined) {
+                content = body.data.choices[0].message.content
+            } else if (Array.isArray(body?.content)) {
+                content = body.content
+                    .map((block: any) => typeof block === 'string' ? block : block?.text)
+                    .filter((text: unknown) => typeof text === 'string')
+                    .join('\n')
+            }
+
+            if (Array.isArray(content)) {
+                content = content
+                    .map((block: any) => typeof block === 'string' ? block : block?.text)
+                    .filter((text: unknown) => typeof text === 'string')
+                    .join('\n')
+            }
+            if (typeof content !== 'string') return null
+
+            const { parseAIJson } = await import('./parseAIJson')
+            const parsed = parseAIJson(content)
+            if (Array.isArray(parsed.data)) return parsed.data
+            if (Array.isArray(parsed.data?.issues)) return parsed.data.issues
+            if (Array.isArray(parsed.data?.suggestions)) return parsed.data.suggestions
+            return null
+        }
+
         try {
             const resp = await this.generateWithAudit(promptPack)
 
@@ -222,22 +284,7 @@ export class AIService {
 
             // Try multiple response shapes: resp.response.issues, resp.response.suggestions,
             // or MiniMax-style resp.response.choices[0].message.content (stringified JSON)
-            let issues: any = null
-            if (resp && resp.response) {
-                if (Array.isArray(resp.response.issues)) issues = resp.response.issues
-                else if (Array.isArray(resp.response.suggestions)) issues = resp.response.suggestions
-                else if (Array.isArray(resp.response)) issues = resp.response
-                else if (resp.response.choices && Array.isArray(resp.response.choices) && resp.response.choices[0] && resp.response.choices[0].message && typeof resp.response.choices[0].message.content === 'string') {
-                    const txt = resp.response.choices[0].message.content
-                    try {
-                        const { parseAIJson } = await import('./parseAIJson')
-                        const parsed = parseAIJson(txt)
-                        if (Array.isArray(parsed.data)) issues = parsed.data
-                    } catch (_e) {
-                        // ignore
-                    }
-                }
-            }
+            const issues = await extractIssueCandidates(resp)
 
             if (Array.isArray(issues)) {
                 // enforce max 8 as requested; model instructed to return 3-8
@@ -515,34 +562,82 @@ let validation = AIOutputValidator.validateLaws(laws)
             created_at: new Date().toISOString(),
         }
 
+        const extractArgumentCandidates = async (response: any): Promise<any[] | null> => {
+            const body = response && response.response !== undefined ? response.response : response
+            if (Array.isArray(body)) return body
+            if (Array.isArray(body?.arguments)) return body.arguments
+            if (Array.isArray(body?.suggestions)) return body.suggestions
+            if (body && typeof body === 'object' && !Array.isArray(body) && ('argument' in body || 'conclusion' in body)) {
+                return [body]
+            }
+
+            let content: unknown = body
+            if (body?.choices?.[0]?.message?.content !== undefined) {
+                content = body.choices[0].message.content
+            } else if (body?.data?.choices?.[0]?.message?.content !== undefined) {
+                content = body.data.choices[0].message.content
+            } else if (Array.isArray(body?.content)) {
+                content = body.content
+                    .map((block: any) => typeof block === 'string' ? block : block?.text)
+                    .filter((text: unknown) => typeof text === 'string')
+                    .join('\n')
+            }
+
+            if (Array.isArray(content)) {
+                content = content
+                    .map((block: any) => typeof block === 'string' ? block : block?.text)
+                    .filter((text: unknown) => typeof text === 'string')
+                    .join('\n')
+            }
+            if (typeof content !== 'string') return null
+
+            const { parseAIJson } = await import('./parseAIJson')
+            const parsed = parseAIJson(content)
+            if (Array.isArray(parsed.data)) return parsed.data
+            if (Array.isArray(parsed.data?.arguments)) return parsed.data.arguments
+            if (Array.isArray(parsed.data?.suggestions)) return parsed.data.suggestions
+            if (parsed.data && typeof parsed.data === 'object' && !Array.isArray(parsed.data) && ('argument' in parsed.data || 'conclusion' in parsed.data)) {
+                return [parsed.data]
+            }
+            return null
+        }
+
+        const logArgumentValidationDebug = (stage: string, candidates: any[] | null) => {
+            const rows = Array.isArray(candidates) ? candidates : []
+            console.log('[ARGUMENT VALIDATION DEBUG]', {
+                stage,
+                candidates_count: rows.length,
+                candidates: rows.map((candidate: any, index: number) => {
+                    const factTitles = Array.isArray(candidate?.fact_titles) ? candidate.fact_titles.map(String) : []
+                    const lawCitations = Array.isArray(candidate?.law_citations) ? candidate.law_citations.map(String) : []
+                    const issueTitle = typeof candidate?.issue_title === 'string' ? candidate.issue_title : ''
+                    return {
+                        index,
+                        title: candidate?.title,
+                        reject_reasons: AIOutputValidator.validateArguments([candidate]).errors,
+                        issue_title: issueTitle,
+                        issue_title_match: issues.some((issue: any) => String(issue.title || '').trim() === issueTitle.trim()),
+                        fact_titles_match: factTitles.map((title: string) => ({
+                            title,
+                            matched: facts.some((fact: any) => String(fact.title || '').trim() === title.trim()),
+                        })),
+                        law_citations_match: lawCitations.map((citation: string) => ({
+                            citation,
+                            matched: laws.some((law: any) => String(law.citation || '').trim() === citation.trim()),
+                        })),
+                    }
+                }),
+            })
+        }
+
         try {
             const resp = await this.generateWithAudit(promptPack)
             console.log('[ARGUMENT AI RAW RESPONSE]', JSON.stringify(resp, null, 2))
             // adapter may return structured arguments under resp.response.arguments or resp.response.suggestions
             // Parse multiple shapes: resp.response.arguments, resp.response.suggestions,
             // or MiniMax-style resp.response.choices[0].message.content (stringified JSON)
-            let args: any = null
-            if (resp && resp.response) {
-                if (Array.isArray(resp.response.arguments)) args = resp.response.arguments
-                else if (Array.isArray(resp.response.suggestions)) args = resp.response.suggestions
-                else if (Array.isArray(resp.response)) args = resp.response
-                else if (resp.response.choices && Array.isArray(resp.response.choices) && resp.response.choices[0] && resp.response.choices[0].message && typeof resp.response.choices[0].message.content === 'string') {
-                    const txt = resp.response.choices[0].message.content
-                    try {
-                        const { parseAIJson } = await import('./parseAIJson')
-                        const parsed = parseAIJson(txt)
-                        console.log('[ARGUMENT PARSED DATA]', {
-                            data_type: typeof parsed.data,
-                            is_array: Array.isArray(parsed.data),
-                            keys: parsed.data && typeof parsed.data === 'object' ? Object.keys(parsed.data) : [],
-                            length: Array.isArray(parsed.data) ? parsed.data.length : -1,
-                        })
-                        if (Array.isArray(parsed.data)) args = parsed.data
-                    } catch (_e) {
-                        // ignore
-                    }
-                }
-            }
+            const args = await extractArgumentCandidates(resp)
+            logArgumentValidationDebug('initial', args)
 
             if (Array.isArray(args)) {
                 // Validate arguments before mapping
@@ -562,22 +657,8 @@ let validation = AIOutputValidator.validateLaws(laws)
                 try {
 
                     const resp2 = await this.generateWithAudit(promptPack)
-                    let args2: any = null
-                    if (resp2 && resp2.response) {
-                        if (Array.isArray(resp2.response.arguments)) args2 = resp2.response.arguments
-                        else if (Array.isArray(resp2.response.suggestions)) args2 = resp2.response.suggestions
-                        else if (Array.isArray(resp2.response)) args2 = resp2.response
-                        else if (resp2.response.choices && Array.isArray(resp2.response.choices) && resp2.response.choices[0] && resp2.response.choices[0].message && typeof resp2.response.choices[0].message.content === 'string') {
-                            const txt2 = resp2.response.choices[0].message.content
-                            try {
-                                const { parseAIJson } = await import('./parseAIJson')
-                                const parsed2 = parseAIJson(txt2)
-                                if (Array.isArray(parsed2.data)) args2 = parsed2.data
-                            } catch (_e) {
-                                // ignore
-                            }
-                        }
-                    }
+                    const args2 = await extractArgumentCandidates(resp2)
+                    logArgumentValidationDebug('retry', args2)
                     if (Array.isArray(args2)) {
                         const validation2 = AIOutputValidator.validateArguments(args2)
                         if (validation2.ok) {

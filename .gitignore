@@ -10,3 +10,14 @@ build/
 .logs/
 test-data/golden/*/runs/*
 !test-data/golden/*/runs/.gitkeep
+
+# Runtime data
+storage/
+
+# Logs
+*.log
+*.jsonl
+
+# Backup files
+*.backup
+apps/desktop/resources/node-runtime/

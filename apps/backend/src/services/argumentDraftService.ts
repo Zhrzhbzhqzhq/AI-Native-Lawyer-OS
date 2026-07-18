@@ -187,6 +187,22 @@ export function normalizeArgumentSuggestionsForDrafts(suggestions: any[], facts:
   const candidates = suggestions.flatMap((suggestion) => {
     const title = String(suggestion?.title || suggestion?.name || '').trim()
     let issueType = String(suggestion?.issue_type || '').trim() as ArgumentIssueType
+    const issueTitle = typeof suggestion?.issue_title === 'string' ? suggestion.issue_title.trim() : ''
+    const factTitles = Array.isArray(suggestion?.fact_titles) ? uniqueStrings(suggestion.fact_titles) : []
+    const lawCitations = Array.isArray(suggestion?.law_citations) ? uniqueStrings(suggestion.law_citations) : []
+    console.log('[ARGUMENT SOURCE TITLE MATCH DEBUG]', {
+      title,
+      issue_title: issueTitle,
+      issue_title_match: issues.some((issue) => String(issue.title || '').trim() === issueTitle),
+      fact_titles_match: factTitles.map((factTitle) => ({
+        title: factTitle,
+        matched: facts.some((fact) => String(fact.title || '').trim() === factTitle),
+      })),
+      law_citations_match: lawCitations.map((citation) => ({
+        citation,
+        matched: laws.some((law) => String(law.citation || '').trim() === citation),
+      })),
+    })
     const reject = (reason: string) => {
       console.log('[ARGUMENT FILTER REJECT]', { title, reason })
       return []

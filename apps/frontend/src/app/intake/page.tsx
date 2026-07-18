@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Uploader, { isUploadedFile, type UploadedFile } from './uploader/Uploader'
 
@@ -85,6 +86,9 @@ export default function IntakePage() {
   return (
     <main style={{ padding: 24 }}>
       <div style={{ maxWidth: 760, margin: '0 auto' }}>
+        <Link href="/matters" style={{ display: 'inline-block', marginBottom: 16, color: '#4b5563', textDecoration: 'none' }}>
+          ← 返回案件中心
+        </Link>
         <h2 style={{ marginTop: 0 }}>上传咨询资料</h2>
         <div style={{ color: '#6b7280', lineHeight: 1.7, marginBottom: 18 }}>
           AI 将根据上传材料自动生成案件名称、当事人和案件类型，律师审核后建立案件。

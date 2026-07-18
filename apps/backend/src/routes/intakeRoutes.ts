@@ -501,9 +501,20 @@ export async function intakeRoutes(app: FastifyInstance) {
       }
 
       // run AI pipeline
-      const AIPipelineService = (await import('../services/ai/AIPipelineService')).default
-      const pipeline = new AIPipelineService()
-      const aiRes = await pipeline.run(caseSummary)
+      let aiRes: any = null
+      let aiConfigurationRequired = false
+      try {
+        const AIPipelineService = (await import('../services/ai/AIPipelineService')).default
+        const pipeline = new AIPipelineService()
+        aiRes = await pipeline.run(caseSummary)
+      } catch (error: any) {
+        const code = String(error?.message || error || '')
+        if (code === 'ai_provider_not_configured' || code.startsWith('ai_provider_key_missing:')) {
+          aiConfigurationRequired = true
+        } else {
+          throw error
+        }
+      }
 
       const createdCounts: any = { evidence_count: 0, facts_count: 0, issues_count: 0, laws_count: 0, arguments_count: 0, documents_count: 0 }
       const aiErrors: string[] = []
@@ -530,7 +541,7 @@ export async function intakeRoutes(app: FastifyInstance) {
       // AI output remains draft input only. Formal Evidence, Fact, Issue, Law,
       // Argument and Document objects are created exclusively by their explicit
       // lawyer-confirmation workflows.
-      const evidenceDrafts = Array.isArray(aiRes.steps.evidence) ? aiRes.steps.evidence.slice(0, 20) : []
+      const evidenceDrafts = Array.isArray(aiRes?.steps?.evidence) ? aiRes.steps.evidence.slice(0, 20) : []
 
       const meta: any = { ai: createdCounts }
       if (aiRes && aiRes.fallback_used) meta.ai.fallback_used = true
@@ -538,6 +549,10 @@ export async function intakeRoutes(app: FastifyInstance) {
       if (aiRes && aiRes.error) meta.ai.error = aiRes.error
       if (aiErrors.length > 0) meta.ai.errors = aiErrors
       meta.ai.evidence_drafts = evidenceDrafts
+      if (aiConfigurationRequired) {
+        meta.ai.status = 'configuration_required'
+        meta.ai.error = 'ai_provider_not_configured'
+      }
 
       // Documents are produced later through the persisted Document Draft workflow.
       // Matter creation must not create formal documents or document drafts.

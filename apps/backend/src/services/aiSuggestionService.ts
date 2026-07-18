@@ -10,11 +10,12 @@ export class AiSuggestionService {
   constructor(prisma: PrismaClient) {
     this.prisma = prisma;
     this.promptBuilder = new PromptBuilderService(prisma);
-    this.adapter = ProviderManager.getAdapter();
+    this.adapter = null;
   }
 
   async suggestForMatter(matter_id: string) {
     const promptPack = await this.promptBuilder.buildPromptPack(matter_id);
+    if (!this.adapter) this.adapter = ProviderManager.getAdapter();
     const resp = await this.adapter.generate(promptPack);
     return resp;
   }

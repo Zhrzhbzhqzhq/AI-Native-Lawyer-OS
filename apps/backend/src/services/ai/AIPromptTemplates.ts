@@ -109,15 +109,15 @@ ${JSON.stringify(laws, null, 2)}
 
 任务：请围绕每一个重要争议焦点，组织可直接进入代理词、起诉状理由或庭审陈述的法律论证。
 
-任务：请围绕每一个重要争议焦点，组织可直接进入代理词、起诉状理由或庭审陈述的法律论证。
-
 严格推理与格式要求（必须遵守）：
-1) 每条 Argument 必须对应一个 'issue_title'（在返回项中以 'issue_title' 字段标明对应争议焦点）。
-2) 每条 Argument 必须至少引用一条已确认的事实（confirmed Fact）；在返回项中以 'fact_titles' 字段列出所引用的已确认事实标题数组。
-3) 不允许引用 'to_prove'（待证明）事实；若输入上下文包含 'to_prove' 事实，禁止在 'fact_titles' 中列出它们。
-4) 如引用 'disputed'（存在争议）事实，必须在对应论证中明确写明："该事实存在争议，需要结合证据进一步证明。"
-5) 每条 Argument 必须至少引用一条法律依据（'law_citations' 数组）。
-6) 推理必须遵循固定顺序且不得跳步：
+1) 每条 Argument 必须且只能包含以下六个字段：'title'、'issue_title'、'fact_titles'、'law_citations'、'description'、'conclusion'。六个字段一个也不能省略，不得用 'argument'、'reasoning' 或其他字段替代。
+2) 每条 Argument 必须对应一个非空的 'issue_title'；其值必须与输入争议焦点中的某个 title 完全一致，不得改写或编造。
+3) 每条 Argument 必须至少引用一条已确认的事实（confirmed Fact）；'fact_titles' 必须是非空数组，其中每个值必须与输入事实中的某个 title 完全一致，不得改写或编造。
+4) 不允许引用 'to_prove'（待证明）事实；若输入上下文包含 'to_prove' 事实，禁止在 'fact_titles' 中列出它们。
+5) 如引用 'disputed'（存在争议）事实，必须在对应论证中明确写明："该事实存在争议，需要结合证据进一步证明。"
+6) 每条 Argument 必须至少引用一条法律依据；'law_citations' 必须是非空数组，其中每个值必须与输入法律依据中的某个 citation 完全一致，不得改写或编造。
+7) 'title'、'description'、'conclusion' 都必须是非空字符串；'description' 必须包含完整的论证过程，不能只返回结论。
+8) 推理必须遵循固定顺序且不得跳步：
      ① Issue
      ↓
      ② Confirmed Facts
@@ -128,20 +128,26 @@ ${JSON.stringify(laws, null, 2)}
      ↓
      ⑤ Conclusion
      说明：不要在缺少事实或法律支持的情况下直接得出结论。
-7) 'conclusion' 必须能直接用于起诉状、代理词或庭审陈述（语言应简洁、结论性强）。
-8) 严禁编造事实或法条；不得输出 AI 风格的叙述或泛泛作文；不得跳过事实直接得出结论。
+9) 'conclusion' 必须能直接用于起诉状、代理词或庭审陈述（语言应简洁、结论性强）。
+10) 严禁编造事实或法条；不得输出 AI 风格的叙述或泛泛作文；不得跳过事实直接得出结论。
 
-返回 JSON（严格）格式：
+返回 JSON（严格）Schema 示例：
 [
     {
         "title": "",
         "issue_title": "",
         "fact_titles": [],
         "law_citations": [],
-        "description": "",  // 按顺序包含：Issue -> Confirmed Facts -> Applicable Laws -> Legal Reasoning
+        "description": "",
         "conclusion": ""
     }
 ]
+
+上面空字符串和空数组仅用于展示字段结构。实际输出时：
+- title、issue_title、description、conclusion 必须填写非空内容；
+- fact_titles、law_citations 必须各包含至少一个来自输入数据的精确值；
+- 禁止只返回 {"argument":"...","conclusion":"..."}；
+- 禁止省略任何字段，禁止增加 Schema 之外的字段。
 
 字段说明：
  - 'fact_titles'：引用的 confirmed Fact 标题数组（不得包含 to_prove）。
@@ -150,8 +156,8 @@ ${JSON.stringify(laws, null, 2)}
 严格要求：
 - 只返回合法的 JSON 数组；
 - 不输出 Markdown、解释或正文外的任何内容；
- - 不引用 to_prove Facts；
- - 每条 Argument 必须引用至少一条 confirmed Fact 和至少一条 law_citation；
+- 不引用 to_prove Facts；
+- 每条 Argument 必须引用至少一条 confirmed Fact 和至少一条 law_citation；
 - 不得编造事实或法条；
 - 论证必须遵循规定的推理顺序。
 

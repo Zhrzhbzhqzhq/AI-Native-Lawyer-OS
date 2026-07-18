@@ -1,74 +1,43 @@
 {
-  "case_id": "case01-private-lending",
-  "items": [
+  "evidence": [
     {
-      "golden_id": "ev-001-loan-agreement",
-      "title": "借贷合意证据",
-      "proof_goal": "证明张建国与李海涛之间达成民间借贷合意，借款金额、用途、期限等核心内容有材料支撑。",
-      "source_materials": [
-        "001_客户咨询记录.md",
-        "002_咨询录音整理.md",
-        "003_微信聊天_借款形成.md",
-        "005_借条.md"
+      "id": "ev-001-loan-relationship",
+      "title": "借款关系证明",
+      "proof_goals": [
+        "证明双方存在借款合意",
+        "证明借款资金实际交付",
+        "证明被告认可债务存在"
       ],
-      "must_include": [
-        "借贷合意",
-        "借款",
-        "借条",
-        "张建国",
-        "李海涛"
+      "required_materials": [
+        "微信聊天记录",
+        "银行转账记录",
+        "部分还款记录"
       ],
-      "must_not_include": [
-        "夫妻共同债务",
-        "保证责任",
-        "关联公司",
-        "实际控制人",
-        "资金混同"
+      "expected_facts": [
+        "李海涛向张建国提出借款20万元",
+        "张建国实际支付20万元",
+        "李海涛偿还2万元并确认剩余债务"
       ]
     },
     {
-      "golden_id": "ev-002-fund-delivery",
-      "title": "借款资金交付证据",
-      "proof_goal": "证明张建国已经按照借款安排向李海涛实际交付借款资金。",
-      "source_materials": [
-        "001_客户咨询记录.md",
-        "005_借条.md",
-        "006_银行流水.md"
+      "id": "ev-002-payment-record",
+      "title": "资金交付证明",
+      "proof_goals": [
+        "证明借款已经实际支付"
       ],
-      "must_include": [
-        "资金交付",
-        "银行流水",
-        "转账",
-        "实际支付"
-      ],
-      "must_not_include": [
-        "现金清偿",
-        "抵账清偿",
-        "第三人代付",
-        "资金混同"
+      "required_materials": [
+        "银行流水"
       ]
     },
     {
-      "golden_id": "ev-003-default-and-collection",
-      "title": "到期未还与催收证据",
-      "proof_goal": "证明借款到期后李海涛未按约还款，张建国已经通过聊天、电话和律师函进行催收。",
-      "source_materials": [
-        "004_微信聊天_催收.md",
-        "005_借条.md",
-        "007_电话录音整理.md",
-        "008_律师函.md"
+      "id": "ev-003-debt-acknowledgement",
+      "title": "债务确认及催收证明",
+      "proof_goals": [
+        "证明被告持续认可欠款事实"
       ],
-      "must_include": [
-        "到期",
-        "未还",
-        "催收",
-        "律师函"
-      ],
-      "must_not_include": [
-        "保证责任",
-        "夫妻共同债务",
-        "关联公司",
-        "实际控制人"
+      "required_materials": [
+        "微信催收记录",
+        "还款记录"
       ]
     }
   ]

@@ -24,3 +24,8 @@
 {"timestamp":"2026-07-17T09:08:01.760Z","module":"Facts","provider":"minimax","model":"MiniMax-M3","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":23827}
 {"timestamp":"2026-07-17T09:08:43.991Z","module":"Facts","provider":"minimax","model":"MiniMax-M3","validation":"FAIL","retry":0,"fallback":false,"missing_fields":["fact[0].title missing or empty","fact[0].description missing or empty"],"latency_ms":5419}
 {"timestamp":"2026-07-17T09:09:11.812Z","module":"Facts","provider":"minimax","model":"MiniMax-M3","validation":"PASS","retry":1,"fallback":false,"missing_fields":[],"latency_ms":27820}
+{"timestamp":"2026-07-18T04:39:32.099Z","module":"Facts","provider":"minimax","model":"MiniMax-M3","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":2361}
+{"timestamp":"2026-07-18T04:39:57.869Z","module":"Laws","provider":"minimax","model":"MiniMax-M3","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":13740}
+{"timestamp":"2026-07-18T04:40:14.559Z","module":"Arguments","provider":"minimax","model":"MiniMax-M3","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":16512}
+{"timestamp":"2026-07-18T04:53:17.327Z","module":"Facts","provider":"minimax","model":"MiniMax-M3","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":14479}
+{"timestamp":"2026-07-18T04:53:39.223Z","module":"Laws","provider":"minimax","model":"MiniMax-M3","validation":"PASS","retry":0,"fallback":false,"missing_fields":[],"latency_ms":14003}
