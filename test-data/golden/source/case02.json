@@ -1,0 +1,260 @@
+{
+  "case_id": "case02_interest_dispute",
+  "title": "民间借贷利息争议案件",
+  "category": "民间借贷",
+  "folders": {
+    "01_客户资料": [
+      {
+        "filename": "01_客户咨询记录.md",
+        "content": "2025年2月18日，客户陈雨桐咨询其与周明远之间的借款利息争议。客户称其于2023年3月向周明远出借本金300000元，借款期限一年。双方微信中曾讨论“每月按三千元支付资金使用费”，但未签署完整书面借款合同。周明远在前六个月每月支付3000元，此后停止付息，并于2024年6月归还本金100000元。客户拟主张剩余本金及利息，希望律师判断微信约定、既往付息和法定上限对利息请求的影响。"
+      }
+    ],
+    "02_案件材料": [
+      {
+        "filename": "01_微信借款记录.txt",
+        "content": "2023年3月3日，周明远发送消息：“需要周转30万，先用一年，每个月给你3000元，年底前后把本金还上。”陈雨桐回复：“可以，款到账后每月10号前付3000元，借款一年。”周明远回复：“确认，就按这个办。”双方未在聊天中使用“月利率1%”等表述，也未另行签署借条。"
+      },
+      {
+        "filename": "02_银行流水.md",
+        "content": "2023年3月5日，陈雨桐向周明远本人账户转账300000元，交易附言为“借款”。2024年6月20日，周明远向陈雨桐转账100000元，附言为“还本金”。截至2025年2月18日，尚未发现其他本金偿还记录。"
+      },
+      {
+        "filename": "03_利息支付流水.md",
+        "content": "2023年4月10日至2023年9月10日，周明远连续六个月每月向陈雨桐转账3000元，共计18000元。前五笔附言为“使用费”，第六笔无附言。2023年10月后未再发现固定3000元支付。上述款项性质及是否属于利息，应结合聊天内容、履行习惯和双方陈述综合判断。"
+      },
+      {
+        "filename": "04_催收记录.txt",
+        "content": "2024年3月6日，陈雨桐要求归还本金并补付自2023年10月起未支付的资金使用费。周明远回复：“本金我会分期还，之前每月3000我已经付了半年，后面的利息太高要重新算。”2024年7月2日，陈雨桐确认收到100000元本金，并要求周明远说明剩余本金和利息的支付计划。周明远未给出明确日期。"
+      }
+    ],
+    "03_对方观点": [
+      {
+        "filename": "01_被告利息抗辩.md",
+        "content": "周明远主张：双方没有书面约定利率，“每月3000元”仅是其自愿支付的感谢费，不应视为持续计息约定；即使属于利息，超过司法保护上限的部分也不应支持；其已支付的18000元应优先冲抵本金。该抗辩为测试场景中的对方立场，款项性质、抵扣顺序和保护上限应由律师结合证据及适用法律审核。"
+      }
+    ],
+    "04_案件目标": [
+      {
+        "filename": "01_金额争议.md",
+        "content": "基础数据：出借本金300000元；已明确归还本金100000元；暂按客户口径剩余本金200000元；已支付固定款项18000元。计算任务：分别测算“每月3000元构成利息”和“不构成持续利息约定”两种方案；核验每期利息是否超过合同成立时一年期贷款市场报价利率四倍的司法保护范围；明确18000元的性质及抵扣顺序。任何最终金额必须由律师确认。"
+      },
+      {
+        "filename": "02_案件目标.md",
+        "content": "确认剩余本金数额并追偿；判断微信聊天能否证明利息约定；分析已支付18000元的法律性质；审查被告关于无书面利率、超过保护上限和冲抵本金的抗辩；形成不同利息认定方案下的诉讼请求及风险提示。"
+      }
+    ]
+  },
+  "golden": {
+    "Facts": {
+      "items": [
+        {
+          "id": "fact01_agreement",
+          "statement": "陈雨桐与周明远通过微信形成300000元借款合意，约定借款期限一年。",
+          "source_files": [
+            "01_微信借款记录.txt"
+          ]
+        },
+        {
+          "id": "fact02_delivery",
+          "statement": "陈雨桐于2023年3月5日向周明远实际转账300000元。",
+          "source_files": [
+            "02_银行转账.md"
+          ]
+        },
+        {
+          "id": "fact03_interest_performance",
+          "statement": "周明远连续六个月每月支付3000元，共计18000元。",
+          "source_files": [
+            "03_利息支付流水.md"
+          ]
+        },
+        {
+          "id": "fact04_principal_repayment",
+          "statement": "周明远于2024年6月20日明确归还本金100000元，暂余本金200000元。",
+          "source_files": [
+            "02_银行转账.md",
+            "04_催收记录.txt"
+          ]
+        },
+        {
+          "id": "fact05_dispute",
+          "statement": "双方对每月3000元的性质、后续利息及18000元抵扣顺序存在争议。",
+          "source_files": [
+            "04_催收记录.txt",
+            "01_被告利息抗辩.md"
+          ]
+        }
+      ]
+    },
+    "Issues": {
+      "items": [
+        {
+          "id": "issue01_interest_agreement",
+          "title": "微信沟通是否构成明确有效的利息约定",
+          "source_fact_ids": [
+            "fact01_agreement",
+            "fact03_interest_performance"
+          ]
+        },
+        {
+          "id": "issue02_interest_limit",
+          "title": "约定利息是否超过司法保护上限",
+          "source_fact_ids": [
+            "fact01_agreement",
+            "fact03_interest_performance"
+          ]
+        },
+        {
+          "id": "issue03_payment_nature",
+          "title": "已支付18000元应认定为利息还是冲抵本金",
+          "source_fact_ids": [
+            "fact03_interest_performance",
+            "fact05_dispute"
+          ]
+        },
+        {
+          "id": "issue04_balance",
+          "title": "部分归还后剩余本金及应付利息如何计算",
+          "source_fact_ids": [
+            "fact04_principal_repayment",
+            "fact05_dispute"
+          ]
+        }
+      ]
+    },
+    "Laws": {
+      "verification_status": "pending_legal_database_verification",
+      "items": [
+        {
+          "id": "law01_interest_agreement",
+          "title": "借款利息约定规则",
+          "citation": "《中华人民共和国民法典》第六百八十条",
+          "supports_issue_ids": [
+            "issue01_interest_agreement"
+          ]
+        },
+        {
+          "id": "law02_private_lending_rate",
+          "title": "民间借贷利率司法保护规则",
+          "citation": "《最高人民法院关于审理民间借贷案件适用法律若干问题的规定》关于利率保护上限的现行条款",
+          "supports_issue_ids": [
+            "issue02_interest_limit",
+            "issue04_balance"
+          ]
+        },
+        {
+          "id": "law03_payment_allocation",
+          "title": "清偿抵充及款项性质认定规则",
+          "citation": "《中华人民共和国民法典》及相关司法解释关于债务清偿抵充的规定",
+          "supports_issue_ids": [
+            "issue03_payment_nature",
+            "issue04_balance"
+          ]
+        },
+        {
+          "id": "law04_electronic_data",
+          "title": "电子数据真实性与证明力规则",
+          "citation": "《中华人民共和国民事诉讼法》及证据规定关于电子数据的规则",
+          "supports_issue_ids": [
+            "issue01_interest_agreement"
+          ]
+        }
+      ]
+    },
+    "Arguments": {
+      "items": [
+        {
+          "id": "argument01_interest",
+          "title": "微信约定与持续履行能够支持利息约定存在",
+          "issue_id": "issue01_interest_agreement",
+          "fact_ids": [
+            "fact01_agreement",
+            "fact03_interest_performance"
+          ],
+          "law_ids": [
+            "law01_interest_agreement",
+            "law04_electronic_data"
+          ],
+          "conclusion": "微信中的具体金额、支付周期及连续六个月履行可以共同支持存在利息安排，但聊天完整性和真实性仍需律师核验。"
+        },
+        {
+          "id": "argument02_limit",
+          "title": "利息请求应受司法保护上限约束",
+          "issue_id": "issue02_interest_limit",
+          "fact_ids": [
+            "fact01_agreement",
+            "fact03_interest_performance"
+          ],
+          "law_ids": [
+            "law02_private_lending_rate"
+          ],
+          "conclusion": "即使认定每月3000元属于利息，最终支持金额仍应按合同成立时适用的司法保护上限逐期核算。"
+        },
+        {
+          "id": "argument03_allocation",
+          "title": "已支付18000元的性质应结合约定和履行认定",
+          "issue_id": "issue03_payment_nature",
+          "fact_ids": [
+            "fact03_interest_performance",
+            "fact05_dispute"
+          ],
+          "law_ids": [
+            "law03_payment_allocation"
+          ],
+          "conclusion": "固定金额、固定周期和部分附言能够支持利息属性，但被告提出冲抵本金抗辩后，应结合完整流水和双方真实意思综合判断。"
+        },
+        {
+          "id": "argument04_balance",
+          "title": "剩余本金与利息应分项计算",
+          "issue_id": "issue04_balance",
+          "fact_ids": [
+            "fact04_principal_repayment",
+            "fact05_dispute"
+          ],
+          "law_ids": [
+            "law02_private_lending_rate",
+            "law03_payment_allocation"
+          ],
+          "conclusion": "本金暂按200000元核算，利息应根据约定效力、保护上限、已付款性质和具体起止日期另行计算并由律师确认。"
+        }
+      ]
+    },
+    "DocumentExpectation": {
+      "document_type": "民事起诉状及利息计算附表",
+      "required_sections": [
+        "当事人信息",
+        "诉讼请求",
+        "借款形成与交付",
+        "利息约定及履行",
+        "本金部分清偿",
+        "利息计算方法",
+        "被告抗辩回应",
+        "证据目录"
+      ],
+      "required_calculations": [
+        "原始本金300000元",
+        "明确归还本金100000元",
+        "暂余本金200000元",
+        "已支付款项18000元",
+        "不同利息认定方案对比",
+        "司法保护上限校验"
+      ],
+      "lawyer_review_required": [
+        "聊天记录真实性",
+        "18000元款项性质",
+        "抵扣顺序",
+        "LPR基准日期和倍数",
+        "利息起止日",
+        "最终诉讼请求金额"
+      ],
+      "forbidden_content": [
+        "将感谢费当然认定为利息",
+        "忽略司法保护上限",
+        "未经核验直接将18000元冲抵本金",
+        "虚构书面借条",
+        "虚构身份或法院信息",
+        "AI内部推理或内部ID"
+      ]
+    }
+  }
+}
