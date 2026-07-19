@@ -3,6 +3,8 @@ import buildApp from '../src/server'
 import { createPrismaClient } from '@lawdesk/database'
 import { MockLlmAdapter } from '../src/ai/mockLlmAdapter'
 import { assertFormalArgumentContent, normalizeArgumentSuggestionsForDrafts } from '../src/services/argumentDraftService'
+import { validateArguments } from '../src/services/ai/AIOutputValidator'
+import { FORMAL_ARGUMENT_V2_HEADER, parseFormalArgument } from '../src/services/formalSemanticCodec'
 
 const RUN_ID = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 const matterId = `test-argument-draft-${RUN_ID}`
@@ -34,6 +36,29 @@ async function cleanup(id: string) {
 async function seedMatter(id: string, count = 0) {
   await prisma.matter.create({ data: { matter_id: id, title: `Argument Draft ${id}`, description: '', matter_type: 'test', status: 'active' } })
   for (let index = 0; index < count; index += 1) {
+    const material = await prisma.material.create({
+      data: {
+        material_id: `material-${id}-${index}`,
+        matter_id: id,
+        title: `案件材料 ${index + 1}`,
+        material_type: 'test',
+        source: 'test',
+        storage_uri: `test://${id}/${index}`,
+        status: 'active',
+      },
+    })
+    const evidence = await prisma.evidence.create({
+      data: {
+        evidence_id: `evidence-${id}-${index}`,
+        matter_id: id,
+        material_id: material.material_id,
+        title: `正式证据 ${index + 1}`,
+        evidence_type: 'document',
+        description: '正式证据',
+        relevance: '支持对应事实',
+        status: 'active',
+      },
+    })
     const fact = await prisma.fact.create({
       data: {
         fact_id: `fact-${id}-${index}`,
@@ -64,6 +89,7 @@ async function seedMatter(id: string, count = 0) {
       },
     })
     await prisma.issueFact.create({ data: { issue_id: issue.issue_id, fact_id: fact.fact_id } })
+    await prisma.factEvidence.create({ data: { fact_id: fact.fact_id, evidence_id: evidence.evidence_id, note: 'test-source' } })
     await prisma.lawIssue.create({ data: { law_id: law.law_id, issue_id: issue.issue_id } })
   }
 }
@@ -145,20 +171,30 @@ describe('Persisted Argument Draft Workflow', () => {
     }
   })
 
-  it('aggregates multiple delivery sources into one Argument', async () => {
-    const adapter = new MockLlmAdapter()
-    const result = await adapter.generate({
-      task: 'analyze_arguments',
-      matter_id: 'generic-matter',
-      prompt_version: 'argument-draft-v1',
-      facts: [{ fact_id: 'fact-b', issue_type: 'delivery' }, { fact_id: 'fact-a', issue_type: 'delivery' }],
-      issues: [{ issue_id: 'issue-b', issue_type: 'delivery', source_fact_ids: ['fact-b'] }, { issue_id: 'issue-a', issue_type: 'delivery', source_fact_ids: ['fact-a'] }],
-      laws: [{ law_id: 'law-b', issue_type: 'delivery', source_issue_ids: ['issue-b'] }, { law_id: 'law-a', issue_type: 'delivery', source_issue_ids: ['issue-a'] }],
-    })
-    expect(result.response.arguments).toHaveLength(1)
-    expect(result.response.arguments[0].source_fact_ids).toEqual(['fact-a', 'fact-b'])
-    expect(result.response.arguments[0].source_issue_ids).toEqual(['issue-a', 'issue-b'])
-    expect(result.response.arguments[0].source_law_ids).toEqual(['law-a', 'law-b'])
+  it('keeps separate Arguments for separate Issues and never merges by issue type', () => {
+    const facts = [{ fact_id: 'fact-a', title: '事实A' }, { fact_id: 'fact-b', title: '事实B' }]
+    const issues = [
+      { issue_id: 'issue-a', title: '争点A', facts: [{ fact: facts[0] }] },
+      { issue_id: 'issue-b', title: '争点B', facts: [{ fact: facts[1] }] },
+    ]
+    const laws = [
+      { law_id: 'law-a', citation: '法条A', issues: [{ issue_id: 'issue-a' }] },
+      { law_id: 'law-b', citation: '法条B', issues: [{ issue_id: 'issue-b' }] },
+    ]
+    const content = {
+      position: '基于当前来源形成阶段性观点。',
+      reasoning: '事实与法律规则共同支持该阶段性观点。',
+      counter_argument: '对方可能提出不同解释。',
+      response: '应结合现有来源逐项回应。',
+      risk: '事实与法律适用仍需律师审核。',
+      conclusion: '现有来源可支持该项主张，仍需律师审核。',
+    }
+    const drafts = normalizeArgumentSuggestionsForDrafts([
+      { ...content, title: '论证A', issue_title: '争点A', fact_titles: ['事实A'], law_citations: ['法条A'] },
+      { ...content, title: '论证B', issue_title: '争点B', fact_titles: ['事实B'], law_citations: ['法条B'] },
+    ], facts, issues, laws, new Set(['fact-a', 'fact-b']))
+    expect(drafts).toHaveLength(2)
+    expect(drafts.map((draft) => draft.source_issue_ids)).toEqual([['issue-a'], ['issue-b']])
   })
 
   it('rejects empty, invalid and type-mismatched source closures', () => {
@@ -174,11 +210,40 @@ describe('Persisted Argument Draft Workflow', () => {
       { law_id: 'law-agreement', issues: [{ issue_id: 'issue-agreement' }] },
       { law_id: 'law-delivery', issues: [{ issue_id: 'issue-delivery' }] },
     ]
-    const base = { title: '成立论证', reasoning: '正式论证过程', conclusion: '正式结论', issue_type: 'agreement' }
-    expect(normalizeArgumentSuggestionsForDrafts([{ ...base, source_fact_ids: [], source_issue_ids: ['issue-agreement'], source_law_ids: ['law-agreement'] }], facts, issues, laws)).toEqual([])
-    expect(normalizeArgumentSuggestionsForDrafts([{ ...base, source_fact_ids: ['missing'], source_issue_ids: ['issue-agreement'], source_law_ids: ['law-agreement'] }], facts, issues, laws)).toEqual([])
-    expect(normalizeArgumentSuggestionsForDrafts([{ ...base, source_fact_ids: ['fact-agreement'], source_issue_ids: ['issue-delivery'], source_law_ids: ['law-delivery'] }], facts, issues, laws)).toEqual([])
-    expect(normalizeArgumentSuggestionsForDrafts([{ ...base, source_fact_ids: ['fact-agreement'], source_issue_ids: ['issue-agreement'], source_law_ids: ['law-agreement'] }], facts, issues, laws)).toHaveLength(1)
+    const base = {
+      title: '成立论证',
+      position: '阶段性观点',
+      reasoning: '正式论证过程',
+      counter_argument: '可能存在相反观点',
+      response: '根据现有来源回应',
+      risk: '仍需律师审核',
+      conclusion: '现有来源支持该阶段性观点，仍需律师审核',
+    }
+    const backed = new Set(['fact-agreement', 'fact-delivery'])
+    expect(normalizeArgumentSuggestionsForDrafts([{ ...base, source_fact_ids: [], source_issue_ids: ['issue-agreement'], source_law_ids: ['law-agreement'] }], facts, issues, laws, backed)).toEqual([])
+    expect(normalizeArgumentSuggestionsForDrafts([{ ...base, source_fact_ids: ['missing'], source_issue_ids: ['issue-agreement'], source_law_ids: ['law-agreement'] }], facts, issues, laws, backed)).toEqual([])
+    expect(normalizeArgumentSuggestionsForDrafts([{ ...base, source_fact_ids: ['fact-agreement'], source_issue_ids: ['issue-delivery'], source_law_ids: ['law-delivery'] }], facts, issues, laws, backed)).toEqual([])
+    expect(normalizeArgumentSuggestionsForDrafts([{ ...base, source_fact_ids: ['fact-agreement'], source_issue_ids: ['issue-agreement'], source_law_ids: ['law-agreement'] }], facts, issues, laws, backed)).toHaveLength(1)
+    expect(normalizeArgumentSuggestionsForDrafts([{ ...base, source_fact_ids: ['fact-agreement'], source_issue_ids: ['issue-agreement', 'issue-delivery'], source_law_ids: ['law-agreement'] }], facts, issues, laws, backed)).toEqual([])
+    expect(normalizeArgumentSuggestionsForDrafts([{ ...base, source_fact_ids: ['fact-agreement'], source_issue_ids: ['issue-agreement'], source_law_ids: ['law-agreement'] }], facts, issues, laws, new Set())).toEqual([])
+  })
+
+  it('allows provisional positions and rejects final outcome guarantees', () => {
+    const safe = {
+      title: '阶段性法律论证',
+      issue_title: '争议焦点',
+      fact_titles: ['已确认事实'],
+      law_citations: ['《测试法》第一条'],
+      position: '基于当前来源，可以提出该项法律主张。',
+      reasoning: '已确认事实与适用规则共同构成现阶段论证基础。',
+      counter_argument: '对方可能提出不同解释。',
+      response: '应结合现有证据逐项回应。',
+      risk: '事实认定和法律适用仍需律师审核。',
+      conclusion: '现有来源可支持该阶段性观点，仍需律师审核。',
+    }
+    expect(validateArguments([safe]).ok).toBe(true)
+    expect(validateArguments([{ ...safe, conclusion: '本案必然胜诉，法院一定支持全部诉讼请求。' }]).ok).toBe(false)
+    expect(() => assertFormalArgumentContent({ ...safe, conclusion: '对方毫无疑问应承担全部责任。' })).toThrow('unsafe_argument_boundary')
   })
 
   it('rejects internal metadata and placeholder content', () => {
@@ -283,6 +348,20 @@ describe('Persisted Argument Draft Workflow', () => {
 
     const published = await prisma.argumentDraft.findFirst({ where: { matter_id: matterId, published_argument_id: { not: null } } })
     expect(published).toBeTruthy()
+    const formalArgument = await prisma.argument.findUnique({ where: { argument_id: published.published_argument_id } })
+    expect(formalArgument.description.startsWith(`${FORMAL_ARGUMENT_V2_HEADER}\n`)).toBe(true)
+    expect(parseFormalArgument(formalArgument.description)).toMatchObject({
+      encoding: 'valid-v2',
+      parsed: true,
+      fields: {
+        position: published.position || '',
+        reasoning: published.reasoning || '',
+        counter_argument: published.counter_argument || '',
+        response: published.response || '',
+        risk: published.risk || '',
+      },
+    })
+    expect(JSON.stringify(body.created_arguments)).not.toContain(FORMAL_ARGUMENT_V2_HEADER)
     const modifyPublished = await app.inject({ method: 'PATCH', url: `/matters/${matterId}/argument-drafts/${published.id}`, payload: { review_status: 'ignored' } })
     expect(modifyPublished.statusCode).toBe(409)
 
@@ -330,6 +409,37 @@ describe('Persisted Argument Draft Workflow', () => {
     expect(await prisma.argumentDraft.count({ where: { matter_id: badMatterId, OR: [{ published_argument_id: { not: null } }, { published_at: { not: null } }] } })).toBe(0)
     await cleanup(badMatterId)
     await cleanup(otherId)
+  })
+
+  it('rejects locally valid source IDs when a reviewed draft is changed to cross Issue boundaries', async () => {
+    const badMatterId = `${matterId}-cross-issue-source`
+    await cleanup(badMatterId)
+    await seedMatter(badMatterId, 2)
+    const facts = await prisma.fact.findMany({ where: { matter_id: badMatterId }, orderBy: { created_at: 'asc' } })
+    const issues = await prisma.issue.findMany({ where: { matter_id: badMatterId }, orderBy: { created_at: 'asc' } })
+    const laws = await prisma.law.findMany({ where: { matter_id: badMatterId }, orderBy: { created_at: 'asc' } })
+    await prisma.argumentDraft.create({
+      data: {
+        matter_id: badMatterId,
+        title: '被篡改来源的阶段性论证',
+        position: '基于现有来源形成阶段性观点。',
+        reasoning: '事实与法律共同构成当前论证基础。',
+        counter_argument: '对方可能提出不同解释。',
+        response: '应结合现有来源逐项回应。',
+        risk: '事实与法律适用仍需律师审核。',
+        conclusion: '当前仅形成阶段性观点，仍待律师审核。',
+        source_fact_ids: JSON.stringify([facts[1].fact_id]),
+        source_issue_ids: JSON.stringify([issues[0].issue_id]),
+        source_law_ids: JSON.stringify([laws[0].law_id]),
+        review_status: 'accepted',
+      },
+    })
+
+    const publish = await app.inject({ method: 'POST', url: `/matters/${badMatterId}/argument-drafts/publish`, payload: {} })
+    expect(publish.statusCode).toBe(400)
+    expect(JSON.parse(publish.body).error).toBe('invalid_source_issue_ids')
+    expect(await prisma.argument.count({ where: { matter_id: badMatterId } })).toBe(0)
+    await cleanup(badMatterId)
   })
 
   it('does not create formal Arguments during Intake Matter Create', async () => {

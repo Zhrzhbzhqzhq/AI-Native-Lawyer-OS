@@ -32,14 +32,14 @@ const forbiddenDocumentText = [
 
 function expectSubmissionReadyComplaint(content: string) {
   expect(content).toContain('民事起诉状')
-  expect(content).toContain('原告基本信息')
-  expect(content).toContain('被告基本信息')
+  expect(content).toContain('原告：')
+  expect(content).toContain('被告：')
   expect(content).toContain('诉讼请求')
   expect(content).toContain('事实与理由')
   expect(content).toContain('证据和证据来源')
   expect(content).toContain('此致')
-  expect(content).toContain('【待律师补充：借款本金金额】')
-  expect(content).toContain('【待律师确认：管辖法院】')
+  expect(content).toContain('【待律师根据已确认 Argument 和案件目标补充】')
+  expect(content).toContain('【待律师补充：受理法院】')
   for (const forbidden of forbiddenDocumentText) {
     expect(content).not.toContain(forbidden)
   }
@@ -52,17 +52,29 @@ async function seedMatter(matterId: string, withArguments = true) {
   const fact = await prisma.fact.create({
     data: { fact_id: `${matterId}-fact-1`, matter_id: matterId, title: '借款已经实际交付', description: '银行流水与借条相互印证。', status: 'active' },
   })
+  const material = await prisma.material.create({
+    data: { material_id: `${matterId}-material-1`, matter_id: matterId, title: '客户提交的合同材料', material_type: 'text', source: 'client', storage_uri: '', status: 'active' },
+  })
+  const evidence = await prisma.evidence.create({
+    data: { evidence_id: `${matterId}-evidence-1`, matter_id: matterId, material_id: material.material_id, title: '合同材料证据', evidence_type: 'document', description: '记录双方约定。', relevance: '支持合同事实', status: 'active' },
+  })
+  await prisma.factEvidence.create({ data: { fact_id: fact.fact_id, evidence_id: evidence.evidence_id, note: 'document-context-source' } })
   const issue = await prisma.issue.create({
     data: { issue_id: `${matterId}-issue-1`, matter_id: matterId, title: '出借人是否完成借款交付义务', description: '影响本金请求。', status: 'active' },
   })
   const law = await prisma.law.create({
     data: { law_id: `${matterId}-law-1`, matter_id: matterId, issue_id: issue.issue_id, title: '民间借贷合同规则', citation: '民法典第六百六十七条', description: '借款合同规则。', status: 'active' },
   })
+  await prisma.issueFact.create({ data: { issue_id: issue.issue_id, fact_id: fact.fact_id } })
+  await prisma.lawIssue.create({ data: { law_id: law.law_id, issue_id: issue.issue_id } })
   let argument: any = null
   if (withArguments) {
     argument = await prisma.argument.create({
       data: { argument_id: `${matterId}-arg-1`, matter_id: matterId, issue_id: issue.issue_id, title: '被告应偿还借款本金', description: '借款合意和资金交付均可证明。', conclusion: '请求支持还款。', status: 'active' },
     })
+    await prisma.argumentFact.create({ data: { argument_id: argument.argument_id, fact_id: fact.fact_id } })
+    await prisma.argumentIssue.create({ data: { argument_id: argument.argument_id, issue_id: issue.issue_id } })
+    await prisma.argumentLaw.create({ data: { argument_id: argument.argument_id, law_id: law.law_id } })
   }
   return { fact, issue, law, argument }
 }
@@ -79,10 +91,18 @@ beforeAll(async () => {
   await prisma.documentArgument.deleteMany({ where: { document: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } } }).catch(() => {})
   await (prisma as any).documentDraft.deleteMany({ where: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } }).catch(() => {})
   await prisma.document.deleteMany({ where: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } }).catch(() => {})
+  await prisma.argumentLaw.deleteMany({ where: { argument: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } } }).catch(() => {})
+  await prisma.argumentIssue.deleteMany({ where: { argument: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } } }).catch(() => {})
+  await prisma.argumentFact.deleteMany({ where: { argument: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } } }).catch(() => {})
+  await prisma.lawIssue.deleteMany({ where: { law: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } } }).catch(() => {})
+  await prisma.issueFact.deleteMany({ where: { issue: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } } }).catch(() => {})
+  await prisma.factEvidence.deleteMany({ where: { fact: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } } }).catch(() => {})
   await prisma.argument.deleteMany({ where: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } }).catch(() => {})
   await prisma.law.deleteMany({ where: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } }).catch(() => {})
   await prisma.issue.deleteMany({ where: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } }).catch(() => {})
   await prisma.fact.deleteMany({ where: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } }).catch(() => {})
+  await prisma.evidence.deleteMany({ where: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } }).catch(() => {})
+  await prisma.material.deleteMany({ where: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } }).catch(() => {})
   await prisma.matter.deleteMany({ where: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } }).catch(() => {})
   await seedMatter(MATTER_ID, true)
   await seedMatter(OTHER_MATTER_ID, false)
@@ -95,10 +115,18 @@ afterAll(async () => {
   await prisma.documentArgument.deleteMany({ where: { document: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } } }).catch(() => {})
   await (prisma as any).documentDraft.deleteMany({ where: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } }).catch(() => {})
   await prisma.document.deleteMany({ where: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } }).catch(() => {})
+  await prisma.argumentLaw.deleteMany({ where: { argument: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } } }).catch(() => {})
+  await prisma.argumentIssue.deleteMany({ where: { argument: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } } }).catch(() => {})
+  await prisma.argumentFact.deleteMany({ where: { argument: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } } }).catch(() => {})
+  await prisma.lawIssue.deleteMany({ where: { law: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } } }).catch(() => {})
+  await prisma.issueFact.deleteMany({ where: { issue: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } } }).catch(() => {})
+  await prisma.factEvidence.deleteMany({ where: { fact: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } } }).catch(() => {})
   await prisma.argument.deleteMany({ where: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } }).catch(() => {})
   await prisma.law.deleteMany({ where: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } }).catch(() => {})
   await prisma.issue.deleteMany({ where: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } }).catch(() => {})
   await prisma.fact.deleteMany({ where: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } }).catch(() => {})
+  await prisma.evidence.deleteMany({ where: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } }).catch(() => {})
+  await prisma.material.deleteMany({ where: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } }).catch(() => {})
   await prisma.matter.deleteMany({ where: { matter_id: { in: [MATTER_ID, OTHER_MATTER_ID] } } }).catch(() => {})
   await prisma.$disconnect()
   await app.close()

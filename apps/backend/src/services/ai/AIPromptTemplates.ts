@@ -11,8 +11,61 @@ export function buildEvidencePrompt(_context: any) {
     return EVIDENCE_PROMPT
 }
 
-export function buildFactPrompt(_context: any) {
-    return FACT_PROMPT
+export function buildFactPrompt(context: any) {
+    const materialTextLimit = 4000
+    const truncateText = (value: unknown) => {
+        const text = typeof value === 'string' ? value : ''
+        return text.length > materialTextLimit
+            ? `${text.slice(0, materialTextLimit)}\n[材料内容已截断]`
+            : text
+    }
+    const mapMaterial = (material: any) => ({
+        material_id: String(material?.material_id || ''),
+        title: String(material?.title || material?.name || ''),
+        material_type: String(material?.material_type || material?.type || ''),
+        filename: String(material?.filename || material?.file_name || ''),
+        content: truncateText(material?.content || material?.extracted_text || material?.text),
+    })
+
+    const matter = context?.matter
+        ? {
+            matter_id: String(context.matter.matter_id || ''),
+            title: String(context.matter.title || ''),
+            matter_type: String(context.matter.matter_type || context.matter.type || ''),
+            description: String(context.matter.description || ''),
+        }
+        : {}
+    const materials = Array.isArray(context?.materials)
+        ? context.materials.map(mapMaterial)
+        : []
+    const evidence = Array.isArray(context?.evidence)
+        ? context.evidence.map((item: any) => ({
+            evidence_id: String(item?.evidence_id || ''),
+            title: String(item?.title || item?.name || ''),
+            description: String(item?.description || ''),
+            evidence_type: String(item?.evidence_type || item?.type || ''),
+            status: String(item?.status || ''),
+            material: item?.material ? mapMaterial(item.material) : null,
+        }))
+        : []
+
+    return `${FACT_PROMPT}
+
+案件信息（Matter，仅作为背景，不得单独作为事实依据）：
+${JSON.stringify(matter, null, 2)}
+
+案件材料（Materials）：
+${JSON.stringify(materials, null, 2)}
+
+证据（Evidence）：
+${JSON.stringify(evidence, null, 2)}
+
+事实提炼补充要求：
+1. 每条事实应尽可能明确表达时间、主体、行为、对象、结果和证据来源；输入未提供的要素不得猜测或补写。
+2. 只能依据上述 Materials 与 Evidence 提炼事实。Matter 信息仅用于理解案件背景，不能单独证明任何事实。
+3. 不得仅根据 Matter 标题或案件类型推断、补充或确认合同、借贷、劳动、侵权、代理等法律关系。
+4. 不得编造当事人、金额、日期、行为、结果、证据或法律关系。
+5. evidence_titles 必须使用上述 Evidence 中真实存在且标题完全一致的值。`
 }
 
 export function buildIssuePrompt(_context: any) {
@@ -72,51 +125,62 @@ ${JSON.stringify(materials, null, 2)}
 
 请仅依据上述案件上下文生成法律依据草稿，不得编造案件事实或法律依据。
 
-覆盖与数量要求（必须遵守）：
-1. 必须覆盖输入的每一个争议焦点（Issue）。
-2. 每个争议焦点至少返回一条法律依据，不允许只回答其中一个争议焦点。
-3. 返回的法律依据数量不得少于输入的争议焦点数量。
-4. 每条法律依据必须包含非空的 title、citation、description、issue_title。
-5. issue_title 必须明确对应输入中的争议焦点标题。
+安全与数量要求（必须遵守）：
+1. 每条法律依据必须且只能对应一个输入 Issue。
+2. 不要求覆盖每一个 Issue；没有能够可靠确认的依据时可以不返回该 Issue 的 Law。
+3. 同一 Issue 最多返回两条 citation 不重复的法律依据。
+4. 每条必须包含非空的 title、citation、rule_content、application、limitations、issue_title。
+5. issue_title 必须与输入 Issues 中的某个 title 完全一致。
+6. 不得把本案最终责任、胜负或请求应否支持写入 Law。
 
 只返回合法 JSON 数组，不要输出 Markdown、代码块、解释或其他内容：
 [
   {
     "title": "",
     "citation": "",
-    "description": "【适用原因】\n【证明作用】\n【支持结论】",
-    "issue_title": ""
+    "rule_content": "",
+    "application": "",
+    "limitations": "",
+    "source_reference": "",
+    "issue_title": "",
+    "confidence": 0.9
   }
-]
-
-每条 description 必须完整包含：【适用原因】、【证明作用】、【支持结论】。`
+]`
 }
 
-export function buildArgumentPrompt(_context: any) {
-    const facts = Array.isArray(_context && _context.facts) ? _context.facts : []
-    const issues = Array.isArray(_context && _context.issues) ? _context.issues : []
-    const laws = Array.isArray(_context && _context.laws) ? _context.laws : []
+export function buildArgumentPrompt(_context: any, options: { compactRetry?: boolean } = {}) {
+    const argumentScopes = Array.isArray(_context && _context.argumentScopes) ? _context.argumentScopes : []
+    const compactRetryRequirements = options.compactRetry
+        ? `
+本次为紧凑重试，必须额外遵守：
+1. 最多返回 4 条 Argument，按重要性排序；宁可减少数量，也不得截断 JSON。
+2. 每条 Argument 必须且只能对应一个 Issue，issue_title 必须精确匹配。
+3. fact_titles 只能引用该 Issue 直接关联的 Fact，不得引用同一 Matter 下其他 Fact。
+4. law_citations 只能引用该 Issue 直接关联的 Law，不得引用其他 Issue 的 Law。
+5. position、counter_argument、response、risk、conclusion 各不超过 120 个中文字符，reasoning 不超过 300 个中文字符。
+6. 保留反方观点、回应和风险提示，但使用简洁句子，不展开重复背景。
+7. 只返回完整、合法、闭合的 JSON 数组，不输出 Markdown、代码块、前言、注释或结语。`
+        : ''
     return `你是一名中国资深民商事诉讼律师。
 
-下面是已确认的案件事实：
-${JSON.stringify(facts, null, 2)}
+下面是按争议焦点划分的 Argument Scopes：
+${JSON.stringify(argumentScopes, null, 2)}
 
-下面是争议焦点：
-${JSON.stringify(issues, null, 2)}
+每个 Scope 中：
+- issue_title 是该 Scope 唯一允许回答的 Issue；
+- allowed_facts 是该 Issue 唯一允许引用的 Facts；
+- allowed_laws 是该 Issue 唯一允许引用的 Laws。
 
-下面是可适用的法律依据：
-${JSON.stringify(laws, null, 2)}
-
-任务：请围绕每一个重要争议焦点，组织可直接进入代理词、起诉状理由或庭审陈述的法律论证。
+任务：请围绕每一个重要争议焦点，形成供律师审核的阶段性法律论证。
 
 严格推理与格式要求（必须遵守）：
-1) 每条 Argument 必须且只能包含以下六个字段：'title'、'issue_title'、'fact_titles'、'law_citations'、'description'、'conclusion'。六个字段一个也不能省略，不得用 'argument'、'reasoning' 或其他字段替代。
-2) 每条 Argument 必须对应一个非空的 'issue_title'；其值必须与输入争议焦点中的某个 title 完全一致，不得改写或编造。
-3) 每条 Argument 必须至少引用一条已确认的事实（confirmed Fact）；'fact_titles' 必须是非空数组，其中每个值必须与输入事实中的某个 title 完全一致，不得改写或编造。
+1) 每条 Argument 必须且只能包含以下十个字段：'title'、'issue_title'、'fact_titles'、'law_citations'、'position'、'reasoning'、'counter_argument'、'response'、'risk'、'conclusion'。十个字段一个也不能省略，不得增加其他字段。
+2) 一条 Argument 只能回答一个 Scope 中的一个 Issue，不得合并、比较或混用不同 Scope；'issue_title' 必须与该 Scope 的 issue_title 完全一致，不得改写或编造。
+3) 每条 Argument 必须至少引用一条已确认的事实（confirmed Fact）；'fact_titles' 必须是非空数组，其中每个值必须与当前 Scope 的 allowed_facts 中某个 title 完全一致，不得引用其他 Scope 的 Fact，不得改写或编造。
 4) 不允许引用 'to_prove'（待证明）事实；若输入上下文包含 'to_prove' 事实，禁止在 'fact_titles' 中列出它们。
 5) 如引用 'disputed'（存在争议）事实，必须在对应论证中明确写明："该事实存在争议，需要结合证据进一步证明。"
-6) 每条 Argument 必须至少引用一条法律依据；'law_citations' 必须是非空数组，其中每个值必须与输入法律依据中的某个 citation 完全一致，不得改写或编造。
-7) 'title'、'description'、'conclusion' 都必须是非空字符串；'description' 必须包含完整的论证过程，不能只返回结论。
+6) 每条 Argument 必须至少引用一条法律依据；'law_citations' 必须是非空数组，其中每个值必须与当前 Scope 的 allowed_laws 中某个 citation 完全一致，不得引用其他 Scope 的 Law，不得改写或编造。
+7) 'title'、'position'、'reasoning'、'counter_argument'、'response'、'risk'、'conclusion' 都必须是非空字符串；'reasoning' 必须包含完整论证过程，不能只返回结论。
 8) 推理必须遵循固定顺序且不得跳步：
      ① Issue
      ↓
@@ -128,8 +192,9 @@ ${JSON.stringify(laws, null, 2)}
      ↓
      ⑤ Conclusion
      说明：不要在缺少事实或法律支持的情况下直接得出结论。
-9) 'conclusion' 必须能直接用于起诉状、代理词或庭审陈述（语言应简洁、结论性强）。
-10) 严禁编造事实或法条；不得输出 AI 风格的叙述或泛泛作文；不得跳过事实直接得出结论。
+9) 'position' 应当表达基于当前来源可主张的阶段性法律观点；'counter_argument' 应列明可能的相反观点；'response' 应说明基于现有来源的回应；'risk' 应披露事实、证据或法律适用上的限制。
+10) 'conclusion' 只能表达基于当前已确认事实和法律依据形成、仍待律师审核的阶段性结论。禁止宣称必然胜诉或败诉，禁止预测法院必然支持或驳回，禁止作出无保留的绝对责任认定。
+11) 严禁编造事实或法条；不得输出 AI 风格的叙述或泛泛作文；不得跳过事实直接得出结论。
 
 返回 JSON（严格）Schema 示例：
 [
@@ -138,15 +203,18 @@ ${JSON.stringify(laws, null, 2)}
         "issue_title": "",
         "fact_titles": [],
         "law_citations": [],
-        "description": "",
+        "position": "",
+        "reasoning": "",
+        "counter_argument": "",
+        "response": "",
+        "risk": "",
         "conclusion": ""
     }
 ]
 
 上面空字符串和空数组仅用于展示字段结构。实际输出时：
-- title、issue_title、description、conclusion 必须填写非空内容；
+- title、issue_title、position、reasoning、counter_argument、response、risk、conclusion 必须填写非空内容；
 - fact_titles、law_citations 必须各包含至少一个来自输入数据的精确值；
-- 禁止只返回 {"argument":"...","conclusion":"..."}；
 - 禁止省略任何字段，禁止增加 Schema 之外的字段。
 
 字段说明：
@@ -158,10 +226,12 @@ ${JSON.stringify(laws, null, 2)}
 - 不输出 Markdown、解释或正文外的任何内容；
 - 不引用 to_prove Facts；
 - 每条 Argument 必须引用至少一条 confirmed Fact 和至少一条 law_citation；
+- 不得跨 Scope 引用、合并或推导 Fact、Issue、Law；
 - 不得编造事实或法条；
-- 论证必须遵循规定的推理顺序。
+- 论证必须遵循规定的推理顺序；
+- 不得输出最终裁判预测、胜诉保证或绝对责任结论。
 
-只返回 JSON。`
+只返回 JSON。${compactRetryRequirements}`
 }
 
 export function buildDocumentPrompt(_context: any) {
@@ -220,6 +290,30 @@ export function buildDocumentPrompt(_context: any) {
 
 注意：不要在 content 或其他字段中重复将已知信息替换为占位符；若 Matter 标题内已包含原告或被告姓名，必须在起诉状中使用这些真实姓名。` }
 
+export function buildComplaintSectionsPrompt(scope: any, options: { compactRetry?: boolean } = {}) {
+    const compact = options.compactRetry
+        ? '\n这是一次紧凑重试：缩短各段表达，但不得省略必需 Section，不得改变或扩大来源。'
+        : ''
+    return `你是法律文书表达助手，不是案件分析者。你只能把给定的、已经确认的 Formal Argument Scope 组织成一份民事起诉状结构，禁止重新生成或推断 Fact、Issue、Law、Argument。
+
+DOCUMENT_REASONING_SCOPE:
+${JSON.stringify(scope)}
+
+强制规则：
+1. 只能使用 argument_sections 中的 usable_facts、usable_laws 和 evidences；不得跨 Scope 拼接不一致来源。
+2. 事实、主体、金额、日期、合同条款不得新增；法律 citation 必须逐字来自 usable_laws；证据名称必须逐字来自 evidences。
+3. counter_argument 仅用于避免把对方观点写成本方承认；risk 仅用于降低措辞确定性；limitations 仅用于限制法律适用措辞。三者不得作为独立对外段落或案件事实。
+4. source IDs 仅用于返回引用字段，严禁写入任何正文 text。
+5. 缺失信息只使用这些占位符：【待律师补充】、【待律师补充：受理法院】、【待律师根据已确认 Argument 和案件目标补充】。
+6. 诉讼请求来源不足时必须使用待律师补充文本；即使生成候选，requires_lawyer_confirmation 必须为 true。
+7. 不得输出必然胜诉、法院一定支持、绝对责任结论，不得输出 confidence、AI reasoning、Scope、内部诊断或 LAWDESK 编码。
+8. 当前 document_type 只能是 complaint。不得输出 Markdown、代码块、解释或额外文本，只输出一个合法 JSON 对象。
+
+JSON 顶级字段必须且只能为：document_type,title,parties,claims,facts,reasoning,legal_basis,evidence_reference,conclusion,court,signature,date。
+字段结构：
+{"document_type":"complaint","title":"民事起诉状","parties":{"plaintiff":"【待律师补充】","defendant":"【待律师补充】"},"claims":[{"text":"【待律师根据已确认 Argument 和案件目标补充】","source_argument_ids":[],"source_fact_ids":[],"requires_lawyer_confirmation":true}],"facts":[{"text":"","source_fact_ids":[],"source_evidence_ids":[]}],"reasoning":[{"issue_id":"","argument_id":"","position":"","analysis":"","source_fact_ids":[],"source_law_ids":[]}],"legal_basis":[{"citation":"","text":"","source_law_id":""}],"evidence_reference":[{"evidence_id":"","title":"","purpose":""}],"conclusion":"","court":"【待律师补充：受理法院】","signature":"【待律师补充】","date":"【待律师补充】"}${compact}`
+}
+
 export default {
     buildEvidencePrompt,
     buildFactPrompt,
@@ -227,4 +321,5 @@ export default {
     buildLawPrompt,
     buildArgumentPrompt,
     buildDocumentPrompt,
+    buildComplaintSectionsPrompt,
 }

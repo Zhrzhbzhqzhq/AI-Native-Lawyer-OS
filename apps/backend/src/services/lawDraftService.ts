@@ -1,6 +1,8 @@
 import type { PrismaClient } from '@lawdesk/database'
 import type { AIAudit } from './ai/aiAudit'
 import { inferIssueTypeFromFacts, ISSUE_CONCEPT_ORDER, type IssueConcept } from './ai/legalConceptClassifier'
+import { findLawBoundaryViolation, findLawCitationViolation, validateLaws } from './ai/AIOutputValidator'
+import { formatFormalLawForDisplay, parseFormalLaw, serializeFormalLawV2 } from './formalSemanticCodec'
 
 type LawDraftInput = {
   title: string
@@ -13,7 +15,7 @@ type LawDraftInput = {
   confidence?: number | null
   ai_reasoning?: string
   source_issue_ids: string[]
-  issue_type?: IssueConcept
+  issue_type?: IssueConcept | 'general'
 }
 
 export type LawDraftRow = {
@@ -104,15 +106,16 @@ export function assertFormalLawContent(draft: { title?: unknown; citation?: unkn
     ;(error as any).code = 'unsafe_formal_law_content'
     throw error
   }
-}
-
-function composeLawDescription(draft: any) {
-  const parts = [
-    draft.rule_content ? `规则内容：${draft.rule_content}` : '',
-    draft.application ? `本案适用说明：${draft.application}` : '',
-    draft.limitations ? `限制与风险：${draft.limitations}` : '',
-  ].filter(Boolean)
-  return parts.join('\n')
+  if (findLawCitationViolation(citation)) {
+    const error = new Error('unsafe_law_citation')
+    ;(error as any).code = 'unsafe_law_citation'
+    throw error
+  }
+  if (findLawBoundaryViolation(draft.application, draft.limitations)) {
+    const error = new Error('law_contains_final_case_conclusion')
+    ;(error as any).code = 'law_contains_final_case_conclusion'
+    throw error
+  }
 }
 
 function getSourceIssueIds(suggestion: any, issues: any[]) {
@@ -133,7 +136,11 @@ function inferFormalIssueType(issue: any): IssueConcept | null {
   return inferIssueTypeFromFacts(sourceFacts)
 }
 
-export function normalizeLawSuggestionsForDrafts(suggestions: any, issues: any[]): LawDraftInput[] {
+export function normalizeLawSuggestionsForDrafts(
+  suggestions: any,
+  issues: any[],
+  evidenceBackedIssueIds?: Set<string>,
+): LawDraftInput[] {
   const suggestionList: any[] = Array.isArray(suggestions)
     ? suggestions
     : Array.isArray(suggestions?.laws)
@@ -157,9 +164,17 @@ export function normalizeLawSuggestionsForDrafts(suggestions: any, issues: any[]
 
     if (!title) return []
 
+    const explicitSourceIssueIds = uniqueStrings([
+      ...(Array.isArray(suggestion?.source_issue_ids) ? suggestion.source_issue_ids : []),
+      ...(Array.isArray(suggestion?.issue_ids) ? suggestion.issue_ids : []),
+    ])
     let source_issue_ids = getSourceIssueIds(suggestion, issues)
 
-    if (typeof suggestion?.issue_title === 'string' && suggestion.issue_title.trim()) {
+    if (explicitSourceIssueIds.length > 0) {
+      if (source_issue_ids.length !== 1) return []
+      // A validated formal Issue ID is authoritative. This preserves deterministic
+      // test candidates while still preventing cross-Matter or multi-Issue links.
+    } else if (typeof suggestion?.issue_title === 'string' && suggestion.issue_title.trim()) {
       const issueTitle = suggestion.issue_title.trim()
       const matched = issues.find((issue: any) => String(issue.title || '').trim() === issueTitle)
       if (!matched) {
@@ -177,17 +192,25 @@ export function normalizeLawSuggestionsForDrafts(suggestions: any, issues: any[]
       })
       return []
     }
+    if (evidenceBackedIssueIds && !evidenceBackedIssueIds.has(source_issue_ids[0])) return []
+
+    const matchedIssue = issueById.get(source_issue_ids[0]) as any
+    const validation = validateLaws([{
+      ...suggestion,
+      issue_title: String(suggestion?.issue_title || matchedIssue?.title || '').trim(),
+    }])
+    if (!validation.ok) return []
 
     const explicitIssueType = String(suggestion?.issue_type || '').trim() as IssueConcept
-    const issueType = ISSUE_CONCEPT_ORDER.includes(explicitIssueType)
-      ? explicitIssueType
-      : inferFormalIssueType(issueById.get(source_issue_ids[0]))
+    const inferredIssueType = inferFormalIssueType(issueById.get(source_issue_ids[0]))
+    if (ISSUE_CONCEPT_ORDER.includes(explicitIssueType) && inferredIssueType && explicitIssueType !== inferredIssueType) return []
+    const issueType = ISSUE_CONCEPT_ORDER.includes(explicitIssueType) ? explicitIssueType : inferredIssueType
 
 
     return [{
       title,
       citation: String(suggestion?.citation || suggestion?.article || suggestion?.ref || '').trim(),
-      rule_content: String(suggestion?.rule_content || suggestion?.content || suggestion?.description || '').trim(),
+      rule_content: String(suggestion?.rule_content || suggestion?.content || '').trim(),
       application: String(suggestion?.application || suggestion?.applicability || suggestion?.reason || '').trim(),
       limitations: String(suggestion?.limitations || suggestion?.risk || suggestion?.risks || '').trim(),
       jurisdiction: String(suggestion?.jurisdiction || '中国大陆').trim(),
@@ -195,10 +218,12 @@ export function normalizeLawSuggestionsForDrafts(suggestions: any, issues: any[]
       confidence: clampConfidence(suggestion?.confidence),
       ai_reasoning: String(suggestion?.ai_reasoning || suggestion?.reasoning || suggestion?.reason || '').trim(),
       source_issue_ids,
-      issue_type: issueType || ISSUE_CONCEPT_ORDER[0],
+      issue_type: (issueType || 'general') as IssueConcept | 'general',
     }]
   }).sort((left: LawDraftInput, right: LawDraftInput) => {
-    const typeOrder = ISSUE_CONCEPT_ORDER.indexOf(left.issue_type!) - ISSUE_CONCEPT_ORDER.indexOf(right.issue_type!)
+    const leftOrder = ISSUE_CONCEPT_ORDER.indexOf(left.issue_type as IssueConcept)
+    const rightOrder = ISSUE_CONCEPT_ORDER.indexOf(right.issue_type as IssueConcept)
+    const typeOrder = (leftOrder < 0 ? ISSUE_CONCEPT_ORDER.length : leftOrder) - (rightOrder < 0 ? ISSUE_CONCEPT_ORDER.length : rightOrder)
     if (typeOrder !== 0) return typeOrder
     return `${left.title}\n${left.citation}`.localeCompare(`${right.title}\n${right.citation}`)
   })
@@ -247,6 +272,25 @@ export class LawDraftService {
       ;(error as any).code = 'formal_issues_required'
       throw error
     }
+    const sourceFactIds = uniqueStrings(issues.flatMap((issue: any) => (
+      Array.isArray(issue.facts) ? issue.facts.map((link: any) => link?.fact?.fact_id) : []
+    )))
+    const factEvidenceLinks = sourceFactIds.length > 0
+      ? await this.prisma.factEvidence.findMany({ where: { fact_id: { in: sourceFactIds } }, include: { evidence: true } })
+      : []
+    const evidenceBackedFactIds = new Set(
+      factEvidenceLinks
+        .filter((link: any) => String(link.evidence?.matter_id || '') === String(matter_id) && String(link.evidence?.status || '') !== 'rejected')
+        .map((link: any) => String(link.fact_id)),
+    )
+    const evidenceBackedIssueIds = new Set(
+      issues
+        .filter((issue: any) => {
+          const factIds = uniqueStrings(Array.isArray(issue.facts) ? issue.facts.map((link: any) => link?.fact?.fact_id) : [])
+          return factIds.length > 0 && factIds.every((factId) => evidenceBackedFactIds.has(factId))
+        })
+        .map((issue: any) => String(issue.issue_id)),
+    )
 
     const AIService = (await import('./ai/AIService')).default
     const ai = new AIService(this.prisma)
@@ -269,7 +313,7 @@ export class LawDraftService {
           ? (suggestions as any).suggestions
           : []
 
-    const drafts = normalizeLawSuggestionsForDrafts(normalizedSuggestions, issues)
+    const drafts = normalizeLawSuggestionsForDrafts(normalizedSuggestions, issues, evidenceBackedIssueIds)
 
     console.log('[LAW NORMALIZE RESULT]', {
       suggestions_count: normalizedSuggestions.length,
@@ -405,6 +449,33 @@ export class LawDraftService {
 
       const validIssues = await tx.issue.findMany({ where: { matter_id, status: { not: 'rejected' } } })
       const validIssueIds = new Set(validIssues.map((issue: any) => String(issue.issue_id)))
+      const issueFactLinks = await tx.issueFact.findMany({
+        where: { issue_id: { in: Array.from(validIssueIds) } },
+        include: { fact: true },
+      })
+      const factIdsByIssue = new Map<string, string[]>()
+      for (const link of issueFactLinks) {
+        const rows = factIdsByIssue.get(String(link.issue_id)) || []
+        rows.push(String(link.fact_id))
+        factIdsByIssue.set(String(link.issue_id), rows)
+      }
+      const linkedFactIds = uniqueStrings(issueFactLinks.map((link: any) => link.fact_id))
+      const factEvidenceLinks = linkedFactIds.length > 0
+        ? await tx.factEvidence.findMany({ where: { fact_id: { in: linkedFactIds } }, include: { evidence: true } })
+        : []
+      const evidenceBackedFactIds = new Set(
+        factEvidenceLinks
+          .filter((link: any) => String(link.evidence?.matter_id || '') === String(matter_id) && String(link.evidence?.status || '') !== 'rejected')
+          .map((link: any) => String(link.fact_id)),
+      )
+      const evidenceBackedIssueIds = new Set(
+        validIssues
+          .filter((issue: any) => {
+            const factIds = uniqueStrings(factIdsByIssue.get(String(issue.issue_id)) || [])
+            return factIds.length > 0 && factIds.every((factId) => evidenceBackedFactIds.has(factId))
+          })
+          .map((issue: any) => String(issue.issue_id)),
+      )
       const created_laws: any[] = []
       let links_count = 0
       let ignored_count = 0
@@ -422,7 +493,10 @@ export class LawDraftService {
             ;(error as any).code = 'published_law_not_found'
             throw error
           }
-          created_laws.push(existing)
+          created_laws.push({
+            ...existing,
+            description: formatFormalLawForDisplay(parseFormalLaw(existing.description)),
+          })
           continue
         }
 
@@ -443,6 +517,11 @@ export class LawDraftService {
           ;(error as any).code = 'invalid_source_issue_ids'
           throw error
         }
+        if (!evidenceBackedIssueIds.has(sourceIds[0])) {
+          const error = new Error('invalid_source_issue_ids')
+          ;(error as any).code = 'invalid_source_issue_ids'
+          throw error
+        }
 
         assertFormalLawContent(draft)
 
@@ -454,7 +533,13 @@ export class LawDraftService {
             issue_id: sourceIds[0] || null,
             title: draft.title,
             citation: draft.citation || '',
-            description: composeLawDescription(draft),
+            description: serializeFormalLawV2({
+              rule_content: String(draft.rule_content || ''),
+              application: String(draft.application || ''),
+              limitations: String(draft.limitations || ''),
+              jurisdiction: String(draft.jurisdiction || ''),
+              source_reference: String(draft.source_reference || ''),
+            }),
             status: 'active',
           },
         })
@@ -471,7 +556,10 @@ export class LawDraftService {
             published_at: new Date(),
           },
         })
-        created_laws.push(law)
+        created_laws.push({
+          ...law,
+          description: formatFormalLawForDisplay(parseFormalLaw(law.description)),
+        })
       }
 
       return {

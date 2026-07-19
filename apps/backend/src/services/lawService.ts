@@ -1,6 +1,11 @@
 import type { PrismaClient } from '@lawdesk/database';
 import LawRepository from '../repositories/lawRepository';
 import IssueRepository from '../repositories/issueRepository';
+import { formatFormalLawForDisplay, parseFormalLaw } from './formalSemanticCodec';
+
+function presentLaw<T extends Record<string, any>>(law: T): T {
+    return { ...law, description: formatFormalLawForDisplay(parseFormalLaw(law.description)) };
+}
 
 export class LawService {
     repo: LawRepository;
@@ -13,26 +18,27 @@ export class LawService {
 
     issueRepo: IssueRepository;
 
-    createLaw(matter_id: string, data: { law_id?: string; issue_id?: string; title: string; citation?: string; description?: string; status?: string }) {
+    async createLaw(matter_id: string, data: { law_id?: string; issue_id?: string; title: string; citation?: string; description?: string; status?: string }) {
         const law_id = String(data.law_id || `law-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
         const payload = { law_id, matter_id, issue_id: data.issue_id ?? undefined, title: data.title, citation: data.citation ?? '', description: data.description ?? '', status: data.status ?? 'draft' };
-        return this.repo.create(payload as any);
+        return presentLaw(await this.repo.create(payload as any));
     }
 
-    listLaws(matter_id: string) {
-        return this.repo.listByMatter(matter_id);
+    async listLaws(matter_id: string) {
+        return (await this.repo.listByMatter(matter_id)).map((law: any) => presentLaw(law));
     }
 
-    getLaw(law_id: string) {
-        return this.repo.getByLawId(law_id);
+    async getLaw(law_id: string) {
+        const law = await this.repo.getByLawId(law_id);
+        return law ? presentLaw(law) : null;
     }
 
-    updateLaw(law_id: string, patch: Partial<any>) {
-        return this.repo.update(law_id, patch);
+    async updateLaw(law_id: string, patch: Partial<any>) {
+        return presentLaw(await this.repo.update(law_id, patch));
     }
 
-    deleteLaw(law_id: string) {
-        return this.repo.delete(law_id);
+    async deleteLaw(law_id: string) {
+        return presentLaw(await this.repo.delete(law_id));
     }
 
     async attachToIssue(matter_id: string, law_id: string, issue_id: string) {
@@ -44,7 +50,7 @@ export class LawService {
         if (!issue) throw new Error('issue_not_found');
         if (String(issue.matter_id) !== String(matter_id)) throw new Error('issue_mismatch');
 
-        return this.repo.update(law_id, { issue_id });
+        return presentLaw(await this.repo.update(law_id, { issue_id }));
     }
 }
 

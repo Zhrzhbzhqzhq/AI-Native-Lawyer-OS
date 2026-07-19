@@ -47,12 +47,17 @@ export class MiniMaxAdapter implements LlmAdapter {
     // Ensure prompt_version travels with the user prompt
     user_prompt = `${user_prompt}\n\nPROMPT_VERSION: ${promptVersion}`
 
-    const maxTokens = promptPack.task === 'analyze_laws'
-      || promptVersion === 'law-draft-v1'
-      || promptPack.task === 'analyze_arguments'
-      || promptVersion === 'argument-draft-v1'
-      ? 4000
-      : 1200
+    const explicitMaxTokens = Number(promptPack.max_completion_tokens)
+    const maxTokens = Number.isFinite(explicitMaxTokens) && explicitMaxTokens > 0
+      ? explicitMaxTokens
+      : promptPack.task === 'analyze_facts'
+        || promptVersion === 'fact-draft-v1'
+        || promptPack.task === 'analyze_laws'
+        || promptVersion === 'law-draft-v1'
+        || promptPack.task === 'analyze_arguments'
+        || promptVersion === 'argument-draft-v1'
+        ? 4000
+        : 1200
     const payload = {
       model: this.model,
       messages: [
@@ -130,10 +135,12 @@ export class MiniMaxAdapter implements LlmAdapter {
           // ignore logger errors
         }
 
+        const finishReason = json?.choices?.[0]?.finish_reason ?? json?.data?.choices?.[0]?.finish_reason ?? null
         return {
           provider: 'minimax',
           model: this.model,
           response: json,
+          finish_reason: finishReason,
           usage,
           cost,
           duration_ms: duration,

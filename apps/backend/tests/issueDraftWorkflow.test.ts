@@ -32,8 +32,20 @@ async function cleanup(id: string) {
 
 async function seedMatter(id: string, factCount = 0) {
   await prisma.matter.create({ data: { matter_id: id, title: `Issue Draft ${id}`, description: '', matter_type: 'test', status: 'active' } })
+  const materialId = `material-${id}`
+  await prisma.material.create({
+    data: {
+      material_id: materialId,
+      matter_id: id,
+      title: 'Issue 来源材料',
+      material_type: 'test',
+      source: 'test',
+      storage_uri: `memory://${materialId}`,
+      status: 'active',
+    },
+  })
   for (let index = 0; index < factCount; index += 1) {
-    await prisma.fact.create({
+    const fact = await prisma.fact.create({
       data: {
         fact_id: `fact-${id}-${index}`,
         matter_id: id,
@@ -42,6 +54,19 @@ async function seedMatter(id: string, factCount = 0) {
         status: 'active',
       },
     })
+    const evidence = await prisma.evidence.create({
+      data: {
+        evidence_id: `evidence-${id}-${index}`,
+        matter_id: id,
+        material_id: materialId,
+        title: `事实来源证据 ${index + 1}`,
+        evidence_type: 'test',
+        description: '用于验证 Issue 到 Fact 再到 Evidence 的来源闭环。',
+        relevance: 'direct',
+        status: 'confirmed',
+      },
+    })
+    await prisma.factEvidence.create({ data: { fact_id: fact.fact_id, evidence_id: evidence.evidence_id, note: 'test-source' } })
   }
 }
 

@@ -96,26 +96,38 @@ describe('Persisted Facts Draft Workflow', () => {
     await cleanup(emptyMatterId)
   })
 
-  it('generates persistent drafts idempotently from formal Evidence', async () => {
+  it('rejects source-less Mock fallback and keeps compliant persisted drafts idempotent', async () => {
     await cleanup(matterId)
     await seedMatter(matterId, 3)
 
     const first = await app.inject({ method: 'POST', url: `/matters/${matterId}/fact-drafts/generate` })
-    expect(first.statusCode).toBe(200)
-    const firstBody = JSON.parse(first.body)
-    expect(firstBody.idempotent).toBe(false)
-    expect(firstBody.ai_audit).toEqual({ provider: 'mock', model: 'mock-lawdesk-v1', prompt_version: 'fact-draft-v1', fallback_used: false })
-    expect(firstBody.fact_drafts.length).toBe(3)
-    expect(firstBody.fact_drafts.every((draft: any) => draft.review_status === 'pending')).toBe(true)
-    expect(firstBody.fact_drafts.every((draft: any) => Array.isArray(draft.source_evidence_ids) && draft.source_evidence_ids.length > 0)).toBe(true)
-    expect(firstBody.fact_drafts.some((draft: any) => typeof draft.confidence === 'number' || draft.ai_reasoning || Array.isArray(draft.source_evidence_ids))).toBe(true)
+    expect(first.statusCode).toBe(422)
+    expect(JSON.parse(first.body).error).toBe('fact_draft_empty')
+
+    const evidences = await prisma.evidence.findMany({ where: { matter_id: matterId }, orderBy: { created_at: 'asc' } })
+    for (const [index, evidence] of evidences.entries()) {
+      await prisma.factDraft.create({
+        data: {
+          draft_id: `fd-${matterId}-${index}`,
+          matter_id: matterId,
+          title: ['双方达成借款合意', '借款资金已经交付', '借款到期后尚未清偿'][index],
+          description: ['借条与聊天记录载明双方就借款事项达成合意。', '银行流水记载相关款项已经转账。', '催收记录载明到期后尚未清偿。'][index],
+          confidence: 0.9,
+          ai_reasoning: '测试 fixture',
+          source_evidence_ids: [evidence.evidence_id],
+          review_status: 'pending',
+        },
+      })
+    }
 
     const second = await app.inject({ method: 'POST', url: `/matters/${matterId}/fact-drafts/generate` })
     expect(second.statusCode).toBe(200)
     const secondBody = JSON.parse(second.body)
     expect(secondBody.idempotent).toBe(true)
     expect(secondBody.ai_audit).toBeNull()
-    expect(secondBody.fact_drafts.map((draft: any) => draft.draft_id)).toEqual(firstBody.fact_drafts.map((draft: any) => draft.draft_id))
+    expect(secondBody.fact_drafts).toHaveLength(3)
+    expect(secondBody.fact_drafts.every((draft: any) => draft.review_status === 'pending')).toBe(true)
+    expect(secondBody.fact_drafts.every((draft: any) => Array.isArray(draft.source_evidence_ids) && draft.source_evidence_ids.length === 1)).toBe(true)
 
     const count = await prisma.factDraft.count({ where: { matter_id: matterId } })
     expect(count).toBe(3)

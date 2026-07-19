@@ -189,100 +189,40 @@ export class IntakeRuntime {
       suggested_action: 'confirm_as_evidence'
     }>
   } {
-    type EvidenceGroup = {
-      key: 'agreement' | 'delivery' | 'default'
-      title: string
-      proof_purpose: string
-      summary: string
-      reasoning: string
-      keywords: string[]
-      titleKeywords: string[]
-      supportTitleKeywords: string[]
-      confidenceBase: number
-    }
-
-    const groups: EvidenceGroup[] = [
-      {
-        key: 'agreement',
-        title: '借贷合意证据',
-        proof_purpose: '证明双方达成民间借贷合意并明确借款基础事实',
-        summary: '借条、聊天、咨询或录音材料相互印证双方围绕借款金额、用途、期限等事项形成合意。',
-        reasoning: '该组材料共同指向借款关系成立：一类材料反映当事人陈述，另一类材料反映书面或沟通记录，可相互校验借贷合意。',
-        keywords: ['借款合意', '民间借贷', '借条', '出借', '借款人', '出借人', '借款', '约定', '借给', '收到借款', '借款形成'],
-        titleKeywords: ['客户咨询', '咨询录音', '借款形成', '借条'],
-        supportTitleKeywords: [],
-        confidenceBase: 0.84,
-      },
-      {
-        key: 'delivery',
-        title: '借款资金交付证据',
-        proof_purpose: '证明出借人已实际支付借款并完成资金交付',
-        summary: '银行流水、转账记录与借条或当事人陈述可以共同证明借款款项已经实际交付。',
-        reasoning: '资金交付需要客观支付记录与借贷背景材料相互印证；流水或转账记录证明款项流转，借条或咨询记录说明该笔款项性质。',
-        keywords: ['银行流水', '转账', '汇款', '支付', '到账', '收款', '交付', '流水', '银行', '款项'],
-        titleKeywords: ['银行流水', '转账', '汇款', '支付'],
-        supportTitleKeywords: ['借条', '客户咨询'],
-        confidenceBase: 0.86,
-      },
-      {
-        key: 'default',
-        title: '到期未还与催收证据',
-        proof_purpose: '证明债务已到期且借款人未按约履行还款义务',
-        summary: '催收聊天、电话记录、律师函或到期约定材料可以共同证明债务到期后的催收和未还事实。',
-        reasoning: '到期未还需要还款期限、催收行为和对方未履行情况形成链条；沟通记录与律师函等材料可相互补强持续催收事实。',
-        keywords: ['到期', '还款', '未还', '未归还', '催收', '律师函', '电话', '逾期', '归还', '欠款', '履行'],
-        titleKeywords: ['催收', '电话', '律师函'],
-        supportTitleKeywords: ['银行流水', '借条'],
-        confidenceBase: 0.82,
-      },
-    ]
-
     const normalizedMaterials = input.materials
       .map((m) => ({
         material_id: String(m.material_id || ''),
         title: String(m.title || '未命名材料'),
         material_type: String(m.material_type || 'document'),
         source: String(m.source || ''),
-        text: [m.title, m.material_type, m.storage_uri, m.content].filter(Boolean).join('\n'),
+        content: String(m.content || ''),
       }))
       .filter((m) => m.material_id)
 
-    const source = ((): any => {
-      const found = normalizedMaterials.map((m) => m.source).find((s) => ['client', 'opponent', 'court', 'third_party'].includes(s))
-      return found || 'client'
-    })()
+    const drafts = normalizedMaterials.map((material, idx) => {
+      const baseTitle = material.title
+        .replace(/\.[^.]+$/, '')
+        .replace(/^\s*\d+[_\-\s、.．]*/, '')
+        .trim() || '未命名材料'
+      const title = baseTitle.endsWith('证据') ? baseTitle : `${baseTitle}证据`
+      const source = (['client', 'opponent', 'court', 'third_party'].includes(material.source)
+        ? material.source
+        : 'client') as 'client' | 'opponent' | 'court' | 'third_party'
 
-    const drafts = groups.flatMap((group, idx) => {
-      const directMatches = normalizedMaterials.filter((material) => {
-        if (group.titleKeywords.some((keyword) => material.title.includes(keyword))) return true
-        const keywordHits = group.keywords.filter((keyword) => material.text.includes(keyword)).length
-        return keywordHits >= 3 && !groups.some((other) => other !== group && other.titleKeywords.some((keyword) => material.title.includes(keyword)))
-      })
-      const supportingMatches = normalizedMaterials.filter((material) => group.supportTitleKeywords.some((keyword) => material.title.includes(keyword)))
-
-      const materialMap = new Map<string, typeof normalizedMaterials[number]>()
-      for (const material of [...directMatches, ...supportingMatches]) materialMap.set(material.material_id, material)
-      const materials = Array.from(materialMap.values())
-
-      if (materials.length === 0) return []
-
-      const directCount = new Set(directMatches.map((m) => m.material_id)).size
-      const confidence = Math.min(0.95, Math.max(0.55, group.confidenceBase + Math.min(0.08, (materials.length - 1) * 0.03) + (directCount > 1 ? 0.03 : 0)))
-
-      return [{
+      return {
         draft_id: `ed-${Date.now().toString(36)}-${idx}`,
-        material_id: materials[0].material_id,
-        title: group.title,
-        evidence_type: materials.some((m) => m.material_type) ? materials[0].material_type : 'document',
-        proof_purpose: group.proof_purpose,
-        source_material_ids: materials.map((m) => m.material_id),
-        materials: materials.map((m) => ({ material_id: m.material_id, title: m.title })),
-        summary: `${group.summary} 来源材料：${materials.map((m) => m.title).join('、')}。`,
-        reasoning: group.reasoning,
-        confidence,
+        material_id: material.material_id,
+        title,
+        evidence_type: material.material_type,
+        proof_purpose: `用于核验材料《${material.title}》所记载的信息，具体证明目的由律师审核确认。`,
+        source_material_ids: [material.material_id],
+        materials: [{ material_id: material.material_id, title: material.title }],
+        summary: `该证据候选来源于材料《${material.title}》。`,
+        reasoning: '该材料属于当前 Matter 已上传材料，可作为证据候选；其真实性、合法性、关联性及具体证明力需要律师审核确认。',
+        confidence: material.content.trim() ? 0.75 : 0.6,
         source,
         suggested_action: 'confirm_as_evidence' as const,
-      }]
+      }
     })
 
     return {

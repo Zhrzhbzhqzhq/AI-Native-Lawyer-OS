@@ -38,12 +38,17 @@ export class MiniMaxAnthropicAdapter implements LlmAdapter {
 
     const system_prompt = promptPack.system_prompt ?? promptPack.systemPrompt ?? ''
     const user_prompt = promptPack.user_prompt ?? promptPack.userPrompt ?? ''
-      const maxTokens = promptPack.task === 'analyze_laws'
-        || promptVersion === 'law-draft-v1'
-        || promptPack.task === 'analyze_arguments'
-        || promptVersion === 'argument-draft-v1'
-        ? 4000
-        : 1200
+      const explicitMaxTokens = Number(promptPack.max_completion_tokens)
+      const maxTokens = Number.isFinite(explicitMaxTokens) && explicitMaxTokens > 0
+        ? explicitMaxTokens
+        : promptPack.task === 'analyze_facts'
+          || promptVersion === 'fact-draft-v1'
+          || promptPack.task === 'analyze_laws'
+          || promptVersion === 'law-draft-v1'
+          || promptPack.task === 'analyze_arguments'
+          || promptVersion === 'argument-draft-v1'
+          ? 4000
+          : 1200
       const payload = {
         model: this.model,
         max_tokens: maxTokens,
@@ -102,10 +107,13 @@ export class MiniMaxAnthropicAdapter implements LlmAdapter {
       // ignore
     }
 
+    const rawFinishReason = json?.stop_reason ?? null
+    const finishReason = rawFinishReason === 'max_tokens' ? 'length' : rawFinishReason
     return {
       provider: 'minimax',
       model: this.model,
       response: json,
+      finish_reason: finishReason,
       endpoint: url,
       usage,
       cost,

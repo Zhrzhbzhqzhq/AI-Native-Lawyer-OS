@@ -15,6 +15,7 @@ import type { AIAudit } from './aiAudit'
 import { readAIAudit } from './aiAudit'
 import { buildDeterministicIssueSuggestions, inferIssueTypeFromFacts } from './legalConceptClassifier'
 import { buildDeterministicLawCandidates } from './legalRuleClassifier'
+import { parseFormalLaw } from '../formalSemanticCodec'
 
 export class AIService {
     prisma: PrismaClient
@@ -175,6 +176,29 @@ export class AIService {
             return null
         }
 
+        const readFinishReason = (response: any): string | null => {
+            const body = response && response.response !== undefined ? response.response : response
+            const reason = response?.finish_reason
+                ?? body?.choices?.[0]?.finish_reason
+                ?? body?.data?.choices?.[0]?.finish_reason
+                ?? body?.stop_reason
+                ?? null
+            return reason === 'max_tokens' ? 'length' : reason
+        }
+
+        const retryPromptPack = {
+            ...promptPack,
+            user_prompt: `${factPrompt}
+
+上一次输出未形成完整且通过校验的 JSON。本次必须严格遵守：
+1. 最多返回 6 条核心事实，按重要性排序；
+2. 每条 description 不超过 120 个中文字符；
+3. 仅输出完整、合法、闭合的 JSON 数组；
+4. 不输出 Markdown、代码块、注释、前言、结语或任何解释文本；
+5. 宁可减少事实数量，也不得截断 JSON；
+6. 保持原有 category、Evidence 来源规则和 Fact Boundary Guard。`,
+        }
+
         try {
             const resp = await this.generateWithAudit(promptPack)
             if (process.env.NODE_ENV === 'development' || process.env.AI_DEBUG_LOGS === 'true') {
@@ -184,38 +208,44 @@ export class AIService {
             // or MiniMax-style resp.response.choices[0].message.content (stringified JSON)
             const facts = await extractFactCandidates(resp)
 
-            if (Array.isArray(facts)) {
-                // Validate raw facts before mapping
-                let validation = AIOutputValidator.validateFacts(facts)
-                if (validation.ok) {
-
-                    try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Facts', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'PASS', retry: 0, fallback: false, missing_fields: [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
-                    return facts.map((f: any) => ({ title: String(f.title || f.name || ''), description: String(f.description || f.reason || ''), category: f.category, evidence_titles: f.evidence_titles }))
-                }
-
-                try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Facts', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'FAIL', retry: 0, fallback: false, missing_fields: validation.errors || [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
-                // Retry once
-                try {
-                    const resp2 = await this.generateWithAudit(promptPack)
-                    if (process.env.NODE_ENV === 'development' || process.env.AI_DEBUG_LOGS === 'true') {
-                        console.log('[FACT AI RAW RESPONSE RETRY]', JSON.stringify(resp2?.response ?? resp2, null, 2))
-                    }
-                    const facts2 = await extractFactCandidates(resp2)
-                    if (Array.isArray(facts2)) {
-                        const validation2 = AIOutputValidator.validateFacts(facts2)
-                        if (validation2.ok) {
-
-                                                        try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Facts', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'PASS', retry: 1, fallback: false, missing_fields: [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
-                            return facts2.map((f: any) => ({ title: String(f.title || f.name || ''), description: String(f.description || f.reason || ''), category: f.category, evidence_titles: f.evidence_titles }))
-                        }
-
-                        try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Facts', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'FAIL', retry: 1, fallback: false, missing_fields: validation2.errors || [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
-                    }
-                } catch (_e) {
-                    // ignore
-                }
-                try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Facts', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'FAIL', retry: 1, fallback: true, missing_fields: validation.errors || [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
+            const finishReason = readFinishReason(resp)
+            const validation = Array.isArray(facts)
+                ? AIOutputValidator.validateFacts(facts)
+                : { ok: false, errors: ['fact response is not a valid JSON array'] }
+            if (finishReason !== 'length' && Array.isArray(facts) && validation.ok) {
+                try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Facts', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'PASS', retry: 0, fallback: false, missing_fields: [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
+                return facts.map((f: any) => ({ title: String(f.title || f.name || ''), description: String(f.description || f.reason || ''), category: f.category, evidence_titles: f.evidence_titles }))
             }
+
+            const firstErrors = finishReason === 'length'
+                ? ['fact response truncated: finish_reason=length', ...(validation.errors || [])]
+                : validation.errors || []
+            try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Facts', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'FAIL', retry: 0, fallback: false, missing_fields: firstErrors, latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
+
+            // Retry exactly once for truncation, JSON parse failure, or validator failure.
+            try {
+                const resp2 = await this.generateWithAudit(retryPromptPack)
+                if (process.env.NODE_ENV === 'development' || process.env.AI_DEBUG_LOGS === 'true') {
+                    console.log('[FACT AI RAW RESPONSE RETRY]', JSON.stringify(resp2?.response ?? resp2, null, 2))
+                }
+                const facts2 = await extractFactCandidates(resp2)
+                const finishReason2 = readFinishReason(resp2)
+                const validation2 = Array.isArray(facts2)
+                    ? AIOutputValidator.validateFacts(facts2)
+                    : { ok: false, errors: ['fact response is not a valid JSON array'] }
+                if (finishReason2 !== 'length' && Array.isArray(facts2) && validation2.ok) {
+                    try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Facts', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'PASS', retry: 1, fallback: false, missing_fields: [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
+                    return facts2.map((f: any) => ({ title: String(f.title || f.name || ''), description: String(f.description || f.reason || ''), category: f.category, evidence_titles: f.evidence_titles }))
+                }
+
+                const retryErrors = finishReason2 === 'length'
+                    ? ['fact response truncated: finish_reason=length', ...(validation2.errors || [])]
+                    : validation2.errors || []
+                try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Facts', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'FAIL', retry: 1, fallback: false, missing_fields: retryErrors, latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
+            } catch (_e) {
+                // fall through to the existing environment-controlled fallback
+            }
+            try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Facts', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'FAIL', retry: 1, fallback: true, missing_fields: firstErrors, latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
         } catch (e) {
             // ignore and fallback below
         }
@@ -549,15 +579,59 @@ let validation = AIOutputValidator.validateLaws(laws)
             return types.length === 1 ? [{ fact_id: fact.fact_id, issue_type: types[0] }] : []
         })
 
-        const userPrompt = buildArgumentPrompt(context)
+        const factById = new Map(facts.map((fact: any) => [String(fact.fact_id), fact]))
+        const lawsByIssue = new Map<string, any[]>()
+        for (const law of laws as any[]) {
+            const sourceIssueIds = Array.from(new Set(issueIdsByLaw.get(String(law.law_id)) || []))
+            if (sourceIssueIds.length !== 1) continue
+            const issueId = sourceIssueIds[0]
+            lawsByIssue.set(issueId, [...(lawsByIssue.get(issueId) || []), law])
+        }
+        const argumentScopes = issues.flatMap((issue: any) => {
+            const issueId = String(issue.issue_id)
+            const allowedFacts = Array.from(new Set(factIdsByIssue.get(issueId) || []))
+                .map((factId) => factById.get(factId))
+                .filter(Boolean)
+                .map((fact: any) => ({
+                    title: String(fact.title || ''),
+                    description: String(fact.description || ''),
+                    status: String(fact.status || ''),
+                }))
+            const allowedLaws = (lawsByIssue.get(issueId) || []).flatMap((law: any) => {
+                const semantic = parseFormalLaw(law.description)
+                if (['invalid-v2', 'unsupported-version', 'wrong-object-type'].includes(semantic.encoding)) return []
+                return [{
+                    title: String(law.title || ''),
+                    citation: String(law.citation || ''),
+                    rule_content: semantic.parsed ? semantic.fields.rule_content : semantic.raw_description,
+                    application: semantic.fields.application,
+                    limitations: semantic.fields.limitations,
+                }]
+            })
+            if (allowedFacts.length === 0 || allowedLaws.length === 0) return []
+            return [{
+                issue_title: String(issue.title || ''),
+                issue_description: String(issue.description || ''),
+                allowed_facts: allowedFacts,
+                allowed_laws: allowedLaws,
+            }]
+        })
+        const argumentContext = {
+            matter: context.matter,
+            argumentScopes,
+        }
+
+        const userPrompt = buildArgumentPrompt(argumentContext)
         const promptPack: any = {
             prompt_version: 'argument-draft-v1',
             task: 'analyze_arguments',
             matter_id,
+            max_completion_tokens: 6000,
             facts: typedFacts,
             issues: typedIssues,
             laws: typedLaws,
-            context_pack: context,
+            argument_scopes: argumentScopes,
+            context_pack: argumentContext,
             user_prompt: userPrompt,
             created_at: new Date().toISOString(),
         }
@@ -602,6 +676,21 @@ let validation = AIOutputValidator.validateLaws(laws)
             return null
         }
 
+        const readFinishReason = (response: any): string | null => {
+            const body = response && response.response !== undefined ? response.response : response
+            const reason = response?.finish_reason
+                ?? body?.choices?.[0]?.finish_reason
+                ?? body?.data?.choices?.[0]?.finish_reason
+                ?? body?.stop_reason
+                ?? null
+            return reason === 'max_tokens' ? 'length' : reason
+        }
+
+        const retryPromptPack = {
+            ...promptPack,
+            user_prompt: buildArgumentPrompt(argumentContext, { compactRetry: true }),
+        }
+
         const logArgumentValidationDebug = (stage: string, candidates: any[] | null) => {
             const rows = Array.isArray(candidates) ? candidates : []
             console.log('[ARGUMENT VALIDATION DEBUG]', {
@@ -630,55 +719,56 @@ let validation = AIOutputValidator.validateLaws(laws)
             })
         }
 
+        const mapArguments = (args: any[]) => args.map((argument: any) => ({
+            ...argument,
+            source_fact_ids: Array.isArray(argument.source_fact_ids) ? argument.source_fact_ids : [],
+            source_issue_ids: Array.isArray(argument.source_issue_ids) ? argument.source_issue_ids : [],
+            source_law_ids: Array.isArray(argument.source_law_ids) ? argument.source_law_ids : [],
+        }))
+
         try {
             const resp = await this.generateWithAudit(promptPack)
             console.log('[ARGUMENT AI RAW RESPONSE]', JSON.stringify(resp, null, 2))
-            // adapter may return structured arguments under resp.response.arguments or resp.response.suggestions
-            // Parse multiple shapes: resp.response.arguments, resp.response.suggestions,
-            // or MiniMax-style resp.response.choices[0].message.content (stringified JSON)
             const args = await extractArgumentCandidates(resp)
+            const finishReason = readFinishReason(resp)
+            const validation = Array.isArray(args)
+                ? AIOutputValidator.validateArguments(args)
+                : { ok: false, errors: ['argument response is not a valid JSON array'] }
             logArgumentValidationDebug('initial', args)
 
-            if (Array.isArray(args)) {
-                // Validate arguments before mapping
-                let validation = AIOutputValidator.validateArguments(args)
-                if (validation.ok) {
-
-                    try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Arguments', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'PASS', retry: 0, fallback: false, missing_fields: [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
-                    return args.map((a: any) => ({
-                        ...a,
-                        source_fact_ids: Array.isArray(a.source_fact_ids) ? a.source_fact_ids : [],
-                        source_issue_ids: Array.isArray(a.source_issue_ids) ? a.source_issue_ids : [],
-                        source_law_ids: Array.isArray(a.source_law_ids) ? a.source_law_ids : [],
-                    }))
-                }
-
-                try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Arguments', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'FAIL', retry: 0, fallback: false, missing_fields: validation.errors || [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
-                try {
-
-                    const resp2 = await this.generateWithAudit(promptPack)
-                    const args2 = await extractArgumentCandidates(resp2)
-                    logArgumentValidationDebug('retry', args2)
-                    if (Array.isArray(args2)) {
-                        const validation2 = AIOutputValidator.validateArguments(args2)
-                        if (validation2.ok) {
-
-                                                        try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Arguments', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'PASS', retry: 1, fallback: false, missing_fields: [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
-                            return args2.map((a: any) => ({
-                                ...a,
-                                source_fact_ids: Array.isArray(a.source_fact_ids) ? a.source_fact_ids : [],
-                                source_issue_ids: Array.isArray(a.source_issue_ids) ? a.source_issue_ids : [],
-                                source_law_ids: Array.isArray(a.source_law_ids) ? a.source_law_ids : [],
-                            }))
-                        }
-
-                        try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Arguments', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'FAIL', retry: 1, fallback: false, missing_fields: validation2.errors || [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
-                    }
-                } catch (_e) {
-                    // ignore
-                }
-                try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Arguments', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'FAIL', retry: 1, fallback: true, missing_fields: validation.errors || [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
+            if (finishReason !== 'length' && Array.isArray(args) && validation.ok) {
+                try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Arguments', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'PASS', retry: 0, fallback: false, missing_fields: [], latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
+                return mapArguments(args)
             }
+
+            const firstErrors = finishReason === 'length'
+                ? ['argument response truncated: finish_reason=length', ...(validation.errors || [])]
+                : validation.errors || []
+            try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Arguments', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'FAIL', retry: 0, fallback: false, missing_fields: firstErrors, latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
+
+            try {
+                const resp2 = await this.generateWithAudit(retryPromptPack)
+                console.log('[ARGUMENT AI RAW RESPONSE RETRY]', JSON.stringify(resp2, null, 2))
+                const args2 = await extractArgumentCandidates(resp2)
+                const finishReason2 = readFinishReason(resp2)
+                const validation2 = Array.isArray(args2)
+                    ? AIOutputValidator.validateArguments(args2)
+                    : { ok: false, errors: ['argument response is not a valid JSON array'] }
+                logArgumentValidationDebug('retry', args2)
+
+                if (finishReason2 !== 'length' && Array.isArray(args2) && validation2.ok) {
+                    try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Arguments', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'PASS', retry: 1, fallback: false, missing_fields: [], latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
+                    return mapArguments(args2)
+                }
+
+                const retryErrors = finishReason2 === 'length'
+                    ? ['argument response truncated: finish_reason=length', ...(validation2.errors || [])]
+                    : validation2.errors || []
+                try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Arguments', provider: resp2 && resp2.provider ? resp2.provider : (resp && resp.provider ? resp.provider : 'unknown'), model: resp2 && resp2.model ? resp2.model : (resp && resp.model ? resp.model : 'unknown'), validation: 'FAIL', retry: 1, fallback: false, missing_fields: retryErrors, latency_ms: resp2 && resp2.duration_ms ? resp2.duration_ms : (resp && resp.duration_ms ? resp.duration_ms : null) }) } catch (_) { }
+            } catch (_e) {
+                // fall through to the existing environment-controlled fallback
+            }
+            try { AIRuntimeValidationLogger.logValidation({ timestamp: new Date().toISOString(), module: 'Arguments', provider: resp && resp.provider ? resp.provider : 'unknown', model: resp && resp.model ? resp.model : 'unknown', validation: 'FAIL', retry: 1, fallback: true, missing_fields: firstErrors, latency_ms: resp && resp.duration_ms ? resp.duration_ms : null }) } catch (_) { }
         } catch (e) {
             // ignore and fallback below
         }

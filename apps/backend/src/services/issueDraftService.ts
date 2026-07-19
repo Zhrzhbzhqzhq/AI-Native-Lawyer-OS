@@ -3,6 +3,7 @@ import IssueService from './issueService'
 import AIService from './ai/AIService'
 import type { AIAudit } from './ai/aiAudit'
 import { classifyFactConcept, ISSUE_CONCEPT_ORDER, type IssueConcept } from './ai/legalConceptClassifier'
+import { findIssueBoundaryViolation, validateIssues } from './ai/AIOutputValidator'
 
 type IssueDraftInput = {
   title: string
@@ -169,12 +170,7 @@ function unsupportedConceptWarnings(candidateText: string, relatedFactsText: str
 function issueConceptFromSuggestion(suggestion: any): IssueConcept | null {
   const explicit = String(suggestion?.issue_type || '').trim()
   if (ISSUE_CONCEPT_ORDER.includes(explicit as IssueConcept)) return explicit as IssueConcept
-  const inferred = classifyFactConcept({
-    title: suggestion?.title,
-    description: suggestion?.description,
-    content: suggestion?.ai_reasoning || suggestion?.reasoning || suggestion?.reason,
-  })
-  return ISSUE_CONCEPT_ORDER.find((concept) => inferred[concept]) || null
+  return null
 }
 
 function factsSupportIssueConcept(concept: IssueConcept, facts: any[]) {
@@ -188,9 +184,19 @@ function assertFormalIssueClean(title: string, description: string) {
     ;(error as any).code = 'unsafe_formal_issue_content'
     throw error
   }
+  if (findIssueBoundaryViolation(title, description)) {
+    const error = new Error('issue_contains_legal_conclusion')
+    ;(error as any).code = 'issue_contains_legal_conclusion'
+    throw error
+  }
 }
 
-export function normalizeIssueSuggestionsForDrafts(suggestions: any[], facts: any[], maxDrafts = 5): { drafts: IssueDraftInput[]; warnings: string[] } {
+export function normalizeIssueSuggestionsForDrafts(
+  suggestions: any[],
+  facts: any[],
+  maxDrafts = 5,
+  evidenceBackedFactIds?: Set<string>,
+): { drafts: IssueDraftInput[]; warnings: string[] } {
   if (!Array.isArray(suggestions)) return { drafts: [], warnings: ['suggestions_not_array'] }
   const factById = new Map(facts.map((fact) => [String(fact.fact_id), fact]))
   const warnings: string[] = []
@@ -217,6 +223,21 @@ export function normalizeIssueSuggestionsForDrafts(suggestions: any[], facts: an
       warnings.push(`candidate_${index}:invalid_source_fact_ids`)
       return
     }
+    if (evidenceBackedFactIds && sourceResult.ids.some((id) => !evidenceBackedFactIds.has(id))) {
+      warnings.push(`candidate_${index}:source_fact_without_evidence`)
+      return
+    }
+    const validation = validateIssues([{
+      ...suggestion,
+      title,
+      description: suggestion?.description || suggestion?.reason,
+      ai_reasoning: suggestion?.ai_reasoning || suggestion?.reasoning || suggestion?.reason || '该争点需要结合所引事实进一步审查。',
+      confidence: typeof suggestion?.confidence === 'number' ? suggestion.confidence : 0.9,
+    }])
+    if (!validation.ok) {
+      warnings.push(...validation.errors.map((error) => `candidate_${index}:${error}`))
+      return
+    }
     console.log('[ISSUE FACT LINK DEBUG]', {
       issue_title: title,
       fact_titles: Array.isArray(suggestion?.fact_titles) ? suggestion.fact_titles : [],
@@ -230,12 +251,12 @@ export function normalizeIssueSuggestionsForDrafts(suggestions: any[], facts: an
     const conceptWarnings = unsupportedConceptWarnings(candidateText, relatedFactsText)
     if (conceptWarnings.length > 0) {
       warnings.push(...conceptWarnings.map((warning) => `candidate_${index}:${warning}`))
+      return
     }
     const issueType = issueConceptFromSuggestion(suggestion)
     if (issueType && !factsSupportIssueConcept(issueType, relatedFacts)) {
       warnings.push(`candidate_${index}:source_fact_concept_mismatch:${issueType}`)
-      // Keep the issue draft. Concept mismatch is a review warning,
-      // not a hard validation failure.
+      return
     }
     candidates.push({
       title,
@@ -299,12 +320,22 @@ export class IssueDraftService {
       ;(error as any).code = 'formal_facts_required'
       throw error
     }
+    const factIds = facts.map((fact: any) => String(fact.fact_id))
+    const factEvidenceLinks = await this.prisma.factEvidence.findMany({
+      where: { fact_id: { in: factIds } },
+      include: { evidence: true },
+    })
+    const evidenceBackedFactIds = new Set(
+      factEvidenceLinks
+        .filter((link: any) => String(link.evidence?.matter_id || '') === String(matter_id) && String(link.evidence?.status || '') !== 'rejected')
+        .map((link: any) => String(link.fact_id)),
+    )
 
     const ai = new AIService(this.prisma)
     const suggestions = await ai.analyzeIssues(matter_id)
     console.log('[ISSUE RAW SUGGESTIONS]', JSON.stringify(suggestions, null, 2))
 
-    const normalized = normalizeIssueSuggestionsForDrafts(suggestions, facts)
+    const normalized = normalizeIssueSuggestionsForDrafts(suggestions, facts, 5, evidenceBackedFactIds)
 
     console.log('[ISSUE NORMALIZED]', JSON.stringify(normalized, null, 2))
 
@@ -414,6 +445,15 @@ export class IssueDraftService {
       const validFacts = await tx.fact.findMany({ where: { matter_id, status: { not: 'rejected' } } })
       const validFactIds = new Set(validFacts.map((fact: any) => String(fact.fact_id)))
       const validFactById = new Map(validFacts.map((fact: any) => [String(fact.fact_id), fact]))
+      const validFactEvidenceLinks = await tx.factEvidence.findMany({
+        where: { fact_id: { in: Array.from(validFactIds) } },
+        include: { evidence: true },
+      })
+      const evidenceBackedFactIds = new Set(
+        validFactEvidenceLinks
+          .filter((link: any) => String(link.evidence?.matter_id || '') === String(matter_id) && String(link.evidence?.status || '') !== 'rejected')
+          .map((link: any) => String(link.fact_id)),
+      )
       const issueService = new IssueService(tx)
       const created_issues: any[] = []
       let links_count = 0
@@ -460,11 +500,13 @@ export class IssueDraftService {
           ;(error as any).code = 'invalid_source_fact_ids'
           throw error
         }
+        if (sourceIds.some((id) => !evidenceBackedFactIds.has(id))) {
+          const error = new Error('source_fact_without_evidence')
+          ;(error as any).code = 'source_fact_without_evidence'
+          throw error
+        }
         const issueType = issueConceptFromSuggestion(draft)
         const sourceFacts = sourceIds.map((id) => validFactById.get(id)).filter(Boolean)
-
-        // concept mismatch is only a warning.
-        // Lawyer reviews the issue draft before publishing.
 
         assertFormalIssueClean(String(draft.title || ''), String(draft.description || ''))
 

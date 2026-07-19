@@ -5,6 +5,7 @@ import { MockLlmAdapter } from '../src/ai/mockLlmAdapter'
 import { buildDeterministicLawCandidates } from '../src/services/ai/legalRuleClassifier'
 import { assertFormalLawContent, normalizeLawSuggestionsForDrafts } from '../src/services/lawDraftService'
 import { inferIssueTypeFromFacts } from '../src/services/ai/legalConceptClassifier'
+import { FORMAL_LAW_V2_HEADER, parseFormalLaw } from '../src/services/formalSemanticCodec'
 
 const RUN_ID = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 const matterId = `test-law-draft-${RUN_ID}`
@@ -30,6 +31,18 @@ async function cleanup(id: string) {
 
 async function seedMatter(id: string, issueCount = 0) {
   await prisma.matter.create({ data: { matter_id: id, title: `Law Draft ${id}`, description: '', matter_type: 'test', status: 'active' } })
+  const materialId = `material-${id}`
+  await prisma.material.create({
+    data: {
+      material_id: materialId,
+      matter_id: id,
+      title: 'Law 来源材料',
+      material_type: 'test',
+      source: 'test',
+      storage_uri: `memory://${materialId}`,
+      status: 'active',
+    },
+  })
   for (let index = 0; index < issueCount; index += 1) {
     const issue = await prisma.issue.create({
       data: {
@@ -50,6 +63,19 @@ async function seedMatter(id: string, issueCount = 0) {
       },
     })
     await prisma.issueFact.create({ data: { issue_id: issue.issue_id, fact_id: fact.fact_id } })
+    const evidence = await prisma.evidence.create({
+      data: {
+        evidence_id: `evidence-${id}-${index}`,
+        matter_id: id,
+        material_id: materialId,
+        title: `法律来源事实证据 ${index + 1}`,
+        evidence_type: 'test',
+        description: '用于验证 Law 到 Issue、Fact 和 Evidence 的来源闭环。',
+        relevance: 'direct',
+        status: 'confirmed',
+      },
+    })
+    await prisma.factEvidence.create({ data: { fact_id: fact.fact_id, evidence_id: evidence.evidence_id, note: 'test-source' } })
   }
 }
 
@@ -139,10 +165,12 @@ describe('Persisted Laws Draft Workflow', () => {
     const issues = [
       {
         issue_id: 'issue-agreement',
+        title: '借贷关系成立争议',
         facts: [{ fact: { title: '双方形成借贷合意' } }],
       },
       {
         issue_id: 'issue-delivery',
+        title: '款项交付争议',
         facts: [{ fact: { title: '资金已经通过银行转账交付' } }],
       },
     ]
@@ -150,6 +178,8 @@ describe('Persisted Laws Draft Workflow', () => {
       title: '借贷关系规则',
       citation: '《中华人民共和国民法典》第六百六十七条',
       rule_content: '借款合同依法成立后对当事人具有约束力。',
+      application: '用于审查对应争议焦点的法律适用。',
+      limitations: '需要结合案件事实及证据进一步核验。',
       issue_type: 'agreement',
     }
     expect(normalizeLawSuggestionsForDrafts([{ ...base, source_issue_ids: [] }], issues)).toEqual([])
@@ -271,6 +301,20 @@ describe('Persisted Laws Draft Workflow', () => {
     const drafts = await prisma.lawDraft.findMany({ where: { matter_id: matterId } })
     const alreadyPublished = drafts.find((draft: any) => draft.published_law_id)
     expect(alreadyPublished).toBeTruthy()
+    const formalLaw = await prisma.law.findUnique({ where: { law_id: alreadyPublished.published_law_id } })
+    expect(formalLaw.description.startsWith(`${FORMAL_LAW_V2_HEADER}\n`)).toBe(true)
+    expect(parseFormalLaw(formalLaw.description)).toMatchObject({
+      encoding: 'valid-v2',
+      parsed: true,
+      fields: {
+        rule_content: alreadyPublished.rule_content || '',
+        application: alreadyPublished.application || '',
+        limitations: alreadyPublished.limitations || '',
+        jurisdiction: alreadyPublished.jurisdiction || '',
+        source_reference: alreadyPublished.source_reference || '',
+      },
+    })
+    expect(JSON.stringify(body.created_laws)).not.toContain(FORMAL_LAW_V2_HEADER)
     const modifyPublished = await app.inject({
       method: 'PATCH',
       url: `/matters/${matterId}/law-drafts/${alreadyPublished.id}`,
@@ -295,7 +339,7 @@ describe('Persisted Laws Draft Workflow', () => {
     await seedMatter(otherId, 1)
     const localIssue = await prisma.issue.findFirst({ where: { matter_id: badMatterId } })
     const otherIssue = await prisma.issue.findFirst({ where: { matter_id: otherId } })
-    await prisma.lawDraft.create({ data: { matter_id: badMatterId, title: '案内法律依据', citation: '民法典第一条', rule_content: '正式法律规则内容', application: '适用于本案', source_issue_ids: [localIssue.issue_id], review_status: 'accepted' } })
+    await prisma.lawDraft.create({ data: { matter_id: badMatterId, title: '案内法律依据', citation: '《中华人民共和国民法典》第一条', rule_content: '正式法律规则内容', application: '用于审查本案相关法律适用。', source_issue_ids: [localIssue.issue_id], review_status: 'accepted' } })
     await prisma.lawDraft.create({
       data: {
         matter_id: badMatterId,

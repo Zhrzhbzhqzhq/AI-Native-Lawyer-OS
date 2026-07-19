@@ -1,4 +1,17 @@
 import type { PrismaClient } from '@lawdesk/database'
+import {
+  FORMAL_ARGUMENT_V2_HEADER,
+  FORMAL_LAW_V2_HEADER,
+  parseFormalArgument,
+  parseFormalLaw,
+  type FormalSemanticEncoding,
+  type FormalSemanticRecovery,
+} from './formalSemanticCodec'
+import DocumentGenerationService, {
+  buildDocumentReasoningScope,
+  renderComplaintSections,
+  sourceIdsFromScope,
+} from './ai/DocumentGenerationService'
 
 type DocumentDraftInput = {
   document_type: string
@@ -10,6 +23,97 @@ type DocumentDraftInput = {
   source_fact_ids: string[]
   source_issue_ids: string[]
   source_law_ids: string[]
+}
+
+export type DocumentContextEvidence = {
+  evidence_id: string
+  title: string
+  description: string
+  status: string
+  material: { material_id: string; title: string } | null
+}
+
+export type DocumentContextFact = {
+  fact_id: string
+  title: string
+  description: string
+  status: string
+  evidences: DocumentContextEvidence[]
+}
+
+export type DocumentContextIssue = {
+  issue_id: string
+  title: string
+  description: string
+  status: string
+}
+
+export type DocumentContextLaw = {
+  law_id: string
+  title: string
+  citation: string
+  description: string
+  rule_content: string
+  application: string
+  limitations: string
+  jurisdiction: string
+  source_reference: string
+  semantic_encoding: FormalSemanticEncoding
+  semantic_recovery: FormalSemanticRecovery
+  raw_description: string
+  status: string
+}
+
+export type DocumentArgumentScope = {
+  argument: {
+    argument_id: string
+    title: string
+    description: string
+    conclusion: string
+    position: string
+    reasoning: string
+    counter_argument: string
+    response: string
+    risk: string
+    semantic_encoding: FormalSemanticEncoding
+    semantic_recovery: FormalSemanticRecovery
+    raw_description: string
+    status: string
+  }
+  issue: DocumentContextIssue
+  facts: DocumentContextFact[]
+  laws: DocumentContextLaw[]
+}
+
+export type DocumentContext = {
+  matter: { matter_id: string; title: string; description: string }
+  document_type: string
+  lawyer_instruction: string
+  evidences: DocumentContextEvidence[]
+  facts: DocumentContextFact[]
+  issues: DocumentContextIssue[]
+  laws: DocumentContextLaw[]
+  arguments: DocumentArgumentScope['argument'][]
+  argument_scopes: DocumentArgumentScope[]
+  excluded_scopes: Array<{ argument_id: string; reasons: string[] }>
+}
+
+type DocumentContextSourceRows = {
+  matter_id: string
+  document_type: string
+  lawyer_instruction: string
+  matter: any
+  evidences: any[]
+  facts: any[]
+  issues: any[]
+  laws: any[]
+  argumentsList: any[]
+  factEvidenceLinks: any[]
+  issueFactLinks: any[]
+  lawIssueLinks: any[]
+  argumentFactLinks: any[]
+  argumentIssueLinks: any[]
+  argumentLawLinks: any[]
 }
 
 export type DocumentDraftRow = {
@@ -34,6 +138,7 @@ export type DocumentDraftRow = {
 
 const SUPPORTED_DOCUMENT_TYPES = ['complaint']
 const FORMAL_DOCUMENT_STATUSES = new Set(['published', 'completed', 'final'])
+const FORMAL_SOURCE_STATUSES = ['active', 'published', 'completed', 'final', 'confirmed']
 const CLIENT_STATUSES = ['editing', 'ready_to_publish']
 
 function uniqueStrings(values: unknown[]) {
@@ -46,12 +151,18 @@ function clampConfidence(value: unknown) {
   return Math.max(0, Math.min(1, number))
 }
 
-function pending(label: string) {
-  return `【待律师补充：${label}】`
+function serializeSourceIds(ids: string[]) {
+  return JSON.stringify(uniqueStrings(ids))
 }
 
-function pendingConfirm(label: string) {
-  return `【待律师确认：${label}】`
+function presentDraftRow<T extends Record<string, any>>(row: T): T {
+  return {
+    ...row,
+    source_argument_ids: parseSourceIds(row.source_argument_ids),
+    source_fact_ids: parseSourceIds(row.source_fact_ids),
+    source_issue_ids: parseSourceIds(row.source_issue_ids),
+    source_law_ids: parseSourceIds(row.source_law_ids),
+  }
 }
 
 function escapeXml(value: unknown) {
@@ -61,41 +172,6 @@ function escapeXml(value: unknown) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;')
-}
-
-function extractParties(matter: any, facts: any[]) {
-  const title = String(matter?.title || '')
-  const titleMatch = title.match(/^(.+?)(?:诉|与|起诉)(.+?)(?:民间借贷|借贷|合同|纠纷|$)/)
-  const plaintiffFromTitle = titleMatch?.[1]?.trim()
-  const defendantFromTitle = titleMatch?.[2]?.trim()
-
-  const text = facts.map((fact) => `${fact.title || ''}\n${fact.description || ''}`).join('\n')
-  const plaintiffPatterns = [/原告[：:\s]*([^\s，,。；;]+)/, /出借人[：:\s]*([^\s，,。；;]+)/, /委托人[：:\s]*([^\s，,。；;]+)/]
-  const defendantPatterns = [/被告[：:\s]*([^\s，,。；;]+)/, /借款人[：:\s]*([^\s，,。；;]+)/, /对方当事人[：:\s]*([^\s，,。；;]+)/]
-  const find = (patterns: RegExp[]) => {
-    for (const pattern of patterns) {
-      const matched = text.match(pattern)
-      if (matched?.[1]) return matched[1].trim()
-    }
-    return ''
-  }
-
-  return {
-    plaintiff: plaintiffFromTitle || find(plaintiffPatterns) || pending('原告姓名'),
-    defendant: defendantFromTitle || find(defendantPatterns) || pending('被告姓名'),
-  }
-}
-
-function extractAmount(rows: any[]) {
-  const text = rows.map((row) => `${row.title || ''}\n${row.description || ''}\n${row.conclusion || ''}\n${row.citation || ''}\n${row.content || ''}`).join('\n')
-  const match = text.match(/(?:人民币|借款|本金|金额|转账|支付)?\s*([0-9][0-9,]*(?:\.[0-9]+)?)\s*(?:元|万元)/)
-  if (!match) return pending('借款本金金额')
-  const suffix = match[0].includes('万元') ? '万元' : '元'
-  return `${match[1].replace(/,/g, '')}${suffix}`
-}
-
-function hasChineseDate(text: string) {
-  return /\d{4}年\d{1,2}月\d{1,2}日/.test(text) || /\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(text)
 }
 
 function sanitizeLegalSentence(value: unknown) {
@@ -116,26 +192,6 @@ function sanitizeLegalSentence(value: unknown) {
     .trim()
 }
 
-function includesAny(text: string, keywords: string[]) {
-  return keywords.some((keyword) => text.includes(keyword))
-}
-
-function sourceText(rows: any[]) {
-  return rows.map((row) => sanitizeLegalSentence([
-    row.title,
-    row.description,
-    row.conclusion,
-    row.content,
-    row.citation,
-    row.rule_content,
-    row.application,
-  ].filter(Boolean).join('。'))).join('。')
-}
-
-function hasConcept(text: string, keywords: string[]) {
-  return includesAny(text, keywords)
-}
-
 const FORBIDDEN_CONTENT_PATTERNS = [
   /来源材料ID/i,
   /\bmat-[a-z0-9-]+\b/i,
@@ -147,6 +203,17 @@ const FORBIDDEN_CONTENT_PATTERNS = [
   /source_argument_ids/i,
   /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i,
   /\.(md|txt|json|pdf|docx?)(?:\s|$|，|。|；|、)/i,
+  new RegExp(FORMAL_ARGUMENT_V2_HEADER),
+  new RegExp(FORMAL_LAW_V2_HEADER),
+]
+
+const ABSOLUTE_OUTCOME_PATTERNS = [
+  /必然胜诉/,
+  /一定胜诉/,
+  /法院一定支持/,
+  /法院必然支持/,
+  /对方一定承担责任/,
+  /对方必然承担责任/,
 ]
 
 export function assertComplaintContentSafe(content: string) {
@@ -165,91 +232,228 @@ export function assertComplaintContentSafe(content: string) {
     'LawDesk',
   ]
   const matchedKeyword = forbidden.find((keyword) => text.includes(keyword))
-  if (matchedKeyword || FORBIDDEN_CONTENT_PATTERNS.some((pattern) => pattern.test(text))) {
+  if (
+    matchedKeyword
+    || FORBIDDEN_CONTENT_PATTERNS.some((pattern) => pattern.test(text))
+    || ABSOLUTE_OUTCOME_PATTERNS.some((pattern) => pattern.test(text))
+  ) {
     const error = new Error('unsafe_document_content')
     ;(error as any).code = 'unsafe_document_content'
     throw error
   }
 }
 
-function buildComplaintDraft(input: {
-  matter: any
-  facts: any[]
-  issues: any[]
-  laws: any[]
-  argumentsList: any[]
-  lawyerNote?: string
-}) {
-  const { matter, facts, issues, laws, argumentsList, lawyerNote } = input
-  const { plaintiff, defendant } = extractParties(matter, facts)
-  const amount = extractAmount([...facts, ...argumentsList])
-  const allText = sourceText([...facts, ...issues, ...laws, ...argumentsList])
-  const loanDate = hasChineseDate(allText) ? '双方形成借贷关系后，原告按约履行出借义务。' : `双方于${pending('借款日期')}前后形成借贷关系，具体借款时间由律师根据证据进一步核对。`
-  const dueDate = hasConcept(allText, ['到期', '期限', '还款']) ? '借款期限届满后，被告未按约履行还款义务。' : `双方约定或依法应确定的还款期限为${pending('到期日期')}，该日期由律师结合借条、聊天记录及其他证据最终确认。`
-  const agreementSentence = hasConcept(allText, ['借款', '借条', '出借', '借款合意', '民间借贷'])
-    ? `原告${plaintiff}与被告${defendant}之间存在民间借贷关系，双方就借款事项形成合意。`
-    : `原告与被告之间的借贷合意及具体约定仍需律师结合材料进一步确认。`
-  const deliverySentence = hasConcept(allText, ['银行流水', '转账', '支付', '交付', '汇款', '到账'])
-    ? '原告已经按照约定向被告交付借款，相关资金交付事实有转账、流水或其他款项交付材料相互印证。'
-    : `原告是否已经完成全部款项交付及交付方式仍需律师补充核对，借款本金暂列为${amount}。`
-  const demandSentence = hasConcept(allText, ['催收', '律师函', '电话', '未还', '未归还', '逾期'])
-    ? '借款到期后，原告曾通过沟通、催告或律师函等方式要求被告履行还款义务，但被告至今未清偿。'
-    : '借款到期后的催告经过及被告未清偿事实，仍需律师结合证据进一步完善。'
-  const lawSentence = laws.length > 0 || hasConcept(allText, ['民法典', '借款合同', '还款义务', '违约'])
-    ? '根据民事法律关于借款合同、债务履行和违约责任的规定，被告在取得借款后应当按照约定返还本金并承担相应资金占用损失或逾期责任。'
-    : '被告未按约返还借款的法律责任，需律师结合适用法律进一步确认。'
-  const necessitySentence = argumentsList.length > 0
-    ? '现被告仍未履行还款义务，原告为维护自身合法权益，依法向人民法院提起诉讼。'
-    : '因双方纠纷未能通过协商解决，原告依法向人民法院提起诉讼。'
+export function buildDocumentContext(input: DocumentContextSourceRows): DocumentContext {
+  const matterId = String(input.matter_id)
+  const allowed = (row: any) => String(row?.matter_id || '') === matterId && FORMAL_SOURCE_STATUSES.includes(String(row?.status || '').toLowerCase())
+  const evidences = input.evidences.filter(allowed)
+  const facts = input.facts.filter(allowed)
+  const issues = input.issues.filter(allowed)
+  const laws = input.laws.filter(allowed)
+  const argumentsList = input.argumentsList.filter(allowed)
+  const evidenceById = new Map(evidences.map((row) => [String(row.evidence_id), row]))
+  const factById = new Map(facts.map((row) => [String(row.fact_id), row]))
+  const issueById = new Map(issues.map((row) => [String(row.issue_id), row]))
+  const lawById = new Map(laws.map((row) => [String(row.law_id), row]))
+  const argumentScopes: DocumentArgumentScope[] = []
+  const excludedScopes: DocumentContext['excluded_scopes'] = []
 
+  for (const argument of argumentsList) {
+    const argumentId = String(argument.argument_id)
+    const reasons: string[] = []
+    const argumentSemantic = parseFormalArgument(argument.description)
+    if (['invalid-v2', 'unsupported-version', 'wrong-object-type'].includes(argumentSemantic.encoding)) {
+      reasons.push(`argument_semantic_${argumentSemantic.encoding}`)
+    }
+    const linkedIssueIds = uniqueStrings(input.argumentIssueLinks.filter((link) => String(link.argument_id) === argumentId).map((link) => link.issue_id))
+    const directIssueId = String(argument.issue_id || '')
+    if (linkedIssueIds.length !== 1 || (directIssueId && linkedIssueIds[0] !== directIssueId)) reasons.push('argument_must_have_one_issue')
+    const issueId = linkedIssueIds.length === 1 ? linkedIssueIds[0] : ''
+    const issue = issueById.get(issueId)
+    if (!issue) reasons.push('formal_issue_not_found')
+
+    const factIds = uniqueStrings(input.argumentFactLinks.filter((link) => String(link.argument_id) === argumentId).map((link) => link.fact_id))
+    if (factIds.length === 0) reasons.push('argument_facts_required')
+    const issueFactIds = new Set(input.issueFactLinks.filter((link) => String(link.issue_id) === issueId).map((link) => String(link.fact_id)))
+    if (factIds.some((factId) => !issueFactIds.has(factId))) reasons.push('source_fact_outside_issue')
+    if (factIds.some((factId) => !factById.has(factId))) reasons.push('formal_fact_not_found')
+
+    const scopedFacts: DocumentContextFact[] = []
+    for (const factId of factIds) {
+      const fact = factById.get(factId)
+      if (!fact) continue
+      const factEvidences = uniqueStrings(input.factEvidenceLinks.filter((link) => String(link.fact_id) === factId).map((link) => link.evidence_id))
+        .map((evidenceId) => evidenceById.get(evidenceId))
+        .filter(Boolean)
+        .map((evidence: any) => ({
+          evidence_id: String(evidence.evidence_id),
+          title: String(evidence.title || ''),
+          description: String(evidence.description || ''),
+          status: String(evidence.status || ''),
+          material: evidence.material
+            ? { material_id: String(evidence.material.material_id || evidence.material_id || ''), title: String(evidence.material.title || '') }
+            : null,
+        }))
+      if (factEvidences.length === 0) reasons.push('fact_without_formal_evidence')
+      scopedFacts.push({
+        fact_id: factId,
+        title: String(fact.title || ''),
+        description: String(fact.description || ''),
+        status: String(fact.status || ''),
+        evidences: factEvidences,
+      })
+    }
+
+    const lawIds = uniqueStrings(input.argumentLawLinks.filter((link) => String(link.argument_id) === argumentId).map((link) => link.law_id))
+    if (lawIds.length === 0) reasons.push('argument_laws_required')
+    const issueLawIds = new Set(input.lawIssueLinks.filter((link) => String(link.issue_id) === issueId).map((link) => String(link.law_id)))
+    if (lawIds.some((lawId) => !issueLawIds.has(lawId))) reasons.push('source_law_outside_issue')
+    if (lawIds.some((lawId) => !lawById.has(lawId))) reasons.push('formal_law_not_found')
+    const scopedLaws: DocumentContextLaw[] = lawIds.map((lawId) => lawById.get(lawId)).filter(Boolean).flatMap((law: any) => {
+      const semantic = parseFormalLaw(law.description)
+      if (['invalid-v2', 'unsupported-version', 'wrong-object-type'].includes(semantic.encoding)) {
+        reasons.push(`law_semantic_${semantic.encoding}`)
+        return []
+      }
+      return [{
+        law_id: String(law.law_id),
+        title: String(law.title || ''),
+        citation: String(law.citation || ''),
+        description: semantic.parsed
+          ? [semantic.fields.rule_content, semantic.fields.application].filter(Boolean).join('\n')
+          : semantic.raw_description,
+        rule_content: semantic.fields.rule_content,
+        application: semantic.fields.application,
+        limitations: semantic.fields.limitations,
+        jurisdiction: semantic.fields.jurisdiction,
+        source_reference: semantic.fields.source_reference,
+        semantic_encoding: semantic.encoding,
+        semantic_recovery: semantic.semantic_recovery,
+        raw_description: semantic.raw_description,
+        status: String(law.status || ''),
+      }]
+    })
+
+    if (reasons.length > 0 || !issue) {
+      excludedScopes.push({ argument_id: argumentId, reasons: uniqueStrings(reasons) })
+      continue
+    }
+    argumentScopes.push({
+      argument: {
+        argument_id: argumentId,
+        title: String(argument.title || ''),
+        description: argumentSemantic.parsed
+          ? [argumentSemantic.fields.position, argumentSemantic.fields.reasoning, argumentSemantic.fields.response].filter(Boolean).join('\n')
+          : argumentSemantic.raw_description,
+        conclusion: String(argument.conclusion || ''),
+        position: argumentSemantic.fields.position,
+        reasoning: argumentSemantic.parsed ? argumentSemantic.fields.reasoning : argumentSemantic.raw_description,
+        counter_argument: argumentSemantic.fields.counter_argument,
+        response: argumentSemantic.fields.response,
+        risk: argumentSemantic.fields.risk,
+        semantic_encoding: argumentSemantic.encoding,
+        semantic_recovery: argumentSemantic.semantic_recovery,
+        raw_description: argumentSemantic.raw_description,
+        status: String(argument.status || ''),
+      },
+      issue: {
+        issue_id: issueId,
+        title: String((issue as any).title || ''),
+        description: String((issue as any).description || ''),
+        status: String((issue as any).status || ''),
+      },
+      facts: scopedFacts,
+      laws: scopedLaws,
+    })
+  }
+
+  const uniqueBy = <T>(rows: T[], idOf: (row: T) => string) => Array.from(new Map(rows.map((row) => [idOf(row), row])).values())
+  return {
+    matter: {
+      matter_id: matterId,
+      title: String(input.matter?.title || ''),
+      description: String(input.matter?.description || ''),
+    },
+    document_type: String(input.document_type || 'complaint'),
+    lawyer_instruction: String(input.lawyer_instruction || ''),
+    evidences: uniqueBy(argumentScopes.flatMap((scope) => scope.facts.flatMap((fact) => fact.evidences)), (row) => row.evidence_id),
+    facts: uniqueBy(argumentScopes.flatMap((scope) => scope.facts), (row) => row.fact_id),
+    issues: uniqueBy(argumentScopes.map((scope) => scope.issue), (row) => row.issue_id),
+    laws: uniqueBy(argumentScopes.flatMap((scope) => scope.laws), (row) => row.law_id),
+    arguments: argumentScopes.map((scope) => scope.argument),
+    argument_scopes: argumentScopes,
+    excluded_scopes: excludedScopes,
+  }
+}
+
+export function composeNeutralComplaint(context: DocumentContext): DocumentDraftInput {
+  const factLines = context.facts.map((fact, index) => `${index + 1}. ${sanitizeLegalSentence(fact.title)}${fact.description ? `：${sanitizeLegalSentence(fact.description)}` : ''}`)
+  const scopeLines = context.argument_scopes.flatMap((scope, index) => [
+    `${index + 1}. 争议焦点：${sanitizeLegalSentence(scope.issue.title)}`,
+    `本方主张：${sanitizeLegalSentence(scope.argument.position || scope.argument.title)}`,
+    scope.argument.reasoning ? `论证：${sanitizeLegalSentence(scope.argument.reasoning)}` : '',
+    scope.argument.response ? `回应：${sanitizeLegalSentence(scope.argument.response)}` : '',
+    scope.argument.conclusion ? `阶段性结论：${sanitizeLegalSentence(scope.argument.conclusion)}` : '',
+  ].filter(Boolean))
+  const lawLines = context.laws.map((law, index) => {
+    const usableDescription = law.semantic_encoding === 'legacy-plain'
+      ? law.raw_description
+      : [law.rule_content, law.application].filter(Boolean).join('；')
+    return `${index + 1}. ${sanitizeLegalSentence(law.citation || law.title)}${usableDescription ? `：${sanitizeLegalSentence(usableDescription)}` : ''}`
+  })
+  const evidenceLines = context.evidences.map((evidence, index) => {
+    const materialTitle = sanitizeLegalSentence(evidence.material?.title || '')
+    return `${index + 1}. ${sanitizeLegalSentence(evidence.title)}${evidence.description ? `：${sanitizeLegalSentence(evidence.description)}` : ''}${materialTitle ? `（对应材料：${materialTitle}）` : ''}`
+  })
   const content = [
     '民事起诉状',
     '',
-    '原告基本信息',
-    `原告：${plaintiff}，${pending('原告身份证号码及住所')}，联系方式：${pending('原告联系方式')}。`,
+    '原告：',
+    '【待律师补充】',
     '',
-    '被告基本信息',
-    `被告：${defendant}，${pending('被告身份证号码及住所')}，联系方式：${pending('被告联系方式')}。`,
+    '被告：',
+    '【待律师补充】',
     '',
     '诉讼请求：',
-    `1. 请求人民法院依法判令被告向原告偿还借款本金 ${amount}；`,
-    `2. 请求人民法院依法判令被告向原告支付逾期利息或资金占用损失，具体以${pendingConfirm('利息起算日、利率及暂计金额')}为准；`,
-    '3. 请求人民法院依法判令被告承担本案诉讼费、保全费及其他依法应由其承担的费用。',
+    '【待律师根据已确认 Argument 和案件目标补充】',
     '',
     '事实与理由：',
-    agreementSentence,
-    loanDate,
-    deliverySentence,
-    dueDate,
-    demandSentence,
-    lawSentence,
-    necessitySentence,
     '',
-    lawyerNote ? `律师补充意见：${sanitizeLegalSentence(lawyerNote)}` : '',
+    '一、案件基本事实',
+    ...factLines,
+    '',
+    '二、争议焦点及本方主张',
+    ...scopeLines,
+    '',
+    '三、法律依据',
+    ...lawLines,
+    '',
+    context.lawyer_instruction ? `律师指示：${sanitizeLegalSentence(context.lawyer_instruction)}` : '',
     '',
     '证据和证据来源：',
-    '1. 借条，用于证明双方借贷合意及借款金额；',
-    '2. 银行流水，用于证明原告已实际交付借款；',
-    '3. 微信聊天记录，用于证明借贷关系及催收经过；',
-    '4. 电话录音整理，用于证明被告确认债务及未还款事实；',
-    '5. 律师函及送达材料，用于证明原告已进行催告。',
-    '具体证据名称、页码、原件或复印件状态及证明目的由律师最终核对。',
+    ...evidenceLines,
     '',
     '此致',
-    pendingConfirm('管辖法院'),
+    '【待律师补充：受理法院】',
     '',
-    `具状人：${plaintiff}`,
-    `日期：${pending('提交日期')}`,
-  ].filter((line) => line !== '').join('\n')
+    '具状人：',
+    '【待律师补充】',
+    '',
+    '日期：',
+    '【待律师补充】',
+  ].filter((line, index, rows) => line !== '' || rows[index - 1] !== '').join('\n')
 
   assertComplaintContentSafe(content)
-
   return {
-    title: `${matter?.title || '案件'}民事起诉状`,
+    title: `${context.matter.title || '案件'}民事起诉状`,
     document_type: 'complaint',
     content,
-    confidence: argumentsList.length > 0 && facts.length > 0 && issues.length > 0 && laws.length > 0 ? 0.86 : 0.66,
-    ai_reasoning: '基于当前 Matter 中已发布的事实、争议焦点、法律依据和论证意见整理民事起诉状草稿；缺失的法院、身份信息、利息计算与提交日期均保留律师补充占位。',
+    confidence: context.argument_scopes.length > 0 ? 0.8 : 0,
+    ai_reasoning: '基于当前 Matter 中关系闭环完整的正式 Evidence、Fact、Issue、Law 和 Argument 组织中性民事起诉状草稿；未由正式来源提供的信息均保留律师补充标记。',
+    source_argument_ids: uniqueStrings(context.arguments.map((argument) => argument.argument_id)),
+    source_fact_ids: uniqueStrings(context.facts.map((fact) => fact.fact_id)),
+    source_issue_ids: uniqueStrings(context.issues.map((issue) => issue.issue_id)),
+    source_law_ids: uniqueStrings(context.laws.map((law) => law.law_id)),
   }
 }
 
@@ -270,13 +474,14 @@ function parseSourceIds(value: unknown): string[] {
 }
 
 export class DocumentDraftService {
-  constructor(private prisma: PrismaClient) {}
+  constructor(private prisma: PrismaClient, private documentGenerationService = new DocumentGenerationService()) {}
 
   async listDrafts(matter_id: string): Promise<DocumentDraftRow[]> {
-    return (this.prisma as any).documentDraft.findMany({
+    const rows = await (this.prisma as any).documentDraft.findMany({
       where: { matter_id },
       orderBy: { created_at: 'asc' },
     })
+    return rows.map((row: any) => presentDraftRow(row))
   }
 
   async getDraft(matter_id: string, draft_id: string): Promise<DocumentDraftRow | null> {
@@ -287,7 +492,7 @@ export class DocumentDraftService {
       ;(error as any).code = 'draft_matter_mismatch'
       throw error
     }
-    return draft
+    return presentDraftRow(draft)
   }
 
   async generateDraft(matter_id: string, document_type = 'complaint'): Promise<{ status: 'document_draft_ready'; idempotent: boolean; document_draft: DocumentDraftRow }> {
@@ -302,20 +507,10 @@ export class DocumentDraftService {
       where: { matter_id, document_type: type, published_at: null },
       orderBy: { created_at: 'asc' },
     })
-    if (existing) return { status: 'document_draft_ready', idempotent: true, document_draft: existing }
+    if (existing) return { status: 'document_draft_ready', idempotent: true, document_draft: presentDraftRow(existing) }
 
-    const data = await this.readFormalSources(matter_id)
-    if (data.argumentsList.length === 0) {
-      const error = new Error('formal_arguments_required')
-      ;(error as any).code = 'formal_arguments_required'
-      throw error
-    }
-
-    const draft = this.composeDraft({
-      matter_id,
-      document_type: type,
-      ...data,
-    })
+    const context = await this.readFormalSources(matter_id, type, '')
+    const draft = await this.composeDraft(context)
 
     const created = await (this.prisma as any).documentDraft.create({
       data: {
@@ -323,17 +518,17 @@ export class DocumentDraftService {
         document_type: draft.document_type,
         title: draft.title,
         content: draft.content,
-        source_argument_ids: JSON.stringify(draft.source_argument_ids),
-        source_fact_ids: JSON.stringify(draft.source_fact_ids),
-        source_issue_ids: JSON.stringify(draft.source_issue_ids),
-        source_law_ids: JSON.stringify(draft.source_law_ids),
+        source_argument_ids: serializeSourceIds(draft.source_argument_ids),
+        source_fact_ids: serializeSourceIds(draft.source_fact_ids),
+        source_issue_ids: serializeSourceIds(draft.source_issue_ids),
+        source_law_ids: serializeSourceIds(draft.source_law_ids),
         confidence: draft.confidence,
         ai_reasoning: draft.ai_reasoning,
         review_status: 'generated',
       },
     })
 
-    return { status: 'document_draft_ready', idempotent: false, document_draft: created }
+    return { status: 'document_draft_ready', idempotent: false, document_draft: presentDraftRow(created) }
   }
 
   async updateDraft(matter_id: string, draft_id: string, payload: { title?: string; content?: string; lawyer_note?: string; review_status?: string }): Promise<DocumentDraftRow> {
@@ -369,6 +564,7 @@ export class DocumentDraftService {
         ;(error as any).code = 'invalid_review_status'
         throw error
       }
+      if (payload.review_status === 'ready_to_publish') assertComplaintContentSafe(String(draft.content || ''))
       patch.review_status = payload.review_status
     }
     if (Object.keys(patch).length === 0) {
@@ -377,7 +573,8 @@ export class DocumentDraftService {
       throw error
     }
 
-    return (this.prisma as any).documentDraft.update({ where: { id: draft.id }, data: patch })
+    const updated = await (this.prisma as any).documentDraft.update({ where: { id: draft.id }, data: patch })
+    return presentDraftRow(updated)
   }
 
   async regenerateDraft(matter_id: string, draft_id: string, payload: { lawyer_note?: string }): Promise<DocumentDraftRow> {
@@ -387,29 +584,26 @@ export class DocumentDraftService {
       ;(error as any).code = 'draft_already_published'
       throw error
     }
-    const data = await this.readFormalSources(matter_id)
-    const next = this.composeDraft({
-      matter_id,
-      document_type: draft.document_type,
-      ...data,
-      lawyerNote: typeof payload.lawyer_note === 'string' ? payload.lawyer_note : String(draft.lawyer_note || ''),
-    })
+    const lawyerInstruction = typeof payload.lawyer_note === 'string' ? payload.lawyer_note : String(draft.lawyer_note || '')
+    const context = await this.readFormalSources(matter_id, draft.document_type, lawyerInstruction)
+    const next = await this.composeDraft(context)
 
-    return (this.prisma as any).documentDraft.update({
+    const updated = await (this.prisma as any).documentDraft.update({
       where: { id: draft.id },
       data: {
         title: next.title,
         content: next.content,
         confidence: next.confidence,
         ai_reasoning: next.ai_reasoning,
-        source_argument_ids: next.source_argument_ids,
-        source_fact_ids: next.source_fact_ids,
-        source_issue_ids: next.source_issue_ids,
-        source_law_ids: next.source_law_ids,
+        source_argument_ids: serializeSourceIds(next.source_argument_ids),
+        source_fact_ids: serializeSourceIds(next.source_fact_ids),
+        source_issue_ids: serializeSourceIds(next.source_issue_ids),
+        source_law_ids: serializeSourceIds(next.source_law_ids),
         lawyer_note: typeof payload.lawyer_note === 'string' ? payload.lawyer_note : draft.lawyer_note,
         review_status: 'editing',
       },
     })
+    return presentDraftRow(updated)
   }
 
   async publishDraft(matter_id: string, draft_id: string) {
@@ -520,52 +714,92 @@ export class DocumentDraftService {
     return draft
   }
 
-  private async readFormalSources(matter_id: string) {
-    const [matter, facts, issues, laws, argumentsList] = await Promise.all([
+  private async readFormalSources(matter_id: string, document_type: string, lawyer_instruction: string): Promise<DocumentContext> {
+    const [matter, evidences, facts, issues, laws, argumentsList] = await Promise.all([
       this.prisma.matter.findUnique({ where: { matter_id } }),
-      this.prisma.fact.findMany({ where: { matter_id, status: { not: 'rejected' } }, orderBy: { created_at: 'asc' } }),
-      this.prisma.issue.findMany({ where: { matter_id, status: { not: 'rejected' } }, orderBy: { created_at: 'asc' } }),
-      this.prisma.law.findMany({ where: { matter_id, status: { not: 'rejected' } }, orderBy: { created_at: 'asc' } }),
-      this.prisma.argument.findMany({ where: { matter_id, status: { not: 'rejected' } }, orderBy: { created_at: 'asc' } }),
+      this.prisma.evidence.findMany({ where: { matter_id, status: { in: FORMAL_SOURCE_STATUSES } }, include: { material: true }, orderBy: { created_at: 'asc' } }),
+      this.prisma.fact.findMany({ where: { matter_id, status: { in: FORMAL_SOURCE_STATUSES } }, orderBy: { created_at: 'asc' } }),
+      this.prisma.issue.findMany({ where: { matter_id, status: { in: FORMAL_SOURCE_STATUSES } }, orderBy: { created_at: 'asc' } }),
+      this.prisma.law.findMany({ where: { matter_id, status: { in: FORMAL_SOURCE_STATUSES } }, orderBy: { created_at: 'asc' } }),
+      this.prisma.argument.findMany({ where: { matter_id, status: { in: FORMAL_SOURCE_STATUSES } }, orderBy: { created_at: 'asc' } }),
     ])
     if (!matter) {
       const error = new Error('matter_not_found')
       ;(error as any).code = 'matter_not_found'
       throw error
     }
-    return { matter, facts, issues, laws, argumentsList }
+    if (argumentsList.length === 0) {
+      const error = new Error('formal_arguments_required')
+      ;(error as any).code = 'formal_arguments_required'
+      throw error
+    }
+    const [factEvidenceLinks, issueFactLinks, lawIssueLinks, argumentFactLinks, argumentIssueLinks, argumentLawLinks] = await Promise.all([
+      (this.prisma as any).factEvidence.findMany({ where: { fact: { matter_id }, evidence: { matter_id } } }),
+      (this.prisma as any).issueFact.findMany({ where: { issue: { matter_id }, fact: { matter_id } } }),
+      (this.prisma as any).lawIssue.findMany({ where: { law: { matter_id }, issue: { matter_id } } }),
+      (this.prisma as any).argumentFact.findMany({ where: { argument: { matter_id }, fact: { matter_id } } }),
+      (this.prisma as any).argumentIssue.findMany({ where: { argument: { matter_id }, issue: { matter_id } } }),
+      (this.prisma as any).argumentLaw.findMany({ where: { argument: { matter_id }, law: { matter_id } } }),
+    ])
+    const context = buildDocumentContext({
+      matter_id,
+      document_type,
+      lawyer_instruction,
+      matter,
+      evidences,
+      facts,
+      issues,
+      laws,
+      argumentsList,
+      factEvidenceLinks,
+      issueFactLinks,
+      lawIssueLinks,
+      argumentFactLinks,
+      argumentIssueLinks,
+      argumentLawLinks,
+    })
+    if (context.argument_scopes.length === 0) {
+      const error = new Error('document_context_no_valid_argument_scopes')
+      ;(error as any).code = 'document_context_no_valid_argument_scopes'
+      ;(error as any).diagnostics = context.excluded_scopes
+      throw error
+    }
+    return context
   }
 
-  private composeDraft(input: {
-    matter_id: string
-    document_type: string
-    matter: any
-    facts: any[]
-    issues: any[]
-    laws: any[]
-    argumentsList: any[]
-    lawyerNote?: string
-  }): DocumentDraftInput {
-    const complaint = buildComplaintDraft(input)
+  private async composeDraft(context: DocumentContext): Promise<DocumentDraftInput> {
+    const scope = buildDocumentReasoningScope(context)
+    const generated = await this.documentGenerationService.generate(context.matter.matter_id, scope)
+    if (!generated.ok) {
+      const fallback = composeNeutralComplaint(context)
+      return {
+        ...fallback,
+        ai_reasoning: `deterministic_fallback:${generated.reason}`,
+      }
+    }
+
+    const content = renderComplaintSections(generated.sections)
+    assertComplaintContentSafe(content)
+    const sourceIds = sourceIdsFromScope(scope)
     return {
-      document_type: complaint.document_type,
-      title: complaint.title,
-      content: complaint.content,
-      confidence: complaint.confidence,
-      ai_reasoning: complaint.ai_reasoning,
-      source_argument_ids: uniqueStrings(input.argumentsList.map((argument) => argument.argument_id)),
-      source_fact_ids: uniqueStrings(input.facts.map((fact) => fact.fact_id)),
-      source_issue_ids: uniqueStrings(input.issues.map((issue) => issue.issue_id)),
-      source_law_ids: uniqueStrings(input.laws.map((law) => law.law_id)),
+      title: generated.sections.title,
+      document_type: 'complaint',
+      content,
+      confidence: generated.mode === 'ai_generated' ? 0.85 : 0.75,
+      ai_reasoning: generated.mode,
+      source_argument_ids: sourceIds.argumentIds,
+      source_fact_ids: sourceIds.factIds,
+      source_issue_ids: sourceIds.issueIds,
+      source_law_ids: sourceIds.lawIds,
     }
   }
 
   private async validateSources(tx: any, matter_id: string, sources: { source_argument_ids: string[]; source_fact_ids: string[]; source_issue_ids: string[]; source_law_ids: string[] }) {
     const [facts, issues, laws, args] = await Promise.all([
-      tx.fact.findMany({ where: { matter_id, status: { not: 'rejected' } } }),
-      tx.issue.findMany({ where: { matter_id, status: { not: 'rejected' } } }),
-      tx.law.findMany({ where: { matter_id, status: { not: 'rejected' } } }),
-      tx.argument.findMany({ where: { matter_id, status: { not: 'rejected' } } }),
+      tx.fact.findMany({ where: { matter_id, status: { in: FORMAL_SOURCE_STATUSES } } }),
+      tx.issue.findMany({ where: { matter_id, status: { in: FORMAL_SOURCE_STATUSES } } }),
+      tx.law.findMany({ where: { matter_id, status: { in: FORMAL_SOURCE_STATUSES } } }),
+      tx.argument.findMany({ where: { matter_id, status: { in: FORMAL_SOURCE_STATUSES } } }),
     ])
     const validFactIds = new Set(facts.map((fact: any) => String(fact.fact_id)))
     const validIssueIds = new Set(issues.map((issue: any) => String(issue.issue_id)))

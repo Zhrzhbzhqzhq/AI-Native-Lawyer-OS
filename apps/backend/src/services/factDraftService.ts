@@ -2,6 +2,7 @@ import type { PrismaClient } from '@lawdesk/database'
 import FactService from './factService'
 import AIService from './ai/AIService'
 import type { AIAudit } from './ai/aiAudit'
+import { findFactLegalConclusion } from './ai/AIOutputValidator'
 
 type FactDraftInput = {
   title: string
@@ -76,7 +77,7 @@ function normalizeWhitespace(value: unknown) {
 
 export function assertFormalFactClean(title: string, description: string) {
   const combined = `${title}\n${description}`
-  if (FORMAL_FACT_FORBIDDEN_PATTERNS.some((pattern) => pattern.test(combined))) {
+  if (FORMAL_FACT_FORBIDDEN_PATTERNS.some((pattern) => pattern.test(combined)) || findFactLegalConclusion(title, description)) {
     const error = new Error('unsafe_formal_fact_content')
     ;(error as any).code = 'unsafe_formal_fact_content'
     throw error
@@ -93,37 +94,11 @@ function cleanFormalFactText(value: unknown) {
     .trim()
 }
 
-function extractMatterContextFromTitle(title: unknown) {
-  const text = String(title || '').trim()
-  const partyMatch = text.match(/^(.+?)(?:诉|与|起诉)(.+?)(?:民间借贷纠纷|民间借贷|合同纠纷|纠纷|$)/)
-  const typeMatch = text.match(/(民间借贷纠纷|民间借贷|[^诉与起]+纠纷)/)
-  return {
-    party_a: normalizeWhitespace(partyMatch?.[1]),
-    party_b: normalizeWhitespace(partyMatch?.[2]),
-    case_type: normalizeWhitespace(typeMatch?.[1]),
-  }
-}
-
-function enrichFormalFactDescription(title: string, description: string, matter?: { title?: string | null }) {
-  let enriched = description
-  const context = extractMatterContextFromTitle(matter?.title)
-  if (context.case_type && !enriched.includes(context.case_type)) {
-    enriched += ` 该事实与${context.case_type}有关。`
-  }
-  if (context.party_a && context.party_b && (!enriched.includes(context.party_a) || !enriched.includes(context.party_b))) {
-    enriched += ` ${context.party_a}与${context.party_b}为该事实相关当事人。`
-  }
-  if (/未还|未履行/.test(`${title}\n${description}`) && !/未偿还/.test(enriched)) {
-    enriched += ' 该事实指向借款到期后仍未偿还。'
-  }
-  return normalizeWhitespace(enriched)
-}
-
-export function buildFormalFactContent(draft: { title?: string | null; description?: string | null }, matter?: { title?: string | null }) {
+export function buildFormalFactContent(draft: { title?: string | null; description?: string | null }, _matter?: { title?: string | null }) {
   const rawTitle = normalizeWhitespace(draft.title)
   const rawDescription = normalizeWhitespace(draft.description)
   const title = cleanFormalFactText(rawTitle)
-  const description = enrichFormalFactDescription(title, cleanFormalFactText(rawDescription) || title, matter)
+  const description = cleanFormalFactText(rawDescription) || title
   if (!title || !description) {
     const error = new Error('formal_fact_content_required')
     ;(error as any).code = 'formal_fact_content_required'
@@ -133,7 +108,7 @@ export function buildFormalFactContent(draft: { title?: string | null; descripti
   return { title, description }
 }
 
-function getSourceEvidenceIds(suggestion: any, evidences: any[], index: number) {
+function getSourceEvidenceIds(suggestion: any, evidences: any[]) {
   const validEvidenceIds = new Set(evidences.map((evidence) => String(evidence.evidence_id)))
   const explicit = [
     ...(Array.isArray(suggestion?.source_evidence_ids) ? suggestion.source_evidence_ids : []),
@@ -146,26 +121,11 @@ function getSourceEvidenceIds(suggestion: any, evidences: any[], index: number) 
 
   const titles = Array.isArray(suggestion?.evidence_titles) ? suggestion.evidence_titles.map((title: unknown) => String(title || '').trim()).filter(Boolean) : []
   if (titles.length > 0) {
-    const lowerTitles = titles.map((title: string) => title.toLowerCase())
-    const matched = evidences
-      .filter((e) => lowerTitles.some((title: string) => String(e.title || '').toLowerCase().includes(title) || title.includes(String(e.title || '').toLowerCase())))
-      .map((e) => e.evidence_id)
-    if (matched.length > 0) return uniqueStrings(matched)
+    const evidenceIdByTitle = new Map(evidences.map((evidence) => [String(evidence.title || '').trim(), String(evidence.evidence_id || '')]))
+    const matched = titles.map((title: string) => evidenceIdByTitle.get(title)).filter(Boolean) as string[]
+    return matched.length === titles.length ? uniqueStrings(matched) : []
   }
-
-  const text = `${suggestion?.title || ''}\n${suggestion?.description || ''}`.toLowerCase()
-  const matched = evidences
-    .filter((e) => {
-      const title = String(e.title || '').toLowerCase()
-      return title && text.includes(title)
-    })
-    .map((e) => e.evidence_id)
-  if (matched.length > 0) return uniqueStrings(matched)
-
-  const indexed = evidences[index]
-  if (indexed?.evidence_id) return [String(indexed.evidence_id)]
-
-  return evidences[0]?.evidence_id ? [String(evidences[0].evidence_id)] : []
+  return []
 }
 
 export class FactDraftService {
@@ -378,14 +338,16 @@ export class FactDraftService {
   private normalizeSuggestions(suggestions: any[], evidences: any[]): FactDraftInput[] {
     if (!Array.isArray(suggestions)) return []
     return suggestions
-      .map((suggestion, index) => {
+      .map((suggestion) => {
         const title = String(suggestion?.title || suggestion?.name || '').trim()
         if (!title) return null
-        const source_evidence_ids = getSourceEvidenceIds(suggestion, evidences, index)
+        const description = String(suggestion?.description || suggestion?.reason || '')
+        if (findFactLegalConclusion(title, description)) return null
+        const source_evidence_ids = getSourceEvidenceIds(suggestion, evidences)
         if (source_evidence_ids.length === 0) return null
         return {
           title,
-          description: String(suggestion?.description || suggestion?.reason || ''),
+          description,
           confidence: clampConfidence(suggestion?.confidence),
           ai_reasoning: String(suggestion?.ai_reasoning || suggestion?.reasoning || suggestion?.reason || ''),
           source_evidence_ids,
