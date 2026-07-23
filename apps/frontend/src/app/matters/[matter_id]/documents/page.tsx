@@ -249,13 +249,13 @@ export default function DocumentsWorkspace() {
   } : null
 
   return (
-    <div style={{ padding: 16, background: tokens.pageBg, minHeight: '100vh' }}>
+    <div className="lawdesk-workspace" style={{ padding: 16, background: tokens.pageBg, minHeight: '100vh' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <div style={{ marginBottom: 12 }}>
           <button onClick={() => router.push(`/matters/${encodeURIComponent(matterId)}`)} style={{ background: 'transparent', border: 'none', color: tokens.muted, fontSize: 14, padding: 0, cursor: 'pointer' }}>← 返回案件概览</button>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, marginBottom: 14 }}>
+        <div className="ld-workspace-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, marginBottom: 14 }}>
           <div>
             <div style={{ fontSize: 24, fontWeight: 900, color: tokens.text }}>文书工作区</div>
             <div style={{ color: tokens.muted, marginTop: 4 }}>Document Draft Workspace</div>
@@ -271,8 +271,8 @@ export default function DocumentsWorkspace() {
         {message ? <div style={{ marginBottom: 12, padding: 10, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, background: '#fff', color: tokens.text }}>{message}</div> : null}
         {!loading && !loadError && documents.length > 0 && exportableDocuments.length === 0 ? <div style={{ marginBottom: 12, padding: 10, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, background: '#fff', color: tokens.muted }}>暂无可导出的正式文书</div> : null}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '360px minmax(0, 1fr)', gap: 16 }}>
-          <aside style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className="ld-document-layout" style={{ display: 'grid', gridTemplateColumns: '320px minmax(0, 1fr)', gap: 20 }}>
+          <aside className="ld-source-panel" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <section style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 12 }}>
               <div style={{ fontWeight: 800 }}>办案成果来源</div>
               <div style={{ color: tokens.muted, fontSize: 12, marginTop: 3 }}>Published Case Work</div>
@@ -304,7 +304,7 @@ export default function DocumentsWorkspace() {
             {loading ? (
               <div style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 16, color: tokens.muted }}>正在加载文书工作区…</div>
             ) : loadError ? null : hasPublishedDocument ? (
-              <section style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 14 }}>
+              <section className="ld-document-shell" style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
                   <div>
                     <div style={{ fontSize: 18, fontWeight: 900 }}>正式文书</div>
@@ -325,7 +325,7 @@ export default function DocumentsWorkspace() {
                     <label style={{ display: 'block', fontWeight: 800, marginBottom: 6 }}>标题</label>
                     <input value={activeDocument.title || ''} readOnly style={{ width: '100%', padding: 10, borderRadius: 8, border: `1px solid ${tokens.border}`, background: '#f8fafc' }} />
                     <label style={{ display: 'block', fontWeight: 800, marginTop: 12, marginBottom: 6 }}>正文</label>
-                    <textarea value={activeDocument.content || ''} readOnly style={{ width: '100%', minHeight: 560, padding: 18, borderRadius: 8, border: `1px solid ${tokens.border}`, background: '#f8fafc', lineHeight: 1.8, fontSize: 15, fontFamily: 'serif' }} />
+                    <textarea className="ld-document-editor" value={activeDocument.content || ''} readOnly style={{ width: '100%', minHeight: 560, padding: 18, borderRadius: 8, border: `1px solid ${tokens.border}`, background: '#f8fafc', lineHeight: 1.8, fontSize: 15, fontFamily: 'serif' }} />
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
                       <a href={apiUrl(`/matters/${encodeURIComponent(matterId)}/documents/${encodeURIComponent(activeDocument.document_id || activeDocument.id)}/export.docx`)} style={{ padding: '9px 14px', borderRadius: 8, border: 'none', background: '#111827', color: '#fff', fontWeight: 800, textDecoration: 'none' }}>导出 Word</a>
                     </div>
@@ -333,7 +333,7 @@ export default function DocumentsWorkspace() {
                 ) : null}
               </section>
             ) : activeDraft ? (
-              <section style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 14 }}>
+              <section className="ld-document-shell" style={{ background: tokens.cardBg, border: `1px solid ${tokens.border}`, borderRadius: tokens.radius, padding: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
                   <div>
                     <div style={{ fontSize: 18, fontWeight: 900 }}>文书草稿</div>
@@ -360,12 +360,12 @@ export default function DocumentsWorkspace() {
                   <label style={{ display: 'block', fontWeight: 800, marginBottom: 6 }}>标题</label>
                   <input value={draftTitle} onChange={(e) => setDraftTitle(e.target.value)} style={{ width: '100%', padding: 10, borderRadius: 8, border: `1px solid ${tokens.border}` }} />
                   <label style={{ display: 'block', fontWeight: 800, marginTop: 12, marginBottom: 6 }}>正文</label>
-                  <textarea value={draftContent} onChange={(e) => setDraftContent(e.target.value)} style={{ width: '100%', minHeight: 560, padding: 18, borderRadius: 8, border: `1px solid ${tokens.border}`, background: '#fff', lineHeight: 1.8, fontSize: 15, fontFamily: 'serif' }} />
+                  <textarea className="ld-document-editor" value={draftContent} onChange={(e) => setDraftContent(e.target.value)} style={{ width: '100%', minHeight: 560, padding: 18, borderRadius: 8, border: `1px solid ${tokens.border}`, background: '#fff', lineHeight: 1.8, fontSize: 15, fontFamily: 'serif' }} />
                   <label style={{ display: 'block', fontWeight: 800, marginTop: 12, marginBottom: 6 }}>律师意见</label>
                   <textarea value={lawyerNote} onChange={(e) => setLawyerNote(e.target.value)} placeholder="可填写需要 AI 重写或补强的意见" style={{ width: '100%', minHeight: 84, padding: 10, borderRadius: 8, border: `1px solid ${tokens.border}` }} />
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
+                <div className="ld-document-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
                   <button disabled={busy} onClick={() => saveDraft()} style={{ padding: '9px 14px', borderRadius: 8, border: `1px solid ${tokens.border}`, background: '#fff', fontWeight: 800 }}>保存草稿</button>
                   <button disabled={busy} onClick={regenerateDraft} style={{ padding: '9px 14px', borderRadius: 8, border: `1px solid ${tokens.border}`, background: '#fff', fontWeight: 800 }}>根据律师意见重新生成</button>
                   <button disabled={busy} onClick={() => saveDraft('ready_to_publish')} style={{ padding: '9px 14px', borderRadius: 8, border: `1px solid ${tokens.border}`, background: '#fff', fontWeight: 800 }}>标记可发布</button>
@@ -395,7 +395,7 @@ export default function DocumentsWorkspace() {
 
 function SourceBox({ title, items }: { title: string; items: string[] }) {
   return (
-    <div style={{ background: '#fff', border: `1px solid ${tokens.border}`, borderRadius: 8, padding: 10 }}>
+    <div className="ld-source-box" style={{ background: '#fff', border: `1px solid ${tokens.border}`, borderRadius: 8, padding: 10 }}>
       <div style={{ fontWeight: 800 }}>{title}</div>
       <div style={{ color: tokens.muted, marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
         {items.map((item) => <span key={`${title}-${item}`}>{item}</span>)}

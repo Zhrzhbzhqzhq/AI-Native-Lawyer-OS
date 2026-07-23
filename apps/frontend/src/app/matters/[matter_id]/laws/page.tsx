@@ -225,9 +225,9 @@ export default function LawsWorkspace() {
   if (loadError) return <main style={{ padding: 28 }}><div style={{ color: '#b91c1c' }}>{loadError}<button onClick={loadAll} style={{ marginLeft: 12 }}>重新加载</button></div></main>
 
   return (
-    <div style={{ padding: 16, background: tokens.pageBg, minHeight: '100vh' }}>
+    <div className="lawdesk-workspace" style={{ padding: 16, background: tokens.pageBg, minHeight: '100vh' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div className="ld-workspace-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div>
             <div style={{ fontSize: 22, fontWeight: 900 }}>法律依据</div>
             <div style={{ color: tokens.muted, marginTop: 4 }}>Laws Workspace</div>

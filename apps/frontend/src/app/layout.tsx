@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import React from "react";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "LawDesk V1",
@@ -8,8 +9,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body style={{ fontFamily: "ui-sans-serif, system-ui", margin: 0 }}>{children}</body>
+    <html lang="zh-CN">
+      <body className="lawdesk-app">{children}</body>
     </html>
   );
 }

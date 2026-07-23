@@ -44,7 +44,7 @@ function TwoLineTitle({ zh, en, size = 'md' }: { zh: string; en?: string; size?:
 
 function SummaryCard({ title, value }: { title: string; value: number | string }) {
   return (
-    <div style={{ padding: tokens.spacing, borderRadius: tokens.radius, background: tokens.cardBg, border: `1px solid ${tokens.border}`, minWidth: 140 }}>
+    <div className="ld-summary-card" style={{ padding: tokens.spacing, borderRadius: tokens.radius, background: tokens.cardBg, border: `1px solid ${tokens.border}`, minWidth: 140 }}>
       <div style={{ fontSize: 12, color: tokens.muted }}>{title}</div>
       <div style={{ fontSize: 20, fontWeight: 700, color: tokens.text }}>{value === 0 ? '—' : value}</div>
     </div>
@@ -53,11 +53,11 @@ function SummaryCard({ title, value }: { title: string; value: number | string }
 
 function RecentList({ title, items, renderItem }: { title: string; items: any[]; renderItem: (it: any) => React.ReactNode }) {
   return (
-    <div style={{ background: tokens.cardBg, padding: tokens.spacing, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+    <div className="ld-card" style={{ background: tokens.cardBg, padding: tokens.spacing, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
       <div style={{ marginTop: 0 }}><TwoLineTitle zh={title} size="md" /></div>
       {items.length === 0 && <div style={{ color: tokens.muted }}>—</div>}
       {items.map((it, idx) => (
-        <div key={it.material_id ?? it.evidence_id ?? it.document_id ?? idx} style={{ padding: 8, borderBottom: `1px solid ${tokens.border}` }}>
+        <div className="ld-list-item" key={it.material_id ?? it.evidence_id ?? it.document_id ?? idx} style={{ padding: 8, borderBottom: `1px solid ${tokens.border}` }}>
           {renderItem(it)}
         </div>
       ))}
@@ -458,27 +458,34 @@ export default function MatterWorkspacePage() {
   if (overviewError) return <main style={{ padding: 32 }}><div style={{ color: '#b91c1c' }}>{overviewError}<button onClick={() => window.location.reload()} style={{ marginLeft: 12 }}>重新加载</button></div></main>
 
   return (
-    <main style={{ padding: 32, background: '#ffffff', color: '#0f172a', minHeight: '80vh' }}>
+    <main className="lawdesk-workspace matter-overview" style={{ padding: 32, background: '#ffffff', color: '#0f172a', minHeight: '80vh' }}>
       <div style={{ marginBottom: 12, display: 'flex', gap: 12, alignItems: 'center' }}>
         <button onClick={() => router.push('/')} style={{ background: 'transparent', border: 'none', color: tokens.muted, fontSize: 14, padding: 0, cursor: 'pointer' }}>← 返回今日工作台</button>
         <button onClick={() => router.push('/matters')} style={{ background: 'transparent', border: 'none', color: tokens.muted, fontSize: 14, padding: 0, cursor: 'pointer' }}>← 返回案件中心</button>
       </div>
+      <header className="ld-workspace-header">
+        <div>
+          <div className="ld-eyebrow">Matter Overview</div>
+          <h1 className="ld-workspace-title">{caseName || '案件概览'}</h1>
+          <div className="ld-workspace-subtitle">案件工作台 · Matter Workspace</div>
+        </div>
+      </header>
       {/* 案件资料区域 */}
       <section style={{ marginBottom: 24 }}>
         <div style={{ background: '#fff', border: '1px solid #e6e7eb', padding: 20, borderRadius: 12 }}>
-          <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 8 }}>案件资料</div>
+          <div className="ld-card-title" style={{ fontSize: 16, fontWeight: 800, marginBottom: 8 }}>案件资料</div>
           <div style={{ color: '#374151' }}>
             {loadingMaterials ? (
               <div style={{ color: '#64748b' }}>加载中…</div>
             ) : materials && materials.length > 0 ? (
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              <ul className="ld-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                 {materials.map((m: any, i: number) => {
                   const filename = m.title || m.name || (m.storage_uri ? m.storage_uri.split('/').pop() : '未知文件')
                   const filetype = m.material_type || m.type || (m.storage_uri ? (m.storage_uri.split('.').pop() || '-') : '-')
                   const size = m.size || m.file_size || '-'
                   const time = m.created_at || m.updated_at || null
                   return (
-                    <li key={m.material_id ?? i} style={{ padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                    <li className="ld-list-item" key={m.material_id ?? i} style={{ padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
                       <div style={{ fontWeight: 600 }}>{filename}</div>
                       <div style={{ color: '#6b7280', fontSize: 13 }}>{filetype} • {typeof size === 'number' ? `${(size / 1024).toFixed(1)} KB` : size} • {time ? new Date(time).toLocaleString() : '-'}</div>
                     </li>
@@ -498,7 +505,7 @@ export default function MatterWorkspacePage() {
       {/* Card 1: 案件概况 */}
       <section style={{ marginBottom: 24 }}>
         <div style={{ ...cardStyle }}>
-          <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 8 }}>案件概况</div>
+          <div className="ld-card-title" style={{ fontSize: 16, fontWeight: 800, marginBottom: 8 }}>案件概况</div>
           <div style={{ color: '#374151', lineHeight: 1.8 }}>
             <div>案件名称：{caseName}</div>
             <div>委托人：{client}</div>
@@ -521,7 +528,7 @@ export default function MatterWorkspacePage() {
         {/* Card 2: 下一步建议 (视觉中心) */}
         <div>
           <div style={{ ...cardStyle, minHeight: 300, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 12 }}>下一步建议</div>
+            <div className="ld-card-title" style={{ fontSize: 18, fontWeight: 800, marginBottom: 12 }}>下一步建议</div>
             <div style={{ color: '#374151', lineHeight: 1.8 }}>
               <div style={{ fontWeight: 700, marginBottom: 8 }}>建议今天完成：</div>
               <ol style={{ marginLeft: 18 }}>

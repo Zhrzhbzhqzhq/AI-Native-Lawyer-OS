@@ -251,7 +251,7 @@ export default function IssuesWorkspace() {
   if (loadError) return <main style={{ padding: 28 }}><div style={{ color: '#b91c1c' }}>{loadError}<button onClick={loadAll} style={{ marginLeft: 12 }}>重新加载</button></div></main>
 
   return (
-    <div style={{ padding: 16, background: tokens.pageBg, minHeight: '100vh' }}>
+    <div className="lawdesk-workspace" style={{ padding: 16, background: tokens.pageBg, minHeight: '100vh' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <div style={{ marginBottom: 12 }}>
           <button onClick={() => router.push(`/matters/${matterId}`)} style={{ background: 'transparent', border: 'none', color: tokens.muted, fontSize: 14, padding: 0, cursor: 'pointer' }}>← 返回案件概览</button>

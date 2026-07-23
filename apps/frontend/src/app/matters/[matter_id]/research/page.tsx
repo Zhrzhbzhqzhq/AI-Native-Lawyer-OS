@@ -67,7 +67,7 @@ export default function ResearchWorkspacePage() {
   const nextActions = useMemo(() => rows.flatMap((row) => Array.isArray(row?.next_actions) ? row.next_actions : []), [rows])
 
   return (
-    <main style={{ padding: 28, background: '#f8fafc', minHeight: '100vh', color: '#0f172a' }}>
+    <main className="lawdesk-workspace" style={{ padding: 28, background: '#f8fafc', minHeight: '100vh', color: '#0f172a' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <button onClick={() => router.push(`/matters/${encodeURIComponent(matterId)}`)} style={{ border: 0, background: 'transparent', color: '#64748b', cursor: 'pointer' }}>← 返回案件概览</button>
         <h1>法律检索</h1>

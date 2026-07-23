@@ -494,7 +494,7 @@ export default function EvidencePage() {
                                 const size = m.size || m.file_size || '-'
                                 const time = m.created_at || m.updated_at || null
                                 return (
-                                    <li key={m.material_id ?? i} style={{ padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                                    <li className="ld-list-item" key={m.material_id ?? i} style={{ padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <div>
                                                 <div style={{ fontWeight: 600 }}>{filename}</div>
@@ -561,7 +561,7 @@ export default function EvidencePage() {
                     <div style={{ fontWeight: 700 }}>{(data as any)?.proofGoal || '暂无证明目标'}</div>
                     <div style={{ marginTop: 8 }}>
                         {(data as any)?.evidences?.map((e: any, idx: number) => (
-                            <div key={e.id} style={{ padding: 8, borderRadius: 8, marginBottom: 8, background: selectedEvidenceId === e.id ? '#eef6ff' : '#fff' }}>
+                            <div className="ld-review-card" key={e.id} style={{ padding: 8, borderRadius: 8, marginBottom: 8, background: selectedEvidenceId === e.id ? '#eef6ff' : '#fff' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                     <div style={{ cursor: 'pointer' }} onClick={() => setSelectedEvidenceId(e.id)}>
                                         <div style={{ fontSize: 12, color: tokens.muted, marginBottom: 4 }}>证据 {idx + 1}</div>
@@ -684,7 +684,7 @@ export default function EvidencePage() {
                     {evidenceDrafts.length > 0 ? evidenceDrafts.map((draft) => {
                         const disabled = draft.status === 'confirmed' || draft.status === 'ignored'
                         return (
-                            <div key={draft.draft_id} style={{ padding: 12, borderRadius: 8, border: '1px solid #f1f5f9', background: draft.status === 'ignored' ? '#f8fafc' : '#fff' }}>
+                            <div className="ld-review-card" key={draft.draft_id} style={{ padding: 12, borderRadius: 8, border: '1px solid #f1f5f9', background: draft.status === 'ignored' ? '#f8fafc' : '#fff' }}>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12 }}>
                                     <div style={{ display: 'grid', gap: 8 }}>
                                         <label>
@@ -692,7 +692,7 @@ export default function EvidencePage() {
                                             {draft.status === 'editing' ? (
                                                 <input value={draft.title} onChange={(e) => updateDraft(draft.draft_id, { title: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e6e7eb' }} />
                                             ) : (
-                                                <div style={{ fontWeight: 800 }}>{draft.title}</div>
+                                                <div className="ld-review-card-title" style={{ fontWeight: 800 }}>{draft.title}</div>
                                             )}
                                         </label>
                                         <label>
@@ -703,11 +703,11 @@ export default function EvidencePage() {
                                                 <div style={{ color: tokens.text }}>{draft.proof_purpose}</div>
                                             )}
                                         </label>
-                                        <div style={{ color: tokens.muted, fontSize: 13 }}>来源材料：{draft.material_title || draft.material_id}</div>
+                                        <div className="ld-source-relation" style={{ color: tokens.muted, fontSize: 13 }}>来源材料：{draft.material_title || draft.material_id}</div>
                                         <div style={{ color: tokens.muted, fontSize: 13 }}>AI 摘要或判断理由：{draft.summary || draft.reasoning || draft.proof_purpose}</div>
                                         <div style={{ color: tokens.muted, fontSize: 13 }}>可信度：{typeof draft.confidence === 'number' ? `${Math.round(draft.confidence * 100)}%` : '待律师确认'}</div>
                                     </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+                                    <div className="ld-review-actions" style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
                                         {draft.status === 'confirmed' ? <div style={{ color: '#047857', fontWeight: 700 }}>已确认</div> : null}
                                         {draft.status === 'ignored' ? <div style={{ color: tokens.muted, fontWeight: 700 }}>已忽略</div> : null}
                                         <button disabled={disabled || confirmingDraftId === draft.draft_id} onClick={() => acceptDraft(draft)} style={{ padding: '6px 10px', borderRadius: 6, background: disabled ? '#94a3b8' : '#111827', color: '#fff', border: 'none' }}>{confirmingDraftId === draft.draft_id ? '确认中…' : '接受'}</button>
@@ -726,7 +726,7 @@ export default function EvidencePage() {
     }
 
     return (
-        <main style={{ minHeight: '80vh', padding: 20, background: tokens.pageBg, fontFamily: 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial' }}>
+        <main className="lawdesk-workspace" style={{ minHeight: '80vh', padding: 20, background: tokens.pageBg, fontFamily: 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial' }}>
             <div style={{ marginBottom: 12 }}>
                 <button onClick={() => router.push(`/matters/${matterId}`)} style={{ background: 'transparent', border: 'none', color: tokens.muted, fontSize: 14, padding: 0, cursor: 'pointer' }}>← 返回案件概览</button>
             </div>

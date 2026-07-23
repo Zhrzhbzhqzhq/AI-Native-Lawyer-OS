@@ -257,7 +257,7 @@ export default function FactsWorkspace() {
     if (loadError) return <main style={{ padding: 28 }}><div style={{ color: '#b91c1c' }}>{loadError}<button onClick={loadAll} style={{ marginLeft: 12 }}>重新加载</button></div></main>
 
     return (
-        <div style={{ padding: 16, background: tokens.pageBg, minHeight: '100vh' }}>
+        <div className="lawdesk-workspace" style={{ padding: 16, background: tokens.pageBg, minHeight: '100vh' }}>
             <div style={{ maxWidth: 1200, margin: '0 auto' }}>
                 <div style={{ marginBottom: 12 }}>
                     <button onClick={() => router.push(`/matters/${matterId}`)} style={{ background: 'transparent', border: 'none', color: tokens.muted, fontSize: 14, padding: 0, cursor: 'pointer' }}>← 返回案件概览</button>
@@ -273,8 +273,8 @@ export default function FactsWorkspace() {
 
                 {message ? <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: '#fff7ed', color: '#92400e', border: '1px solid #fed7aa' }}>{message}</div> : null}
 
-                <div style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 16 }}>
-                    <section style={{ background: tokens.cardBg, padding: 12, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
+                <div className="ld-review-layout" style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 20 }}>
+                    <section className="ld-source-panel" style={{ background: tokens.cardBg, padding: 12, borderRadius: tokens.radius, border: `1px solid ${tokens.border}` }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ fontWeight: 800 }}>来源证据</div>
                             <div style={{ color: tokens.muted }}>{loading ? '加载中…' : `${evidences.length} 条`}</div>
@@ -287,7 +287,7 @@ export default function FactsWorkspace() {
                             ) : (
                                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                                     {evidences.map((e, index) => (
-                                        <li key={e.evidence_id} style={{ padding: 10, borderBottom: index < evidences.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
+                                        <li className="ld-list-item" key={e.evidence_id} style={{ padding: 10, borderBottom: index < evidences.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
                                             <div style={{ fontWeight: 700 }}>{evidenceDisplayTitle(e, index)}</div>
                                         </li>
                                     ))}
@@ -313,7 +313,7 @@ export default function FactsWorkspace() {
                             ) : facts.length > 0 ? (
                                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                                     {facts.map((fact, index) => (
-                                        <li key={fact.fact_id} style={{ padding: 12, borderRadius: 8, marginBottom: 8, background: '#fff', border: '1px solid #f1f5f9' }}>
+                                        <li className="ld-review-card" key={fact.fact_id} style={{ padding: 12, borderRadius: 8, marginBottom: 8, background: '#fff', border: '1px solid #f1f5f9' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
                                                 <div>
                                                     <div style={{ fontWeight: 800 }}>{cleanDisplayText(fact.title, `事实 ${index + 1}`)}</div>
@@ -336,14 +336,14 @@ export default function FactsWorkspace() {
                                             .map((id) => evidenceTitleById.get(id))
                                             .filter((title): title is string => Boolean(title))
                                         return (
-                                            <article key={draft.draft_id} style={{ padding: 16, borderRadius: 10, marginBottom: 12, background: '#fff', border: '1px solid #f1f5f9' }}>
+                                            <article className="ld-review-card" key={draft.draft_id} style={{ padding: 16, borderRadius: 10, marginBottom: 12, background: '#fff', border: '1px solid #f1f5f9' }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
                                                     <div style={{ flex: 1 }}>
                                                         {fieldLabel('标题')}
                                                         {isEditing ? (
                                                             <input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e6eef6', fontWeight: 700 }} />
                                                         ) : (
-                                                            <div style={{ fontWeight: 800, fontSize: 16, lineHeight: 1.5 }}>{cleanDisplayText(draft.title, '待确认事实')}</div>
+                                                            <div className="ld-review-card-title" style={{ fontWeight: 800, fontSize: 16, lineHeight: 1.5 }}>{cleanDisplayText(draft.title, '待确认事实')}</div>
                                                         )}
                                                     </div>
                                                     <div style={{ color: draft.review_status === 'pending' ? '#92400e' : '#047857', fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap' }}>{statusLabel(draft.review_status)}</div>
@@ -361,7 +361,7 @@ export default function FactsWorkspace() {
                                                 <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                                                     <div>
                                                         {fieldLabel('来源证据')}
-                                                        <div style={{ color: tokens.muted, lineHeight: 1.7 }}>{sourceTitles.length > 0 ? sourceTitles.join('、') : '未匹配来源证据'}</div>
+                                                        <div className="ld-source-relation" style={{ color: tokens.muted, lineHeight: 1.7 }}>{sourceTitles.length > 0 ? sourceTitles.join('、') : '未匹配来源证据'}</div>
                                                     </div>
                                                     <div>
                                                         {fieldLabel('可信度')}
@@ -374,7 +374,7 @@ export default function FactsWorkspace() {
                                                     <div style={{ color: tokens.muted, lineHeight: 1.7 }}>{cleanDisplayText(draft.ai_reasoning, '基于已确认的证据自动归纳。')}</div>
                                                 </div>
 
-                                                <div style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                                                <div className="ld-review-actions" style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                                                     {isEditing ? (
                                                         <>
                                                             <button onClick={() => setEditingDraftId(null)} style={{ padding: '7px 10px', borderRadius: 8, border: '1px solid #e6e7ef', background: '#fff' }}>取消</button>
