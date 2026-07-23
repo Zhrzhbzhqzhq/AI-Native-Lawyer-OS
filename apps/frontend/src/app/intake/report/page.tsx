@@ -134,6 +134,7 @@ export default function ReportPage() {
           files: uploadedFiles.map((file) => ({
             name: file.name,
             mime_type: file.type || '',
+            storage_uri: file.storage_uri || file.uploaded_path || '',
           })),
           analysis,
           idempotency_key: `intake-${matterId}`,

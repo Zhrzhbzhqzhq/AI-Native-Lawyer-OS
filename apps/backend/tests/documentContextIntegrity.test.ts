@@ -70,7 +70,7 @@ describe('M160.2 Document Context Integrity', () => {
     const draft = composeNeutralComplaint(context)
 
     expect(draft.content).toContain('双方签署合同')
-    expect(draft.content).toContain('合同义务履行范围')
+    expect(draft.content).toContain('合同义务应依约确定')
     expect(draft.content).toContain('《中华人民共和国民法典》第五百零九条')
     expect(draft.content).toContain('合同文本证据')
     expect(draft.content).not.toContain('无关事实')

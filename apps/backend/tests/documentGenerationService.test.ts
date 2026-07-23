@@ -30,7 +30,7 @@ export function validSections(): ComplaintSections {
   return {
     document_type: 'complaint', title: '民事起诉状',
     parties: { plaintiff: '【待律师补充】', defendant: '【待律师补充】' },
-    claims: [{ text: '【待律师根据已确认 Argument 和案件目标补充】', source_argument_ids: [], source_fact_ids: [], requires_lawyer_confirmation: true }],
+    claims: [{ text: '请求判令本案诉讼费用由被告承担。', source_issue_ids: ['issue-1'], source_fact_ids: ['fact-1'], source_law_ids: ['law-1'], source_argument_ids: ['argument-1'], requires_lawyer_confirmation: true }],
     facts: [{ text: '2025年1月2日双方签署合同。', source_fact_ids: ['fact-1'], source_evidence_ids: ['evidence-1'] }],
     reasoning: [{ issue_id: 'issue-1', argument_id: 'argument-1', position: '应按约确定履行范围。', analysis: '合同文本支持该主张。', source_fact_ids: ['fact-1'], source_law_ids: ['law-1'] }],
     legal_basis: [{ citation: '《中华人民共和国民法典》第五百零九条', text: '当事人应按约履行义务。', source_law_id: 'law-1' }],
@@ -51,6 +51,28 @@ describe('DocumentGenerationService', () => {
     expect(JSON.stringify(scope)).not.toContain('LAWDESK_FORMAL_')
   })
 
+  it('projects Ruifeng and Haoda as plaintiff and defendant from Case Understanding actors', () => {
+    const context = reasoningContext()
+    context.case_understanding = {
+      identity: { title: '瑞峰诉浩达设备买卖合同纠纷', caseType: '设备买卖合同纠纷', stage: '待确认', jurisdiction: '待确认' },
+      narrative: { summary: '双方存在尾款争议。', background: '双方签订设备采购合同。', currentPosture: '瑞峰启动诉讼。' },
+      actors: [
+        { id: 'ruifeng', name: '瑞峰自动化设备有限公司', role: '卖方/设备供应方', position: '要求浩达支付剩余260000元尾款' },
+        { id: 'haoda', name: '浩达精密制造有限公司', role: '买方/设备接收方', position: '暂缓支付剩余260000元尾款' },
+        { id: 'worker', name: '浩达现场工作人员', role: '买方现场参与人员', position: '参与现场调试' },
+      ],
+      timeline: [],
+      conflicts: [{ id: 'conflict-1', title: '尾款争议', description: '双方对尾款支付存在争议。', actorIds: ['ruifeng', 'haoda'] }],
+    }
+
+    const scope = buildDocumentReasoningScope(context)
+
+    expect(scope.matter_identity.verified_parties).toEqual({
+      plaintiff: '瑞峰自动化设备有限公司',
+      defendant: '浩达精密制造有限公司',
+    })
+  })
+
   it('returns validated sections and passes a scope-only prompt', async () => {
     const generator = { generate: vi.fn().mockResolvedValue({ response: validSections(), finish_reason: 'stop' }) }
     const scope = buildDocumentReasoningScope(reasoningContext())
@@ -59,6 +81,7 @@ describe('DocumentGenerationService', () => {
     const pack = generator.generate.mock.calls[0][0]
     expect(pack.max_completion_tokens).toBe(6000)
     expect(pack.context_pack).toBe(scope)
+    expect((result as any).sections.claims).toEqual(scope.claims)
     expect(pack.user_prompt).toContain('只能使用 argument_sections')
     expect(pack.user_prompt).not.toContain('LAWDESK_FORMAL_')
   })
@@ -87,10 +110,11 @@ describe('DocumentGenerationService', () => {
   it('renders a complaint without ids or internal constraints', () => {
     const content = renderComplaintSections(validSections())
     expect(content).toContain('民事起诉状')
-    expect(content).toContain('【待律师确认】')
+    expect(content).toContain('请求判令本案诉讼费用由被告承担。')
     expect(content).not.toMatch(/fact-1|law-1|argument-1|evidence-1/)
     expect(content).not.toContain('风险')
     expect(content).not.toContain('对方可能否认')
+    expect(content).not.toContain('【待律师确认】请求判令本案诉讼费用由被告承担。')
   })
 
   it.each([
@@ -106,5 +130,40 @@ describe('DocumentGenerationService', () => {
     const sections: any = structuredClone(validSections())
     mutate(sections)
     expect(validateComplaintSections(sections, buildDocumentReasoningScope(reasoningContext())).ok).toBe(false)
+  })
+
+  it('accepts one Evidence supporting two Facts through explicit scoped relations', () => {
+    const scope = buildDocumentReasoningScope(reasoningContext())
+    scope.argument_sections[0].usable_facts.push({ fact_id: 'fact-2', title: '合同已经履行', description: '设备已经交付。' })
+    scope.argument_sections[0].evidences.push({ evidence_id: 'evidence-1', fact_id: 'fact-2', title: '合同文本证据', purpose: '同时支持合同签订和履行事实。' })
+    const sections: any = structuredClone(validSections())
+    sections.claims = structuredClone(scope.claims)
+    sections.facts = [{ text: '设备已经交付。', source_fact_ids: ['fact-2'], source_evidence_ids: ['evidence-1'] }]
+
+    expect(validateComplaintSections(sections, scope)).toEqual({ ok: true, errors: [] })
+  })
+
+  it('rejects a Fact using an Evidence that is scoped only to another Fact', () => {
+    const scope = buildDocumentReasoningScope(reasoningContext())
+    scope.argument_sections[0].usable_facts.push({ fact_id: 'fact-2', title: '合同已经履行', description: '设备已经交付。' })
+    scope.argument_sections[0].evidences.push({ evidence_id: 'evidence-2', fact_id: 'fact-2', title: '交付记录', purpose: '证明设备交付。' })
+    const sections: any = structuredClone(validSections())
+    sections.claims = structuredClone(scope.claims)
+    sections.facts = [{ text: '双方签署合同。', source_fact_ids: ['fact-1'], source_evidence_ids: ['evidence-2'] }]
+
+    const validation = validateComplaintSections(sections, scope)
+    expect(validation.ok).toBe(false)
+    expect(validation.errors).toContain('fact[0] evidence does not support referenced fact')
+  })
+
+  it('rejects an Evidence outside the current Matter scope', () => {
+    const scope = buildDocumentReasoningScope(reasoningContext())
+    const sections: any = structuredClone(validSections())
+    sections.claims = structuredClone(scope.claims)
+    sections.facts = [{ text: '双方签署合同。', source_fact_ids: ['fact-1'], source_evidence_ids: ['other-matter-evidence'] }]
+
+    const validation = validateComplaintSections(sections, scope)
+    expect(validation.ok).toBe(false)
+    expect(validation.errors).toContain('fact[0] evidence outside scope')
   })
 })

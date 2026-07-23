@@ -1,0 +1,251 @@
+{
+  "identity": {
+    "caseId": "case-001",
+    "title": "海川食品与华东智造设备买卖合同纠纷",
+    "caseType": "contract dispute",
+    "stage": "pre-litigation",
+    "jurisdiction": "待确认"
+  },
+  "narrative": {
+    "summary": "海川食品有限公司与华东智能装备有限公司因灌装生产线设备未达合同约定产能而产生质量争议，买方已支付108万元，尾款12万元暂缓支付，双方就未达标原因存在分歧。",
+    "background": "2026年1月5日双方签订设备买卖合同，总价120万元，分三期付款，约定交付日期2026年3月15日前，产能标准6000瓶/小时。",
+    "currentPosture": "设备已交付安装并经两次测试均未达到约定产能，买方拒绝验收并暂缓支付尾款，卖方主张已履行交付调试义务并要求付款，双方未达成一致。"
+  },
+  "actors": [
+    {
+      "id": "actor-001",
+      "name": "海川食品有限公司",
+      "role": "buyer",
+      "position": "认为设备未达合同约定产能标准，拒绝验收并暂缓支付尾款"
+    },
+    {
+      "id": "actor-002",
+      "name": "华东智能装备有限公司",
+      "role": "seller",
+      "position": "认为已完成交付和调试义务，未达标系买方现场条件所致，要求买方支付尾款"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "event-001",
+      "date": "2026-01-05",
+      "event": "双方签订灌装生产线设备买卖合同，总价120万元",
+      "actorIds": [
+        "actor-001",
+        "actor-002"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-002",
+      "date": "2026-01-10",
+      "event": "海川食品支付预付款36万元",
+      "actorIds": [
+        "actor-001"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-003",
+      "date": "2026-03-08",
+      "event": "海川食品支付发货前货款72万元，累计付款108万元",
+      "actorIds": [
+        "actor-001"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-004",
+      "date": "2026-03-15",
+      "event": "合同约定最晚交付日期",
+      "actorIds": [
+        "actor-001",
+        "actor-002"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-005",
+      "date": "2026-03-18",
+      "event": "设备送达买方工厂，较约定日期晚3日",
+      "actorIds": [
+        "actor-001",
+        "actor-002"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-006",
+      "date": "2026-03-19",
+      "event": "卖方完成设备安装并开始调试",
+      "actorIds": [
+        "actor-002"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-007",
+      "date": "2026-03-20",
+      "event": "首次产能测试，平均产能5200瓶/小时，出现卡瓶，买方拒绝验收",
+      "actorIds": [
+        "actor-001",
+        "actor-002"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-008",
+      "date": "2026-03-22",
+      "event": "卖方调整设备参数并更换部分导轨进行整改",
+      "actorIds": [
+        "actor-002"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-009",
+      "date": "2026-03-25",
+      "event": "复测平均产能5700瓶/小时，仍未达6000瓶/小时，买方继续拒绝验收",
+      "actorIds": [
+        "actor-001",
+        "actor-002"
+      ],
+      "certainty": "confirmed"
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "conflict-004",
+      "title": "卡瓶故障的责任归属",
+      "description": "买方主张首测出现多次卡瓶属于设备本身质量缺陷；卖方主张卡瓶系买方瓶体规格不稳定所致。材料中未见买方瓶体规格存在异常或卖方曾就瓶体规格提出书面异议的证据，双方对卡瓶原因各执一词",
+      "actorIds": [
+        "actor-001",
+        "actor-002"
+      ]
+    },
+    {
+      "id": "conflict-005",
+      "title": "整改措施是否足以消除产能差距",
+      "description": "买方认为卖方经参数调整及更换导轨后，产能仍为5700瓶/小时未达6000瓶/小时标准，整改不到位；卖方认为已积极履行整改义务，整改后差距应归因于买方现场条件",
+      "actorIds": [
+        "actor-001",
+        "actor-002"
+      ]
+    },
+    {
+      "id": "conflict-006",
+      "title": "现场条件（瓶体、原料黏度、电压）是否构成未达产的免责事由",
+      "description": "卖方主张买方瓶体规格、原料黏度不稳定及现场电压波动系未达产的真正原因；买方主张合同对产能标准已有明确约定，现场条件不构成卖方免责依据。双方就此免责事由是否成立存在分歧",
+      "actorIds": [
+        "actor-001",
+        "actor-002"
+      ]
+    }
+  ],
+  "decisionFactors": [
+    {
+      "id": "factor-001",
+      "label": "合同明确约定产能标准6000瓶/小时",
+      "description": "合同条款对设备稳定产能有明确量化指标，两次实测均低于该标准",
+      "impact": "supportive"
+    },
+    {
+      "id": "factor-002",
+      "label": "两次实测产能数据低于合同约定",
+      "description": "首次测试5200瓶/小时，整改后复测5700瓶/小时，均未达标",
+      "impact": "supportive"
+    },
+    {
+      "id": "factor-003",
+      "label": "卖方主张未达标系买方现场条件所致",
+      "description": "卖方工程师备注认为卡瓶与买方瓶体规格、电压波动有关，但未提供独立第三方鉴定支持",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-004",
+      "label": "买方已支付108万元，履行主要付款义务",
+      "description": "买方按合同约定支付了预付款及发货款，仅剩10%尾款未付",
+      "impact": "neutral"
+    },
+    {
+      "id": "factor-005",
+      "label": "合同对验收程序及违约责任约定情况",
+      "description": "输入材料中未载明合同关于验收不合格后果、违约金或退货的具体条款",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-006",
+      "label": "交付迟延3日",
+      "description": "实际交付日期晚于合同约定日期3日，事实清楚",
+      "impact": "adverse"
+    }
+  ],
+  "risks": [
+    {
+      "id": "risk-001",
+      "description": "设备未达合同产能标准且双方对原因存在分歧，可能导致诉讼中举证责任及鉴定成本增加",
+      "severity": "high",
+      "mitigation": "尽早委托独立第三方对设备产能及未达标原因进行鉴定"
+    },
+    {
+      "id": "risk-002",
+      "description": "如买方继续拒付尾款，卖方可能主张付款并追究违约责任；如买方主张解除合同，卖方可能主张已交付设备的价值",
+      "severity": "high",
+      "mitigation": "协商签订补充协议明确验收标准、整改期限及违约责任"
+    },
+    {
+      "id": "risk-003",
+      "description": "现场条件（瓶体、电压、原料）可能影响鉴定结论，导致责任难以认定",
+      "severity": "medium",
+      "mitigation": "在鉴定前固定现场条件证据，必要时申请现场勘验"
+    },
+    {
+      "id": "risk-004",
+      "description": "合同对验收期限、违约责任等条款约定不明可能影响主张基础",
+      "severity": "medium",
+      "mitigation": "调取完整合同文本核对相关条款"
+    }
+  ],
+  "unknowns": [
+    {
+      "id": "unknown-001",
+      "question": "合同中关于验收不合格后果、违约金及解除权等条款的具体内容是什么？",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-002",
+      "question": "设备未达产能的根本原因（设备缺陷或买方现场条件）是否有第三方鉴定意见？",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-003",
+      "question": "交付迟延3日是否经买方同意或存在合同约定的免责事由？",
+      "importance": "medium"
+    },
+    {
+      "id": "unknown-004",
+      "question": "管辖法院及适用法律如何确定？",
+      "importance": "medium"
+    },
+    {
+      "id": "unknown-005",
+      "question": "买方是否因设备未达标产生实际损失及损失金额？",
+      "importance": "medium"
+    }
+  ],
+  "selfReview": {
+    "confidence": 0.55,
+    "limitations": [
+      "输入材料未包含完整合同条款，无法确认验收及违约责任约定",
+      "未达产能原因缺乏独立第三方鉴定",
+      "管辖法院及适用法律信息缺失",
+      "未提供双方进一步沟通或主张的最新进展"
+    ],
+    "assumptions": [
+      "合同关系及付款事实以现有凭证为准",
+      "产能未达标事实以双方共同签字的测试记录为准",
+      "卖方关于现场条件的抗辩暂无独立证据支持"
+    ],
+    "requiresLawyerReview": true
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "provider": "direct-minimax",
+  "model": "MiniMax-M3",
+  "responses": [
+    {
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae2f8389ad729748baa1833f89e96d",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "{\"identity\":{\"caseId\":\"case-001\",\"title\":\"海川食品与华东智造设备买卖合同纠纷\",\"caseType\":\"买卖合同纠纷\",\"stage\":\"待确认\",\"jurisdiction\":\"待确认\"},\"narrative\":{\"summary\":\"海川食品有限公司与华东智能装备有限公司因灌装生产线设备未能达到合同约定的6000瓶/小时产能而产生验收争议，海川食品拒绝验收并暂缓支付12万元尾款。\",\"background\":\"2026年1月5日双方签订总价为120万元的灌装生产线设备买卖合同，海川食品已按约支付预付款36万元及发货前货款72万元，合计108万元，尾款12万元未付。设备于2026年3月18日交付，3月19日开始调试。\",\"currentPosture\":\"设备经首次测试产能5200瓶/小时、复测产能5700瓶/小时，均未达到合同约定的6000瓶/小时，双方就未达产原因存在分歧，海川食品拒绝验收并暂缓支付尾款。\"},\"actors\":[{\"id\":\"actor-buyer\",\"name\":\"海川食品有限公司\",\"role\":\"买方\",\"position\":\"认为设备未达合同约定产能，拒绝验收，暂缓支付尾款\"},{\"id\":\"actor-seller\",\"name\":\"华东智能装备有限公司\",\"role\":\"卖方\",\"position\":\"认为设备已交付调试，未达产由买方瓶体及现场供电条件造成，要求买方配合改善并支付尾款\"}],\"timeline\":[{\"id\":\"t-001\",\"date\":\"2026-01-05\",\"event\":\"双方签订灌装生产线设备买卖合同，总价120万元\",\"actorIds\":[\"actor-buyer\",\"actor-seller\"],\"certainty\":\"confirmed\"},{\"id\":\"t-002\",\"date\":\"2026-01-10\",\"event\":\"海川食品支付预付款36万元\",\"actorIds\":[\"actor-buyer\"],\"certainty\":\"confirmed\"},{\"id\":\"t-003\",\"date\":\"2026-03-08\",\"event\":\"海川食品支付发货前货款72万元，累计支付108万元\",\"actorIds\":[\"actor-buyer\"],\"certainty\":\"confirmed\"},{\"id\":\"t-004\",\"date\":\"2026-03-18\",\"event\":\"设备送达海川食品工厂，较合同约定晚3日\",\"actorIds\":[\"actor-buyer\",\"actor-seller\"],\"certainty\":\"confirmed\"},{\"id\":\"t-005\",\"date\":\"2026-03-19\",\"event\":\"华东智能装备完成设备安装并开始调试\",\"actorIds\":[\"actor-seller\"],\"certainty\":\"confirmed\"},{\"id\":\"t-006\",\"date\":\"2026-03-20\",\"event\":\"首次产能测试平均5200瓶/小时，海川食品拒绝验收\",\"actorIds\":[\"actor-buyer\",\"actor-seller\"],\"certainty\":\"confirmed\"},{\"id\":\"t-007\",\"date\":\"2026-03-22\",\"event\":\"华东智能装备调整参数并更换部分导轨\",\"actorIds\":[\"actor-seller\"],\"certainty\":\"confirmed\"},{\"id\":\"t-008\",\"date\":\"2026-03-25\",\"event\":\"复测平均产能5700瓶/小时，仍未达6000瓶/小时，海川食品继续拒绝验收\",\"actorIds\":[\"actor-buyer\",\"actor-seller\"],\"certainty\":\"confirmed\"}],\"conflicts\":[{\"id\":\"c-001\",\"title\":\"设备产能是否达到合同约定\",\"description\":\"海川食品认为两次测试均未达到6000瓶/小时，设备存在质量和性能问题；华东智能装备认为未达产由买方瓶体规格、原料黏度及现场电压波动造成。\",\"actorIds\":[\"actor-buyer\",\"actor-seller\"]},{\"id\":\"c-002\",\"title\":\"尾款12万元是否应当支付\",\"description\":\"海川食品因未通过验收暂缓支付尾款；华东智能装备要求买方支付尾款并配合改善现场条件。\",\"actorIds\":[\"actor-buyer\",\"actor-seller\"]}],\"decisionFactors\":[{\"id\":\"df-001\",\"label\":\"合同约定产能标准\",\"description\":\"合同约定稳定产能应达到6000瓶/小时，两次实测均未达标\",\"impact\":\"supportive\"},{\"id\":\"df-002\",\"label\":\"卖方现场签字确认的测试数据\",\"description\":\"首次测试中卖方工程师签字确认5200瓶/小时的数据\",\"impact\":\"supportive\"},{\"id\":\"df-003\",\"label\":\"卖方主张未达产由买方现场条件造成\",\"description\":\"华东智能装备主张瓶体规格、原料黏度及电压波动导致未达产，但无独立第三方鉴定\",\"impact\":\"uncertain\"},{\"id\":\"df-004\",\"label\":\"交付晚3日\",\"description\":\"设备于2026年3月18日交付，较合同约定3月15日晚3日\",\"impact\":\"adverse\"},{\"id\":\"df-005\",\"label\":\"已支付货款108万元\",\"description\":\"海川食品已按约支付至发货前阶段款项108万元，尾款12万元未付\",\"impact\":\"neutral\"}],\"risks\":[{\"id\":\"r-001\",\"description\":\"因未通过第三方鉴定，难以归责于设备本身或买方现场条件，争议持续拖延\",\"severity\":\"high\",\"mitigation\":\"申请第三方设备质量及产能鉴定\"},{\"id\":\"r-002\",\"description\":\"买方拒付尾款可能引发卖方主张逾期付款违约责任\",\"severity\":\"medium\",\"mitigation\":\"梳理合同违约责任条款并评估逾期付款违约金约定\"},{\"id\":\"r-003\",\"description\":\"交付晚3日可能构成卖方违约，但合同未明确约定逾期交付违约责任\",\"severity\":\"low\",\"mitigation\":\"核查合同关于逾期交付的违约责任条款\"},{\"id\":\"r-004\",\"description\":\"未及时验收可能导致扩大损失或证据灭失\",\"severity\":\"medium\",\"mitigation\":\"以书面方式固定现场证据并及时主张权利\"}],\"unknowns\":[{\"id\":\"u-001\",\"question\":\"合同是否约定逾期交付的违约责任\",\"importance\":\"medium\"},{\"id\":\"u-002\",\"question\":\"未达产原因是否经过独立第三方鉴定\",\"importance\":\"high\"},{\"id\":\"u-003\",\"question\":\"合同对验收程序、整改期限及未通过验收后果的具体约定\",\"importance\":\"high\"},{\"id\":\"u-004\",\"question\":\"买方提供的瓶体规格及现场供电是否符合设备运行前提条件\",\"importance\":\"medium\"},{\"id\":\"u-005\",\"question\":\"案件管辖法院及适用法律\",\"importance\":\"medium\"}],\"selfReview\":{\"confidence\":0.55,\"limitations\":[\"未提供完整合同条款，尤其是验收标准、违约责任及争议解决条款\",\"未提供第三方鉴定意见或独立技术分析\",\"未提供现场瓶体规格、供电参数等客观条件记录\",\"交付晚3日是否构成实质性违约及法律后果需结合合同具体条款判断\",\"管辖法院和适用法律未明确\"],\"assumptions\":[\"产能未达合同标准的事实以双方签字的测试记录为准\",\"已支付108万元的事实以银行付款凭证为准\",\"设备交付、调试及测试时间以双方签字的送货单、调试及测试记录为准\"],\"requiresLawyerReview\":true}}",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784609924,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 3144,
+            "total_characters": 0,
+            "prompt_tokens": 1724,
+            "completion_tokens": 1420,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 3144,
+          "total_characters": 0,
+          "prompt_tokens": 1724,
+          "completion_tokens": 1420,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 9186,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-direct-benchmark-v2",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-direct-benchmark-v2",
+          "fallback_used": false
+        }
+      }
+    }
+  ]
+}

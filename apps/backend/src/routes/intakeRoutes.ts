@@ -6,6 +6,7 @@ import IntakeRuntime, { type IntakeFileMeta, type IntakeSource } from '../runtim
 import MaterialService from '../services/materialService'
 import EvidenceService from '../services/evidenceService'
 import DocumentService from '../services/documentService'
+import EvidenceUnderstandingService from '../services/context_engine/evidence_understanding_service'
 
 // Simple in-memory idempotency store for alpha: endpoint|matter_id|idempotency_key -> result
 const idempotencyStore = new Map<string, any>()
@@ -17,6 +18,27 @@ function makeIdemKey(endpoint: string, matter_id: string, idem?: string) {
 
 function genId(prefix = 'ij-') {
   return `${prefix}${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+const INTAKE_UPLOAD_STORAGE_PREFIX = 'storage/intake-uploads/'
+
+function validatedIntakeStorageUri(value: unknown) {
+  const storageUri = String(value || '').trim()
+  if (!storageUri) return ''
+  if (
+    path.isAbsolute(storageUri)
+    || storageUri.includes('\\')
+    || storageUri.includes('\0')
+    || /^[a-z][a-z0-9+.-]*:/i.test(storageUri)
+  ) return null
+
+  const parts = storageUri.split('/')
+  if (
+    !storageUri.startsWith(INTAKE_UPLOAD_STORAGE_PREFIX)
+    || parts.some((part) => !part || part === '.' || part === '..')
+  ) return null
+
+  return storageUri
 }
 
 function isTextFile(nameOrPath: string, mimeType?: string) {
@@ -108,7 +130,7 @@ export async function intakeRoutes(app: FastifyInstance) {
       const payload = (request.body || {}) as {
         matter_id?: string
         source?: 'client' | 'opponent' | 'court' | 'third_party'
-        files?: Array<{ name: string; mime_type?: string }>
+        files?: Array<{ name: string; mime_type?: string; storage_uri?: string }>
         analysis?: { summary?: string; material_suggestions?: unknown[] }
         idempotency_key?: string
       }
@@ -121,6 +143,13 @@ export async function intakeRoutes(app: FastifyInstance) {
       if (!allowedSource.includes(source)) return reply.code(400).send({ error: 'invalid source' })
 
       const files = Array.isArray(payload.files) ? payload.files : []
+      const normalizedFiles = files.map((file) => ({
+        ...file,
+        storage_uri: validatedIntakeStorageUri(file.storage_uri),
+      }))
+      if (normalizedFiles.some((file) => file.storage_uri === null)) {
+        return reply.code(400).send({ error: 'invalid storage_uri' })
+      }
 
       const idem = String(payload.idempotency_key || '')
       const mapKey = makeIdemKey('confirm-material', matter_id, idem)
@@ -129,7 +158,7 @@ export async function intakeRoutes(app: FastifyInstance) {
       }
 
       const created: any[] = []
-      for (const f of files) {
+      for (const f of normalizedFiles) {
         const material_id = `mat-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
         const title = f.name || 'unnamed'
         const createdMaterial = await materialService.createForMatter(matter_id, {
@@ -137,7 +166,7 @@ export async function intakeRoutes(app: FastifyInstance) {
           title,
           material_type: 'uploaded',
           source,
-          storage_uri: '',
+          storage_uri: f.storage_uri || '',
           status: 'active',
         })
         created.push(createdMaterial)
@@ -164,40 +193,16 @@ export async function intakeRoutes(app: FastifyInstance) {
     const matter_id = payload.matter_id ? String(payload.matter_id) : ''
     if (!matter_id) return reply.code(400).send({ error: 'matter_id required' })
 
-    const materials = Array.isArray(payload.materials) ? payload.materials : []
-    if (materials.length === 0) return reply.code(400).send({ error: 'materials required' })
-
     const prisma = createPrismaClient()
     try {
-      const ids = materials.map((m) => String(m.material_id || '')).filter(Boolean)
-      const storedMaterials = ids.length > 0
-        ? await prisma.material.findMany({ where: { matter_id, material_id: { in: ids } } }).catch(() => [])
-        : []
-      const storedById = new Map(storedMaterials.map((m: any) => [String(m.material_id), m]))
-      const materialFiles = materials.map((m) => {
-        const stored = storedById.get(String(m.material_id || '')) as any
-        return {
-          material_id: String(m.material_id || ''),
-          title: String(m.title || stored?.title || ''),
-          material_type: String(m.material_type || stored?.material_type || 'document'),
-          source: String(m.source || stored?.source || 'client'),
-          storage_uri: String(m.storage_uri || stored?.storage_uri || ''),
-          content: typeof m.content === 'string' ? m.content : undefined,
-        }
-      })
-      const enriched = await enrichIntakeFiles(materialFiles.map((m) => ({
-        name: m.title,
-        type: m.material_type,
-        content: m.content,
-        storage_uri: m.storage_uri,
-      })))
-      const enrichedMaterials = materialFiles.map((m, idx) => ({
-        ...m,
-        content: enriched[idx]?.content || m.content || '',
-      }))
-
-      const drafts = runtime.generateEvidenceDrafts({ matter_id, materials: enrichedMaterials })
-      return reply.code(200).send(drafts)
+      return reply.code(200).send(await new EvidenceUnderstandingService(prisma).generate(matter_id))
+    } catch (error: any) {
+      const code = String(error?.code || error?.message || '')
+      if (code === 'matter_not_found' || code === 'case_understanding_not_found') return reply.code(404).send({ error: code })
+      if (code === 'case_understanding_required') return reply.code(409).send({ error: code })
+      if (code === 'context_snapshot_incomplete' || code === 'evidence_draft_contract_invalid') return reply.code(422).send({ error: code })
+      if (code === 'evidence_understanding_generation_failed') return reply.code(502).send({ error: code })
+      return reply.code(500).send({ error: 'evidence_understanding_failed' })
     } finally {
       try {
         await prisma.$disconnect()

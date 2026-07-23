@@ -1,9 +1,9 @@
 import type { PrismaClient } from '@lawdesk/database'
 import IssueService from './issueService'
-import AIService from './ai/AIService'
 import type { AIAudit } from './ai/aiAudit'
 import { classifyFactConcept, ISSUE_CONCEPT_ORDER, type IssueConcept } from './ai/legalConceptClassifier'
 import { findIssueBoundaryViolation, validateIssues } from './ai/AIOutputValidator'
+import IssueUnderstandingService from './context_engine/issue_understanding_service'
 
 type IssueDraftInput = {
   title: string
@@ -293,7 +293,10 @@ export function normalizeIssueSuggestionsForDrafts(
 }
 
 export class IssueDraftService {
-  constructor(private prisma: PrismaClient) {}
+  constructor(
+    private prisma: PrismaClient,
+    private readonly issueUnderstandingFactory: (prisma: PrismaClient) => Pick<IssueUnderstandingService, 'generate'> = (client) => new IssueUnderstandingService(client),
+  ) {}
 
   async listDrafts(matter_id: string): Promise<IssueDraftRow[]> {
     return this.prisma.issueDraft.findMany({
@@ -331,8 +334,8 @@ export class IssueDraftService {
         .map((link: any) => String(link.fact_id)),
     )
 
-    const ai = new AIService(this.prisma)
-    const suggestions = await ai.analyzeIssues(matter_id)
+    const generation = await this.issueUnderstandingFactory(this.prisma).generate(matter_id)
+    const suggestions = generation.suggestions
     console.log('[ISSUE RAW SUGGESTIONS]', JSON.stringify(suggestions, null, 2))
 
     const normalized = normalizeIssueSuggestionsForDrafts(suggestions, facts, 5, evidenceBackedFactIds)
@@ -364,7 +367,7 @@ export class IssueDraftService {
       return rows
     })
 
-    return { status: 'issue_draft_ready', idempotent: false, issue_drafts: created, warnings: normalized.warnings, ai_audit: ai.getLastAudit() }
+    return { status: 'issue_draft_ready', idempotent: false, issue_drafts: created, warnings: normalized.warnings, ai_audit: generation.aiAudit }
   }
 
   async updateDraft(matter_id: string, draft_id: string, payload: { title?: string; description?: string; review_status?: string; lawyer_note?: string }): Promise<IssueDraftRow> {

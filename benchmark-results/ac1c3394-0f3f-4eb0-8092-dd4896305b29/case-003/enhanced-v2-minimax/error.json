@@ -1,0 +1,26 @@
+{
+  "case_id": "case-003",
+  "provider": "enhanced-v2-minimax",
+  "status": "failed",
+  "error": {
+    "code": "decision_factor_enhancement_invalid",
+    "message": "decision_factor_enhancement_invalid"
+  },
+  "failing_stage": "decision_factor_enhancement",
+  "diagnostic": {
+    "failing_stage": "decision_factor_enhancement",
+    "schema_validation_error": {
+      "ok": false,
+      "issues": [
+        {
+          "path": "decisionFactors",
+          "code": "collection_required",
+          "message": "decisionFactors must be an array."
+        }
+      ]
+    },
+    "raw_ai_response_path": "/Users/qingzhang/Desktop/AI-Native-Lawyer-OS/benchmark-results/ac1c3394-0f3f-4eb0-8092-dd4896305b29/case-003/enhanced-v2-minimax/raw-ai-response.json",
+    "provider": "enhanced-v2-minimax",
+    "model": "MiniMax-M3"
+  }
+}

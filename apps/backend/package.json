@@ -8,6 +8,7 @@
     "start": "node dist/index.js",
     "lint": "echo 'No backend lint yet'",
     "typecheck": "tsc --noEmit",
+    "benchmark:case-intelligence": "tsx src/services/case-intelligence/cli/CaseIntelligenceBenchmarkCli.ts",
     "test": "DATABASE_URL='postgresql://qingzhang@localhost:5432/lawdesk' vitest run"
   },
   "dependencies": {
@@ -15,7 +16,8 @@
     "@lawdesk/database": "workspace:*",
     "@lawdesk/shared": "workspace:*",
     "dotenv": "^16.4.5",
-    "fastify": "^4.28.1"
+    "fastify": "^4.28.1",
+    "mammoth": "^1.12.0"
   },
   "devDependencies": {
     "node-fetch": "2.6.7",

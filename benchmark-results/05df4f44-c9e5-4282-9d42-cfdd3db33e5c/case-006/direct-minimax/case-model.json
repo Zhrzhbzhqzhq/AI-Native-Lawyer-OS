@@ -1,0 +1,163 @@
+{
+  "identity": {
+    "caseId": "case-006",
+    "title": "陈伟诉李强股权转让合同纠纷",
+    "caseType": "股权转让合同纠纷",
+    "stage": "待确认",
+    "jurisdiction": "待确认"
+  },
+  "narrative": {
+    "summary": "陈伟与李强签订股权转让合同，约定李强向陈伟转让某科技公司20%股权，转让价款80万元。陈伟已支付60万元，剩余20万元未支付。李强尚未完成股权交割。双方对剩余20万元付款与股权交割的先后顺序存在争议。",
+    "background": "陈伟作为受让方与李强作为转让方签订股权转让合同，约定转让某科技公司20%股权，转让价款80万元。陈伟已支付60万元，剩余20万元尚未支付。",
+    "currentPosture": "双方因剩余20万元付款与股权交割的先后顺序产生争议，案件处于待确认阶段。"
+  },
+  "actors": [
+    {
+      "id": "actor-chenwei",
+      "name": "陈伟",
+      "role": "受让方",
+      "position": "原告"
+    },
+    {
+      "id": "actor-liqiang",
+      "name": "李强",
+      "role": "转让方",
+      "position": "被告"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "event-1",
+      "date": "待确认",
+      "event": "陈伟与李强签订股权转让合同，约定转让某科技公司20%股权，转让价款80万元",
+      "actorIds": [
+        "actor-chenwei",
+        "actor-liqiang"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-2",
+      "date": "待确认",
+      "event": "陈伟向李强支付股权转让价款60万元",
+      "actorIds": [
+        "actor-chenwei",
+        "actor-liqiang"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-3",
+      "date": "待确认",
+      "event": "双方就股权交割进行沟通，李强尚未完成股权交割",
+      "actorIds": [
+        "actor-chenwei",
+        "actor-liqiang"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-4",
+      "date": "待确认",
+      "event": "双方就剩余20万元付款与股权交割的先后顺序产生争议",
+      "actorIds": [
+        "actor-chenwei",
+        "actor-liqiang"
+      ],
+      "certainty": "confirmed"
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "conflict-1",
+      "title": "剩余20万元付款与股权交割先后顺序争议",
+      "description": "双方对剩余20万元付款与股权交割的先后顺序存在争议，陈伟主张先交割后付款或同时履行，李强主张先付清余款再交割",
+      "actorIds": [
+        "actor-chenwei",
+        "actor-liqiang"
+      ]
+    }
+  ],
+  "decisionFactors": [
+    {
+      "id": "factor-1",
+      "label": "股权转让合同约定",
+      "description": "合同已约定转让20%股权及80万元价款，但合同中关于付款与交割先后顺序的具体条款未在输入中明确",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-2",
+      "label": "陈伟已支付60万元",
+      "description": "陈伟已履行大部分付款义务（60/80万元）",
+      "impact": "supportive"
+    },
+    {
+      "id": "factor-3",
+      "label": "李强尚未完成股权交割",
+      "description": "李强未完成股权交割，可能构成违约或行使同时履行抗辩",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-4",
+      "label": "剩余20万元未支付",
+      "description": "陈伟尚有20万元价款未支付",
+      "impact": "adverse"
+    }
+  ],
+  "risks": [
+    {
+      "id": "risk-1",
+      "description": "合同对履行顺序约定不明可能导致双方持续争议，影响案件审理结果",
+      "severity": "high",
+      "mitigation": "需调取并审查股权转让合同原件，确认付款与交割顺序的具体约定"
+    },
+    {
+      "id": "risk-2",
+      "description": "股权尚未交割可能影响目标公司经营稳定性及第三方利益",
+      "severity": "medium",
+      "mitigation": "考虑申请财产保全或责令提供担保"
+    },
+    {
+      "id": "risk-3",
+      "description": "案件管辖法院与适用法律未明确，可能影响诉讼程序",
+      "severity": "medium",
+      "mitigation": "待确认"
+    }
+  ],
+  "unknowns": [
+    {
+      "id": "unknown-1",
+      "question": "股权转让合同是否约定了付款与交割的先后顺序",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-2",
+      "question": "案件具体管辖法院及适用法律",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-3",
+      "question": "案件当前所处的诉讼或仲裁阶段",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-4",
+      "question": "目标科技公司的具体情况及股权现状",
+      "importance": "medium"
+    }
+  ],
+  "selfReview": {
+    "confidence": 0.45,
+    "limitations": [
+      "未提供股权转让合同全文，无法确认履行顺序的具体约定",
+      "未提供管辖法院、适用法律及当前诉讼阶段信息",
+      "未提供目标公司及股权现状的详细信息"
+    ],
+    "assumptions": [
+      "假设陈伟为原告、李强为被告，依据起诉方推定",
+      "假设输入所述事实为双方无争议的基础事实",
+      "假设60万元已支付且李强尚未完成股权交割为客观状态"
+    ],
+    "requiresLawyerReview": true
+  }
+}

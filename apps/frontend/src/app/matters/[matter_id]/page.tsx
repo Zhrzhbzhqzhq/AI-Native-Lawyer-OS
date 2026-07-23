@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { apiUrl } from '../../../lib/api'
+import CaseUnderstandingCard from '../../../components/case_understanding_card'
 
 type Workspace = {
   matter: { matter_id: string; title?: string; status?: string }
@@ -493,6 +494,7 @@ export default function MatterWorkspacePage() {
           </div>
         </div>
       </section>
+      <CaseUnderstandingCard matterId={params.matter_id} materialCount={counts.materials} />
       {/* Card 1: 案件概况 */}
       <section style={{ marginBottom: 24 }}>
         <div style={{ ...cardStyle }}>

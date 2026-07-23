@@ -1,0 +1,35 @@
+{
+  "identity": {
+    "caseId": "case-002",
+    "title": "周敏与雅居装饰工程有限公司装修合同纠纷",
+    "caseType": "待识别",
+    "stage": "待识别",
+    "jurisdiction": "待确认"
+  },
+  "narrative": {
+    "summary": "周敏与雅居装饰工程有限公司装修合同纠纷",
+    "background": "待基于案件材料形成。",
+    "currentPosture": "待律师确认。"
+  },
+  "actors": [
+    {
+      "id": "actor-pending-1",
+      "name": "【待确认主体】",
+      "role": "待识别",
+      "position": "待律师确认。"
+    }
+  ],
+  "timeline": [],
+  "conflicts": [],
+  "decisionFactors": [],
+  "risks": [],
+  "unknowns": [],
+  "selfReview": {
+    "confidence": 0,
+    "limitations": [
+      "当前使用 Mock Provider，未进行案件分析。"
+    ],
+    "assumptions": [],
+    "requiresLawyerReview": true
+  }
+}

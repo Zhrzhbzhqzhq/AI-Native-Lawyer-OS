@@ -21,7 +21,7 @@ function reasoningContext() {
 function validSections(): ComplaintSections {
   return {
     document_type: 'complaint', title: '民事起诉状', parties: { plaintiff: '【待律师补充】', defendant: '【待律师补充】' },
-    claims: [{ text: '【待律师根据已确认 Argument 和案件目标补充】', source_argument_ids: [], source_fact_ids: [], requires_lawyer_confirmation: true }],
+    claims: [{ text: '请求判令本案诉讼费用由被告承担。', source_issue_ids: ['issue-1'], source_fact_ids: ['fact-1'], source_law_ids: ['law-1'], source_argument_ids: ['argument-1'], requires_lawyer_confirmation: true }],
     facts: [{ text: '2025年1月2日双方签署合同。', source_fact_ids: ['fact-1'], source_evidence_ids: ['evidence-1'] }],
     reasoning: [{ issue_id: 'issue-1', argument_id: 'argument-1', position: '应按约确定履行范围。', analysis: '合同文本支持该主张。', source_fact_ids: ['fact-1'], source_law_ids: ['law-1'] }],
     legal_basis: [{ citation: '《中华人民共和国民法典》第五百零九条', text: '当事人应按约履行义务。', source_law_id: 'law-1' }],

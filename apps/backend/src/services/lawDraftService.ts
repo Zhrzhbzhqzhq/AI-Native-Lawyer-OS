@@ -3,6 +3,7 @@ import type { AIAudit } from './ai/aiAudit'
 import { inferIssueTypeFromFacts, ISSUE_CONCEPT_ORDER, type IssueConcept } from './ai/legalConceptClassifier'
 import { findLawBoundaryViolation, findLawCitationViolation, validateLaws } from './ai/AIOutputValidator'
 import { formatFormalLawForDisplay, parseFormalLaw, serializeFormalLawV2 } from './formalSemanticCodec'
+import LawUnderstandingService from './context_engine/law_understanding_service'
 
 type LawDraftInput = {
   title: string
@@ -232,7 +233,10 @@ export function normalizeLawSuggestionsForDrafts(
 }
 
 export class LawDraftService {
-  constructor(private prisma: PrismaClient) {}
+  constructor(
+    private prisma: PrismaClient,
+    private readonly lawUnderstandingFactory: (prisma: PrismaClient) => Pick<LawUnderstandingService, 'generate'> = (client) => new LawUnderstandingService(client),
+  ) {}
 
   async listDrafts(matter_id: string): Promise<LawDraftRow[]> {
     const drafts = await this.prisma.lawDraft.findMany({
@@ -292,9 +296,8 @@ export class LawDraftService {
         .map((issue: any) => String(issue.issue_id)),
     )
 
-    const AIService = (await import('./ai/AIService')).default
-    const ai = new AIService(this.prisma)
-    const suggestions = await ai.analyzeLaws(matter_id)
+    const generation = await this.lawUnderstandingFactory(this.prisma).generate(matter_id)
+    const suggestions = generation.suggestions
     console.log('[LAW GENERATE INPUT]', {
       suggestions_type: typeof suggestions,
       is_array: Array.isArray(suggestions),
@@ -359,7 +362,7 @@ export class LawDraftService {
         ...draft,
         source_issue_ids: parseSourceIssueIds(draft.source_issue_ids),
       })),
-      ai_audit: ai.getLastAudit(),
+      ai_audit: generation.aiAudit,
     }
   }
 

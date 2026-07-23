@@ -1,0 +1,184 @@
+{
+  "identity": {
+    "caseId": "case-004",
+    "title": "甲乙民间借贷纠纷",
+    "caseType": "民间借贷纠纷",
+    "stage": "诉前争议阶段",
+    "jurisdiction": "待确认"
+  },
+  "narrative": {
+    "summary": "甲乙双方因资金往来及还款问题发生争议。乙主张双方存在100万元民间借贷关系，甲认可部分资金往来但认为双方属于资金合作关系。双方对借款本金、付款性质、还款金额及利息计算存在分歧。",
+    "background": "2024年3月1日，甲向乙出具借条，载明借款本金100万元，期限12个月，月利率1%。乙随后通过银行和微信方式向甲支付资金。2024年9月10日甲向乙支付30万元，双方未明确该款项性质。",
+    "currentPosture": "借款期限届满后，双方未能就剩余款项、付款性质及利息计算达成一致，目前处于争议阶段。"
+  },
+  "actors": [
+    {
+      "id": "actor-borrower",
+      "name": "甲",
+      "role": "借款方",
+      "position": "主张双方部分资金往来并非全部属于借贷关系，对剩余金额及利息存在异议。"
+    },
+    {
+      "id": "actor-lender",
+      "name": "乙",
+      "role": "出借方",
+      "position": "主张双方存在100万元借贷关系，要求返还剩余款项并处理利息问题。"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "event-001",
+      "date": "2024-03-01",
+      "event": "甲向乙出具借条，载明借款本金100万元及利息约定。",
+      "actorIds": [
+        "actor-borrower",
+        "actor-lender"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-002",
+      "date": "2024-03-02",
+      "event": "乙通过银行转账80万元，通过微信转账20万元。",
+      "actorIds": [
+        "actor-lender",
+        "actor-borrower"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-003",
+      "date": "2024-09-10",
+      "event": "甲向乙支付30万元，双方未明确该款项性质。",
+      "actorIds": [
+        "actor-borrower",
+        "actor-lender"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-004",
+      "date": "2025-03-01",
+      "event": "借款期限届满。",
+      "actorIds": [
+        "actor-borrower",
+        "actor-lender"
+      ],
+      "certainty": "confirmed"
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "conflict-001",
+      "title": "双方资金关系是否属于民间借贷",
+      "description": "乙主张双方存在借贷关系，甲主张双方属于资金合作关系，双方对资金性质存在争议。",
+      "actorIds": [
+        "actor-borrower",
+        "actor-lender"
+      ]
+    },
+    {
+      "id": "conflict-002",
+      "title": "实际借款本金金额",
+      "description": "双方对银行转账80万元及微信转账20万元是否均属于借款本金存在争议。",
+      "actorIds": [
+        "actor-borrower",
+        "actor-lender"
+      ]
+    },
+    {
+      "id": "conflict-003",
+      "title": "30万元付款性质",
+      "description": "甲支付30万元后，双方未明确该款项属于本金、利息或其他费用。",
+      "actorIds": [
+        "actor-borrower",
+        "actor-lender"
+      ]
+    },
+    {
+      "id": "conflict-004",
+      "title": "剩余金额及利息计算",
+      "description": "双方对借款余额、利息计算方式及最终应处理金额存在分歧。",
+      "actorIds": [
+        "actor-borrower",
+        "actor-lender"
+      ]
+    }
+  ],
+  "decisionFactors": [
+    {
+      "id": "factor-001",
+      "label": "借条真实性及证明力",
+      "description": "借条是否真实反映双方借贷意思表示，是判断资金性质的重要因素。",
+      "impact": "supportive"
+    },
+    {
+      "id": "factor-002",
+      "label": "银行及微信转账记录",
+      "description": "转账记录能够证明资金流向，但资金性质仍需结合其他材料判断。",
+      "impact": "supportive"
+    },
+    {
+      "id": "factor-003",
+      "label": "30万元付款性质",
+      "description": "30万元付款未明确属于本金、利息或其他费用，其性质影响剩余金额计算。",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-004",
+      "label": "利息约定内容",
+      "description": "借条载明月利率1%，具体利息计算及适用范围需要结合相关规则进一步分析。",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-005",
+      "label": "双方关于资金合作的抗辩",
+      "description": "甲提出资金合作抗辩，需要结合双方沟通记录及资金用途判断。",
+      "impact": "uncertain"
+    }
+  ],
+  "risks": [
+    {
+      "id": "risk-001",
+      "description": "借贷关系无法充分证明可能影响请求支持范围。",
+      "severity": "high",
+      "mitigation": "补充整理借条、转账记录及微信沟通证据。"
+    },
+    {
+      "id": "risk-002",
+      "description": "30万元付款性质不明确可能导致剩余金额计算争议。",
+      "severity": "high",
+      "mitigation": "核实付款备注、双方聊天及收款确认情况。"
+    }
+  ],
+  "unknowns": [
+    {
+      "id": "unknown-001",
+      "question": "30万元付款是否包含本金或利息。",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-002",
+      "question": "双方是否存在除借条之外的资金合作协议。",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-003",
+      "question": "微信20万元转账是否明确属于借款。",
+      "importance": "medium"
+    }
+  ],
+  "selfReview": {
+    "confidence": 0.7,
+    "limitations": [
+      "未提供完整微信聊天记录。",
+      "未提供付款备注及收款确认信息。",
+      "30万元付款性质无法确定。"
+    ],
+    "assumptions": [
+      "借条内容真实存在。",
+      "银行及微信转账记录真实有效。"
+    ],
+    "requiresLawyerReview": true
+  }
+}

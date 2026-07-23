@@ -1,0 +1,26 @@
+{
+  "case_id": "case-003",
+  "provider": "enhanced-v4-minimax",
+  "status": "failed",
+  "error": {
+    "code": "enhancement_fact_invalid",
+    "message": "enhancement_fact_invalid"
+  },
+  "failing_stage": "enhancement_fact_validation",
+  "diagnostic": {
+    "failing_stage": "enhancement_fact_validation",
+    "schema_validation_error": {
+      "ok": false,
+      "issues": [
+        {
+          "path": "$",
+          "code": "enhancement_date_unsupported",
+          "message": "Enhanced date 2026-01-23 does not exist in Base CaseModel timeline or facts."
+        }
+      ]
+    },
+    "raw_ai_response_path": "/Users/qingzhang/Desktop/AI-Native-Lawyer-OS/benchmark-results/ac1c3394-0f3f-4eb0-8092-dd4896305b29/case-003/enhanced-v4-minimax/raw-ai-response.json",
+    "provider": "enhanced-v4-minimax",
+    "model": "MiniMax-M3"
+  }
+}

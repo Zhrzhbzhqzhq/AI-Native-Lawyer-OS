@@ -1,8 +1,8 @@
 import type { PrismaClient } from '@lawdesk/database'
 import FactService from './factService'
-import AIService from './ai/AIService'
 import type { AIAudit } from './ai/aiAudit'
 import { findFactLegalConclusion } from './ai/AIOutputValidator'
+import FactUnderstandingService from './context_engine/fact_understanding_service'
 
 type FactDraftInput = {
   title: string
@@ -129,7 +129,10 @@ function getSourceEvidenceIds(suggestion: any, evidences: any[]) {
 }
 
 export class FactDraftService {
-  constructor(private prisma: PrismaClient) {}
+  constructor(
+    private prisma: PrismaClient,
+    private readonly factUnderstandingFactory: (prisma: PrismaClient) => Pick<FactUnderstandingService, 'generate'> = (client) => new FactUnderstandingService(client),
+  ) {}
 
   async listDrafts(matter_id: string): Promise<FactDraftRow[]> {
     return this.prisma.factDraft.findMany({
@@ -157,8 +160,8 @@ export class FactDraftService {
       throw error
     }
 
-    const ai = new AIService(this.prisma)
-    const suggestions = await ai.analyzeFacts(matter_id)
+    const generation = await this.factUnderstandingFactory(this.prisma).generate(matter_id)
+    const suggestions = generation.suggestions
     const drafts = this.normalizeSuggestions(suggestions, evidences)
     if (drafts.length === 0) {
       const error = new Error('fact_draft_empty')
@@ -185,7 +188,7 @@ export class FactDraftService {
       return rows
     })
 
-    return { status: 'fact_draft_ready', idempotent: false, fact_drafts: created, ai_audit: ai.getLastAudit() }
+    return { status: 'fact_draft_ready', idempotent: false, fact_drafts: created, ai_audit: generation.aiAudit }
   }
 
   async updateDraft(matter_id: string, draft_id: string, payload: { title?: string; description?: string; review_status?: string; lawyer_note?: string }): Promise<FactDraftRow> {

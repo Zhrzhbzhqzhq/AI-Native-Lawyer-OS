@@ -1,0 +1,97 @@
+[
+  {
+    "decisionFactorId": "df-007",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-003-contract"
+    ],
+    "notes": "现有材料（material-003-contract）仅载明承租人无约定理由提前退租时出租人可主张违约责任，未见明确约定维修问题可作为承租人单方解除事由；林悦以渗水、霉斑及排水为由发出解除通知的依据是否对应法定解除情形，需结合材料所载维修事实另行判断。事实层面有据可查，但法定/约定依据的对应性属法律评价，材料本身不直接支持该对应性的成立。"
+  },
+  {
+    "decisionFactorId": "df-008",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-003-wechat",
+      "evt-2026-02-20-threat"
+    ],
+    "notes": "material-003-wechat 记载2026年1月16日至3月2日林悦多次发送照片并要求彻底维修，2026年2月20日明确表示若渗水未解决将解除合同（对应 evt-2026-02-20-threat），赵海峰亦知晓问题存在并回复已催促维修。该等材料可证明通知与催告的连续性及其法律后果的告知事实。"
+  },
+  {
+    "decisionFactorId": "df-009",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-003-termination",
+      "material-003-wechat",
+      "evt-2026-03-03-notice",
+      "evt-2026-03-05-sign"
+    ],
+    "notes": "material-003-termination 与 material-003-wechat 显示林悦于2026年3月3日通过微信与快递同时发送解除通知，快递于3月5日签收，赵海峰已实际收悉并回复不接受解除理由（对应 evt-2026-03-03-notice、evt-2026-03-05-sign）。通知方式与送达完整性在事实层面有据可查。"
+  },
+  {
+    "decisionFactorId": "df-010",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-003-termination",
+      "evt-2026-03-10-moveout"
+    ],
+    "notes": "material-003-termination 明确记载林悦于2026年3月10日搬离并通知赵海峰验房取钥匙（对应 evt-2026-03-10-moveout），搬离行为及通知验房的事实可由现有材料支持；但是否构成合同事实上终止或占有移转的法律评价仍需结合其他证据。"
+  },
+  {
+    "decisionFactorId": "df-011",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-003-repair",
+      "material-003-termination",
+      "material-003-payment"
+    ],
+    "notes": "material-003-repair 与 material-003-termination 均明确表述双方未签署维修完成或房屋恢复正常的确认文件，亦未签署交房验收单、钥匙交接记录或最终费用结算单；material-003-payment 亦提及双方对押金及费用处理存在分歧。该等缺失事实在材料中可查。"
+  },
+  {
+    "decisionFactorId": "df-012",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-003-repair",
+      "evt-2026-01-22-temp-seal",
+      "evt-2026-02-08-water-again",
+      "evt-2026-02-12-drain"
+    ],
+    "notes": "material-003-repair 记载1月22日临时封堵（evt-2026-01-22-temp-seal）、2月8日降雨后墙角再次潮湿（evt-2026-02-08-water-again）、2月12日安排疏通排水（evt-2026-02-12-drain）。临时性措施与根本性修复的区分在事实层面有据可查；该事实是否足以证明未恢复居住条件属法律评价。"
+  },
+  {
+    "decisionFactorId": "df-013",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-003-wechat",
+      "material-003-repair"
+    ],
+    "notes": "material-003-wechat 提及照片及林悦陈述，material-003-repair 提及物业登记报修与临时封堵；现有材料中未见第三方鉴定、持续监测数据或物业书面维修结论。该等差距属材料可客观反映的事实，但其对解除理由成立的法律影响属评价范畴。"
+  },
+  {
+    "decisionFactorId": "df-014",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-003-contract",
+      "material-003-termination"
+    ],
+    "notes": "material-003-contract 明确押金12000元在合同终止、房屋交还并结清费用后处理；material-003-termination 载明林悦已搬离但双方未签署交房验收及费用结算文件。押金条款的适用条件及衔接关系在材料中可查，其最终适用须以解除效力与费用结清认定为前提的事实亦有据。"
+  },
+  {
+    "decisionFactorId": "df-015",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-003-payment",
+      "material-003-termination",
+      "evt-2026-03-05-sign",
+      "evt-2026-03-10-moveout"
+    ],
+    "notes": "material-003-payment 载明3月5日后租金未付，material-003-termination 与 evt-2026-03-10-moveout 显示林悦于3月10日搬离。3月5日至3月10日期间的事实可由材料支持；该期间是否产生占有使用费及最终分担属法律评价。"
+  },
+  {
+    "decisionFactorId": "df-016",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-003-contract"
+    ],
+    "notes": "material-003-contract 中未见仲裁条款或管辖约定记载；现有材料亦未涉及管辖法院或仲裁机构选择。该事实本身有据可查，关于程序影响的判断属中性事实层面的描述。"
+  }
+]

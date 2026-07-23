@@ -1,0 +1,231 @@
+{
+  "identity": {
+    "caseId": "case-001",
+    "title": "海川食品与华东智造设备买卖合同纠纷",
+    "caseType": "设备买卖合同纠纷",
+    "stage": "首次验收后争议阶段",
+    "jurisdiction": "待确认"
+  },
+  "narrative": {
+    "summary": "海川食品有限公司与华东智能装备有限公司因灌装生产线设备未达合同约定产能（6000瓶/小时）产生验收及尾款支付争议。复测产能仍为5700瓶/小时，双方未就未达产原因达成一致，买方暂缓支付12万元尾款。",
+    "background": "2026年1月5日双方签订总价120万元的灌装生产线设备买卖合同，分三期付款：预付款36万元、发货前货款72万元、尾款12万元。买方已按约支付前两期共108万元。设备应于2026年3月15日前交付并完成安装调试。",
+    "currentPosture": "设备于2026年3月18日交付（较约定晚3日），买方以产能未达标为由拒绝验收并暂缓支付12万元尾款；卖方主张已完成交付调试，产能差异系买方现场条件所致，双方处于僵持状态。"
+  },
+  "actors": [
+    {
+      "id": "actor-buyer",
+      "name": "海川食品有限公司",
+      "role": "买方（采购方）",
+      "position": "以设备未达合同约定6000瓶/小时产能为由拒绝验收、暂缓支付12万元尾款"
+    },
+    {
+      "id": "actor-seller",
+      "name": "华东智能装备有限公司",
+      "role": "卖方（供应方）",
+      "position": "主张已完成交付和调试，产能差异归因于买方瓶体规格、原料黏度及现场供电条件，要求买方支付尾款"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "event-001",
+      "date": "2026-01-05",
+      "event": "双方签订灌装生产线设备买卖合同，总价120万元，分三期付款，约定2026年3月15日前交付并完成安装调试，产能6000瓶/小时",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-002",
+      "date": "2026-01-10",
+      "event": "海川食品有限公司支付预付款36万元",
+      "actorIds": [
+        "actor-buyer"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-003",
+      "date": "2026-03-08",
+      "event": "海川食品有限公司支付发货前货款72万元",
+      "actorIds": [
+        "actor-buyer"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-004",
+      "date": "2026-03-18",
+      "event": "设备送达海川食品有限公司工厂，较合同约定晚3日，双方签字签收",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-005",
+      "date": "2026-03-19",
+      "event": "华东智能装备有限公司完成设备安装并开始调试",
+      "actorIds": [
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-006",
+      "date": "2026-03-20",
+      "event": "首次验收测试：设备连续运行2小时平均产能5200瓶/小时，出现多次卡瓶；海川食品拒绝验收，要求整改；华东智造签字确认数据并备注卡瓶与瓶体规格及电压波动有关",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-007",
+      "date": "2026-03-22",
+      "event": "华东智能装备有限公司调整设备参数并更换部分导轨",
+      "actorIds": [
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-008",
+      "date": "2026-03-25",
+      "event": "复测：设备平均产能5700瓶/小时，仍未达6000瓶/小时；海川食品继续拒绝验收并暂缓支付12万元尾款；华东智造主张差异由买方现场条件造成",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "conflict-001",
+      "title": "设备产能是否达标",
+      "description": "海川食品认为设备连续两次实测产能（5200、5700瓶/小时）均未达合同约定的6000瓶/小时，属于质量和性能问题；华东智造认为已完成交付调试，差异系买方瓶体规格、原料黏度及供电波动等现场条件所致",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ]
+    },
+    {
+      "id": "conflict-002",
+      "title": "12万元尾款支付条件是否成就",
+      "description": "海川食品以验收未通过为由暂缓支付尾款；华东智造主张验收条件已具备或差异不归责于卖方，要求支付尾款",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ]
+    }
+  ],
+  "decisionFactors": [
+    {
+      "id": "factor-001",
+      "label": "合同约定的产能标准（6000瓶/小时）",
+      "description": "合同明确设备稳定产能应达6000瓶/小时，买方以此作为验收依据，对买方主张权利具支持作用",
+      "impact": "supportive"
+    },
+    {
+      "id": "factor-002",
+      "label": "两次实测产能均低于合同标准",
+      "description": "首次测试5200瓶/小时、复测5700瓶/小时，均未达6000瓶/小时，且首次出现卡瓶，对卖方不利",
+      "impact": "adverse"
+    },
+    {
+      "id": "factor-003",
+      "label": "卖方关于卡瓶原因的责任抗辩",
+      "description": "华东智造工程师签字备注卡瓶与买方瓶体规格不稳定及现场电压波动有关，卖方主张差异源于买方现场条件",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-004",
+      "label": "买方已支付108万元（90%合同款）",
+      "description": "买方按约履行了预付款及发货款支付义务，尾款支付条件成为争议焦点",
+      "impact": "neutral"
+    },
+    {
+      "id": "factor-005",
+      "label": "交付迟延3日（3月18日 vs 3月15日）",
+      "description": "设备交付较合同约定晚3日，可能构成卖方违约，但双方已签字签收且买方未明确以此拒付尾款",
+      "impact": "adverse"
+    }
+  ],
+  "risks": [
+    {
+      "id": "risk-001",
+      "description": "若无法证明未达产系买方现场条件所致，买方可能持续拒付12万元尾款并主张设备不符合约定",
+      "severity": "high",
+      "mitigation": "申请第三方检测或专家鉴定固定设备实际性能与现场条件对应关系"
+    },
+    {
+      "id": "risk-002",
+      "description": "未达产原因难以归责时，双方可能因12万元尾款及违约责任陷入长期诉讼",
+      "severity": "medium",
+      "mitigation": "通过调解或和解协商分期验收、保留尾款或补偿方案"
+    },
+    {
+      "id": "risk-003",
+      "description": "设备交付迟延3日可能引发买方另行主张逾期交付违约责任",
+      "severity": "low",
+      "mitigation": "核查双方是否在签收时对迟延提出异议及合同是否约定宽限期"
+    },
+    {
+      "id": "risk-004",
+      "description": "在争议未解决前，设备长期空置可能造成双方经济损失扩大",
+      "severity": "medium",
+      "mitigation": "推动双方暂时封存设备并签订保管与配合调试备忘录"
+    }
+  ],
+  "unknowns": [
+    {
+      "id": "unknown-001",
+      "question": "合同对验收程序、未达产违约责任及尾款支付条件是否有更细化约定（如产能偏差容忍度、整改期限）？",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-002",
+      "question": "未达产原因（设备本身 vs 瓶体规格、原料黏度、电压波动）是否经第三方独立鉴定？",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-003",
+      "question": "买方是否对瓶体规格、原料黏度及供电条件稳定性提供证据？",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-004",
+      "question": "设备交付迟延3日买方是否已正式提出异议或主张违约责任？",
+      "importance": "medium"
+    },
+    {
+      "id": "unknown-005",
+      "question": "双方是否在合同或附件中约定产能测试的具体方法、时长与合格判定标准？",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-006",
+      "question": "本案管辖法院及适用法律是否已确定？",
+      "importance": "medium"
+    }
+  ],
+  "selfReview": {
+    "confidence": 0.62,
+    "limitations": [
+      "未获取合同全部条款尤其是违约责任、验收程序及管辖约定",
+      "未获取第三方鉴定意见或进一步整改记录",
+      "未获取双方就迟延交付及现场条件争议的正式往来函件",
+      "未明确争议涉及的具体法律适用与管辖机构"
+    ],
+    "assumptions": [
+      "假设合同签订、付款及交付记录的事实部分真实",
+      "假设两次产能测试数据为双方共同记录确认",
+      "假设双方尚未进入正式诉讼或仲裁程序"
+    ],
+    "requiresLawyerReview": true
+  }
+}

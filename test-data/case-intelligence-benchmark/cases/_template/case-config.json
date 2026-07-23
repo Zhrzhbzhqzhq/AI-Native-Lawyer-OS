@@ -1,0 +1,25 @@
+{
+  "case_id": "case-000",
+  "case_boundary": {
+    "required_keywords": [],
+    "forbidden_keywords": []
+  },
+  "benchmark_targets": [
+    "identity",
+    "narrative",
+    "actors",
+    "timeline",
+    "conflicts",
+    "decisionFactors",
+    "risks",
+    "unknowns",
+    "topicDrift"
+  ],
+  "complexity": {
+    "level": "medium",
+    "notes": "【填写案件复杂度说明】"
+  },
+  "critical_abilities": [
+    "【填写该案件重点验证的 Case Intelligence 能力】"
+  ]
+}

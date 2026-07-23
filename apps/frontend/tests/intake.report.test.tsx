@@ -12,7 +12,15 @@ vi.mock('next/navigation', () => ({
 function mockStorage(draft: any, analysis: any) {
   sessionStorage.setItem('new_matter_draft', JSON.stringify(draft))
   sessionStorage.setItem('lawdesk_intake_uploaded_files', JSON.stringify([
-    { name: '001_客户咨询记录.md', size: 100, type: 'text/markdown', upload_time: new Date().toISOString(), content: '出借人张建国，借款人李海涛，民间借贷纠纷。' },
+    {
+      name: '001_客户咨询记录.md',
+      size: 100,
+      type: 'text/markdown',
+      upload_time: new Date().toISOString(),
+      content: '出借人张建国，借款人李海涛，民间借贷纠纷。',
+      storage_uri: 'storage/intake-uploads/fixture.md',
+      uploaded_path: 'storage/intake-uploads/fixture.md',
+    },
   ]))
   sessionStorage.setItem('intake_analysis', JSON.stringify(analysis))
 }
@@ -57,6 +65,12 @@ describe('Intake report matter draft confirmation', () => {
     const createBody = JSON.parse((global as any).fetch.mock.calls[0][1].body)
     expect(createBody.title).toBe('张建国诉李海涛民间借贷纠纷')
     expect(createBody.matter_type).toBe('民间借贷纠纷')
+    const confirmBody = JSON.parse((global as any).fetch.mock.calls[1][1].body)
+    expect(confirmBody.files).toEqual([{
+      name: '001_客户咨询记录.md',
+      mime_type: 'text/markdown',
+      storage_uri: 'storage/intake-uploads/fixture.md',
+    }])
   })
 
   it('falls back to manually entered draft when matter_draft is absent', async () => {

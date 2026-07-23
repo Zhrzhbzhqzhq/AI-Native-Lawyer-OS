@@ -1,0 +1,35 @@
+{
+  "case_id": "case-004",
+  "case_type": "民间借贷纠纷",
+  "case_boundary": {
+    "required_keywords": [
+      "借款",
+      "本金",
+      "转账",
+      "还款",
+      "利息",
+      "借条",
+      "微信"
+    ],
+    "forbidden_keywords": [
+      "法院判决",
+      "胜诉",
+      "败诉",
+      "最终责任"
+    ]
+  },
+  "benchmark_targets": [
+    "borrow_relationship_identification",
+    "amount_fact_governance",
+    "repayment_calculation",
+    "interest_analysis",
+    "evidence_grounding"
+  ],
+  "complexity": "high",
+  "critical_abilities": [
+    "事实识别",
+    "金额推导",
+    "争议拆解",
+    "证据缺口识别"
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "provider": "enhanced-minimax",
+  "model": "MiniMax-M3",
+  "responses": [
+    {
+      "stage": "direct",
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae5f03a1bfa009aea49e7178be888e",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "{\"identity\":{\"caseId\":\"case-001\",\"title\":\"海川食品与华东智造设备买卖合同纠纷\",\"caseType\":\"设备买卖合同纠纷\",\"stage\":\"待确认\",\"jurisdiction\":\"待确认\"},\"narrative\":{\"summary\":\"海川食品有限公司与华东智能装备有限公司就一条灌装生产线签订总价为120万元的买卖合同。买方已支付预付款及发货款合计108万元，剩余尾款12万元因设备验收未通过而暂缓支付，双方就设备未达合同约定6000瓶/小时产能在责任认定上存在分歧。\",\"background\":\"2026年1月5日双方签订灌装生产线设备买卖合同，约定卖方应于2026年3月15日前交付并完成安装调试，设备稳定产能6000瓶/小时。买方分别于2026年1月10日和3月8日支付36万元和72万元，合计108万元。设备于2026年3月18日送达并签收，较约定晚3日。\",\"currentPosture\":\"首次验收于2026年3月20日完成，测试平均产能5200瓶/小时，买方拒收；整改后3月25日复测平均产能5700瓶/小时，仍未达6000瓶/小时，买方继续拒收并暂缓支付12万元尾款，卖方认为系买方现场条件原因，双方未就未达产原因达成一致。\"},\"actors\":[{\"id\":\"actor-buyer\",\"name\":\"海川食品有限公司\",\"role\":\"买方\",\"position\":\"主张设备未达合同约定产能，拒绝验收并暂缓支付12万元尾款\"},{\"id\":\"actor-seller\",\"name\":\"华东智能装备有限公司\",\"role\":\"卖方\",\"position\":\"主张已完成交付和调试，产能差异系买方瓶体规格、原料黏度及供电条件造成，要求买方支付尾款\"}],\"timeline\":[{\"id\":\"event-001\",\"date\":\"2026-01-05\",\"event\":\"双方签订灌装生产线设备买卖合同，总价120万元，约定分阶段付款及交付、调试、验收安排\",\"actorIds\":[\"actor-buyer\",\"actor-seller\"],\"certainty\":\"confirmed\"},{\"id\":\"event-002\",\"date\":\"2026-01-10\",\"event\":\"海川食品有限公司支付预付款36万元\",\"actorIds\":[\"actor-buyer\"],\"certainty\":\"confirmed\"},{\"id\":\"event-003\",\"date\":\"2026-03-08\",\"event\":\"海川食品有限公司支付发货前货款72万元，合计已支付108万元\",\"actorIds\":[\"actor-buyer\"],\"certainty\":\"confirmed\"},{\"id\":\"event-004\",\"date\":\"2026-03-18\",\"event\":\"设备送达海川食品工厂并由双方工程人员签收，较合同约定交付日2026-03-15晚3日\",\"actorIds\":[\"actor-buyer\",\"actor-seller\"],\"certainty\":\"confirmed\"},{\"id\":\"event-005\",\"date\":\"2026-03-19\",\"event\":\"华东智能装备有限公司完成设备安装并开始调试\",\"actorIds\":[\"actor-seller\"],\"certainty\":\"confirmed\"},{\"id\":\"event-006\",\"date\":\"2026-03-20\",\"event\":\"首次验收测试，设备连续运行2小时平均产能5200瓶/小时并出现多次卡瓶，海川食品拒绝验收\",\"actorIds\":[\"actor-buyer\",\"actor-seller\"],\"certainty\":\"confirmed\"},{\"id\":\"event-007\",\"date\":\"2026-03-22\",\"event\":\"华东智能装备有限公司调整设备参数并更换部分导轨\",\"actorIds\":[\"actor-seller\"],\"certainty\":\"confirmed\"},{\"id\":\"event-008\",\"date\":\"2026-03-25\",\"event\":\"复测设备平均产能5700瓶/小时，仍未达6000瓶/小时，买方继续拒绝验收\",\"actorIds\":[\"actor-buyer\",\"actor-seller\"],\"certainty\":\"confirmed\"}],\"conflicts\":[{\"id\":\"conflict-001\",\"title\":\"设备未达约定产能的责任归属\",\"description\":\"海川食品主张设备本身存在质量或性能缺陷导致未达6000瓶/小时；华东智造主张产能差异系买方瓶体规格、原料黏度及现场电压波动造成\",\"actorIds\":[\"actor-buyer\",\"actor-seller\"]},{\"id\":\"conflict-002\",\"title\":\"尾款12万元是否应予支付\",\"description\":\"海川食品以验收未通过为由暂缓支付12万元尾款；华东智造主张已完成交付和调试，要求支付尾款\",\"actorIds\":[\"actor-buyer\",\"actor-seller\"]}],\"decisionFactors\":[{\"id\":\"factor-001\",\"label\":\"合同产能条款\",\"description\":\"合同明确约定设备稳定产能6000瓶/小时，连续两次测试平均产能5200及5700瓶/小时均未达标\",\"impact\":\"supportive\"},{\"id\":\"factor-002\",\"label\":\"买方已支付大部分货款\",\"description\":\"海川食品已支付预付款及发货款合计108万元，仅剩12万元尾款未付\",\"impact\":\"neutral\"},{\"id\":\"factor-003\",\"label\":\"交付迟延3日\",\"description\":\"设备实际交付日为2026年3月18日，较合同约定2026年3月15日晚3日\",\"impact\":\"adverse\"},{\"id\":\"factor-004\",\"label\":\"卖方对未达产原因的抗辩\",\"description\":\"华东智造工程师备注卡瓶与买方瓶体规格不稳定及现场电压波动有关，未由独立第三方确认\",\"impact\":\"uncertain\"},{\"id\":\"factor-005\",\"label\":\"复测后产能差距收窄\",\"description\":\"整改后产能由5200瓶/小时提升至5700瓶/小时，但仍未达合同标准\",\"impact\":\"supportive\"}],\"risks\":[{\"id\":\"risk-001\",\"description\":\"若无法独立鉴定未达产原因，双方可能陷入责任争议僵局，影响尾款支付及后续合作\",\"severity\":\"high\",\"mitigation\":\"委托独立第三方检测机构对设备产能及现场条件进行鉴定\"},{\"id\":\"risk-002\",\"description\":\"设备交付迟延3日可能构成违约，但合同未明确约定迟延交付违约金计算方式\",\"severity\":\"medium\",\"mitigation\":\"核查合同条款是否就迟延交付约定违约责任，必要时依据法定违约责任主张\"},{\"id\":\"risk-003\",\"description\":\"继续拒收可能导致设备长期闲置及生产线投产延误，造成海川食品经营性损失\",\"severity\":\"medium\",\"mitigation\":\"考虑先行接收设备并保留追偿权利，或在诉讼中申请行为保全\"},{\"id\":\"risk-004\",\"description\":\"案件管辖法院、适用法律及争议解决方式未在现有材料中确认，可能影响程序推进\",\"severity\":\"low\",\"mitigation\":\"查阅合同争议解决条款并确定管辖法院及准据法\"}],\"unknowns\":[{\"id\":\"unknown-001\",\"question\":\"未达合同约定产能的具体原因（设备缺陷还是买方现场条件）由谁负责鉴定及结论为何\",\"importance\":\"high\"},{\"id\":\"unknown-002\",\"question\":\"合同是否就迟延交付、设备不符合约定等情形约定了违约金或损害赔偿计算方式\",\"importance\":\"medium\"},{\"id\":\"unknown-003\",\"question\":\"合同约定的争议解决方式（诉讼或仲裁）及管辖法院或仲裁机构\",\"importance\":\"medium\"},{\"id\":\"unknown-004\",\"question\":\"买方是否已因设备未达产造成实际生产损失及损失金额\",\"importance\":\"medium\"},{\"id\":\"unknown-005\",\"question\":\"设备目前的实际状态及是否仍可继续整改以达到合同标准\",\"importance\":\"medium\"}],\"selfReview\":{\"confidence\":0.42,\"limitations\":[\"输入材料未提供合同关于违约金、争议解决方式及管辖的条款\",\"未达产原因的认定缺乏独立第三方鉴定意见\",\"未提供买方因设备问题造成的实际损失数据\",\"案件所适用的具体法律及程序阶段未在输入中明确\"],\"assumptions\":[\"产能未达合同标准以两次测试记录载明的数据为准\",\"交付迟延3日以送货单载明日期为准\",\"合同关系主体以买卖合同记载为准\"],\"requiresLawyerReview\":true}}",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784622084,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 3344,
+            "total_characters": 0,
+            "prompt_tokens": 1724,
+            "completion_tokens": 1620,
+            "prompt_tokens_details": {
+              "cached_tokens": 1664
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 3344,
+          "total_characters": 0,
+          "prompt_tokens": 1724,
+          "completion_tokens": 1620,
+          "prompt_tokens_details": {
+            "cached_tokens": 1664
+          }
+        },
+        "cost": null,
+        "duration_ms": 24257,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-direct-benchmark-v2",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-direct-benchmark-v2",
+          "fallback_used": false
+        }
+      }
+    },
+    {
+      "stage": "conflict_enhancement",
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae5f1cb94acb5db3b2a2fb70f043ec",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "```json\n[\n  {\n    \"id\": \"conflict-003\",\n    \"title\": \"首次验收测试中卡瓶现象的责任归属\",\n    \"description\": \"海川食品认为2026年3月20日首次测试出现多次卡瓶属于设备本身质量问题；华东智造工程师在测试记录中备注卡瓶与买方瓶体规格不稳定及现场电压波动有关，双方就此存在分歧。\",\n    \"actorIds\": [\"actor-buyer\", \"actor-seller\"]\n  },\n  {\n    \"id\": \"conflict-004\",\n    \"title\": \"复测整改后产能仍不达标的责任归属\",\n    \"description\": \"海川食品认为2026年3月25日复测产能5700瓶/小时仍未达6000瓶/小时，应由卖方继续承担整改责任；华东智造认为复测差距系买方瓶体、原料黏度及供电条件造成，要求买方配合改善现场条件。\",\n    \"actorIds\": [\"actor-buyer\", \"actor-seller\"]\n  },\n  {\n    \"id\": \"conflict-005\",\n    \"title\": \"整改后设备是否已满足验收条件\",\n    \"description\": \"海川食品以两次测试产能均低于合同约定6000瓶/小时为由，认为设备不符合验收条件；华东智造主张已完成设备参数调整和部件更换，已履行调试义务，具备验收条件。\",\n    \"actorIds\": [\"actor-buyer\", \"actor-seller\"]\n  },\n  {\n    \"id\": \"conflict-006\",\n    \"title\": \"买方现场条件是否构成未达产的合理抗辩\",\n    \"description\": \"华东智造主张瓶体规格不稳定、原料黏度及现场电压波动等买方现场条件是未达产原因，买方应配合改善；海川食品对此未予认可，认为设备本身应能适应正常现场条件或卖方未提出具体证据。\",\n    \"actorIds\": [\"actor-buyer\", \"actor-seller\"]\n  }\n]\n```",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784622108,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 2855,
+            "total_characters": 0,
+            "prompt_tokens": 2447,
+            "completion_tokens": 408,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 2855,
+          "total_characters": 0,
+          "prompt_tokens": 2447,
+          "completion_tokens": 408,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 7646,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-conflict-enhancement-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-conflict-enhancement-v1",
+          "fallback_used": false
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,230 @@
+{
+  "identity": {
+    "caseId": "case-001",
+    "title": "海川食品与华东智造设备买卖合同纠纷",
+    "caseType": "设备买卖合同纠纷",
+    "stage": "诉前争议处理",
+    "jurisdiction": "中国大陆"
+  },
+  "narrative": {
+    "summary": "海川食品有限公司向华东智能装备有限公司购买总价120万元的灌装生产线，已支付108万元。设备迟延3日交付，两次测试产能分别为5200瓶/小时和5700瓶/小时，均未达到合同约定的6000瓶/小时，双方对未达产原因、验收状态及12万元尾款支付存在分歧。",
+    "background": "双方约定卖方于2026年3月15日前交付并完成安装调试，设备稳定产能达到6000瓶/小时，验收合格后支付尾款12万元。设备于2026年3月18日送达，卖方完成安装、参数调整和部分导轨更换，但复测产能仍低于合同标准。",
+    "currentPosture": "买方拒绝验收并暂缓支付尾款，主张设备存在质量和性能问题；卖方主张差异主要来自买方现场条件，要求买方配合改善条件并支付尾款。双方尚未就未达产原因形成一致意见。"
+  },
+  "actors": [
+    {
+      "id": "actor-buyer",
+      "name": "海川食品有限公司",
+      "role": "买方",
+      "position": "认为设备未达到合同约定产能，拒绝验收并暂缓支付12万元尾款。"
+    },
+    {
+      "id": "actor-seller",
+      "name": "华东智能装备有限公司",
+      "role": "卖方",
+      "position": "认为设备已完成交付和调试，产能差异主要与买方瓶体、原料及供电条件有关。"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "timeline-contract",
+      "date": "2026-01-05",
+      "event": "双方签订总价120万元的灌装生产线设备买卖合同。",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-first-payment",
+      "date": "2026-01-10",
+      "event": "买方支付预付款36万元。",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-second-payment",
+      "date": "2026-03-08",
+      "event": "买方支付发货前货款72万元，累计支付108万元。",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-delivery",
+      "date": "2026-03-18",
+      "event": "设备送达买方工厂，较合同约定日期晚3日。",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-installation",
+      "date": "2026-03-19",
+      "event": "卖方完成设备安装并开始调试。",
+      "actorIds": [
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-first-test",
+      "date": "2026-03-20",
+      "event": "首次测试平均产能为5200瓶/小时并出现卡瓶，买方不同意验收。",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-rectification",
+      "date": "2026-03-22",
+      "event": "卖方调整设备参数并更换部分导轨。",
+      "actorIds": [
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-retest",
+      "date": "2026-03-25",
+      "event": "复测平均产能为5700瓶/小时，双方仍未就未达产原因及验收状态达成一致。",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "conflict-performance",
+      "title": "设备产能是否达到合同标准",
+      "description": "两次测试产能均低于合同约定的6000瓶/小时，双方对设备是否具备约定性能存在分歧。",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ]
+    },
+    {
+      "id": "conflict-cause",
+      "title": "未达产及卡瓶原因",
+      "description": "买方认为设备存在质量和性能问题，卖方认为差异主要由瓶体规格、原料黏度和供电条件造成。",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ]
+    },
+    {
+      "id": "conflict-acceptance",
+      "title": "设备是否完成验收",
+      "description": "买方因产能未达标拒绝验收，卖方认为设备已完成交付和调试并要求买方配合改善现场条件。",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ]
+    },
+    {
+      "id": "conflict-final-payment",
+      "title": "12万元尾款是否进入支付阶段",
+      "description": "买方以尚未验收为由暂缓付款，卖方要求支付尾款。",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ]
+    }
+  ],
+  "decisionFactors": [
+    {
+      "id": "factor-acceptance-standard",
+      "label": "合同验收标准",
+      "description": "合同约定的6000瓶/小时稳定产能、测试持续时间及其他验收条件需要结合合同全文确认。",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-test-records",
+      "label": "两次测试记录",
+      "description": "首次和复测数据、测试方法、参与人员签字及现场参数是识别设备实际表现的重要材料。",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-causation",
+      "label": "未达产原因",
+      "description": "设备自身状态与瓶体规格、原料黏度、供电条件对产能的影响尚需技术材料支持。",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-rectification",
+      "label": "整改过程及效果",
+      "description": "卖方调整参数和更换导轨后产能由5200瓶/小时提高至5700瓶/小时，但仍低于约定标准。",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-payment-delivery",
+      "label": "付款与交付记录",
+      "description": "买方已支付108万元，设备较约定日期晚3日送达，尾款12万元尚未支付。",
+      "impact": "uncertain"
+    }
+  ],
+  "risks": [
+    {
+      "id": "risk-technical-cause",
+      "description": "现有材料不足以区分设备性能、瓶体规格、原料黏度和供电条件对未达产的具体影响。",
+      "severity": "high",
+      "mitigation": "保全测试原始数据、设备参数、瓶体与原料批次信息，并考虑由双方共同参与技术检测。"
+    },
+    {
+      "id": "risk-acceptance-procedure",
+      "description": "现有材料未完整呈现合同约定的验收程序以及双方是否完成全部验收步骤。",
+      "severity": "medium",
+      "mitigation": "补充合同附件、验收通知、完整测试方案及双方往来记录。"
+    },
+    {
+      "id": "risk-evidence-preservation",
+      "description": "设备持续调试或改变现场条件可能影响后续还原争议发生时的设备状态。",
+      "severity": "medium",
+      "mitigation": "记录当前设备配置和现场条件，留存视频、日志及双方签字的测试数据。"
+    }
+  ],
+  "unknowns": [
+    {
+      "id": "unknown-test-method",
+      "question": "合同或附件对稳定产能的测试时长、瓶体规格、原料和现场条件有何具体要求？",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-technical-cause",
+      "question": "设备未达到6000瓶/小时的原因及各项因素影响程度是什么？",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-acceptance-communications",
+      "question": "双方在两次测试后是否发送过正式验收、异议、整改完成或付款通知？",
+      "importance": "medium"
+    },
+    {
+      "id": "unknown-delivery-impact",
+      "question": "设备迟延3日交付是否对买方生产安排造成了可核实的影响？",
+      "importance": "medium"
+    }
+  ],
+  "selfReview": {
+    "confidence": 0.82,
+    "limitations": [
+      "未取得合同全部附件和完整验收方案。",
+      "未取得设备运行日志、现场供电数据以及瓶体和原料检测资料。",
+      "未取得双方在复测后的完整书面往来。"
+    ],
+    "assumptions": [],
+    "requiresLawyerReview": true
+  }
+}

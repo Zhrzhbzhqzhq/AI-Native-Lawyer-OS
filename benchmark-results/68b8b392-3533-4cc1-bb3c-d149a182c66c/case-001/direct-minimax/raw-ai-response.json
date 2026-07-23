@@ -1,0 +1,72 @@
+{
+  "provider": "direct-minimax",
+  "model": "MiniMax-M3",
+  "responses": [
+    {
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06aea324b4e69d25ea6860852e0c76ec",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "{\"identity\":{\"caseId\":\"case-001\",\"title\":\"海川食品与华东智造设备买卖合同纠纷\",\"caseType\":\"设备买卖合同纠纷\",\"stage\":\"待确认\",\"jurisdiction\":\"待确认\"},\"narrative\":{\"summary\":\"海川食品有限公司与华东智能装备有限公司就一条灌装生产线签订120万元的设备买卖合同，海川食品已支付108万元，设备于2026年3月18日交付并安装调试。首次及复测平均产能分别为5200瓶/小时和5700瓶/小时，均未达到合同约定的6000瓶/小时，海川食品拒绝验收并暂缓支付12万元尾款，双方对未达产原因存在分歧。\",\"background\":\"2026年1月5日双方签订设备买卖合同，约定分三期付款及2026年3月15日前交付并完成安装调试，设备稳定产能应达6000瓶/小时。\",\"currentPosture\":\"设备已完成交付和调试，但验收未通过，尾款12万元尚未支付，双方就未达产原因及后续责任承担存在争议，处于僵持状态。\"},\"actors\":[{\"id\":\"actor-buyer\",\"name\":\"海川食品有限公司\",\"role\":\"买方\",\"position\":\"认为设备未达合同约定产能，拒绝验收并暂缓支付尾款\"},{\"id\":\"actor-seller\",\"name\":\"华东智能装备有限公司\",\"role\":\"卖方\",\"position\":\"认为已完成交付和调试，未达产系买方现场条件所致，要求支付尾款\"}],\"timeline\":[{\"id\":\"event-001\",\"date\":\"2026-01-05\",\"event\":\"双方签订灌装生产线设备买卖合同，总价120万元\",\"actorIds\":[\"actor-buyer\",\"actor-seller\"],\"certainty\":\"confirmed\"},{\"id\":\"event-002\",\"date\":\"2026-01-10\",\"event\":\"海川食品支付预付款36万元\",\"actorIds\":[\"actor-buyer\"],\"certainty\":\"confirmed\"},{\"id\":\"event-003\",\"date\":\"2026-03-08\",\"event\":\"海川食品支付发货前货款72万元，合计已支付108万元\",\"actorIds\":[\"actor-buyer\"],\"certainty\":\"confirmed\"},{\"id\":\"event-004\",\"date\":\"2026-03-18\",\"event\":\"设备送达海川食品工厂，较合同约定晚3日\",\"actorIds\":[\"actor-buyer\",\"actor-seller\"],\"certainty\":\"confirmed\"},{\"id\":\"event-005\",\"date\":\"2026-03-19\",\"event\":\"华东智造完成设备安装并开始调试\",\"actorIds\":[\"actor-seller\"],\"certainty\":\"confirmed\"},{\"id\":\"event-006\",\"date\":\"2026-03-20\",\"event\":\"首次产能测试平均5200瓶/小时，海川食品不同意验收\",\"actorIds\":[\"actor-buyer\",\"actor-seller\"],\"certainty\":\"confirmed\"},{\"id\":\"event-007\",\"date\":\"2026-03-22\",\"event\":\"华东智造调整设备参数并更换部分导轨\",\"actorIds\":[\"actor-seller\"],\"certainty\":\"confirmed\"},{\"id\":\"event-008\",\"date\":\"2026-03-25\",\"event\":\"复测平均产能5700瓶/小时，仍未达6000瓶/小时\",\"actorIds\":[\"actor-buyer\",\"actor-seller\"],\"certainty\":\"confirmed\"}],\"conflicts\":[{\"id\":\"conflict-001\",\"title\":\"未达产原因争议\",\"description\":\"海川食品认为设备本身存在质量和性能问题导致未达合同约定6000瓶/小时产能；华东智造认为未达产系买方瓶体规格、原料黏度及现场电压波动等外部条件所致\",\"actorIds\":[\"actor-buyer\",\"actor-seller\"]},{\"id\":\"conflict-002\",\"title\":\"尾款支付争议\",\"description\":\"海川食品以验收未通过为由暂缓支付12万元尾款；华东智造主张设备已完成交付和调试，要求买方支付尾款\",\"actorIds\":[\"actor-buyer\",\"actor-seller\"]}],\"decisionFactors\":[{\"id\":\"factor-001\",\"label\":\"设备产能未达合同约定\",\"description\":\"两次测试平均产能分别为5200瓶/小时和5700瓶/小时，均低于合同约定的6000瓶/小时\",\"impact\":\"adverse\"},{\"id\":\"factor-002\",\"label\":\"交付迟延3日\",\"description\":\"设备于2026年3月18日交付，较合同约定的2026年3月15日晚3日\",\"impact\":\"adverse\"},{\"id\":\"factor-003\",\"label\":\"卖方已支付货款的金额\",\"description\":\"海川食品已支付108万元，仅剩12万元尾款未付\",\"impact\":\"supportive\"},{\"id\":\"factor-004\",\"label\":\"卖方主张外部条件导致未达产\",\"description\":\"华东智造主张未达产系瓶体规格、原料黏度及电压波动等买方现场条件所致，但双方未形成一致意见\",\"impact\":\"uncertain\"}],\"risks\":[{\"id\":\"risk-001\",\"description\":\"若认定为设备本身质量问题，买方可能面临继续整改、减价或解除合同并要求赔偿损失的法律风险\",\"severity\":\"high\",\"mitigation\":\"委托具备资质的第三方对设备产能及未达产原因进行独立鉴定\"},{\"id\":\"risk-002\",\"description\":\"若认定为买方现场条件导致未达产，卖方可能面临尾款12万元难以收回及资金占用风险\",\"severity\":\"medium\",\"mitigation\":\"及时固定现场瓶体规格、原料及供电等运行条件证据\"},{\"id\":\"risk-003\",\"description\":\"双方对未达产原因各执一词，存在因证据不足导致诉讼或仲裁成本上升的风险\",\"severity\":\"medium\",\"mitigation\":\"完整保留测试记录、沟通函件、付款凭证等书面证据\"}],\"unknowns\":[{\"id\":\"unknown-001\",\"question\":\"设备未达约定产能的确切原因及责任比例如何认定\",\"importance\":\"high\"},{\"id\":\"unknown-002\",\"question\":\"合同约定的违约金或违约责任条款具体内容\",\"importance\":\"high\"},{\"id\":\"unknown-003\",\"question\":\"合同约定的争议解决方式（诉讼或仲裁）及管辖\",\"importance\":\"medium\"},{\"id\":\"unknown-004\",\"question\":\"交付迟延3日是否构成根本违约及买方是否已主张迟延违约责任\",\"importance\":\"medium\"}],\"selfReview\":{\"confidence\":0.55,\"limitations\":[\"输入未提供合同全部条款，无法确认违约责任、验收标准及争议解决方式\",\"未达产原因缺乏第三方鉴定结论，责任归属尚不明确\",\"未披露双方后续协商或诉讼仲裁进展信息\"],\"assumptions\":[\"合同适用中国大陆法律框架下进行分析\",\"产能未达标及交付迟延事实以双方签字记录为准\"],\"requiresLawyerReview\":true}}",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784639524,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 3060,
+            "total_characters": 0,
+            "prompt_tokens": 1724,
+            "completion_tokens": 1336,
+            "prompt_tokens_details": {
+              "cached_tokens": 1664
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 3060,
+          "total_characters": 0,
+          "prompt_tokens": 1724,
+          "completion_tokens": 1336,
+          "prompt_tokens_details": {
+            "cached_tokens": 1664
+          }
+        },
+        "cost": null,
+        "duration_ms": 20963,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-direct-benchmark-v2",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-direct-benchmark-v2",
+          "fallback_used": false
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+[
+  {
+    "decisionFactorId": "factor-007",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-acceptance"
+    ],
+    "notes": "material-001-acceptance明确载明2026年3月20日首次测试平均产能5200瓶/小时并出现多次卡瓶，双方签字确认。"
+  },
+  {
+    "decisionFactorId": "factor-008",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-rectification"
+    ],
+    "notes": "material-001-rectification载明2026年3月25日复测平均产能5700瓶/小时，双方共同参与形成记录。"
+  },
+  {
+    "decisionFactorId": "factor-009",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-contract",
+      "event-006",
+      "event-007"
+    ],
+    "notes": "material-001-contract约定买方应于调试完成后7日内组织验收；event-006调试自3月19日开始，event-007首次验收于3月20日启动，验收程序在合同约定期限内启动。"
+  },
+  {
+    "decisionFactorId": "factor-010",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "event-007",
+      "event-008",
+      "event-009"
+    ],
+    "notes": "event-007首次测试5200瓶/小时，event-009复测5700瓶/小时，经event-008整改后提升约9.6%，仍未达6000瓶/小时标准。"
+  },
+  {
+    "decisionFactorId": "factor-011",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-acceptance",
+      "material-001-rectification"
+    ],
+    "notes": "material-001-acceptance中卖方仅以备注形式主张外部因素，material-001-rectification亦未提供第三方鉴定或书面检测报告，现有材料中无相关鉴定依据。"
+  },
+  {
+    "decisionFactorId": "factor-012",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-acceptance",
+      "material-001-contract"
+    ],
+    "notes": "material-001-acceptance载明首次测试出现多次卡瓶并由双方签字记录；material-001-contract约定稳定产能6000瓶/小时，卡瓶与稳定运行直接关联。"
+  },
+  {
+    "decisionFactorId": "factor-013",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-rectification"
+    ],
+    "notes": "conflict-001及material-001-rectification显示双方对未达产原因各执一词，未签署书面共识文件，分歧未被共同固化。"
+  },
+  {
+    "decisionFactorId": "factor-014",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-contract"
+    ],
+    "notes": "material-001-contract将12万元尾款支付节点设定为验收合格后；conflict-002载明海川食品以未通过验收为由暂缓支付，与合同约定付款条件对应。"
+  },
+  {
+    "decisionFactorId": "factor-015",
+    "supportStatus": "missing_evidence",
+    "sourceRefs": [],
+    "notes": "conflict-002载明华东智造明确主张付款条件已成就并要求海川食品支付12万元尾款，构成明确的支付请求。"
+  },
+  {
+    "decisionFactorId": "factor-016",
+    "supportStatus": "missing_evidence",
+    "sourceRefs": [],
+    "notes": "conflict-003载明材料中未显示海川食品就逾期交付3日明确表达具体主张或提出违约赔偿请求。"
+  },
+  {
+    "decisionFactorId": "factor-017",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-contract"
+    ],
+    "notes": "material-001-contract未涉及瓶体规格、原料黏度、供电条件等技术参数的运行前提约定，材料中确无相应条款。"
+  },
+  {
+    "decisionFactorId": "factor-018",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-acceptance",
+      "material-001-rectification"
+    ],
+    "notes": "material-001-acceptance明确记载首次测试多次卡瓶；material-001-rectification复测产能仍未达标，运行不稳定问题持续存在，但复测材料本身未重述卡瓶，第二次卡瓶情况无直接文字记载。"
+  },
+  {
+    "decisionFactorId": "factor-019",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "event-002",
+      "event-003"
+    ],
+    "notes": "event-002载明2026年1月10日支付预付款36万元，event-003载明2026年3月8日支付发货款72万元，主要付款节点已依约履行。"
+  },
+  {
+    "decisionFactorId": "factor-020",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "event-008",
+      "material-001-rectification"
+    ],
+    "notes": "event-008及material-001-rectification显示整改措施仅为调整参数并更换部分导轨，未涉及核心部件或系统性改造。"
+  }
+]

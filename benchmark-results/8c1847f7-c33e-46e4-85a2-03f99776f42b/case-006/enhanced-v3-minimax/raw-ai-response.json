@@ -1,0 +1,205 @@
+{
+  "provider": "enhanced-v3-minimax",
+  "model": "MiniMax-M3",
+  "responses": [
+    {
+      "stage": "direct",
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae9f59f622485bb4f6d72a15e9f55a",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "{\"identity\":{\"caseId\":\"case-006\",\"title\":\"陈伟诉李强股权转让合同纠纷\",\"caseType\":\"股权转让合同纠纷\",\"stage\":\"待确认\",\"jurisdiction\":\"待确认\"},\"narrative\":{\"summary\":\"陈伟作为受让方与李强作为转让方签订股权转让合同，约定李强向陈伟转让某科技公司20%股权，转让价款为80万元。陈伟已支付60万元，剩余20万元未支付；李强尚未完成股权交割。双方对剩余20万元付款与股权交割的先后顺序存在争议。\",\"background\":\"陈伟与李强签订股权转让合同，约定转让某科技公司20%股权，转让价款80万元。合同履行过程中，陈伟已支付60万元，李强尚未完成股权交割，剩余20万元付款与交割的先后顺序产生争议。\",\"currentPosture\":\"待确认\"},\"actors\":[{\"id\":\"actor-chenwei\",\"name\":\"陈伟\",\"role\":\"受让方\",\"position\":\"主张李强履行股权交割义务\"},{\"id\":\"actor-liqiang\",\"name\":\"李强\",\"role\":\"转让方\",\"position\":\"待确认\"}],\"timeline\":[{\"id\":\"event-1\",\"date\":\"待确认\",\"event\":\"陈伟与李强签订股权转让合同，约定李强向陈伟转让某科技公司20%股权，转让价款80万元\",\"actorIds\":[\"actor-chenwei\",\"actor-liqiang\"],\"certainty\":\"confirmed\"},{\"id\":\"event-2\",\"date\":\"待确认\",\"event\":\"陈伟向李强支付股权转让价款60万元\",\"actorIds\":[\"actor-chenwei\",\"actor-liqiang\"],\"certainty\":\"confirmed\"},{\"id\":\"event-3\",\"date\":\"待确认\",\"event\":\"双方就股权交割进行沟通，李强尚未完成股权交割\",\"actorIds\":[\"actor-chenwei\",\"actor-liqiang\"],\"certainty\":\"confirmed\"},{\"id\":\"event-4\",\"date\":\"待确认\",\"event\":\"双方对剩余20万元付款与股权交割的先后顺序产生争议\",\"actorIds\":[\"actor-chenwei\",\"actor-liqiang\"],\"certainty\":\"disputed\"}],\"conflicts\":[{\"id\":\"conflict-1\",\"title\":\"剩余20万元付款与股权交割先后顺序争议\",\"description\":\"双方对剩余20万元付款与股权交割的先后顺序存在争议，转让方李强可能主张先付余款后交割，受让方陈伟可能主张先交割后付余款\",\"actorIds\":[\"actor-chenwei\",\"actor-liqiang\"]}],\"decisionFactors\":[{\"id\":\"factor-1\",\"label\":\"合同关于付款与交割顺序的约定\",\"description\":\"合同是否明确约定付款与股权交割的先后顺序，将直接影响双方履行抗辩的成立\",\"impact\":\"uncertain\"},{\"id\":\"factor-2\",\"label\":\"陈伟已支付60万元的事实\",\"description\":\"陈伟已支付大部分价款（60/80万元），可能对其要求李强继续履行交割的主张形成支持\",\"impact\":\"supportive\"},{\"id\":\"factor-3\",\"label\":\"李强尚未完成股权交割\",\"description\":\"李强未完成股权交割的事实可能构成其违约，对陈伟的主张形成支持\",\"impact\":\"supportive\"},{\"id\":\"factor-4\",\"label\":\"剩余20万元未支付\",\"description\":\"陈伟尚有20万元未支付，可能影响其要求李强履行交割的主张，或被李强作为抗辩依据\",\"impact\":\"adverse\"}],\"risks\":[{\"id\":\"risk-1\",\"description\":\"合同对付款与交割顺序约定不明，可能导致双方对履行抗辩各执一词，增加裁判不确定性\",\"severity\":\"high\",\"mitigation\":\"调取并审查股权转让合同正本及补充协议关于履行顺序的具体约定\"},{\"id\":\"risk-2\",\"description\":\"剩余20万元付款义务与股权交割义务的衔接安排不明，存在交叉违约或同时履行抗辩的认定风险\",\"severity\":\"medium\",\"mitigation\":\"结合交易习惯及合同目的，评估同时履行抗辩或顺序履行的适用空间\"},{\"id\":\"risk-3\",\"description\":\"案件管辖与适用法律未明确，可能影响程序推进及实体裁判依据\",\"severity\":\"low\",\"mitigation\":\"待确认\"}],\"unknowns\":[{\"id\":\"unknown-1\",\"question\":\"股权转让合同是否对剩余20万元付款与股权交割的先后顺序作出明确约定\",\"importance\":\"high\"},{\"id\":\"unknown-2\",\"question\":\"案件现处何种诉讼或仲裁阶段\",\"importance\":\"high\"},{\"id\":\"unknown-3\",\"question\":\"管辖法院或仲裁机构及适用法律\",\"importance\":\"medium\"},{\"id\":\"unknown-4\",\"question\":\"陈伟与李强各自的具体诉求（继续履行、解除合同、赔偿损失等）\",\"importance\":\"high\"}],\"selfReview\":{\"confidence\":0.42,\"limitations\":[\"输入未提供合同关于付款与交割顺序的具体条款\",\"未披露案件所处诉讼或仲裁阶段及管辖信息\",\"未明确双方各自的具体诉求及主张依据\",\"未提供违约责任、违约金或损失相关事实\"],\"assumptions\":[\"陈伟与李强之间存在合法有效的股权转让合同关系\",\"双方争议核心为剩余20万元付款与股权交割的先后顺序\",\"李强尚未办理股权变更登记或完成交割手续\"],\"requiresLawyerReview\":true}}",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784638554,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 2409,
+            "total_characters": 0,
+            "prompt_tokens": 1325,
+            "completion_tokens": 1084,
+            "prompt_tokens_details": {
+              "cached_tokens": 1280
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 2409,
+          "total_characters": 0,
+          "prompt_tokens": 1325,
+          "completion_tokens": 1084,
+          "prompt_tokens_details": {
+            "cached_tokens": 1280
+          }
+        },
+        "cost": null,
+        "duration_ms": 12511,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-direct-benchmark-v2",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-direct-benchmark-v2",
+          "fallback_used": false
+        }
+      }
+    },
+    {
+      "stage": "conflict_enhancement",
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae9f6632588f21994b38a99598a99d",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "```json\n[\n  {\n    \"id\": \"conflict-1\",\n    \"title\": \"剩余20万元付款与股权交割先后顺序争议\",\n    \"description\": \"陈伟已支付股权转让价款60万元，剩余20万元尚未支付；李强尚未完成股权交割。双方对剩余20万元付款与股权交割的先后顺序存在争议：陈伟作为受让方主张李强先行完成股权交割后再支付余款，李强作为转让方可能主张陈伟先行支付剩余20万元后再办理股权交割。该争议直接关系双方各自履行抗辩权是否成立。\",\n    \"actorIds\": [\n      \"actor-chenwei\",\n      \"actor-liqiang\"\n    ]\n  },\n  {\n    \"id\": \"conflict-2\",\n    \"title\": \"李强是否构成违约及应否承担违约责任争议\",\n    \"description\": \"陈伟已依约支付大部分价款（60万元），李强尚未完成股权交割，陈伟可能据此主张李强违约并要求其承担继续履行、支付违约金或赔偿损失等违约责任；李强则可能以剩余20万元未支付为由，主张陈伟先行违约，进而抗辩自身不履行交割义务并不构成违约。双方就此形成分歧。\",\n    \"actorIds\": [\n      \"actor-chenwei\",\n      \"actor-liqiang\"\n    ]\n  },\n  {\n    \"id\": \"conflict-3\",\n    \"title\": \"陈伟未支付剩余20万元是否构成违约争议\",\n    \"description\": \"陈伟尚有20万元股权转让价款未支付，李强可能据此主张陈伟构成违约，并以此作为拒绝办理股权交割的抗辩理由；陈伟可能抗辩称在李强完成股权交割前其有权拒付余款，故不构成违约。双方就此存在分歧。\",\n    \"actorIds\": [\n      \"actor-chenwei\",\n      \"actor-liqiang\"\n    ]\n  }\n]\n```",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784638566,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 1919,
+            "total_characters": 0,
+            "prompt_tokens": 1512,
+            "completion_tokens": 407,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 1919,
+          "total_characters": 0,
+          "prompt_tokens": 1512,
+          "completion_tokens": 407,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 3997,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-conflict-enhancement-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-conflict-enhancement-v1",
+          "fallback_used": false
+        }
+      }
+    },
+    {
+      "stage": "evidence_aware_decision_factor_enhancement",
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae9f6a9bbdaa335ee00932f91c8565",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "{\"decisionFactors\":[{\"id\":\"factor-1\",\"label\":\"合同关于付款与交割顺序的约定\",\"description\":\"合同是否明确约定付款与股权交割的先后顺序，将直接影响双方履行抗辩的成立。该因素直接关系到 conflict-1 中双方对履行顺序的各自主张能否被支持，并影响 conflict-2 中李强是否构成违约的认定以及 conflict-3 中陈伟未支付余款是否构成违约的判断。\",\"impact\":\"uncertain\"},{\"id\":\"factor-2\",\"label\":\"陈伟已支付60万元的事实\",\"description\":\"陈伟已依约支付大部分价款（60万元，占总价款的75%），该事实可对陈伟在 conflict-1 中要求李强先行交割的主张及 conflict-2 中追究李强违约责任的主张形成一定支持。\",\"impact\":\"supportive\"},{\"id\":\"factor-3\",\"label\":\"李强尚未完成股权交割\",\"description\":\"李强尚未完成股权交割的事实，可能构成其违约或不符合先履行条件的抗辩依据，对陈伟在 conflict-2 中主张李强违约形成支持；同时该事实也是 conflict-1 中双方争议的事实基础。\",\"impact\":\"supportive\"},{\"id\":\"factor-4\",\"label\":\"剩余20万元未支付\",\"description\":\"陈伟尚有20万元股权转让价款未支付，可能被李强援引作为拒绝办理股权交割的抗辩依据，构成 conflict-3 中李强主张陈伟违约的支撑事实，并对陈伟在 conflict-1 中要求李强先行交割的主张形成不利影响。\",\"impact\":\"adverse\"}],\"grounding\":[{\"decisionFactorId\":\"factor-1\",\"conflictIds\":[\"conflict-1\",\"conflict-2\",\"conflict-3\"],\"sourceRefs\":[],\"uncertainty\":true},{\"decisionFactorId\":\"factor-2\",\"conflictIds\":[\"conflict-1\",\"conflict-2\"],\"sourceRefs\":[\"material-006-2\",\"event-2\"],\"uncertainty\":false},{\"decisionFactorId\":\"factor-3\",\"conflictIds\":[\"conflict-1\",\"conflict-2\"],\"sourceRefs\":[\"material-006-3\",\"event-3\"],\"uncertainty\":false},{\"decisionFactorId\":\"factor-4\",\"conflictIds\":[\"conflict-1\",\"conflict-3\"],\"sourceRefs\":[\"material-006-2\",\"material-006-3\"],\"uncertainty\":false}]}",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784638571,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 2682,
+            "total_characters": 0,
+            "prompt_tokens": 2201,
+            "completion_tokens": 481,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 2682,
+          "total_characters": 0,
+          "prompt_tokens": 2201,
+          "completion_tokens": 481,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 7110,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-evidence-aware-decision-factor-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-evidence-aware-decision-factor-v1",
+          "fallback_used": false
+        }
+      }
+    }
+  ]
+}

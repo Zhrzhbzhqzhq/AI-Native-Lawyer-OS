@@ -144,6 +144,7 @@ describe('Unified Intake API', () => {
     expect(Array.isArray(confirmBody.created_materials)).toBe(true)
     expect(confirmBody.created_materials.length).toBe(1)
     expect(confirmBody.created_materials[0].matter_id).toBe(markerMatterId)
+    expect(confirmBody.created_materials[0].storage_uri).toBe('')
 
     const afterMaterials = await prisma.$queryRaw<Array<{ count: bigint }>>`
       SELECT COUNT(*)::bigint AS count FROM materials WHERE matter_id = ${markerMatterId}
@@ -166,6 +167,51 @@ describe('Unified Intake API', () => {
     expect(afterDocument[0].count).toBe(beforeDocument[0].count)
     expect(afterKnowledge[0].count).toBe(beforeKnowledge[0].count)
     expect(afterTimeline[0].count).toBe(beforeTimeline[0].count)
+  })
+
+  it('confirm-material saves a validated upload storage_uri', async () => {
+    const markerMatterId = `mock-intake-${Date.now()}-storage-uri`
+    const storageUri = 'storage/intake-uploads/fixture.docx'
+    await prisma.matter.create({
+      data: { matter_id: markerMatterId, title: 'Storage URI Matter', description: 'fixture', matter_type: 'test', status: 'active' },
+    })
+
+    const response = await fetch(`${BASE}/intake/confirm-material`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        matter_id: markerMatterId,
+        source: 'client',
+        files: [{ name: 'fixture.docx', mime_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', storage_uri: storageUri }],
+      }),
+    })
+
+    expect(response.status).toBe(200)
+    const body = await response.json()
+    expect(body.created_materials).toHaveLength(1)
+    expect(body.created_materials[0].storage_uri).toBe(storageUri)
+    const stored = await prisma.material.findFirst({ where: { matter_id: markerMatterId } })
+    expect(stored?.storage_uri).toBe(storageUri)
+  })
+
+  it.each([
+    '../outside.docx',
+    '/tmp/outside.docx',
+    'storage/other/outside.docx',
+    'storage/intake-uploads/../outside.docx',
+  ])('confirm-material rejects invalid storage_uri %s', async (storageUri) => {
+    const response = await fetch(`${BASE}/intake/confirm-material`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        matter_id: `mock-intake-${Date.now()}-invalid-storage`,
+        source: 'client',
+        files: [{ name: 'outside.docx', mime_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', storage_uri: storageUri }],
+      }),
+    })
+
+    expect(response.status).toBe(400)
+    await expect(response.json()).resolves.toEqual({ error: 'invalid storage_uri' })
   })
 
   it('evidence-draft returns drafts and does not create formal evidence', async () => {

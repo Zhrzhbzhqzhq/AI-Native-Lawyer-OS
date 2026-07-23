@@ -1,0 +1,253 @@
+{
+  "identity": {
+    "caseId": "case-001",
+    "title": "海川食品与华东智造设备买卖合同纠纷",
+    "caseType": "设备买卖合同纠纷",
+    "stage": "待确认",
+    "jurisdiction": "待确认"
+  },
+  "narrative": {
+    "summary": "2026年1月5日，海川食品有限公司与华东智能装备有限公司签订灌装生产线设备买卖合同，总价120万元。海川食品已支付预付款及发货款合计108万元，尾款12万元未付。设备于2026年3月18日送达，较合同约定日期晚3日。安装调试后两次测试产能分别为5200瓶/小时和5700瓶/小时，均未达到合同约定的6000瓶/小时，且出现卡瓶。海川食品拒绝验收并拒付尾款，华东智造主张未达产系买方瓶体规格、原料黏度及电压波动等现场条件所致，双方就此存在分歧。",
+    "background": "material-001-contract 灌装生产线设备买卖合同 2026年1月5日，买方海川食品有限公司与卖方华东智能装备有限公司签订灌装生产线设备买卖合同。合同总价为120万元，约定签约后支付30%预付款36万元，发货前支付60%货款72万元，设备验收合格后支付10%尾款12万元。卖方应于2026年3月15日前将设备交付至买方工厂并完成安装调试。合同约定设备稳定产能应达到6000瓶/小时，买方应在调试完成后7日内组织验收。 material-001-payment 付款凭证汇总 银行付款凭证显示，海川食品有限公司于2026年1月10日支付预付款36万元，于2026年3月8日支付发货前货款72万元，合计已支付108万元。验收后应付尾款12万元尚未支付。 material-001-delivery 设备送货及安装记录 物流签收单显示，灌装生产线于2026年3月18日送达海川食品有限公司工厂，较合同约定日期晚3日。双方工程人员在送货单上签字。安装记录显示，华东智能装备有限公司于2026年3月19日完成设备安装并开始调试。 material-001-acceptance 首次验收及质量争议测试记录 2026年3月20日，双方共同进行首次产能测试。测试记录载明设备连续运行2小时，平均产能为5200瓶/小时，并出现多次卡瓶。海川食品有限公司在记录中注明产能未达到合同约定的6000瓶/小时，不同意验收，并要求华东智能装备有限公司继续整改。华东智能装备有限公司工程师签字确认测试数据，但备注认为卡瓶与买方提供的瓶体规格不稳定及现场电压波动有关。 material-001-rectification 整改及复测沟通记录 华东智能装备有限公司于2026年3月22日调整设备参数并更换部分导轨。2026年3月25日复测记录显示，设备平均产能为5700瓶/小时，仍未达到6000瓶/小时。海川食品有限公司认为设备本身存在质量和性能问题，继续拒绝验收并暂缓支付12万元尾款。华东智能装备有限公司认为设备已经完成交付和调试，复测差异主要由买方瓶体、原料黏度和供电条件造成，要求买方配合改善现场条件并支付尾款。双方未就未达产原因形成一致意见。",
+    "currentPosture": "设备未达约定产能的责任归属：海川食品认为系设备质量性能问题，华东智造认为系买方现场条件（瓶体规格、原料黏度、电压波动）所致"
+  },
+  "actors": [
+    {
+      "id": "hybrid-actor-1",
+      "name": "买方海川食品有限公司",
+      "role": "目标公司",
+      "position": "待律师确认"
+    },
+    {
+      "id": "hybrid-actor-2",
+      "name": "与卖方华东智能装备有限公司",
+      "role": "目标公司",
+      "position": "待律师确认"
+    },
+    {
+      "id": "hybrid-actor-3",
+      "name": "海川食品有限公司",
+      "role": "目标公司",
+      "position": "待律师确认"
+    },
+    {
+      "id": "hybrid-actor-4",
+      "name": "日送达海川食品有限公司",
+      "role": "目标公司",
+      "position": "待律师确认"
+    },
+    {
+      "id": "hybrid-actor-5",
+      "name": "华东智能装备有限公司",
+      "role": "目标公司",
+      "position": "待律师确认"
+    },
+    {
+      "id": "hybrid-actor-6",
+      "name": "并要求华东智能装备有限公司",
+      "role": "目标公司",
+      "position": "待律师确认"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "hybrid-timeline-1",
+      "date": "待确认",
+      "event": "合同约定设备稳定产能6000瓶/小时，2026年3月15日前交付并完成安装调试",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ],
+      "certainty": "unknown"
+    },
+    {
+      "id": "hybrid-timeline-2",
+      "date": "待确认",
+      "event": "海川食品已支付108万元，尾款12万元未付",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ],
+      "certainty": "unknown"
+    },
+    {
+      "id": "hybrid-timeline-3",
+      "date": "待确认",
+      "event": "设备实际于2026年3月18日送达，迟延3日",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ],
+      "certainty": "unknown"
+    },
+    {
+      "id": "hybrid-timeline-4",
+      "date": "待确认",
+      "event": "首次测试产能5200瓶/小时，3月25日复测产能5700瓶/小时，均未达标",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ],
+      "certainty": "unknown"
+    },
+    {
+      "id": "hybrid-timeline-5",
+      "date": "待确认",
+      "event": "华东智造工程师签字确认测试数据，但备注卡瓶与买方瓶体规格不稳定及电压波动有关",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ],
+      "certainty": "unknown"
+    },
+    {
+      "id": "hybrid-timeline-6",
+      "date": "待确认",
+      "event": "华东智造已调整设备参数并更换部分导轨",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ],
+      "certainty": "unknown"
+    },
+    {
+      "id": "hybrid-timeline-7",
+      "date": "待确认",
+      "event": "双方就未达产原因未形成一致意见",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ],
+      "certainty": "unknown"
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "hybrid-conflict-1",
+      "title": "设备未达约定产能的责任归属：海川食品认为系设备质量性能问题，华东智造认为系买方现场条件（瓶体规格、原料黏度、电压波动）所致",
+      "description": "设备未达约定产能的责任归属：海川食品认为系设备质量性能问题，华东智造认为系买方现场条件（瓶体规格、原料黏度、电压波动）所致",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ]
+    },
+    {
+      "id": "hybrid-conflict-2",
+      "title": "设备交付迟延3日的违约责任及后果承担",
+      "description": "设备交付迟延3日的违约责任及后果承担",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ]
+    },
+    {
+      "id": "hybrid-conflict-3",
+      "title": "尾款12万元支付条件是否已成就，即设备是否应被视为验收合格",
+      "description": "尾款12万元支付条件是否已成就，即设备是否应被视为验收合格",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ]
+    }
+  ],
+  "decisionFactors": [
+    {
+      "id": "hybrid-factor-1",
+      "label": "设备未达约定产能的责任归属：海川食品认为系设备质量性能问题，华东智造认为系买方现场条件（瓶体规格、原料黏度、电压波动）所致",
+      "description": "需律师核对原始材料：设备未达约定产能的责任归属：海川食品认为系设备质量性能问题，华东智造认为系买方现场条件（瓶体规格、原料黏度、电压波动）所致",
+      "impact": "uncertain"
+    },
+    {
+      "id": "hybrid-factor-2",
+      "label": "设备交付迟延3日的违约责任及后果承担",
+      "description": "需律师核对原始材料：设备交付迟延3日的违约责任及后果承担",
+      "impact": "uncertain"
+    },
+    {
+      "id": "hybrid-factor-3",
+      "label": "尾款12万元支付条件是否已成就，即设备是否应被视为验收合格",
+      "description": "需律师核对原始材料：尾款12万元支付条件是否已成就，即设备是否应被视为验收合格",
+      "impact": "uncertain"
+    }
+  ],
+  "risks": [],
+  "unknowns": [
+    {
+      "id": "hybrid-unknown-1",
+      "question": "卡瓶现象具体由设备问题还是瓶体规格不稳定导致，缺乏第三方鉴定",
+      "importance": "high"
+    },
+    {
+      "id": "hybrid-unknown-2",
+      "question": "现场电压波动程度及是否构成显著影响产能的因素，未有客观检测依据",
+      "importance": "high"
+    },
+    {
+      "id": "hybrid-unknown-3",
+      "question": "3月25日复测后是否仍有进一步调试或整改，目前材料未显示",
+      "importance": "high"
+    },
+    {
+      "id": "hybrid-unknown-4",
+      "question": "海川食品是否曾就被告主张的现场条件问题作出正式书面回应或反通知",
+      "importance": "high"
+    },
+    {
+      "id": "hybrid-unknown-5",
+      "question": "设备迟延交付3日与最终未达产之间是否存在因果关系",
+      "importance": "high"
+    }
+  ],
+  "selfReview": {
+    "confidence": 0.6,
+    "limitations": [
+      "卡瓶现象具体由设备问题还是瓶体规格不稳定导致，缺乏第三方鉴定",
+      "现场电压波动程度及是否构成显著影响产能的因素，未有客观检测依据",
+      "3月25日复测后是否仍有进一步调试或整改，目前材料未显示",
+      "海川食品是否曾就被告主张的现场条件问题作出正式书面回应或反通知",
+      "设备迟延交付3日与最终未达产之间是否存在因果关系"
+    ],
+    "assumptions": [],
+    "requiresLawyerReview": true
+  }
+}

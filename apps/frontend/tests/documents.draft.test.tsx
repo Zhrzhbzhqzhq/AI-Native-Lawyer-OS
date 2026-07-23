@@ -6,6 +6,7 @@ import DocumentsPage from '../src/app/matters/[matter_id]/documents/page'
 let pushMock = vi.fn()
 let drafts: any[] = []
 let documents: any[] = []
+let regenerateStatus = 'generated'
 
 vi.mock('next/navigation', () => ({
   useParams: () => ({ matter_id: 'm-case01' }),
@@ -45,6 +46,7 @@ describe('Documents Draft Workflow', () => {
     pushMock = vi.fn()
     drafts = []
     documents = []
+    regenerateStatus = 'generated'
     ;(global as any).fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
       const method = String(init?.method || 'GET').toUpperCase()
@@ -55,7 +57,7 @@ describe('Documents Draft Workflow', () => {
       }
 
       if (url.includes('/document-drafts/doc-draft-1/regenerate') && method === 'POST') {
-        drafts[0] = { ...drafts[0], content: `${drafts[0].content}\n律师意见已纳入。`, review_status: 'generated' }
+        drafts[0] = { ...drafts[0], content: `${drafts[0].content}\n律师意见已纳入。`, review_status: regenerateStatus }
         return jsonResponse(drafts[0])
       }
 
@@ -134,5 +136,19 @@ describe('Documents Draft Workflow', () => {
     await waitFor(() => expect(screen.getByText('正式文书')).toBeTruthy())
     expect(documents).toHaveLength(1)
     expect(screen.getByText('导出 Word')).toBeTruthy()
+  })
+
+  it('accepts editing as a successful regenerate status and refreshes the draft', async () => {
+    regenerateStatus = 'editing'
+    drafts = [{ ...generatedDraft }]
+    render(<DocumentsPage />)
+
+    await waitFor(() => expect(screen.getByDisplayValue(generatedDraft.title)).toBeTruthy())
+    fireEvent.click(screen.getByText('根据律师意见重新生成'))
+
+    await waitFor(() => expect(screen.getByText('已根据律师意见重新生成')).toBeTruthy())
+    expect(drafts[0].content).toContain('律师意见已纳入')
+    expect(drafts[0].review_status).toBe('editing')
+    expect(screen.queryByText('文书草稿返回数据暂不可用')).toBeNull()
   })
 })

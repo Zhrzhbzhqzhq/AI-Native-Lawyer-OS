@@ -1,0 +1,267 @@
+{
+  "identity": {
+    "caseId": "case-003",
+    "title": "林悦与赵海峰房屋租赁合同纠纷",
+    "caseType": "房屋租赁合同纠纷",
+    "stage": "待确认",
+    "jurisdiction": "待确认"
+  },
+  "narrative": {
+    "summary": "林悦以房屋渗水、霉斑及排水问题影响居住为由，于2026年3月3日通知赵海峰解除租赁合同，并要求返还押金12000元；赵海峰认为维修已协调处理，不接受解除理由。林悦在通知中确定解除日为2026年3月10日，赵海峰于3月5日签收解除通知，双方就维修是否完成、合同是否构成合法解除以及押金与未付租金处理存在分歧。",
+    "background": "2025年9月1日，出租人赵海峰与承租人林悦签订房屋租赁合同，约定将位于杭州市滨江区的一套住宅出租给林悦居住，租期自2025年9月5日至2026年9月4日，月租金6000元，每三个月支付一次，押金12000元。合同约定出租人负责房屋主体及既有设施的必要维修，承租人需配合维修；承租人无约定理由提前退租的，出租人可就违约责任提出主张。林悦按约支付押金12000元及两期各18000元租金，2026年3月5日之后租金未付。",
+    "currentPosture": "林悦已于2026年3月10日搬离并通知赵海峰验房取钥匙；现有材料未包含双方共同签署的交房验收单、钥匙交接记录或最终费用结算单。双方对维修是否完成、合同解除是否成立、押金是否应返还及未付租金如何处理均未达成一致，案件处于待解决状态。"
+  },
+  "actors": [
+    {
+      "id": "actor-tenant",
+      "name": "林悦",
+      "role": "承租人",
+      "position": "以渗水、霉斑及排水问题影响居住为由通知解除合同并要求返还押金12000元"
+    },
+    {
+      "id": "actor-landlord",
+      "name": "赵海峰",
+      "role": "出租人",
+      "position": "认为已协调维修、不接受解除理由，主张林悦提前退租需承担违约责任"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "event-1",
+      "date": "2025-09-01",
+      "event": "林悦与赵海峰签订房屋租赁合同，约定租期2025年9月5日至2026年9月4日，月租金6000元，每三个月支付一次，押金12000元",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-2",
+      "date": "2025-09-01",
+      "event": "林悦支付押金12000元及首期三个月租金18000元",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-3",
+      "date": "2025-12-01",
+      "event": "林悦支付第二期三个月租金18000元",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-4",
+      "date": "2026-01中旬",
+      "event": "林悦称卧室外墙在降雨后反复渗水，墙面出现潮湿和霉斑，卫生间排水多次堵塞",
+      "actorIds": [
+        "actor-tenant"
+      ],
+      "certainty": "disputed"
+    },
+    {
+      "id": "event-5",
+      "date": "2026-01-18",
+      "event": "物业登记外墙渗水报修",
+      "actorIds": [
+        "actor-landlord"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-6",
+      "date": "2026-01-22",
+      "event": "物业对外墙进行临时封堵",
+      "actorIds": [
+        "actor-landlord"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-7",
+      "date": "2026-02-08",
+      "event": "降雨后林悦拍摄照片显示卧室墙角再次潮湿",
+      "actorIds": [
+        "actor-tenant"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-8",
+      "date": "2026-02-12",
+      "event": "赵海峰安排人员疏通卫生间排水",
+      "actorIds": [
+        "actor-landlord"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-9",
+      "date": "2026-02-20",
+      "event": "林悦在微信中表示若渗水问题仍未解决将解除租赁合同；赵海峰回复不同意提前退租",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-10",
+      "date": "2026-03-03",
+      "event": "林悦通过微信和快递向赵海峰发送解除通知，通知于2026年3月10日解除合同，并要求退还押金12000元",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-11",
+      "date": "2026-03-05",
+      "event": "赵海峰签收解除通知的快递",
+      "actorIds": [
+        "actor-landlord"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-12",
+      "date": "2026-03-10",
+      "event": "林悦搬离房屋并通知赵海峰验房取钥匙",
+      "actorIds": [
+        "actor-tenant"
+      ],
+      "certainty": "confirmed"
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "conflict-1",
+      "title": "维修是否完成及房屋能否正常使用",
+      "description": "林悦主张渗水、霉斑及排水问题自2026年1月中旬起持续存在并影响居住；赵海峰主张已联系物业处理外墙并安排了排水疏通，认为房屋仍可居住。双方未共同签署维修完成或房屋恢复正常使用的确认文件。",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ]
+    },
+    {
+      "id": "conflict-2",
+      "title": "合同解除是否成立",
+      "description": "林悦以维修问题持续存在为由通知于2026年3月10日解除合同并要求返还押金12000元；赵海峰不接受解除理由，认为维修问题已处理，林悦属于提前退租。",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ]
+    },
+    {
+      "id": "conflict-3",
+      "title": "押金是否应返还及未付租金如何处理",
+      "description": "赵海峰确认收到押金12000元及已付两期各18000元租金，但双方对押金是否应返还以及2026年3月5日之后未付租金如何处理存在分歧；现有材料未包含最终费用结算单。",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ]
+    }
+  ],
+  "decisionFactors": [
+    {
+      "id": "factor-1",
+      "label": "合同关于维修责任的约定",
+      "description": "合同约定出租人负责房屋主体及既有设施的必要维修，承租人需配合维修。该约定对维修义务归属具有直接影响",
+      "impact": "supportive"
+    },
+    {
+      "id": "factor-2",
+      "label": "外墙渗水及维修经过的事实记录",
+      "description": "物业于2026年1月18日登记报修、1月22日临时封堵，2月8日降雨后林悦照片显示墙角再次潮湿，2月12日安排排水疏通；渗水问题是否实质性解决双方陈述相反",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-3",
+      "label": "双方关于解除合同的沟通记录",
+      "description": "2026年2月20日林悦表示若渗水不解决将解除合同，赵海峰回复不同意提前退租；2026年3月3日林悦发出解除通知，3月5日赵海峰签收",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-4",
+      "label": "押金12000元及已付租金金额",
+      "description": "材料明确记载林悦支付押金12000元及首期、第二期各18000元租金；2026年3月5日之后租金未付。具体未付租金金额待确认",
+      "impact": "supportive"
+    },
+    {
+      "id": "factor-5",
+      "label": "缺乏交房验收及费用结算文件",
+      "description": "现有材料未包含双方共同签署的交房验收单、钥匙交接记录或最终费用结算单，影响解除后果及押金扣减的认定",
+      "impact": "uncertain"
+    }
+  ],
+  "risks": [
+    {
+      "id": "risk-1",
+      "description": "因缺乏书面维修完成确认及共同交房验收文件，维修完成状态与房屋交付状态难以认定，影响合同解除效力及押金返还判断",
+      "severity": "high",
+      "mitigation": "补充收集物业维修记录、第三方鉴定或现场照片，并争取双方共同签署交房验收及费用结算单"
+    },
+    {
+      "id": "risk-2",
+      "description": "2026年3月5日之后未付租金期间与金额未在材料中明确，可能引发违约金或占有使用费主张，金额依据不足",
+      "severity": "medium",
+      "mitigation": "核查合同约定的违约金或占有使用费条款，并依据已明确的月租金6000元及实际占用期间核算"
+    },
+    {
+      "id": "risk-3",
+      "description": "若合同被认定为林悦无约定理由提前退租，赵海峰可能依合同违约条款主张扣减押金或要求赔偿，材料中具体违约责任条款待确认",
+      "severity": "medium",
+      "mitigation": "核实合同中关于提前退租的违约责任具体约定，并评估维修问题作为抗辩的支撑力度"
+    }
+  ],
+  "unknowns": [
+    {
+      "id": "unknown-1",
+      "question": "管辖法院及适用法律是否已确定（材料仅提及合同签订及房屋位于杭州市滨江区）",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-2",
+      "question": "2026年3月5日之后至3月10日搬离期间未付租金的具体金额及计算方式",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-3",
+      "question": "物业或第三方对外墙渗水问题是否已实质性修复及房屋是否达到正常居住状态的认定",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-4",
+      "question": "合同中关于提前退租的违约责任具体条款内容",
+      "importance": "medium"
+    },
+    {
+      "id": "unknown-5",
+      "question": "是否存在双方共同签署的交房验收单、钥匙交接记录或最终费用结算单",
+      "importance": "high"
+    }
+  ],
+  "selfReview": {
+    "confidence": 0.42,
+    "limitations": [
+      "材料未提供管辖及适用法律信息",
+      "材料未提供合同中关于提前退租违约责任的具体条款",
+      "材料未提供交房验收、钥匙交接及最终费用结算文件",
+      "材料未提供第三方对渗水及排水问题修复结果的认定",
+      "材料未明确2026年3月5日之后未付租金的具体金额"
+    ],
+    "assumptions": [
+      "租期、月租金6000元、押金12000元及已付两期各18000元租金以材料明确记载为准",
+      "解除通知以2026年3月5日赵海峰签收为生效时点，林悦确定解除日为2026年3月10日",
+      "维修责任归属以合同明确约定为准"
+    ],
+    "requiresLawyerReview": true
+  }
+}

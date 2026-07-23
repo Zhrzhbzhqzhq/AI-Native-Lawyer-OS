@@ -1,0 +1,105 @@
+[
+  {
+    "decisionFactorId": "factor-007",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-003-repair",
+      "material-003-wechat",
+      "event-006",
+      "event-007"
+    ],
+    "notes": "材料明确记载2026-01-22物业进行外墙临时封堵，2026-02-08降雨后墙角再次潮湿；actor-lessor与actor-lessee对维修程度存在分歧。该因素的事实基础可由上述证据支持，但根本性修复是否存在仍属未知事项，因素本身成立。"
+  },
+  {
+    "decisionFactorId": "factor-008",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-003-repair",
+      "material-003-wechat",
+      "event-004",
+      "event-007"
+    ],
+    "notes": "actor-lessee主张卧室异味、墙面潮湿和霉斑影响居住，微信记录中多次发送照片反映该问题；actor-lessor认为仍可居住并提出上门检查。双方分歧及照片证据支持该因素成立，但具体影响程度需补强证据认定。"
+  },
+  {
+    "decisionFactorId": "factor-009",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-003-repair",
+      "material-003-wechat",
+      "event-008"
+    ],
+    "notes": "actor-lessee主张卫生间排水多次堵塞，actor-lessor称已于2026-02-12安排疏通（certainty为disputed）。材料未记载后续是否再次堵塞，但双方陈述及微信沟通记录支持该因素成立，反复性与彻底性证据不足。"
+  },
+  {
+    "decisionFactorId": "factor-010",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-003-contract",
+      "material-003-wechat"
+    ],
+    "notes": "合同约定出租人负责必要维修、承租人需配合维修；actor-lessor主张已催促物业维修并安排排水疏通，actor-lessee主张仅为临时性处理。该因素成立有合同依据及双方陈述支持，但合同未对协调义务履行标准作进一步明确，具体认定待补强。"
+  },
+  {
+    "decisionFactorId": "factor-011",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-003-termination",
+      "event-010",
+      "event-011",
+      "event-012"
+    ],
+    "notes": "actor-lessee于2026-03-03通知自2026-03-10解除合同并搬离，actor-lessor明确回复不同意提前退租，认为构成违约。该行为事实及双方分歧均有材料支持，法律性质认定以解除理由是否成立为前提。"
+  },
+  {
+    "decisionFactorId": "factor-012",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-003-contract",
+      "material-003-payment",
+      "material-003-termination"
+    ],
+    "notes": "合同约定押金12000元在合同终止、房屋交还并结清费用后处理；actor-lessee要求退还，actor-lessor对押金处理持保留意见。合同条款及双方分歧支持该因素成立，但具体条件成就与否及可扣除项事实不足。"
+  },
+  {
+    "decisionFactorId": "factor-013",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-003-payment",
+      "event-002",
+      "event-003",
+      "event-012"
+    ],
+    "notes": "材料确认林悦已支付押金及两期租金，2026-03-05之后租金未支付，actor-lessee已于2026-03-10搬离，actor-lessor不接受解除理由。支付事实及搬离事实支持该因素成立，但具体金额及占用费计算证据不足。"
+  },
+  {
+    "decisionFactorId": "factor-014",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-003-termination",
+      "event-012"
+    ],
+    "notes": "现有材料未包含双方共同签署的交房验收单、钥匙交接记录或最终费用结算单，actor-lessee已于2026-03-10搬离并通知验房取钥匙。该缺失事实有材料直接支持，房屋现状及损坏情况证据不足。"
+  },
+  {
+    "decisionFactorId": "factor-015",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-003-wechat",
+      "event-009"
+    ],
+    "notes": "2026-01-16至03-02微信记录显示actor-lessee多次发送照片并要求彻底维修，actor-lessor回复已催促物业并认为仍可居住；2026-02-20双方就解除合同形成意思表示。沟通记录的事实支持该因素成立，但照片及记录的完整性与原始载体需进一步固定。"
+  },
+  {
+    "decisionFactorId": "factor-016",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-003-repair",
+      "event-004",
+      "event-005",
+      "event-006",
+      "event-007"
+    ],
+    "notes": "材料记载2026-01中旬起卧室外墙降雨后反复渗水，2026-01-22临时封堵后2026-02-08降雨后墙角再次潮湿，渗水与降雨的关联性有时间节点支持。但墙体防水性能缺陷的性质及关联程度属材料未记载事项，需鉴定确认。"
+  }
+]

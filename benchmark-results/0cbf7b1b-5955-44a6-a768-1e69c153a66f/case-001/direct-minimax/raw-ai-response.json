@@ -1,0 +1,72 @@
+{
+  "provider": "direct-minimax",
+  "model": "MiniMax-M3",
+  "responses": [
+    {
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae4b246721e6980f254ea7715ed049",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "{\"identity\":{\"caseId\":\"case-001\",\"title\":\"海川食品与华东智造设备买卖合同纠纷\",\"caseType\":\"设备买卖合同纠纷\",\"stage\":\"待确认\",\"jurisdiction\":\"待确认\"},\"narrative\":{\"summary\":\"海川食品有限公司与华东智能装备有限公司因灌装生产线设备未达合同约定产能而发生争议，买方拒绝验收并暂缓支付12万元尾款。\",\"background\":\"2026年1月5日双方签订灌装生产线设备买卖合同，总价120万元，约定产能6000瓶/小时，交付期限2026年3月15日前。买方已支付108万元。设备2026年3月18日送达，3月19日完成安装调试。\",\"currentPosture\":\"设备经首次测试产能5200瓶/小时，整改后复测产能5700瓶/小时，仍未达6000瓶/小时。买方拒绝验收并暂缓支付尾款12万元，卖方要求买方支付尾款并归因现场条件。双方未就未达产原因达成一致。\"},\"actors\":[{\"id\":\"actor-001\",\"name\":\"海川食品有限公司\",\"role\":\"买方\",\"position\":\"拒绝验收并暂缓支付12万元尾款\"},{\"id\":\"actor-002\",\"name\":\"华东智能装备有限公司\",\"role\":\"卖方\",\"position\":\"主张已完成交付调试，要求买方支付尾款并将差异归因于买方现场条件\"}],\"timeline\":[{\"id\":\"timeline-001\",\"date\":\"2026-01-05\",\"event\":\"双方签订灌装生产线设备买卖合同，总价120万元，约定交付期2026年3月15日前，产能6000瓶/小时。\",\"actorIds\":[\"actor-001\",\"actor-002\"],\"certainty\":\"confirmed\"},{\"id\":\"timeline-002\",\"date\":\"2026-01-10\",\"event\":\"海川食品有限公司支付预付款36万元。\",\"actorIds\":[\"actor-001\"],\"certainty\":\"confirmed\"},{\"id\":\"timeline-003\",\"date\":\"2026-03-08\",\"event\":\"海川食品有限公司支付发货前货款72万元，合计已支付108万元。\",\"actorIds\":[\"actor-001\"],\"certainty\":\"confirmed\"},{\"id\":\"timeline-004\",\"date\":\"2026-03-18\",\"event\":\"设备送达海川食品工厂，较合同约定日期晚3日，双方工程人员在送货单签字。\",\"actorIds\":[\"actor-001\",\"actor-002\"],\"certainty\":\"confirmed\"},{\"id\":\"timeline-005\",\"date\":\"2026-03-19\",\"event\":\"华东智能装备有限公司完成设备安装并开始调试。\",\"actorIds\":[\"actor-002\"],\"certainty\":\"confirmed\"},{\"id\":\"timeline-006\",\"date\":\"2026-03-20\",\"event\":\"首次产能测试，平均产能5200瓶/小时，出现多次卡瓶。买方拒绝验收；卖方工程师签字确认数据但备注卡瓶与瓶体规格及电压波动有关。\",\"actorIds\":[\"actor-001\",\"actor-002\"],\"certainty\":\"confirmed\"},{\"id\":\"timeline-007\",\"date\":\"2026-03-22\",\"event\":\"华东智能装备有限公司调整设备参数并更换部分导轨进行整改。\",\"actorIds\":[\"actor-002\"],\"certainty\":\"confirmed\"},{\"id\":\"timeline-008\",\"date\":\"2026-03-25\",\"event\":\"复测平均产能5700瓶/小时，仍未达6000瓶/小时。买方继续拒绝验收并暂缓支付12万元尾款；卖方要求买方配合改善现场条件并支付尾款。\",\"actorIds\":[\"actor-001\",\"actor-002\"],\"certainty\":\"confirmed\"}],\"conflicts\":[{\"id\":\"conflict-001\",\"title\":\"设备未达产原因归属\",\"description\":\"买方主张设备本身存在质量和性能问题，整改后仍不达标；卖方主张未达产主要由买方瓶体规格不稳定、原料黏度及供电条件等现场因素造成。\",\"actorIds\":[\"actor-001\",\"actor-002\"]},{\"id\":\"conflict-002\",\"title\":\"验收是否通过及尾款支付\",\"description\":\"买方因产能不达标拒绝验收并暂缓支付12万元尾款；卖方主张已完成交付调试并要求支付尾款。\",\"actorIds\":[\"actor-001\",\"actor-002\"]},{\"id\":\"conflict-003\",\"title\":\"交付迟延责任\",\"description\":\"设备交付较合同约定日期晚3日，迟延事实双方已签字确认，但材料中未明确迟延责任及违约后果。\",\"actorIds\":[\"actor-001\",\"actor-002\"]}],\"decisionFactors\":[{\"id\":\"factor-001\",\"label\":\"复测产能仍未达合同标准\",\"description\":\"2026年3月25日复测产能5700瓶/小时，连续两次未达合同约定的6000瓶/小时，且测试记录经卖方工程师签字确认。\",\"impact\":\"adverse\"},{\"id\":\"factor-002\",\"label\":\"卖方主张现场条件影响产能\",\"description\":\"卖方在首次测试记录中备注卡瓶与瓶体规格、电压波动有关，并主张整改后差异由买方瓶体、原料黏度和供电条件造成，但未提供第三方鉴定依据。\",\"impact\":\"uncertain\"},{\"id\":\"factor-003\",\"label\":\"买方已支付合同价款90%\",\"description\":\"买方已按节点支付预付款及发货款合计108万元，履行了主要付款义务。\",\"impact\":\"supportive\"},{\"id\":\"factor-004\",\"label\":\"设备交付迟延3日\",\"description\":\"设备2026年3月18日送达，较合同约定2026年3月15日迟延3日，双方已签字确认，但合同对迟延违约责任约定情况待确认。\",\"impact\":\"adverse\"},{\"id\":\"factor-005\",\"label\":\"连续两次测试数据一致且差距相近\",\"description\":\"两次测试分别记录5200瓶/小时及5700瓶/小时，差距较稳定，倾向于设备性能本身存在偏差，但仍有现场条件交叉影响可能。\",\"impact\":\"uncertain\"}],\"risks\":[{\"id\":\"risk-001\",\"description\":\"若设备确属质量不达标，买方可能需承担举证责任，否则难以拒付尾款或主张解除/减价。\",\"severity\":\"high\",\"mitigation\":\"委托独立第三方对设备产能及质量进行鉴定，并保留全部测试记录及现场条件数据。\"},{\"id\":\"risk-002\",\"description\":\"未达产原因若被认定为现场条件所致，买方可能面临被要求立即支付12万元尾款并承担相应违约主张的风险。\",\"severity\":\"medium\",\"mitigation\":\"固定并保全瓶体规格、原料黏度、供电记录等现场条件证据，必要时申请现场条件公证或鉴定。\"},{\"id\":\"risk-003\",\"description\":\"设备交付迟延3日的违约责任及对验收期的影响在合同中是否明确尚不清楚，可能影响违约金额计算。\",\"severity\":\"low\",\"mitigation\":\"核查合同正本关于迟延交付违约金、验收期限顺延及不可抗力等条款。\"}],\"unknowns\":[{\"id\":\"unknown-001\",\"question\":\"合同文本中是否包含迟延交付违约金、验收标准量化方法及未达产处理方式（如减价、整改期、解除权）的明确约定？\",\"importance\":\"high\"},{\"id\":\"unknown-002\",\"question\":\"现场瓶体规格、原料黏度及供电条件是否符合设备正常运行前提条件？\",\"importance\":\"high\"},{\"id\":\"unknown-003\",\"question\":\"设备交付迟延3日是否获得买方书面同意或存在合同约定顺延事由？\",\"importance\":\"medium\"},{\"id\":\"unknown-004\",\"question\":\"案件目前是否已进入诉讼、仲裁或调解程序以及管辖法院或仲裁机构为何？\",\"importance\":\"medium\"},{\"id\":\"unknown-005\",\"question\":\"买方主张的卡瓶、故障频次及整改经过是否有完整书面记录及第三方见证？\",\"importance\":\"medium\"}],\"selfReview\":{\"confidence\":0.42,\"limitations\":[\"未提供合同正本条款细节，无法判断迟延违约责任、验收量化标准及未达产救济条款的具体约定。\",\"未提供独立第三方鉴定报告，无法判断未达产原因归属。\",\"未提供现场瓶体、原料及供电条件的历史数据，无法评估现场条件对产能的影响程度。\",\"管辖法院、争议解决方式及案件当前程序阶段未在输入中说明。\"],\"assumptions\":[\"actor-001与actor-002名称分别对应输入中的海川食品有限公司与华东智能装备有限公司。\",\"复测与首次测试数据均为卖方工程师签字确认的书面记录，暂视为可靠数据。\",\"双方就迟延3日交付本身已签字确认，但责任归属暂未在材料中明确。\"],\"requiresLawyerReview\":true}}",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784616996,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 3493,
+            "total_characters": 0,
+            "prompt_tokens": 1724,
+            "completion_tokens": 1769,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 3493,
+          "total_characters": 0,
+          "prompt_tokens": 1724,
+          "completion_tokens": 1769,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 24462,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-direct-benchmark-v2",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-direct-benchmark-v2",
+          "fallback_used": false
+        }
+      }
+    }
+  ]
+}

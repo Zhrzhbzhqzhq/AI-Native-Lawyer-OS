@@ -1,0 +1,107 @@
+[
+  {
+    "decisionFactorId": "df-001",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-contract",
+      "material-001-acceptance",
+      "material-001-rectification",
+      "evt-006",
+      "evt-008"
+    ],
+    "notes": "合同明确约定产能6000瓶/小时（material-001-contract），两次测试分别为5200和5700瓶/小时（material-001-acceptance、material-001-rectification），均未达标，材料完整支持该因素。"
+  },
+  {
+    "decisionFactorId": "df-002",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-acceptance",
+      "material-001-rectification"
+    ],
+    "notes": "卖方工程师备注卡瓶与买方瓶体规格、电压波动有关（material-001-acceptance），买方主张设备质量问题，双方未达成一致（conf-001）。该因素作为'原因归属存在争议'的描述有材料支持，但争议本身尚无第三方鉴定结论。"
+  },
+  {
+    "decisionFactorId": "df-003",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-contract",
+      "material-001-acceptance",
+      "material-001-rectification"
+    ],
+    "notes": "合同约定验收合格后支付10%尾款12万元（material-001-contract），买方因两次测试未达标均拒绝验收（material-001-acceptance、material-001-rectification），合同付款节点与验收条件均有材料支持。"
+  },
+  {
+    "decisionFactorId": "df-004",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-contract",
+      "material-001-delivery",
+      "evt-004"
+    ],
+    "notes": "合同约定2026年3月15日前交付（material-001-contract），送货单显示实际送达日为2026年3月18日，晚3日（material-001-delivery、evt-004），交付迟延事实清楚。"
+  },
+  {
+    "decisionFactorId": "df-005",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-rectification",
+      "evt-007"
+    ],
+    "notes": "卖方于2026年3月22日调整设备参数并更换部分导轨（material-001-rectification、evt-007），整改行为有材料支持；复测仍未达标（material-001-rectification）支持整改效果有限的描述。"
+  },
+  {
+    "decisionFactorId": "df-006",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-acceptance",
+      "material-001-rectification"
+    ],
+    "notes": "卖方工程师备注卡瓶与瓶体规格不稳定及电压波动有关（material-001-acceptance），卖方在复测沟通中再次主张原料黏度及供电条件（material-001-rectification）。该主张存在但无第三方验证，材料支持其作为争议性主张存在。"
+  },
+  {
+    "decisionFactorId": "df-007",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-contract",
+      "material-001-payment",
+      "evt-002",
+      "evt-003"
+    ],
+    "notes": "合同总价120万元，分三期付款（material-001-contract）；付款凭证显示已付36万元+72万元=108万元（material-001-payment、evt-002、evt-003），买方已履行主要付款义务有充分材料支持。"
+  },
+  {
+    "decisionFactorId": "df-008",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-acceptance",
+      "material-001-rectification",
+      "evt-006",
+      "evt-008"
+    ],
+    "notes": "首次测试记录由买方注明、卖方工程师签字确认（material-001-acceptance、evt-006），复测亦为双方共同进行（material-001-rectification、evt-008），测试数据双方签字确认的事实有材料支持。"
+  },
+  {
+    "decisionFactorId": "df-009",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-contract",
+      "material-001-delivery",
+      "material-001-acceptance",
+      "material-001-rectification",
+      "evt-005"
+    ],
+    "notes": "合同约定调试完成后7日内组织验收（material-001-contract），调试于2026年3月19日完成（material-001-delivery、evt-005），两次测试后买方均拒绝验收（material-001-acceptance、material-001-rectification），验收程序未完成的事实清楚。"
+  },
+  {
+    "decisionFactorId": "df-010",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-acceptance",
+      "material-001-rectification",
+      "evt-006",
+      "evt-007",
+      "evt-008"
+    ],
+    "notes": "首次测试5200瓶/小时（material-001-acceptance、evt-006），整改后复测5700瓶/小时（material-001-rectification、evt-008），提升500瓶/小时但仍未达6000瓶/小时，材料支持该因素描述。"
+  }
+]

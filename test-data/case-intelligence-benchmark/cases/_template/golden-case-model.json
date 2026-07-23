@@ -1,0 +1,74 @@
+{
+  "identity": {
+    "caseId": "case-000",
+    "title": "【填写案件标题】",
+    "caseType": "【填写案件类型】",
+    "stage": "【填写案件阶段】",
+    "jurisdiction": "unknown"
+  },
+  "narrative": {
+    "summary": "【填写案件摘要】",
+    "background": "【填写案件背景】",
+    "currentPosture": "【填写当前状态】"
+  },
+  "actors": [
+    {
+      "id": "actor-000-1",
+      "name": "【填写主体名称】",
+      "role": "【填写主体角色】",
+      "position": "【填写主体立场】"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "timeline-000-1",
+      "date": "unknown",
+      "event": "【填写时间线事件】",
+      "actorIds": [
+        "actor-000-1"
+      ],
+      "certainty": "unknown"
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "conflict-000-1",
+      "title": "【填写冲突标题】",
+      "description": "【填写冲突描述】",
+      "actorIds": [
+        "actor-000-1"
+      ]
+    }
+  ],
+  "decisionFactors": [
+    {
+      "id": "factor-000-1",
+      "label": "【填写决策因素】",
+      "description": "【填写决策因素说明】",
+      "impact": "uncertain"
+    }
+  ],
+  "risks": [
+    {
+      "id": "risk-000-1",
+      "description": "【填写风险描述】",
+      "severity": "medium",
+      "mitigation": "【填写风险应对建议】"
+    }
+  ],
+  "unknowns": [
+    {
+      "id": "unknown-000-1",
+      "question": "【填写待确认问题】",
+      "importance": "medium"
+    }
+  ],
+  "selfReview": {
+    "confidence": 0,
+    "limitations": [
+      "【填写当前材料或分析限制】"
+    ],
+    "assumptions": [],
+    "requiresLawyerReview": true
+  }
+}

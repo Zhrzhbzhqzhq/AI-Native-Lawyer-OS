@@ -1,0 +1,544 @@
+{
+  "provider": "minimax",
+  "model": "MiniMax-M3",
+  "responses": [
+    {
+      "stage": "material",
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae6596e3aa6249afcc33fd0164ca72",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "[{\"id\":\"material-006-1\",\"title\":\"股权转让合同\",\"content\":\"陈伟作为受让方与李强作为转让方签订股权转让合同，约定李强向陈伟转让某科技公司20%股权，转让价款为80万元。\"},{\"id\":\"material-006-2\",\"title\":\"付款记录\",\"content\":\"陈伟已向李强支付股权转让价款60万元，剩余20万元尚未支付。\"},{\"id\":\"material-006-3\",\"title\":\"股权交割沟通记录\",\"content\":\"双方就股权交割进行沟通，李强尚未完成股权交割。双方对剩余20万元付款与股权交割的先后顺序存在争议。\"}]",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784623767,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 589,
+            "total_characters": 0,
+            "prompt_tokens": 450,
+            "completion_tokens": 139,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 589,
+          "total_characters": 0,
+          "prompt_tokens": 450,
+          "completion_tokens": 139,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 4452,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-v1",
+          "fallback_used": false
+        }
+      }
+    },
+    {
+      "stage": "identity",
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae659b259e0adaebb2e4268555588d",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "{\"caseId\":\"case-006\",\"title\":\"陈伟诉李强股权转让合同纠纷\",\"caseType\":\"股权转让合同纠纷\",\"stage\":\"identity\",\"jurisdiction\":\"\"}",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784623772,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 630,
+            "total_characters": 0,
+            "prompt_tokens": 594,
+            "completion_tokens": 36,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 630,
+          "total_characters": 0,
+          "prompt_tokens": 594,
+          "completion_tokens": 36,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 4228,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-v1",
+          "fallback_used": false
+        }
+      }
+    },
+    {
+      "stage": "narrative",
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae659f6b56b4c6e5c02e333bba0927",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "{\"summary\":\"陈伟与李强之间因股权转让合同的履行产生纠纷，核心争议在于剩余20万元股权转让价款的支付与股权交割之间的履行顺序。\",\"background\":\"陈伟作为受让方与李强作为转让方签订股权转让合同，约定李强向陈伟转让某科技公司20%股权，转让价款为80万元。截至目前，陈伟已向李强支付股权转让价款60万元，剩余20万元尚未支付，李强亦尚未完成股权交割，双方对剩余20万元付款与股权交割的先后顺序存在争议。\",\"currentPosture\":\"案件处于合同履行阶段，双方已就剩余20万元付款与股权交割的先后顺序产生争议，尚未进入诉讼或裁判阶段。\"}",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784623776,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 775,
+            "total_characters": 0,
+            "prompt_tokens": 624,
+            "completion_tokens": 151,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 775,
+          "total_characters": 0,
+          "prompt_tokens": 624,
+          "completion_tokens": 151,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 2928,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-v1",
+          "fallback_used": false
+        }
+      }
+    },
+    {
+      "stage": "actor",
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae65a2a856ec3613e675cbeda40f7e",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "{\"actors\":[{\"id\":\"actor-006-1\",\"name\":\"陈伟\",\"role\":\"受让方\",\"position\":\"主张李强应先完成股权交割再支付剩余价款；或就履行顺序提出主张\"},{\"id\":\"actor-006-2\",\"name\":\"李强\",\"role\":\"转让方\",\"position\":\"对剩余20万元付款与股权交割的先后顺序与陈伟存在争议\"}],\"timeline\":[{\"id\":\"timeline-006-1\",\"date\":\"\",\"event\":\"陈伟与李强签订股权转让合同，约定李强向陈伟转让某科技公司20%股权，转让价款为80万元\",\"actorIds\":[\"actor-006-1\",\"actor-006-2\"],\"certainty\":\"confirmed\"},{\"id\":\"timeline-006-2\",\"date\":\"\",\"event\":\"陈伟向李强支付股权转让价款60万元，剩余20万元尚未支付\",\"actorIds\":[\"actor-006-1\",\"actor-006-2\"],\"certainty\":\"confirmed\"},{\"id\":\"timeline-006-3\",\"date\":\"\",\"event\":\"双方就股权交割进行沟通，李强尚未完成股权交割\",\"actorIds\":[\"actor-006-1\",\"actor-006-2\"],\"certainty\":\"confirmed\"},{\"id\":\"timeline-006-4\",\"date\":\"\",\"event\":\"双方对剩余20万元付款与股权交割的先后顺序产生争议\",\"actorIds\":[\"actor-006-1\",\"actor-006-2\"],\"certainty\":\"disputed\"}]}",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784623778,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 1105,
+            "total_characters": 0,
+            "prompt_tokens": 811,
+            "completion_tokens": 294,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 1105,
+          "total_characters": 0,
+          "prompt_tokens": 811,
+          "completion_tokens": 294,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 4094,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-v1",
+          "fallback_used": false
+        }
+      }
+    },
+    {
+      "stage": "conflict",
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae65a60755df049f7cec7359d94c67",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "[{\"id\":\"conflict-006-1\",\"title\":\"剩余20万元付款与股权交割的履行顺序争议\",\"description\":\"双方就剩余20万元股权转让价款的支付与李强完成股权交割之间的先后顺序存在争议。陈伟与李强对该履行顺序的主张不一致，但材料中未明确各方具体主张内容及合同约定。\",\"actorIds\":[\"actor-006-1\",\"actor-006-2\"]}]",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784623782,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 1168,
+            "total_characters": 0,
+            "prompt_tokens": 1078,
+            "completion_tokens": 90,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 1168,
+          "total_characters": 0,
+          "prompt_tokens": 1078,
+          "completion_tokens": 90,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 1943,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-v1",
+          "fallback_used": false
+        }
+      }
+    },
+    {
+      "stage": "factor",
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae65a86b3a70bc43942e6944492ab1",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "[{\"id\":\"factor-006-1\",\"label\":\"合同约定的履行顺序\",\"description\":\"股权转让合同中是否明确约定了剩余20万元价款支付与股权交割之间的先后履行顺序。材料中未载明合同具体条款内容，该约定情况不明。\",\"impact\":\"uncertain\"},{\"id\":\"factor-006-2\",\"label\":\"剩余20万元价款的支付状态\",\"description\":\"陈伟已支付60万元股权转让价款，剩余20万元尚未支付。\",\"impact\":\"neutral\"},{\"id\":\"factor-006-3\",\"label\":\"股权交割的完成状态\",\"description\":\"截至目前，李强尚未完成将某科技公司20%股权交割至陈伟名下的行为。\",\"impact\":\"neutral\"},{\"id\":\"factor-006-4\",\"label\":\"双方就履行顺序的主张分歧\",\"description\":\"陈伟与李强就剩余20万元付款与股权交割的先后顺序各自主张不一致，但材料中未明确披露各方具体主张内容。\",\"impact\":\"adverse\"},{\"id\":\"factor-006-5\",\"label\":\"股权转让合同的总价款\",\"description\":\"双方约定的股权转让价款总额为80万元，对应某科技公司20%股权。\",\"impact\":\"neutral\"},{\"id\":\"factor-006-6\",\"label\":\"已付款项占合同总价比例\",\"description\":\"陈伟已支付60万元，占合同总价80万元的75%；剩余20万元占25%。\",\"impact\":\"neutral\"}]",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784623784,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 1466,
+            "total_characters": 0,
+            "prompt_tokens": 1178,
+            "completion_tokens": 288,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 1466,
+          "total_characters": 0,
+          "prompt_tokens": 1178,
+          "completion_tokens": 288,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 3679,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-v1",
+          "fallback_used": false
+        }
+      }
+    },
+    {
+      "stage": "risk",
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae65ac95342baa4edff56862453f4d",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "[{\"id\":\"risk-006-1\",\"description\":\"双方对剩余20万元付款与股权交割的履行顺序存在分歧，且合同中是否有明确约定尚不确定，可能导致合同履行陷入僵局，陈伟面临已支付大部分价款但未取得股权的风险。\",\"severity\":\"high\",\"mitigation\":\"核查股权转让合同的具体条款，明确是否存在关于付款与交割先后顺序的约定；如无约定，依据《民法典》合同履行抗辩权相关规定，由双方协商或通过调解、仲裁、诉讼确定履行顺序。\"},{\"id\":\"risk-006-2\",\"description\":\"李强尚未完成股权交割，陈伟虽已支付75%价款但尚未取得股权，存在李强转让标的瑕疵或被第三方主张权利的潜在风险。\",\"severity\":\"medium\",\"mitigation\":\"要求李强提供股权不存在质押、冻结或其他权利负担的证明；必要时申请股权保全或要求提供履约担保。\"},{\"id\":\"risk-006-3\",\"description\":\"剩余20万元价款未支付，李强可能据此主张陈伟违约或拒绝办理股权交割，反向引发转让方对受让方迟延履行的抗辩或赔偿主张。\",\"severity\":\"medium\",\"mitigation\":\"明确陈伟未付款的原因及依据，若陈伟系行使先履行抗辩权则需提供证据；若不构成抗辩，应评估迟延履行利息或违约责任风险。\"},{\"id\":\"risk-006-4\",\"description\":\"现有材料未载明合同违约责任、争议解决方式及管辖等条款，可能导致纠纷发生时缺乏明确的救济依据。\",\"severity\":\"low\",\"mitigation\":\"调取合同原件核实违约责任、争议管辖、仲裁条款等内容，以便确定后续争议解决路径。\"}]",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784623788,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 1822,
+            "total_characters": 0,
+            "prompt_tokens": 1467,
+            "completion_tokens": 355,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 1822,
+          "total_characters": 0,
+          "prompt_tokens": 1467,
+          "completion_tokens": 355,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 7169,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-v1",
+          "fallback_used": false
+        }
+      }
+    },
+    {
+      "stage": "review",
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae65b35807a0f9670886cca3a0b952",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "{\"unknowns\":[{\"id\":\"unknown-006-1\",\"question\":\"股权转让合同中是否约定了剩余20万元价款支付与股权交割之间的先后履行顺序？\",\"importance\":\"high\"},{\"id\":\"unknown-006-2\",\"question\":\"股权转让合同中关于违约责任的具体约定内容是什么？\",\"importance\":\"medium\"},{\"id\":\"unknown-006-3\",\"question\":\"股权转让合同中是否约定了争议解决方式（如仲裁条款）及管辖法院？\",\"importance\":\"medium\"},{\"id\":\"unknown-006-4\",\"question\":\"陈伟与李强各自对剩余20万元付款与股权交割先后顺序的具体主张内容分别是什么？\",\"importance\":\"high\"},{\"id\":\"unknown-006-5\",\"question\":\"陈伟未支付剩余20万元的具体原因是什么？是行使先履行抗辩权还是其他原因？\",\"importance\":\"high\"},{\"id\":\"unknown-006-6\",\"question\":\"股权转让合同签订的具体日期及合同生效情况如何？\",\"importance\":\"low\"},{\"id\":\"unknown-006-7\",\"question\":\"陈伟已支付60万元价款的具体支付时间及方式？\",\"importance\":\"low\"},{\"id\":\"unknown-006-8\",\"question\":\"股权交割未完成的具体原因是什么？是李强主观不愿还是客观无法办理？\",\"importance\":\"high\"},{\"id\":\"unknown-006-9\",\"question\":\"涉案20%股权目前是否存在质押、冻结或其他权利负担？\",\"importance\":\"high\"},{\"id\":\"unknown-006-10\",\"question\":\"某科技公司的工商登记及股东信息现状如何？李强是否为该股权的合法登记持有人？\",\"importance\":\"medium\"},{\"id\":\"unknown-006-11\",\"question\":\"双方在股权交割沟通过程中是否提出过具体的反要约或条件？\",\"importance\":\"medium\"},{\"id\":\"unknown-006-12\",\"question\":\"涉案股权转让是否已通知公司其他股东并取得同意（如有相关规定或章程要求）？\",\"importance\":\"medium\"}],\"selfReview\":{\"confidence\":0.62,\"limitations\":[\"现有材料仅包含股权转让合同摘要、付款记录及交割沟通记录，未提供合同全文，无法核实合同具体条款内容\",\"未载明双方对履行顺序各自的具体主张内容，仅知存在争议\",\"缺乏合同签订日期、付款时间、股权现状等关键事实细节\",\"未提供目标公司基本情况及股东会决议等其他可能影响股权转让效力的文件\",\"未提供沟通记录的具体内容，无法判断双方协商进展及具体分歧点\"],\"assumptions\":[\"假设股权转让合同为双方真实意思表示且合法有效（该假设尚未经材料验证）\",\"假设陈伟已支付的60万元不附条件或已满足相应付款条件\",\"假设涉案20%股权仍登记在李强名下且李强具备处分权（待核实）\",\"假设合同未明确约定履行顺序，需依据《民法典》相关规定处理（待核实）\",\"假设材料中未载明的信息为暂时缺失而非不存在\"],\"requiresLawyerReview\":true}}",
+                "role": "assistant",
+                "name": "MiniMax AI",
+                "audio_content": ""
+              }
+            }
+          ],
+          "created": 1784623795,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 2453,
+            "total_characters": 0,
+            "prompt_tokens": 1847,
+            "completion_tokens": 606,
+            "prompt_tokens_details": {
+              "cached_tokens": 114
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 2453,
+          "total_characters": 0,
+          "prompt_tokens": 1847,
+          "completion_tokens": 606,
+          "prompt_tokens_details": {
+            "cached_tokens": 114
+          }
+        },
+        "cost": null,
+        "duration_ms": 9746,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-v1",
+          "fallback_used": false
+        }
+      }
+    }
+  ]
+}

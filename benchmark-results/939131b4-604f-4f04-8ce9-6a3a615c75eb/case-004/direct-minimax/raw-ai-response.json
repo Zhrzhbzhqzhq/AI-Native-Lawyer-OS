@@ -1,0 +1,72 @@
+{
+  "provider": "direct-minimax",
+  "model": "MiniMax-M3",
+  "responses": [
+    {
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06af3a6cdffd578648460335744930f8",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "{\"identity\":{\"caseId\":\"case-004\",\"title\":\"甲乙民间借贷纠纷\",\"caseType\":\"民间借贷纠纷\",\"stage\":\"争议沟通阶段\",\"jurisdiction\":\"待确认\"},\"narrative\":{\"summary\":\"甲因资金周转困难向乙寻求资金支持。2024年3月1日甲向乙出具借条，载明借款本金100万元、期限12个月、月利率1%。2024年3月2日乙通过银行向甲转账80万元、通过微信向甲转账20万元，转账合计100万元。2024年9月10日甲向乙支付30万元，双方未明确该笔款项的性质。甲主张双方属于资金合作关系，并非全部构成借贷；乙主张双方存在100万元民间借贷关系，要求返还剩余款项及利息。\",\"background\":\"甲因资金周转困难向乙寻求资金支持，双方就资金使用、还款时间及利息问题进行了沟通。借条载明借款本金100万元、期限12个月、月利率1%。\",\"currentPosture\":\"双方处于争议沟通阶段：甲否认全部款项构成借贷，乙主张双方存在100万元民间借贷关系并要求返还剩余款项及利息。2024年9月10日甲已支付30万元，但双方未就该笔款项的性质（本金、利息或其他费用）达成明确约定。\"},\"actors\":[{\"id\":\"actor-jia\",\"name\":\"甲\",\"role\":\"借款人/付款方\",\"position\":\"主张双方属于资金合作关系，并非全部构成借贷\"},{\"id\":\"actor-yi\",\"name\":\"乙\",\"role\":\"出借人/收款方\",\"position\":\"主张双方存在100万元民间借贷关系，要求返还剩余款项及利息\"}],\"timeline\":[{\"id\":\"event-20240301\",\"date\":\"2024-3-1\",\"event\":\"甲向乙出具借条，载明借款本金100万元、期限12个月、月利率1%\",\"actorIds\":[\"actor-jia\",\"actor-yi\"],\"certainty\":\"confirmed\"},{\"id\":\"event-20240302-bank\",\"date\":\"2024-3-2\",\"event\":\"乙通过银行向甲转账80万元\",\"actorIds\":[\"actor-yi\",\"actor-jia\"],\"certainty\":\"confirmed\"},{\"id\":\"event-20240302-wechat\",\"date\":\"2024-3-2\",\"event\":\"乙通过微信向甲转账20万元\",\"actorIds\":[\"actor-yi\",\"actor-jia\"],\"certainty\":\"confirmed\"},{\"id\":\"event-repayment\",\"date\":\"2024-9-10\",\"event\":\"甲向乙支付30万元，双方未明确该30万元属于本金、利息或其他费用\",\"actorIds\":[\"actor-jia\",\"actor-yi\"],\"certainty\":\"confirmed\"},{\"id\":\"event-dispute\",\"date\":\"待确认\",\"event\":\"双方就款项性质及是否构成借贷产生争议\",\"actorIds\":[\"actor-jia\",\"actor-yi\"],\"certainty\":\"disputed\"}],\"conflicts\":[{\"id\":\"conflict-relationship\",\"title\":\"款项性质是否构成民间借贷\",\"description\":\"甲主张双方属于资金合作关系，并非全部构成借贷；乙主张双方存在100万元民间借贷关系，要求返还剩余款项及利息\",\"actorIds\":[\"actor-jia\",\"actor-yi\"]},{\"id\":\"conflict-repayment-nature\",\"title\":\"2024年9月10日30万元还款的性质\",\"description\":\"双方未明确该30万元属于本金、利息或其他费用，存在性质认定分歧\",\"actorIds\":[\"actor-jia\",\"actor-yi\"]}],\"decisionFactors\":[{\"id\":\"df-loan-note\",\"label\":\"借条载明借款本金100万元、月利率1%、期限12个月\",\"description\":\"借条明确记载借款本金为100万元（材料明确金额），借款期限12个月，月利率1%。该金额为材料直接记载事实，未做计算\",\"impact\":\"supportive\"},{\"id\":\"df-bank-transfer\",\"label\":\"银行转账记录80万元\",\"description\":\"2024年3月2日乙通过银行向甲转账80万元（材料明确金额）\",\"impact\":\"supportive\"},{\"id\":\"df-wechat-transfer\",\"label\":\"微信转账记录20万元\",\"description\":\"2024年3月2日乙通过微信向甲转账20万元（材料明确金额）\",\"impact\":\"supportive\"},{\"id\":\"df-calculated-total\",\"label\":\"转账合计100万元\",\"description\":\"根据材料，2024年3月2日银行转账80万元 + 微信转账20万元 = 100万元。该100万元为根据材料计算金额（计算关系：80万元 + 20万元 = 100万元），非材料直接记载的转账事实表述\",\"impact\":\"neutral\"},{\"id\":\"df-chat-record\",\"label\":\"微信聊天记录显示双方讨论资金使用、还款时间及利息问题\",\"description\":\"聊天记录体现双方就资金支持、还款及利息进行沟通，与借条相互印证借贷合意\",\"impact\":\"supportive\"},{\"id\":\"df-jia-position\",\"label\":\"甲主张双方属于资金合作关系，并非全部构成借贷\",\"description\":\"甲主张否定全部款项的借贷性质，可能削弱乙的借贷主张\",\"impact\":\"adverse\"},{\"id\":\"df-unallocated-repayment\",\"label\":\"2024年9月10日30万元还款性质未约定\",\"description\":\"双方未明确该30万元属于本金、利息或其他费用，可能影响剩余本息认定\",\"impact\":\"uncertain\"},{\"id\":\"df-no-remaining-amount-calculated\",\"label\":\"剩余款项金额无法计算\",\"description\":\"材料明确金额为：借条记载本金100万元、2024年9月10日甲支付30万元。在30万元性质（本金或利息）未确认前，无法依据材料计算剩余本金金额；故暂不输出具体剩余金额数值，待30万元性质确认后再行计算\",\"impact\":\"uncertain\"}],\"risks\":[{\"id\":\"risk-no-written-allocation\",\"description\":\"2024年9月10日30万元还款未约定性质，存在被认定为利息、本金或其他费用的分歧，可能影响剩余本金及利息的计算结果\",\"severity\":\"high\",\"mitigation\":\"通过书面协议、补充约定或双方书面确认该笔款项的性质\"},{\"id\":\"risk-relationship-characterization\",\"description\":\"甲主张资金合作关系而非借贷，可能导致借贷关系认定存在不确定性\",\"severity\":\"medium\",\"mitigation\":\"固定借条、转账记录及聊天记录等书面证据，证明借贷合意及资金交付事实\"},{\"id\":\"risk-interest-rate-dispute\",\"description\":\"借条约定月利率1%，但双方对利率执行及利息计算基数可能产生分歧\",\"severity\":\"medium\",\"mitigation\":\"在书面文件中明确利息计算方式及起止日期\"},{\"id\":\"risk-evidence-integrity\",\"description\":\"微信聊天记录及转账记录需保证完整性与真实性，避免证据瑕疵\",\"severity\":\"medium\",\"mitigation\":\"及时通过公证、截图保全等方式固定聊天记录及转账凭证\"}],\"unknowns\":[{\"id\":\"unknown-repayment-allocation\",\"question\":\"2024年9月10日甲支付的30万元属于本金、利息还是其他费用\",\"importance\":\"high\"},{\"id\":\"unknown-remaining-principal\",\"question\":\"在30万元还款性质确定后，剩余借款本金金额是多少（计算依据待补全）\",\"importance\":\"high\"},{\"id\":\"unknown-accrued-interest\",\"question\":\"截至当前，借款利息累计金额是多少（计算基数与已还利息数额取决于30万元的性质认定）\",\"importance\":\"high\"},{\"id\":\"unknown-jurisdiction\",\"question\":\"本案管辖法院或适用的具体地域管辖尚未确定\",\"importance\":\"medium\"},{\"id\":\"unknown-dispute-date\",\"question\":\"双方争议沟通记录的具体发生日期未在材料中明确\",\"importance\":\"low\"}],\"selfReview\":{\"confidence\":0.62,\"limitations\":[\"材料未明确2024年9月10日30万元还款的性质，无法据以计算剩余本金及利息\",\"管辖法院、案件程序阶段及双方争议沟通的具体日期未在材料中明确\",\"甲与乙之间是否还存在其他款项往来、是否存在保证人或抵押等担保措施未在材料中载明\",\"材料未提供借条签署过程、交付背景及双方完整聊天内容，无法对借贷合意做进一步认定\"],\"assumptions\":[\"借条、转账记录及微信聊天记录所记载的金额与日期按材料原文采用\",\"80万元银行转账与20万元微信转账合计100万元系基于材料记载的算术相加，属计算结果而非材料直接表述\",\"借条约定月利率1%按材料原文采用，未对其合法性或适用性作额外判断\"],\"requiresLawyerReview\":true}}",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784678253,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 3284,
+            "total_characters": 0,
+            "prompt_tokens": 1579,
+            "completion_tokens": 1705,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 3284,
+          "total_characters": 0,
+          "prompt_tokens": 1579,
+          "completion_tokens": 1705,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 14646,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-direct-benchmark-v2",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-direct-benchmark-v2",
+          "fallback_used": false
+        }
+      }
+    }
+  ]
+}

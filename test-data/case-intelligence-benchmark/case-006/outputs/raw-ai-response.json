@@ -1,0 +1,67 @@
+{
+  "provider": "minimax",
+  "model": "MiniMax-M3",
+  "responses": [
+    {
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "id": "06ae1e96e67df125dcbf3620b6f60e4b",
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"caseNature\",\"summary\",\"importantFacts\",\"possibleConflicts\",\"uncertainties\"],\"properties\":{\"caseNature\":{\"type\":\"string\"},\"summary\":{\"type\":\"string\"},\"importantFacts\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"possibleConflicts\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"uncertainties\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}}}",
+              "role": "assistant"
+            }
+          }
+        ],
+        "created": 1784605592,
+        "model": "MiniMax-M3",
+        "object": "chat.completion",
+        "usage": {
+          "total_tokens": 544,
+          "total_characters": 0,
+          "prompt_tokens": 458,
+          "completion_tokens": 86,
+          "prompt_tokens_details": {
+            "cached_tokens": 384
+          }
+        },
+        "input_sensitive": false,
+        "output_sensitive": false,
+        "input_sensitive_type": 0,
+        "output_sensitive_type": 0,
+        "output_sensitive_int": 0,
+        "service_tier": "standard",
+        "base_resp": {
+          "status_code": 0,
+          "status_msg": ""
+        }
+      },
+      "finish_reason": "stop",
+      "usage": {
+        "total_tokens": 544,
+        "total_characters": 0,
+        "prompt_tokens": 458,
+        "completion_tokens": 86,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        }
+      },
+      "cost": null,
+      "duration_ms": 3172,
+      "attempts": 1,
+      "fallback": false,
+      "fallback_used": false,
+      "prompt_version": "case-intelligence-hybrid-initial-v1",
+      "ai_audit": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "prompt_version": "case-intelligence-hybrid-initial-v1",
+        "fallback_used": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "case_id": "case-003",
+  "provider": "hybrid-minimax",
+  "status": "failed",
+  "error": {
+    "code": "hybrid_case_model_validation_failed",
+    "message": "hybrid_case_model_validation_failed"
+  },
+  "failing_stage": "governance",
+  "diagnostic": {
+    "failing_stage": "governance",
+    "schema_validation_error": {
+      "ok": false,
+      "issues": [
+        {
+          "path": "$",
+          "code": "amount_unsupported",
+          "message": "Amount 48000元 has no explicit or derivable source support."
+        }
+      ]
+    },
+    "raw_ai_response_path": null,
+    "provider": "unknown",
+    "model": "unknown"
+  }
+}

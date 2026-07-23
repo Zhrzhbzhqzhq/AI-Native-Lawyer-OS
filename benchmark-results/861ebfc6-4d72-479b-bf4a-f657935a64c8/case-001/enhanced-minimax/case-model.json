@@ -1,0 +1,244 @@
+{
+  "identity": {
+    "caseId": "case-001",
+    "title": "海川食品与华东智造设备买卖合同纠纷",
+    "caseType": "待确认",
+    "stage": "待确认",
+    "jurisdiction": "待确认"
+  },
+  "narrative": {
+    "summary": "海川食品有限公司与华东智能装备有限公司因灌装生产线设备产能未达合同约定引发争议，买方已支付108万元并暂缓支付12万元尾款，双方就未达产原因各执一词。",
+    "background": "2026年1月5日双方签订灌装生产线设备买卖合同，总价120万元，分三期付款，约定交付时间及产能指标。",
+    "currentPosture": "设备已完成交付、安装及两轮调试，但产能测试未达合同标准，双方对原因存在分歧，验收未通过，尾款未支付。"
+  },
+  "actors": [
+    {
+      "id": "actor-buyer",
+      "name": "海川食品有限公司",
+      "role": "待确认",
+      "position": "待确认"
+    },
+    {
+      "id": "actor-seller",
+      "name": "华东智能装备有限公司",
+      "role": "待确认",
+      "position": "待确认"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "timeline-001",
+      "date": "2026-01-05",
+      "event": "双方签订灌装生产线设备买卖合同，总价120万元",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-002",
+      "date": "2026-01-10",
+      "event": "海川食品有限公司支付预付款36万元",
+      "actorIds": [
+        "actor-buyer"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-003",
+      "date": "2026-03-08",
+      "event": "海川食品有限公司支付发货前货款72万元",
+      "actorIds": [
+        "actor-buyer"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-004",
+      "date": "2026-03-18",
+      "event": "设备送达海川食品工厂，较合同约定日期晚3日",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-005",
+      "date": "2026-03-19",
+      "event": "华东智能装备有限公司完成设备安装并开始调试",
+      "actorIds": [
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-006",
+      "date": "2026-03-20",
+      "event": "首次产能测试，平均产能5200瓶/小时，未达6000瓶/小时合同标准，买方拒绝验收",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-007",
+      "date": "2026-03-22",
+      "event": "华东智能装备有限公司调整设备参数并更换部分导轨",
+      "actorIds": [
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-008",
+      "date": "2026-03-25",
+      "event": "复测平均产能5700瓶/小时，仍未达6000瓶/小时，双方就原因存在分歧",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "conflict-001",
+      "title": "设备产能是否达到合同约定标准",
+      "description": "海川食品认为设备连续两次测试结果（5200瓶/小时、5700瓶/小时）均未达合同约定的6000瓶/小时，构成设备质量或性能问题，故不同意验收；华东智能装备工程师虽在首次测试记录上签字确认测试数据，但备注认为卡瓶与买方提供的瓶体规格不稳定及现场电压波动有关，并在复测后主张差异主要由买方瓶体、原料黏度和供电条件造成，双方就未达产原因归咎于对方各执一词。",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ]
+    },
+    {
+      "id": "conflict-002",
+      "title": "设备交付是否逾期及责任承担",
+      "description": "海川食品依据合同主张卖方应于2026年3月15日前交付设备，但物流签收单显示设备实际送达日期为2026年3月18日，迟延3日，构成交付违约；华东智能装备对于实际送达日晚于合同约定日期的事实未作否认，双方对是否构成违约及迟延责任如何承担存在分歧。",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ]
+    },
+    {
+      "id": "conflict-003",
+      "title": "尾款12万元是否应予支付",
+      "description": "海川食品以设备未通过验收、产能未达合同标准为由暂缓支付12万元验收尾款；华东智能装备则认为其已完成交付和调试义务，整改后产能差距系买方现场条件所致，故要求买方支付尾款。双方就付款条件是否已成就及尾款支付义务是否成立存在分歧。",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ]
+    },
+    {
+      "id": "conflict-004",
+      "title": "未达产原因系设备本身问题还是买方现场条件所致",
+      "description": "海川食品认为两次测试产能均未达6000瓶/小时，说明设备本身存在质量或性能缺陷，属于卖方违约；华东智能装备主张未达产系买方提供的瓶体规格不稳定、原料黏度及现场电压波动等外部因素造成，并以此抗辩。双方就设备未达产的因果关系及责任归属存在根本分歧。",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ]
+    },
+    {
+      "id": "conflict-005",
+      "title": "整改后产能差异是否构成验收合格的实质性障碍",
+      "description": "海川食品以复测产能5700瓶/小时仍低于合同约定的6000瓶/小时为由，继续拒绝验收并主张整改未到位；华东智能装备主张已通过调整设备参数并更换部分导轨完成整改，认为差异系外部条件造成，不应成为阻却验收通过的实质性障碍。双方就整改是否充分及验收合格条件是否已满足存在分歧。",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ]
+    }
+  ],
+  "decisionFactors": [
+    {
+      "id": "df-001",
+      "label": "合同约定产能标准",
+      "description": "合同明确约定设备稳定产能应达到6000瓶/小时，两次测试结果分别为5200瓶/小时和5700瓶/小时，均未达标",
+      "impact": "adverse"
+    },
+    {
+      "id": "df-002",
+      "label": "买方已支付108万元",
+      "description": "买方已按合同约定支付预付款及发货前货款合计108万元，仅剩12万元尾款未付",
+      "impact": "supportive"
+    },
+    {
+      "id": "df-003",
+      "label": "卖方主张外部条件影响",
+      "description": "卖方主张未达产系买方瓶体规格不稳定、原料黏度及现场电压波动等外部因素造成，但未提供独立第三方鉴定",
+      "impact": "uncertain"
+    },
+    {
+      "id": "df-004",
+      "label": "设备交付晚3日",
+      "description": "设备实际交付日期较合同约定晚3日，可能构成交付违约",
+      "impact": "adverse"
+    },
+    {
+      "id": "df-005",
+      "label": "卖方已进行整改",
+      "description": "卖方在首次测试后调整参数并更换部分导轨，体现一定履约意愿和努力",
+      "impact": "neutral"
+    }
+  ],
+  "risks": [
+    {
+      "id": "risk-001",
+      "description": "双方对未达产原因缺乏独立第三方鉴定，可能导致事实认定困难",
+      "severity": "high",
+      "mitigation": "申请或建议委托具备资质的第三方检测机构对设备产能及质量进行鉴定"
+    },
+    {
+      "id": "risk-002",
+      "description": "若争议进入诉讼或仲裁，设备长期搁置可能造成扩大损失",
+      "severity": "medium",
+      "mitigation": "评估设备现状及减损措施，必要时对设备进行封存或公证"
+    },
+    {
+      "id": "risk-003",
+      "description": "交付迟延3日可能产生违约金或赔偿请求",
+      "severity": "low",
+      "mitigation": "核查合同中关于迟延交付的具体违约责任约定"
+    }
+  ],
+  "unknowns": [
+    {
+      "id": "unknown-001",
+      "question": "合同约定的违约金或违约责任条款具体内容是什么",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-002",
+      "question": "设备现场供电条件、瓶体规格及原料是否实际存在不稳定因素及其影响程度",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-003",
+      "question": "合同约定的争议解决方式（诉讼或仲裁）及管辖",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-004",
+      "question": "买方工厂是否存在其他生产线可替代使用，停工损失范围如何",
+      "importance": "medium"
+    }
+  ],
+  "selfReview": {
+    "confidence": 0.42,
+    "limitations": [
+      "案件性质、阶段及管辖信息未在输入中明确",
+      "合同中关于验收标准、违约金、争议解决等关键条款的完整文本未提供",
+      "未达产原因缺乏第三方独立鉴定支持",
+      "设备实际产能与合同标准的差距在整改后是否可进一步消除仍不确定",
+      "交付迟延3日的法律后果取决于合同具体约定，尚未可知"
+    ],
+    "assumptions": [
+      "假设海川食品与华东智能装备均为独立法人主体",
+      "假设付款凭证、物流签收单及测试记录真实反映交易过程",
+      "假设合同关于付款节点的约定与付款凭证对应一致",
+      "假设双方未在输入材料之外达成其他变更或补充协议"
+    ],
+    "requiresLawyerReview": true
+  }
+}

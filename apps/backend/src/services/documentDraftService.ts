@@ -2,16 +2,32 @@ import type { PrismaClient } from '@lawdesk/database'
 import {
   FORMAL_ARGUMENT_V2_HEADER,
   FORMAL_LAW_V2_HEADER,
-  parseFormalArgument,
-  parseFormalLaw,
-  type FormalSemanticEncoding,
-  type FormalSemanticRecovery,
 } from './formalSemanticCodec'
 import DocumentGenerationService, {
   buildDocumentReasoningScope,
   renderComplaintSections,
   sourceIdsFromScope,
 } from './ai/DocumentGenerationService'
+import { projectComplaintContext } from './documentProfessionalProjection'
+import DocumentContextBuilder, {
+  FORMAL_SOURCE_STATUSES,
+  type DocumentContext,
+} from './document_context_builder'
+import CaseUnderstandingProductService from './context_engine/case_understanding_product_service'
+
+export { buildDocumentContext } from './document_context_builder'
+export type {
+  DocumentCaseUnderstanding,
+  DocumentArgumentScope,
+  DocumentContext,
+  DocumentContextEvidence,
+  DocumentContextFact,
+  DocumentContextIssue,
+  DocumentContextLaw,
+  DocumentContextSourceRows,
+  DocumentMaterialSource,
+  UnavailableDocumentMaterialSource,
+} from './document_context_builder'
 
 type DocumentDraftInput = {
   document_type: string
@@ -23,97 +39,6 @@ type DocumentDraftInput = {
   source_fact_ids: string[]
   source_issue_ids: string[]
   source_law_ids: string[]
-}
-
-export type DocumentContextEvidence = {
-  evidence_id: string
-  title: string
-  description: string
-  status: string
-  material: { material_id: string; title: string } | null
-}
-
-export type DocumentContextFact = {
-  fact_id: string
-  title: string
-  description: string
-  status: string
-  evidences: DocumentContextEvidence[]
-}
-
-export type DocumentContextIssue = {
-  issue_id: string
-  title: string
-  description: string
-  status: string
-}
-
-export type DocumentContextLaw = {
-  law_id: string
-  title: string
-  citation: string
-  description: string
-  rule_content: string
-  application: string
-  limitations: string
-  jurisdiction: string
-  source_reference: string
-  semantic_encoding: FormalSemanticEncoding
-  semantic_recovery: FormalSemanticRecovery
-  raw_description: string
-  status: string
-}
-
-export type DocumentArgumentScope = {
-  argument: {
-    argument_id: string
-    title: string
-    description: string
-    conclusion: string
-    position: string
-    reasoning: string
-    counter_argument: string
-    response: string
-    risk: string
-    semantic_encoding: FormalSemanticEncoding
-    semantic_recovery: FormalSemanticRecovery
-    raw_description: string
-    status: string
-  }
-  issue: DocumentContextIssue
-  facts: DocumentContextFact[]
-  laws: DocumentContextLaw[]
-}
-
-export type DocumentContext = {
-  matter: { matter_id: string; title: string; description: string }
-  document_type: string
-  lawyer_instruction: string
-  evidences: DocumentContextEvidence[]
-  facts: DocumentContextFact[]
-  issues: DocumentContextIssue[]
-  laws: DocumentContextLaw[]
-  arguments: DocumentArgumentScope['argument'][]
-  argument_scopes: DocumentArgumentScope[]
-  excluded_scopes: Array<{ argument_id: string; reasons: string[] }>
-}
-
-type DocumentContextSourceRows = {
-  matter_id: string
-  document_type: string
-  lawyer_instruction: string
-  matter: any
-  evidences: any[]
-  facts: any[]
-  issues: any[]
-  laws: any[]
-  argumentsList: any[]
-  factEvidenceLinks: any[]
-  issueFactLinks: any[]
-  lawIssueLinks: any[]
-  argumentFactLinks: any[]
-  argumentIssueLinks: any[]
-  argumentLawLinks: any[]
 }
 
 export type DocumentDraftRow = {
@@ -138,7 +63,6 @@ export type DocumentDraftRow = {
 
 const SUPPORTED_DOCUMENT_TYPES = ['complaint']
 const FORMAL_DOCUMENT_STATUSES = new Set(['published', 'completed', 'final'])
-const FORMAL_SOURCE_STATUSES = ['active', 'published', 'completed', 'final', 'confirmed']
 const CLIENT_STATUSES = ['editing', 'ready_to_publish']
 
 function uniqueStrings(values: unknown[]) {
@@ -174,24 +98,6 @@ function escapeXml(value: unknown) {
     .replace(/'/g, '&apos;')
 }
 
-function sanitizeLegalSentence(value: unknown) {
-  return String(value || '')
-    .replace(/来源材料ID[:：][^\n。；;]*/g, '')
-    .replace(/来源材料[:：][^\n。；;]*/g, '')
-    .replace(/来源事实[:：][^\n。；;]*/g, '')
-    .replace(/来源争议焦点[:：][^\n。；;]*/g, '')
-    .replace(/来源法律依据[:：][^\n。；;]*/g, '')
-    .replace(/AI判断理由?[:：]?/g, '')
-    .replace(/证明目标[:：]?/g, '')
-    .replace(/摘要[:：]?/g, '')
-    .replace(/可信度[:：]?\s*\d+(?:\.\d+)?%?/g, '')
-    .replace(/\b(?:mat|ev|fd|doc|arg|law|issue|fact)-[a-z0-9-]+\b/gi, '')
-    .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, '')
-    .replace(/[\w\u4e00-\u9fa5_ -]+\.(?:md|txt|json|pdf|docx?)/gi, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
 const FORBIDDEN_CONTENT_PATTERNS = [
   /来源材料ID/i,
   /\bmat-[a-z0-9-]+\b/i,
@@ -216,6 +122,12 @@ const ABSOLUTE_OUTCOME_PATTERNS = [
   /对方必然承担责任/,
 ]
 
+const COMPLAINT_ANALYSIS_HEADING_PATTERNS = [
+  /^\s*(?:争议焦点|本方主张|论证|回应|阶段性结论)\s*[:：]/m,
+  /^\s*(?:争议焦点及本方主张|案件基本事实|已确认事实|适用法律|法律推理|当前阶段性结论|现有来源|正式来源|已确认来源)\s*$/m,
+  /^\s*(?:Issue|Position|Confirmed Facts|Applicable Laws|Legal Reasoning|Counter Argument|Response|Risk|Limitations|Conclusion|Internal Constraints|Scope)\s*:/mi,
+]
+
 export function assertComplaintContentSafe(content: string) {
   const text = String(content || '')
   const forbidden = [
@@ -236,212 +148,26 @@ export function assertComplaintContentSafe(content: string) {
     matchedKeyword
     || FORBIDDEN_CONTENT_PATTERNS.some((pattern) => pattern.test(text))
     || ABSOLUTE_OUTCOME_PATTERNS.some((pattern) => pattern.test(text))
+    || COMPLAINT_ANALYSIS_HEADING_PATTERNS.some((pattern) => pattern.test(text))
   ) {
     const error = new Error('unsafe_document_content')
     ;(error as any).code = 'unsafe_document_content'
     throw error
   }
-}
-
-export function buildDocumentContext(input: DocumentContextSourceRows): DocumentContext {
-  const matterId = String(input.matter_id)
-  const allowed = (row: any) => String(row?.matter_id || '') === matterId && FORMAL_SOURCE_STATUSES.includes(String(row?.status || '').toLowerCase())
-  const evidences = input.evidences.filter(allowed)
-  const facts = input.facts.filter(allowed)
-  const issues = input.issues.filter(allowed)
-  const laws = input.laws.filter(allowed)
-  const argumentsList = input.argumentsList.filter(allowed)
-  const evidenceById = new Map(evidences.map((row) => [String(row.evidence_id), row]))
-  const factById = new Map(facts.map((row) => [String(row.fact_id), row]))
-  const issueById = new Map(issues.map((row) => [String(row.issue_id), row]))
-  const lawById = new Map(laws.map((row) => [String(row.law_id), row]))
-  const argumentScopes: DocumentArgumentScope[] = []
-  const excludedScopes: DocumentContext['excluded_scopes'] = []
-
-  for (const argument of argumentsList) {
-    const argumentId = String(argument.argument_id)
-    const reasons: string[] = []
-    const argumentSemantic = parseFormalArgument(argument.description)
-    if (['invalid-v2', 'unsupported-version', 'wrong-object-type'].includes(argumentSemantic.encoding)) {
-      reasons.push(`argument_semantic_${argumentSemantic.encoding}`)
+  const closingIndex = text.indexOf('\n此致')
+  if (closingIndex >= 0) {
+    const closing = text.slice(closingIndex)
+    const validClosing = /^\n此致\n[^\n]+\n\n具状人：\n[^\n]+\n\n日期：\n[^\n]+\s*$/.test(closing)
+    if (!validClosing || /(?:结语|结论|阶段性结论)\s*[:：]/.test(closing)) {
+      const error = new Error('unsafe_document_content')
+      ;(error as any).code = 'unsafe_document_content'
+      throw error
     }
-    const linkedIssueIds = uniqueStrings(input.argumentIssueLinks.filter((link) => String(link.argument_id) === argumentId).map((link) => link.issue_id))
-    const directIssueId = String(argument.issue_id || '')
-    if (linkedIssueIds.length !== 1 || (directIssueId && linkedIssueIds[0] !== directIssueId)) reasons.push('argument_must_have_one_issue')
-    const issueId = linkedIssueIds.length === 1 ? linkedIssueIds[0] : ''
-    const issue = issueById.get(issueId)
-    if (!issue) reasons.push('formal_issue_not_found')
-
-    const factIds = uniqueStrings(input.argumentFactLinks.filter((link) => String(link.argument_id) === argumentId).map((link) => link.fact_id))
-    if (factIds.length === 0) reasons.push('argument_facts_required')
-    const issueFactIds = new Set(input.issueFactLinks.filter((link) => String(link.issue_id) === issueId).map((link) => String(link.fact_id)))
-    if (factIds.some((factId) => !issueFactIds.has(factId))) reasons.push('source_fact_outside_issue')
-    if (factIds.some((factId) => !factById.has(factId))) reasons.push('formal_fact_not_found')
-
-    const scopedFacts: DocumentContextFact[] = []
-    for (const factId of factIds) {
-      const fact = factById.get(factId)
-      if (!fact) continue
-      const factEvidences = uniqueStrings(input.factEvidenceLinks.filter((link) => String(link.fact_id) === factId).map((link) => link.evidence_id))
-        .map((evidenceId) => evidenceById.get(evidenceId))
-        .filter(Boolean)
-        .map((evidence: any) => ({
-          evidence_id: String(evidence.evidence_id),
-          title: String(evidence.title || ''),
-          description: String(evidence.description || ''),
-          status: String(evidence.status || ''),
-          material: evidence.material
-            ? { material_id: String(evidence.material.material_id || evidence.material_id || ''), title: String(evidence.material.title || '') }
-            : null,
-        }))
-      if (factEvidences.length === 0) reasons.push('fact_without_formal_evidence')
-      scopedFacts.push({
-        fact_id: factId,
-        title: String(fact.title || ''),
-        description: String(fact.description || ''),
-        status: String(fact.status || ''),
-        evidences: factEvidences,
-      })
-    }
-
-    const lawIds = uniqueStrings(input.argumentLawLinks.filter((link) => String(link.argument_id) === argumentId).map((link) => link.law_id))
-    if (lawIds.length === 0) reasons.push('argument_laws_required')
-    const issueLawIds = new Set(input.lawIssueLinks.filter((link) => String(link.issue_id) === issueId).map((link) => String(link.law_id)))
-    if (lawIds.some((lawId) => !issueLawIds.has(lawId))) reasons.push('source_law_outside_issue')
-    if (lawIds.some((lawId) => !lawById.has(lawId))) reasons.push('formal_law_not_found')
-    const scopedLaws: DocumentContextLaw[] = lawIds.map((lawId) => lawById.get(lawId)).filter(Boolean).flatMap((law: any) => {
-      const semantic = parseFormalLaw(law.description)
-      if (['invalid-v2', 'unsupported-version', 'wrong-object-type'].includes(semantic.encoding)) {
-        reasons.push(`law_semantic_${semantic.encoding}`)
-        return []
-      }
-      return [{
-        law_id: String(law.law_id),
-        title: String(law.title || ''),
-        citation: String(law.citation || ''),
-        description: semantic.parsed
-          ? [semantic.fields.rule_content, semantic.fields.application].filter(Boolean).join('\n')
-          : semantic.raw_description,
-        rule_content: semantic.fields.rule_content,
-        application: semantic.fields.application,
-        limitations: semantic.fields.limitations,
-        jurisdiction: semantic.fields.jurisdiction,
-        source_reference: semantic.fields.source_reference,
-        semantic_encoding: semantic.encoding,
-        semantic_recovery: semantic.semantic_recovery,
-        raw_description: semantic.raw_description,
-        status: String(law.status || ''),
-      }]
-    })
-
-    if (reasons.length > 0 || !issue) {
-      excludedScopes.push({ argument_id: argumentId, reasons: uniqueStrings(reasons) })
-      continue
-    }
-    argumentScopes.push({
-      argument: {
-        argument_id: argumentId,
-        title: String(argument.title || ''),
-        description: argumentSemantic.parsed
-          ? [argumentSemantic.fields.position, argumentSemantic.fields.reasoning, argumentSemantic.fields.response].filter(Boolean).join('\n')
-          : argumentSemantic.raw_description,
-        conclusion: String(argument.conclusion || ''),
-        position: argumentSemantic.fields.position,
-        reasoning: argumentSemantic.parsed ? argumentSemantic.fields.reasoning : argumentSemantic.raw_description,
-        counter_argument: argumentSemantic.fields.counter_argument,
-        response: argumentSemantic.fields.response,
-        risk: argumentSemantic.fields.risk,
-        semantic_encoding: argumentSemantic.encoding,
-        semantic_recovery: argumentSemantic.semantic_recovery,
-        raw_description: argumentSemantic.raw_description,
-        status: String(argument.status || ''),
-      },
-      issue: {
-        issue_id: issueId,
-        title: String((issue as any).title || ''),
-        description: String((issue as any).description || ''),
-        status: String((issue as any).status || ''),
-      },
-      facts: scopedFacts,
-      laws: scopedLaws,
-    })
-  }
-
-  const uniqueBy = <T>(rows: T[], idOf: (row: T) => string) => Array.from(new Map(rows.map((row) => [idOf(row), row])).values())
-  return {
-    matter: {
-      matter_id: matterId,
-      title: String(input.matter?.title || ''),
-      description: String(input.matter?.description || ''),
-    },
-    document_type: String(input.document_type || 'complaint'),
-    lawyer_instruction: String(input.lawyer_instruction || ''),
-    evidences: uniqueBy(argumentScopes.flatMap((scope) => scope.facts.flatMap((fact) => fact.evidences)), (row) => row.evidence_id),
-    facts: uniqueBy(argumentScopes.flatMap((scope) => scope.facts), (row) => row.fact_id),
-    issues: uniqueBy(argumentScopes.map((scope) => scope.issue), (row) => row.issue_id),
-    laws: uniqueBy(argumentScopes.flatMap((scope) => scope.laws), (row) => row.law_id),
-    arguments: argumentScopes.map((scope) => scope.argument),
-    argument_scopes: argumentScopes,
-    excluded_scopes: excludedScopes,
   }
 }
 
 export function composeNeutralComplaint(context: DocumentContext): DocumentDraftInput {
-  const factLines = context.facts.map((fact, index) => `${index + 1}. ${sanitizeLegalSentence(fact.title)}${fact.description ? `：${sanitizeLegalSentence(fact.description)}` : ''}`)
-  const scopeLines = context.argument_scopes.flatMap((scope, index) => [
-    `${index + 1}. 争议焦点：${sanitizeLegalSentence(scope.issue.title)}`,
-    `本方主张：${sanitizeLegalSentence(scope.argument.position || scope.argument.title)}`,
-    scope.argument.reasoning ? `论证：${sanitizeLegalSentence(scope.argument.reasoning)}` : '',
-    scope.argument.response ? `回应：${sanitizeLegalSentence(scope.argument.response)}` : '',
-    scope.argument.conclusion ? `阶段性结论：${sanitizeLegalSentence(scope.argument.conclusion)}` : '',
-  ].filter(Boolean))
-  const lawLines = context.laws.map((law, index) => {
-    const usableDescription = law.semantic_encoding === 'legacy-plain'
-      ? law.raw_description
-      : [law.rule_content, law.application].filter(Boolean).join('；')
-    return `${index + 1}. ${sanitizeLegalSentence(law.citation || law.title)}${usableDescription ? `：${sanitizeLegalSentence(usableDescription)}` : ''}`
-  })
-  const evidenceLines = context.evidences.map((evidence, index) => {
-    const materialTitle = sanitizeLegalSentence(evidence.material?.title || '')
-    return `${index + 1}. ${sanitizeLegalSentence(evidence.title)}${evidence.description ? `：${sanitizeLegalSentence(evidence.description)}` : ''}${materialTitle ? `（对应材料：${materialTitle}）` : ''}`
-  })
-  const content = [
-    '民事起诉状',
-    '',
-    '原告：',
-    '【待律师补充】',
-    '',
-    '被告：',
-    '【待律师补充】',
-    '',
-    '诉讼请求：',
-    '【待律师根据已确认 Argument 和案件目标补充】',
-    '',
-    '事实与理由：',
-    '',
-    '一、案件基本事实',
-    ...factLines,
-    '',
-    '二、争议焦点及本方主张',
-    ...scopeLines,
-    '',
-    '三、法律依据',
-    ...lawLines,
-    '',
-    context.lawyer_instruction ? `律师指示：${sanitizeLegalSentence(context.lawyer_instruction)}` : '',
-    '',
-    '证据和证据来源：',
-    ...evidenceLines,
-    '',
-    '此致',
-    '【待律师补充：受理法院】',
-    '',
-    '具状人：',
-    '【待律师补充】',
-    '',
-    '日期：',
-    '【待律师补充】',
-  ].filter((line, index, rows) => line !== '' || rows[index - 1] !== '').join('\n')
+  const content = projectComplaintContext(context)
 
   assertComplaintContentSafe(content)
   return {
@@ -474,7 +200,16 @@ function parseSourceIds(value: unknown): string[] {
 }
 
 export class DocumentDraftService {
-  constructor(private prisma: PrismaClient, private documentGenerationService = new DocumentGenerationService()) {}
+  private readonly documentContextBuilder: DocumentContextBuilder
+
+  constructor(
+    private prisma: PrismaClient,
+    private documentGenerationService = new DocumentGenerationService(),
+    documentContextBuilder?: DocumentContextBuilder,
+  ) {
+    this.documentContextBuilder = documentContextBuilder
+      || new DocumentContextBuilder(new CaseUnderstandingProductService(prisma))
+  }
 
   async listDrafts(matter_id: string): Promise<DocumentDraftRow[]> {
     const rows = await (this.prisma as any).documentDraft.findMany({
@@ -741,7 +476,7 @@ export class DocumentDraftService {
       (this.prisma as any).argumentIssue.findMany({ where: { argument: { matter_id }, issue: { matter_id } } }),
       (this.prisma as any).argumentLaw.findMany({ where: { argument: { matter_id }, law: { matter_id } } }),
     ])
-    const context = buildDocumentContext({
+    const context = await this.documentContextBuilder.build({
       matter_id,
       document_type,
       lawyer_instruction,

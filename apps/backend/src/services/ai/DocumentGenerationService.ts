@@ -3,6 +3,9 @@ import { buildComplaintSectionsPrompt } from './AIPromptTemplates'
 import { validateComplaintSections } from './AIOutputValidator'
 import { parseAIJson } from './parseAIJson'
 import type { DocumentContext } from '../documentDraftService'
+import { projectComplaintSections } from '../documentProfessionalProjection'
+import { buildRuntimeDocumentClaims, type RuntimeDocumentClaim } from '../document_claim_builder'
+import { projectDocumentParties } from '../document_party_projection'
 
 export const DOCUMENT_PLACEHOLDER = '【待律师补充】'
 export const DOCUMENT_CLAIMS_PLACEHOLDER = '【待律师根据已确认 Argument 和案件目标补充】'
@@ -19,6 +22,10 @@ export type DocumentReasoningScope = {
     case_number: string
     stage: string
   }
+  case_understanding: DocumentContext['case_understanding']
+  material_sources: DocumentContext['material_sources']
+  unavailable_material_sources: DocumentContext['unavailable_material_sources']
+  claims: RuntimeDocumentClaim[]
   argument_sections: Array<{
     argument_id: string
     issue: { issue_id: string; title: string; description: string }
@@ -38,7 +45,7 @@ export type ComplaintSections = {
   document_type: 'complaint'
   title: string
   parties: { plaintiff: string; defendant: string }
-  claims: Array<{ text: string; source_argument_ids: string[]; source_fact_ids: string[]; requires_lawyer_confirmation: true }>
+  claims: RuntimeDocumentClaim[]
   facts: Array<{ text: string; source_fact_ids: string[]; source_evidence_ids: string[] }>
   reasoning: Array<{ issue_id: string; argument_id: string; position: string; analysis: string; source_fact_ids: string[]; source_law_ids: string[] }>
   legal_basis: Array<{ citation: string; text: string; source_law_id: string }>
@@ -60,6 +67,8 @@ function unique(values: string[]) {
 }
 
 export function buildDocumentReasoningScope(context: DocumentContext): DocumentReasoningScope {
+  const claims = buildRuntimeDocumentClaims(context.argument_scopes)
+  const parties = projectDocumentParties(context.case_understanding)
   return {
     goal: {
       document_type: 'complaint',
@@ -71,11 +80,15 @@ export function buildDocumentReasoningScope(context: DocumentContext): DocumentR
       matter_id: context.matter.matter_id,
       title: context.matter.title,
       description: context.matter.description,
-      verified_parties: { plaintiff: '', defendant: '' },
+      verified_parties: parties,
       court: '',
       case_number: '',
       stage: '',
     },
+    case_understanding: context.case_understanding,
+    material_sources: context.material_sources,
+    unavailable_material_sources: context.unavailable_material_sources,
+    claims,
     argument_sections: context.argument_scopes.map((item) => ({
       argument_id: item.argument.argument_id,
       issue: { issue_id: item.issue.issue_id, title: item.issue.title, description: item.issue.description },
@@ -103,7 +116,14 @@ export function buildDocumentReasoningScope(context: DocumentContext): DocumentR
         law_limitations: item.laws.map((law) => ({ law_id: law.law_id, limitations: law.limitations })),
       },
     })),
-    missing_required_fields: ['parties', 'claims', 'court', 'case_number', 'amount', 'date', 'signature'],
+    missing_required_fields: [
+      'parties',
+      'court',
+      'case_number',
+      ...(!claims.some((claim) => /\d[\d,]*(?:\.\d+)?(?:元|万元|亿元)/.test(claim.text)) ? ['amount'] : []),
+      'date',
+      'signature',
+    ],
   }
 }
 
@@ -134,28 +154,7 @@ function extractSections(response: any): ComplaintSections | null {
 }
 
 export function renderComplaintSections(sections: ComplaintSections) {
-  const claimLines = sections.claims.map((claim, index) => `${index + 1}. 【待律师确认】${claim.text}`)
-  const factLines = sections.facts.map((fact, index) => `${index + 1}. ${fact.text}`)
-  const reasoningLines = sections.reasoning.flatMap((item, index) => [
-    `${index + 1}. ${item.position}`,
-    item.analysis,
-  ].filter(Boolean))
-  const lawLines = sections.legal_basis.map((law, index) => `${index + 1}. ${law.citation}${law.text ? `：${law.text}` : ''}`)
-  const evidenceLines = sections.evidence_reference.map((evidence, index) => `${index + 1}. ${evidence.title}${evidence.purpose ? `：${evidence.purpose}` : ''}`)
-  return [
-    sections.title,
-    '', '原告：', sections.parties.plaintiff,
-    '', '被告：', sections.parties.defendant,
-    '', '诉讼请求：', ...claimLines,
-    '', '事实与理由：', '', '一、案件基本事实', ...factLines,
-    '', '二、争议焦点及本方主张', ...reasoningLines,
-    '', '三、法律依据', ...lawLines,
-    '', '证据和证据来源：', ...evidenceLines,
-    '', '此致', sections.court,
-    '', '具状人：', sections.signature,
-    '', '日期：', sections.date,
-    sections.conclusion ? `\n结语：${sections.conclusion}` : '',
-  ].filter((line, index, rows) => line !== '' || rows[index - 1] !== '').join('\n')
+  return projectComplaintSections(sections)
 }
 
 export class DocumentGenerationService {
@@ -185,6 +184,9 @@ export class DocumentGenerationService {
           lastReason = 'document_json_parse_failed'
           continue
         }
+        sections.claims = scope.claims
+        if (scope.matter_identity.verified_parties.plaintiff) sections.parties.plaintiff = scope.matter_identity.verified_parties.plaintiff
+        if (scope.matter_identity.verified_parties.defendant) sections.parties.defendant = scope.matter_identity.verified_parties.defendant
         const validation = validateComplaintSections(sections, scope)
         if (!validation.ok) {
           lastReason = validation.errors[0] || 'document_sections_invalid'

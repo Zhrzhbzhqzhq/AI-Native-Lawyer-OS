@@ -1,0 +1,72 @@
+{
+  "provider": "direct-minimax",
+  "model": "MiniMax-M3",
+  "responses": [
+    {
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae600be4a151d0c18f556265681918",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "{\"identity\":{\"caseId\":\"case-002\",\"title\":\"周敏与雅居装饰工程有限公司装修合同纠纷\",\"caseType\":\"装修合同纠纷\",\"stage\":\"待确认\",\"jurisdiction\":\"待确认\"},\"narrative\":{\"summary\":\"业主周敏与雅居装饰工程有限公司就80万元住宅装修合同产生纠纷，雅居装饰于2026年5月25日通知竣工，2026年5月27日双方验收时发现主卫生间潮湿、墙砖空鼓、墙面裂纹等质量问题，周敏拒签验收合格文件。雅居装饰于2026年6月2日通知整改完成并要求支付4万元尾款，周敏以仍有潮湿且未收到闭水试验记录为由拒付，双方对潮湿原因、整改效果及尾款支付条件未形成一致意见。\",\"background\":\"2026年1月12日双方签订总价80万元的住宅装修合同，约定2026年4月30日前完工；2026年3月15日因主卫壁龛、瓷砖及客厅柜体调整签订补充协议，将完工日期顺延至2026年5月10日，总价不变；周敏已按节点累计支付76万元，含2026年1月12日24万元、2026年2月28日40万元、2026年4月5日12万元。\",\"currentPosture\":\"双方就卫生间潮湿成因、整改是否完成、工程是否达到验收条件以及4万元尾款是否应支付存在分歧，尚未形成解决方案。\"},\"actors\":[{\"id\":\"owner-zhoumin\",\"name\":\"周敏\",\"role\":\"业主\",\"position\":\"主张防水及施工质量不合格、整改未完成，拒绝签署验收合格文件并拒付4万元尾款\"},{\"id\":\"yaju-decoration\",\"name\":\"雅居装饰工程有限公司\",\"role\":\"装修施工方\",\"position\":\"主张已按约完成施工且整改完成，认为潮湿来源于公共管道而非装修防水，要求复验并支付4万元尾款\"}],\"timeline\":[{\"id\":\"t-001\",\"date\":\"2026-01-12\",\"event\":\"周敏与雅居装饰签订总价80万元住宅装修合同，并于当日支付首期款24万元\",\"actorIds\":[\"owner-zhoumin\",\"yaju-decoration\"],\"certainty\":\"confirmed\"},{\"id\":\"t-002\",\"date\":\"2026-01-20\",\"event\":\"雅居装饰按约定进场施工\",\"actorIds\":[\"yaju-decoration\"],\"certainty\":\"confirmed\"},{\"id\":\"t-003\",\"date\":\"2026-02-28\",\"event\":\"周敏支付第二期款40万元\",\"actorIds\":[\"owner-zhoumin\"],\"certainty\":\"confirmed\"},{\"id\":\"t-004\",\"date\":\"2026-03-15\",\"event\":\"双方签订补充协议，调整主卫壁龛、瓷砖及客厅柜体，约定完工日期顺延至2026年5月10日，总价80万元不变\",\"actorIds\":[\"owner-zhoumin\",\"yaju-decoration\"],\"certainty\":\"confirmed\"},{\"id\":\"t-005\",\"date\":\"2026-04-05\",\"event\":\"周敏支付第三期款12万元，累计已付76万元\",\"actorIds\":[\"owner-zhoumin\"],\"certainty\":\"confirmed\"},{\"id\":\"t-006\",\"date\":\"2026-05-25\",\"event\":\"雅居装饰向周敏发送竣工验收通知，较补充协议约定完工日期晚15日\",\"actorIds\":[\"yaju-decoration\"],\"certainty\":\"confirmed\"},{\"id\":\"t-007\",\"date\":\"2026-05-27\",\"event\":\"双方现场验收，发现主卫墙角潮湿水印、淋浴区两块墙砖空鼓、客厅局部墙面细小裂纹，周敏拒签验收合格文件并要求整改\",\"actorIds\":[\"owner-zhoumin\",\"yaju-decoration\"],\"certainty\":\"confirmed\"},{\"id\":\"t-008\",\"date\":\"2026-06-02\",\"event\":\"雅居装饰发送整改完成通知，称已重新处理防水节点、更换空鼓墙砖并修补墙面裂纹，要求周敏复验并支付4万元尾款\",\"actorIds\":[\"yaju-decoration\"],\"certainty\":\"confirmed\"},{\"id\":\"t-009\",\"date\":\"2026-06-05\",\"event\":\"周敏回复称复查时卫生间墙角仍有轻微潮湿，且未收到完整闭水试验记录，认为整改未完成并继续拒付尾款\",\"actorIds\":[\"owner-zhoumin\"],\"certainty\":\"confirmed\"}],\"conflicts\":[{\"id\":\"c-001\",\"title\":\"工程是否达到验收合格条件\",\"description\":\"周敏认为卫生间仍存在潮湿问题且未收到闭水试验记录，整改未完成，工程不合格；雅居装饰认为整改已完成，潮湿来源于公共管道而非装修防水，工程具备验收条件\",\"actorIds\":[\"owner-zhoumin\",\"yaju-decoration\"]},{\"id\":\"c-002\",\"title\":\"卫生间潮湿成因归属\",\"description\":\"周敏认为潮湿系装修防水质量问题；雅居装饰认为可能与楼体公共管道有关，不属于装修责任范围\",\"actorIds\":[\"owner-zhoumin\",\"yaju-decoration\"]},{\"id\":\"c-003\",\"title\":\"4万元尾款是否应支付\",\"description\":\"雅居装饰要求周敏办理验收并支付4万元尾款；周敏以整改未完成、潮湿未消除为由拒付尾款\",\"actorIds\":[\"owner-zhoumin\",\"yaju-decoration\"]},{\"id\":\"c-004\",\"title\":\"工期延误责任归属\",\"description\":\"雅居装饰认为周敏后续多次调整材料颜色、延迟确认柜门样式影响进度；周敏认为补充协议已包含变更所需时间，之后未同意继续顺延\",\"actorIds\":[\"owner-zhoumin\",\"yaju-decoration\"]}],\"decisionFactors\":[{\"id\":\"df-001\",\"label\":\"合同及补充协议的书面约定\",\"description\":\"原合同及2026年3月15日补充协议对总价、付款节点、完工日期及变更程序均有书面约定，补充协议明确后续新增变更应通过书面记录确认\",\"impact\":\"neutral\"},{\"id\":\"df-002\",\"label\":\"周敏已按节点累计付款76万元\",\"description\":\"周敏已按约支付首期、第二期及第三期款项共计76万元，仅4万元尾款未付\",\"impact\":\"neutral\"},{\"id\":\"df-003\",\"label\":\"验收时发现的质量缺陷\",\"description\":\"2026年5月27日验收记录载明主卫墙角潮湿水印、淋浴区两块墙砖空鼓、客厅局部墙面细小裂纹，双方现场签字确认\",\"impact\":\"adverse\"},{\"id\":\"df-004\",\"label\":\"雅居装饰已发出整改完成通知及整改行为\",\"description\":\"雅居装饰于2026年6月2日通知已重新处理防水节点、更换空鼓墙砖并修补墙面裂纹\",\"impact\":\"supportive\"},{\"id\":\"df-005\",\"label\":\"周敏主张复查时仍存在潮湿且缺少闭水试验记录\",\"description\":\"周敏于2026年6月5日表示复查仍有轻微潮湿，且未收到完整闭水试验记录\",\"impact\":\"adverse\"},{\"id\":\"df-006\",\"label\":\"闭水试验要求及记录缺失\",\"description\":\"合同约定卫生间防水应完成闭水试验，但现有材料中未见完整闭水试验记录\",\"impact\":\"adverse\"},{\"id\":\"df-007\",\"label\":\"雅居装饰主张潮湿源于公共管道\",\"description\":\"雅居装饰备注认为潮湿水印可能与楼体公共管道有关，但未见第三方鉴定或充分证据\",\"impact\":\"uncertain\"},{\"id\":\"df-008\",\"label\":\"工期较补充协议顺延15日且无书面顺延文件\",\"description\":\"实际竣工通知较2026年5月10日顺延15日，现有材料中未见双方签字的再次顺延文件\",\"impact\":\"adverse\"}],\"risks\":[{\"id\":\"r-001\",\"description\":\"潮湿成因归属及责任范围不明，可能导致反复整改或责任互相推诿\",\"severity\":\"high\",\"mitigation\":\"待确认\"},{\"id\":\"r-002\",\"description\":\"缺少完整闭水试验记录，可能影响防水质量举证及验收合格判断\",\"severity\":\"medium\",\"mitigation\":\"待确认\"},{\"id\":\"r-003\",\"description\":\"工期延误15日且无书面顺延文件，可能引发工期违约金或工期责任争议\",\"severity\":\"medium\",\"mitigation\":\"待确认\"},{\"id\":\"r-004\",\"description\":\"后续若发生进一步变更而未形成书面记录，可能加剧争议\",\"severity\":\"low\",\"mitigation\":\"待确认\"},{\"id\":\"r-005\",\"description\":\"如进入诉讼，维修整改费用、尾款及违约责任交叉计算复杂\",\"severity\":\"medium\",\"mitigation\":\"待确认\"}],\"unknowns\":[{\"id\":\"u-001\",\"question\":\"主卫生间墙角潮湿的具体成因及责任归属\",\"importance\":\"high\"},{\"id\":\"u-002\",\"question\":\"雅居装饰是否已完成并可提供完整的闭水试验记录\",\"importance\":\"high\"},{\"id\":\"u-003\",\"question\":\"卫生间墙砖空鼓及客厅墙面裂纹在整改后是否仍存在或已修复到位\",\"importance\":\"high\"},{\"id\":\"u-004\",\"question\":\"2026年5月10日之后是否存在双方书面确认的再次顺延文件\",\"importance\":\"medium\"},{\"id\":\"u-005\",\"question\":\"周敏在补充协议之外是否存在后续调整材料颜色或延迟确认柜门样式的事实及其书面记录\",\"importance\":\"medium\"},{\"id\":\"u-006\",\"question\":\"本案管辖法院及适用法律\",\"importance\":\"medium\"}],\"selfReview\":{\"confidence\":0.55,\"limitations\":[\"现有材料未提供任何第三方鉴定意见，潮湿成因仅停留在双方陈述层面\",\"整改完成后是否实际消除缺陷，缺乏客观复查记录或专业检测报告\",\"工期延误及后续变更事项缺乏书面顺延或变更确认文件支撑\",\"管辖法院、适用法律及是否进入诉讼程序均未明确\"],\"assumptions\":[\"本案事实以CASE_INPUT中所列六项材料记载内容为限\",\"合同总价80万元、累计已付76万元、尾款4万元数据来源于付款凭证\",\"完工日期顺延以2026年3月15日补充协议载明的2026年5月10日为准\"],\"requiresLawyerReview\":true}}",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784622347,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 3950,
+            "total_characters": 0,
+            "prompt_tokens": 1885,
+            "completion_tokens": 2065,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 3950,
+          "total_characters": 0,
+          "prompt_tokens": 1885,
+          "completion_tokens": 2065,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 27738,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-direct-benchmark-v2",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-direct-benchmark-v2",
+          "fallback_used": false
+        }
+      }
+    }
+  ]
+}

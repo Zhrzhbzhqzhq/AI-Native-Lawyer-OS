@@ -1,0 +1,72 @@
+{
+  "provider": "direct-minimax",
+  "model": "MiniMax-M3",
+  "responses": [
+    {
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06aea7b697e8ffeba06c8ab3e4693f6f",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "{\"identity\":{\"caseId\":\"case-001\",\"title\":\"海川食品与华东智造设备买卖合同纠纷\",\"caseType\":\"买卖合同纠纷\",\"stage\":\"待确认\",\"jurisdiction\":\"待确认\"},\"narrative\":{\"summary\":\"海川食品有限公司与华东智能装备有限公司于2026年1月签订灌装生产线设备买卖合同，总价120万元。卖方晚3日交付设备并完成安装调试，首次及复测产能均未达到合同约定的6000瓶/小时。买方拒绝验收并暂缓支付12万元尾款，双方就未达产原因存在分歧。\",\"background\":\"合同签订于2026年1月5日，约定分三期付款（30%预付款、60%发货款、10%尾款），卖方应于2026年3月15日前交付设备并完成安装调试，设备稳定产能应达到6000瓶/小时，买方在调试完成后7日内组织验收。\",\"currentPosture\":\"设备已交付安装并经两次测试，产能分别为5200瓶/小时和5700瓶/小时，均未达标。买方拒绝验收并暂缓支付12万元尾款；卖方主张已履行交付调试义务，未达产由买方现场条件所致。双方未就未达产原因形成一致意见。\"},\"actors\":[{\"id\":\"buyer\",\"name\":\"海川食品有限公司\",\"role\":\"买方\",\"position\":\"主张设备未达合同约定产能，拒绝验收并暂缓支付12万元尾款\"},{\"id\":\"seller\",\"name\":\"华东智能装备有限公司\",\"role\":\"卖方\",\"position\":\"主张已完成交付及调试义务，未达产系买方瓶体规格、原料黏度及供电条件所致，要求支付尾款\"}],\"timeline\":[{\"id\":\"t-001\",\"date\":\"2026-01-05\",\"event\":\"双方签订灌装生产线设备买卖合同，总价120万元\",\"actorIds\":[\"buyer\",\"seller\"],\"certainty\":\"confirmed\"},{\"id\":\"t-002\",\"date\":\"2026-01-10\",\"event\":\"买方支付预付款36万元\",\"actorIds\":[\"buyer\"],\"certainty\":\"confirmed\"},{\"id\":\"t-003\",\"date\":\"2026-03-08\",\"event\":\"买方支付发货前货款72万元，合计已付108万元\",\"actorIds\":[\"buyer\"],\"certainty\":\"confirmed\"},{\"id\":\"t-004\",\"date\":\"2026-03-18\",\"event\":\"设备送达买方工厂，较合同约定晚3日，双方签字签收\",\"actorIds\":[\"buyer\",\"seller\"],\"certainty\":\"confirmed\"},{\"id\":\"t-005\",\"date\":\"2026-03-19\",\"event\":\"卖方完成设备安装并开始调试\",\"actorIds\":[\"seller\"],\"certainty\":\"confirmed\"},{\"id\":\"t-006\",\"date\":\"2026-03-20\",\"event\":\"首次产能测试：平均5200瓶/小时，出现卡瓶；买方拒绝验收\",\"actorIds\":[\"buyer\",\"seller\"],\"certainty\":\"confirmed\"},{\"id\":\"t-007\",\"date\":\"2026-03-22\",\"event\":\"卖方调整参数并更换部分导轨进行整改\",\"actorIds\":[\"seller\"],\"certainty\":\"confirmed\"},{\"id\":\"t-008\",\"date\":\"2026-03-25\",\"event\":\"复测：平均5700瓶/小时，仍未达6000瓶/小时；买方继续拒绝验收并暂缓支付尾款\",\"actorIds\":[\"buyer\",\"seller\"],\"certainty\":\"confirmed\"}],\"conflicts\":[{\"id\":\"c-001\",\"title\":\"未达产原因争议\",\"description\":\"买方主张设备本身存在质量和性能问题导致产能不达标；卖方主张未达产由买方瓶体规格不稳定、原料黏度及现场电压波动等现场条件造成\",\"actorIds\":[\"buyer\",\"seller\"]},{\"id\":\"c-002\",\"title\":\"尾款支付条件争议\",\"description\":\"买方以未通过验收为由暂缓支付12万元尾款；卖方认为已完成交付和调试，买方应支付尾款\",\"actorIds\":[\"buyer\",\"seller\"]}],\"decisionFactors\":[{\"id\":\"df-001\",\"label\":\"合同明确约定产能标准\",\"description\":\"合同约定设备稳定产能应达到6000瓶/小时，两次测试均未达标，构成合同主要性能指标未实现\",\"impact\":\"supportive\"},{\"id\":\"df-002\",\"label\":\"卖方逾期交付3日\",\"description\":\"设备于2026年3月18日交付，较合同约定2026年3月15日逾期3日\",\"impact\":\"adverse\"},{\"id\":\"df-003\",\"label\":\"买方已支付108万元\",\"description\":\"买方已按约支付预付款及发货款合计108万元，仅尾款12万元未付\",\"impact\":\"neutral\"},{\"id\":\"df-004\",\"label\":\"复测后产能提升但仍不达标\",\"description\":\"经整改后复测产能由5200瓶/小时提升至5700瓶/小时，表明卖方进行了整改但仍未达到合同标准\",\"impact\":\"supportive\"},{\"id\":\"df-005\",\"label\":\"未达产原因归属待确认\",\"description\":\"卖方主张系买方瓶体规格、原料黏度、供电条件所致，但未提供独立第三方检测或鉴定结论；测试记录仅有现场工程师签字备注\",\"impact\":\"uncertain\"}],\"risks\":[{\"id\":\"r-001\",\"description\":\"若无法举证区分设备本体缺陷与买方现场条件影响，质量责任认定存在重大不确定性，可能影响验收及尾款支付主张\",\"severity\":\"high\",\"mitigation\":\"申请第三方检测或质量鉴定机构对设备产能及影响因素进行独立鉴定\"},{\"id\":\"r-002\",\"description\":\"卖方逾期交付3日可能承担违约责任，但具体违约责任形式与计算方式在合同中未明确\",\"severity\":\"medium\",\"mitigation\":\"核查合同中关于逾期交付的违约责任条款，必要时依据法律主张违约金或损害赔偿\"},{\"id\":\"r-003\",\"description\":\"双方分歧可能升级为诉讼或仲裁，案件管辖、争议解决方式及适用法律尚待确认\",\"severity\":\"medium\",\"mitigation\":\"查阅合同争议解决条款，确定管辖法院或仲裁机构，及时保全证据\"}],\"unknowns\":[{\"id\":\"u-001\",\"question\":\"合同中是否约定逾期交付及未达产的违约责任条款？\",\"importance\":\"high\"},{\"id\":\"u-002\",\"question\":\"合同约定的争议解决方式是诉讼还是仲裁，管辖如何确定？\",\"importance\":\"high\"},{\"id\":\"u-003\",\"question\":\"未达产究竟是设备本体缺陷还是买方现场条件（瓶体、原料、电压）所致？\",\"importance\":\"high\"},{\"id\":\"u-004\",\"question\":\"买方瓶体规格、原料黏度及供电条件是否符合设备正常使用前提？\",\"importance\":\"medium\"},{\"id\":\"u-005\",\"question\":\"设备目前是否仍在买方工厂，现状如何？\",\"importance\":\"medium\"}],\"selfReview\":{\"confidence\":0.62,\"limitations\":[\"未获取合同全文，无法确认逾期交付、未达产及争议解决的违约责任与解决方式条款\",\"未获取第三方独立检测或鉴定报告，未达产原因归属仅依据双方各自陈述\",\"产能测试数据来自双方共同测试记录，是否符合规范测试条件待确认\",\"案件管辖法院及适用法律待确认\",\"未获取双方进一步交涉（如律师函、催告、诉讼/仲裁通知等）的证据\"],\"assumptions\":[\"假设材料中记载的付款金额、日期及测试数据属实\",\"假设合同约定的产能标准6000瓶/小时属于稳定运行状态下的指标\",\"假设双方对合同主要条款（价款、付款方式、交付时间、产能标准）不存在其他书面变更或补充协议\"],\"requiresLawyerReview\":true}}",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784640694,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 3266,
+            "total_characters": 0,
+            "prompt_tokens": 1724,
+            "completion_tokens": 1542,
+            "prompt_tokens_details": {
+              "cached_tokens": 1664
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 3266,
+          "total_characters": 0,
+          "prompt_tokens": 1724,
+          "completion_tokens": 1542,
+          "prompt_tokens_details": {
+            "cached_tokens": 1664
+          }
+        },
+        "cost": null,
+        "duration_ms": 17086,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-direct-benchmark-v2",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-direct-benchmark-v2",
+          "fallback_used": false
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+[
+  {
+    "decisionFactorId": "factor-006",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-rectification",
+      "event-008"
+    ],
+    "notes": "复测记录显示整改后平均产能5700瓶/小时，与合同约定6000瓶/小时仍存在差距，买方继续拒绝验收，事实连续且有据可查。"
+  },
+  {
+    "decisionFactorId": "factor-007",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-rectification",
+      "event-007"
+    ],
+    "notes": "材料明确记载2026年3月22日卖方调整设备参数并更换部分导轨，整改行为客观存在。"
+  },
+  {
+    "decisionFactorId": "factor-008",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-acceptance",
+      "event-006"
+    ],
+    "notes": "首次测试记录由卖方工程师签字确认数据，同时备注卡瓶与买方瓶体规格及电压波动有关，签字确认与原因保留并存，材料可直接印证。"
+  },
+  {
+    "decisionFactorId": "factor-009",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-acceptance",
+      "event-006"
+    ],
+    "notes": "首次测试记录明确载明出现多次卡瓶，并由双方签字，作为客观运行异常表现有据可查。"
+  },
+  {
+    "decisionFactorId": "factor-010",
+    "supportStatus": "unsupported",
+    "sourceRefs": [
+      "material-001-acceptance",
+      "material-001-rectification"
+    ],
+    "notes": "卖方关于买方瓶体规格、原料黏度及供电条件影响产能的主张仅有卖方单方陈述与工程师备注，缺乏独立第三方验证材料，目前证据不足以支持该主张成立。"
+  },
+  {
+    "decisionFactorId": "factor-011",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-contract",
+      "material-001-payment",
+      "event-002",
+      "event-003"
+    ],
+    "notes": "合同约定签约后付30%、发货前付60%，付款凭证显示2026年1月10日付36万元、3月8日付72万元，付款节点与金额均与合同约定一致。"
+  },
+  {
+    "decisionFactorId": "factor-012",
+    "supportStatus": "unsupported",
+    "sourceRefs": [
+      "material-001-contract",
+      "material-001-acceptance",
+      "material-001-rectification"
+    ],
+    "notes": "合同约定验收合格后支付10%尾款，但截至当前材料双方未就'验收合格'是否构成形成一致意见，亦无第三方认定，尾款支付条件是否成就无法仅凭现有材料判定。"
+  },
+  {
+    "decisionFactorId": "factor-013",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-delivery",
+      "material-001-contract",
+      "event-004",
+      "event-005"
+    ],
+    "notes": "送货签收单及安装记录显示设备于2026年3月18日送达、3月19日完成安装并开始调试，卖方主张交付与调试完成的事实有材料支持。"
+  },
+  {
+    "decisionFactorId": "factor-014",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-acceptance",
+      "material-001-rectification"
+    ],
+    "notes": "现有CASE_INPUT材料中未见任何第三方鉴定机构出具的独立鉴定意见，未达产原因归属确实缺乏中立鉴定支持，事实判断仅依赖双方陈述及签字记录。"
+  },
+  {
+    "decisionFactorId": "factor-015",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-contract",
+      "material-001-acceptance",
+      "material-001-rectification",
+      "event-006",
+      "event-008"
+    ],
+    "notes": "合同约定买方应在调试完成后7日内组织验收，2026年3月19日开始调试，至3月25日复测买方持续提出异议，在7日验收期内有据可查。"
+  },
+  {
+    "decisionFactorId": "factor-016",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-001-acceptance",
+      "material-001-rectification",
+      "event-006",
+      "event-008"
+    ],
+    "notes": "首次测试5200瓶/小时与复测5700瓶/小时均有双方签字记录支撑，连续两次均未达6000瓶/小时约定标准，形成持续未达标事实状态。"
+  }
+]

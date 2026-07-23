@@ -1,0 +1,54 @@
+{
+  "caseId": "case-001",
+  "status": "completed",
+  "score": 53,
+  "dimensions": {
+    "identity": {
+      "score": 58,
+      "weight": 15,
+      "details": "分别评价业务关系、法律关系、核心争议本质，并结合阶段和法域。",
+      "components": {
+        "businessRelationship": 100,
+        "legalRelationship": 100,
+        "coreNature": 92
+      }
+    },
+    "narrative": {
+      "score": 73,
+      "weight": 20,
+      "details": "摘要、背景、当前状态及案件本质的法律语义匹配。"
+    },
+    "actors": {
+      "score": 20,
+      "weight": 10,
+      "details": "按主体名称、归一化法律角色和立场进行最佳一对一匹配。"
+    },
+    "conflicts": {
+      "score": 77,
+      "weight": 15,
+      "details": "按付款、交割、履行顺序等归一化法律概念进行同义争点匹配。"
+    },
+    "decisionFactors": {
+      "score": 44,
+      "weight": 15,
+      "details": "按决策因素法律概念匹配，影响方向仅作为辅助信号。"
+    },
+    "risks": {
+      "score": 0,
+      "weight": 10,
+      "details": "按履行顺序、条款明确性、材料缺口等风险主题匹配。"
+    },
+    "unknowns": {
+      "score": 49,
+      "weight": 10,
+      "details": "按付款、交割、金额、时间等待确认事项概念匹配。"
+    },
+    "topicDrift": {
+      "score": 92,
+      "weight": 5,
+      "details": "区分合同履行等正常法律扩展与劳动、借贷等跨案件强领域污染。"
+    }
+  },
+  "topicDriftDetected": false,
+  "errors": []
+}

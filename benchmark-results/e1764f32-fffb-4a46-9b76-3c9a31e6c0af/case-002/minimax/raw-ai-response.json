@@ -1,0 +1,617 @@
+{
+  "provider": "minimax",
+  "model": "MiniMax-M3",
+  "responses": [
+    {
+      "stage": "material",
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae644b1c9b7c90d183b09ad78e4a09",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "[{\"id\":\"material-002-contract\",\"title\":\"住宅装修合同\",\"content\":\"2026年1月12日，业主周敏与雅居装饰工程有限公司签订住宅装修合同，约定由雅居装饰对周敏的住宅进行整体装修，合同总价80万元。付款节点为：合同签订后支付30%即24万元，水电及隐蔽工程验收后支付50%即40万元，木作和墙面阶段完成后支付15%即12万元，整体竣工验收合格后支付5%尾款4万元。合同约定2026年1月20日开工，2026年4月30日前完工。卫生间防水应完成闭水试验，整体工程应经双方验收。\"},{\"id\":\"material-002-payment\",\"title\":\"装修款付款记录\",\"content\":\"付款凭证显示，周敏于2026年1月12日支付24万元，于2026年2月28日支付40万元，于2026年4月5日支付12万元，累计已支付76万元。竣工验收后应付的4万元尾款尚未支付。\"},{\"id\":\"material-002-supplement\",\"title\":\"装修工程补充协议\",\"content\":\"2026年3月15日，双方签订补充协议。周敏要求调整主卫生间壁龛、变更部分瓷砖型号并修改客厅柜体布局。双方确认合同总价80万元不变，将完工日期由2026年4月30日顺延至2026年5月10日。补充协议载明，后续新增变更应通过书面记录确认。\"},{\"id\":\"material-002-schedule\",\"title\":\"施工进度及工期延期记录\",\"content\":\"施工记录显示，雅居装饰工程有限公司于2026年1月20日进场施工。2026年5月25日，雅居装饰向周敏发送竣工验收通知，较补充协议约定的2026年5月10日晚15日。周敏认为补充协议已经包含变更所需时间，之后没有同意继续顺延。雅居装饰认为周敏后续多次调整材料颜色、延迟确认柜门样式，实际影响施工进度，但现有材料中未见双方签字确认的再次顺延文件。\"},{\"id\":\"material-002-acceptance\",\"title\":\"竣工验收及质量问题记录\",\"content\":\"2026年5月27日，双方到场验收。验收记录载明，主卫生间墙角出现潮湿水印，淋浴区两块墙砖存在空鼓，客厅局部墙面有细小裂纹。周敏在记录中注明防水和施工质量不合格，拒绝签署验收合格文件，并要求整改。雅居装饰人员签字确认现场现象，但备注认为潮湿水印可能与楼体公共管道有关，墙砖空鼓和墙面裂纹属于可修复项目，不影响整体使用。\"},{\"id\":\"material-002-rectification\",\"title\":\"整改及尾款沟通记录\",\"content\":\"雅居装饰工程有限公司于2026年6月2日发送整改完成通知，称已重新处理卫生间防水节点、更换空鼓墙砖并修补墙面裂纹，要求周敏复验并支付4万元尾款。周敏于2026年6月5日回复称，复查时卫生间墙角仍有轻微潮湿，且未收到完整闭水试验记录，因此认为整改未完成并继续拒付尾款。雅居装饰认为整改已经完成，潮湿来自公共管道而非装修防水，主张周敏应办理验收并支付尾款。双方对潮湿原因、整改效果、工程是否达到验收条件以及尾款是否应支付未形成一致意见。\"}]",
+                "role": "assistant",
+                "name": "MiniMax AI",
+                "audio_content": ""
+              }
+            }
+          ],
+          "created": 1784623435,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 1706,
+            "total_characters": 0,
+            "prompt_tokens": 1010,
+            "completion_tokens": 696,
+            "prompt_tokens_details": {
+              "cached_tokens": 114
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 1706,
+          "total_characters": 0,
+          "prompt_tokens": 1010,
+          "completion_tokens": 696,
+          "prompt_tokens_details": {
+            "cached_tokens": 114
+          }
+        },
+        "cost": null,
+        "duration_ms": 5483,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-v1",
+          "fallback_used": false
+        }
+      }
+    },
+    {
+      "stage": "identity",
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae6451ecf7d7196a8831bdce70b16b",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "{\"caseId\":\"case-002\",\"title\":\"周敏与雅居装饰工程有限公司装修合同纠纷\",\"caseType\":\"装修合同纠纷\",\"stage\":\"identity\",\"jurisdiction\":\"\"}",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784623446,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 1750,
+            "total_characters": 0,
+            "prompt_tokens": 1712,
+            "completion_tokens": 38,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 1750,
+          "total_characters": 0,
+          "prompt_tokens": 1712,
+          "completion_tokens": 38,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 6838,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-v1",
+          "fallback_used": false
+        }
+      }
+    },
+    {
+      "stage": "narrative",
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae64584683512ba569e13a1d0b8d83",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "{\"summary\":\"业主周敏与雅居装饰工程有限公司因住宅装修合同的工程验收、整改效果及尾款支付产生争议，雅居装饰主张工程已整改合格并要求支付4万元尾款，周敏主张卫生间防水和质量整改未完成，拒绝签署验收合格文件及支付尾款，同时双方对完工后工期延误责任归属存在分歧。\",\"background\":\"2026年1月12日周敏与雅居装饰签订住宅装修合同，约定总价80万元、分期付款及2026年1月20日开工、2026年4月30日前完工，并要求卫生间防水完成闭水试验、整体工程经双方验收。履约过程中周敏累计支付76万元。2026年3月15日双方签订补充协议调整部分项目和柜体布局，总价不变，完工日期顺延至2026年5月10日，并约定后续变更须书面确认。实际施工中，雅居装饰于2026年5月25日才发送竣工验收通知，晚于补充协议约定期限。2026年5月27日双方到场验收，发现主卫生间墙角潮湿水印、淋浴区墙砖空鼓、客厅墙面裂纹，周敏拒绝签署验收合格文件，雅居装饰人员签字确认现象但对原因和影响范围持不同意见。后雅居装饰于2026年6月2日通知整改完成，周敏于2026年6月5日复验后仍认为卫生间潮湿且未收到完整闭水试验记录，整改未完成。双方对潮湿原因、整改效果、工程是否达验收条件及尾款4万元应否支付未达成一致。\",\"currentPosture\":\"\"}",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784623449,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 2081,
+            "total_characters": 0,
+            "prompt_tokens": 1744,
+            "completion_tokens": 337,
+            "prompt_tokens_details": {
+              "cached_tokens": 1743
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 2081,
+          "total_characters": 0,
+          "prompt_tokens": 1744,
+          "completion_tokens": 337,
+          "prompt_tokens_details": {
+            "cached_tokens": 1743
+          }
+        },
+        "cost": null,
+        "duration_ms": 4477,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-v1",
+          "fallback_used": false
+        }
+      }
+    },
+    {
+      "stage": "actor",
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae645ccf1d1fd377a540a9838c9c6f",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "{\"actors\":[{\"id\":\"actor-002-zhoumin\",\"name\":\"周敏\",\"role\":\"业主/合同甲方\",\"position\":\"主张卫生间防水及质量整改未完成，工程未达到验收合格条件，拒绝签署验收合格文件并拒付4万元尾款；同时认为补充协议已涵盖工期变更，雅居装饰于2026年5月25日才发送竣工验收通知构成延误\"},{\"id\":\"actor-002-yaju\",\"name\":\"雅居装饰工程有限公司\",\"role\":\"装修施工方/合同乙方\",\"position\":\"主张已于2026年6月2日完成整改并通知复验，工程已达到验收条件，要求周敏办理验收并支付4万元尾款；对卫生间潮湿原因持异议，辩称可能与楼体公共管道有关；主张周敏后续多次变更影响施工进度，延误责任不在己方\"}],\"timeline\":[{\"id\":\"event-002-contract-signed\",\"date\":\"2026-01-12\",\"event\":\"周敏与雅居装饰工程有限公司签订住宅装修合同，约定总价80万元、分期付款、2026年1月20日开工、2026年4月30日前完工，卫生间防水应完成闭水试验并经双方验收\",\"actorIds\":[\"actor-002-zhoumin\",\"actor-002-yaju\"],\"certainty\":\"confirmed\"},{\"id\":\"event-002-first-payment\",\"date\":\"2026-01-12\",\"event\":\"周敏支付首期款24万元\",\"actorIds\":[\"actor-002-zhoumin\"],\"certainty\":\"confirmed\"},{\"id\":\"event-002-construction-start\",\"date\":\"2026-01-20\",\"event\":\"雅居装饰进场施工\",\"actorIds\":[\"actor-002-yaju\"],\"certainty\":\"confirmed\"},{\"id\":\"event-002-second-payment\",\"date\":\"2026-02-28\",\"event\":\"周敏支付水电及隐蔽工程阶段款40万元\",\"actorIds\":[\"actor-002-zhoumin\"],\"certainty\":\"confirmed\"},{\"id\":\"event-002-supplement-signed\",\"date\":\"2026-03-15\",\"event\":\"双方签订补充协议，调整主卫生间壁龛、部分瓷砖型号及客厅柜体布局，总价不变，完工日期顺延至2026年5月10日，并约定后续新增变更须书面记录确认\",\"actorIds\":[\"actor-002-zhoumin\",\"actor-002-yaju\"],\"certainty\":\"confirmed\"},{\"id\":\"event-002-third-payment\",\"date\":\"2026-04-05\",\"event\":\"周敏支付木作和墙面阶段款12万元，累计支付76万元\",\"actorIds\":[\"actor-002-zhoumin\"],\"certainty\":\"confirmed\"},{\"id\":\"event-002-acceptance-notice\",\"date\":\"2026-05-25\",\"event\":\"雅居装饰向周敏发送竣工验收通知，较补充协议约定完工日期2026年5月10日晚15日\",\"actorIds\":[\"actor-002-yaju\"],\"certainty\":\"confirmed\"},{\"id\":\"event-002-acceptance-inspection\",\"date\":\"2026-05-27\",\"event\":\"双方到场竣工验收，现场发现主卫生间墙角潮湿水印、淋浴区两块墙砖空鼓、客厅局部墙面细小裂纹；周敏在记录中注明防水和施工质量不合格并拒绝签署验收合格文件，雅居装饰人员签字确认现场现象\",\"actorIds\":[\"actor-002-zhoumin\",\"actor-002-yaju\"],\"certainty\":\"confirmed\"},{\"id\":\"event-002-rectification-notice\",\"date\":\"2026-06-02\",\"event\":\"雅居装饰发送整改完成通知，称已重新处理卫生间防水节点、更换空鼓墙砖并修补墙面裂纹，要求周敏复验并支付4万元尾款\",\"actorIds\":[\"actor-002-yaju\"],\"certainty\":\"confirmed\"},{\"id\":\"event-002-rectification-dispute\",\"date\":\"2026-06-05\",\"event\":\"周敏复验后回复称卫生间墙角仍有轻微潮湿且未收到完整闭水试验记录，认为整改未完成并继续拒付尾款；雅居装饰认为整改已完成且潮湿来自公共管道\",\"actorIds\":[\"actor-002-zhoumin\",\"actor-002-yaju\"],\"certainty\":\"confirmed\"},{\"id\":\"event-002-delay-responsibility\",\"date\":\"unknown\",\"event\":\"雅居装饰主张周敏后续多次调整材料颜色、延迟确认柜门样式实际影响施工进度；周敏主张补充协议已涵盖变更所需时间且无双方签字确认的再次顺延文件\",\"actorIds\":[\"actor-002-zhoumin\",\"actor-002-yaju\"],\"certainty\":\"disputed\"},{\"id\":\"event-002-moisture-cause\",\"date\":\"unknown\",\"event\":\"卫生间墙角潮湿水印的成因归属——周敏归因于装修防水不合格，雅居装饰主张可能与楼体公共管道有关\",\"actorIds\":[\"actor-002-zhoumin\",\"actor-002-yaju\"],\"certainty\":\"disputed\"}]}",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784623453,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 3093,
+            "total_characters": 0,
+            "prompt_tokens": 2117,
+            "completion_tokens": 976,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 3093,
+          "total_characters": 0,
+          "prompt_tokens": 2117,
+          "completion_tokens": 976,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 11017,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-v1",
+          "fallback_used": false
+        }
+      }
+    },
+    {
+      "stage": "conflict",
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae64674210cfa629a0958cb64a20e2",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "[{\"id\":\"conflict-002-moisture-cause\",\"title\":\"卫生间墙角潮湿水印成因归属争议\",\"description\":\"2026年5月27日竣工验收时发现主卫生间墙角出现潮湿水印。周敏主张属于装修防水施工不合格，应由雅居装饰承担整改责任；雅居装饰主张潮湿水印可能与楼体公共管道有关，不属于其装修责任范围。该争议直接影响整改责任分配及尾款支付条件是否成就。\",\"actorIds\":[\"actor-002-zhoumin\",\"actor-002-yaju\"]},{\"id\":\"conflict-002-rectification-effectiveness\",\"title\":\"整改是否完成及工程是否达验收条件争议\",\"description\":\"2026年6月2日雅居装饰发送整改完成通知，称已重新处理卫生间防水节点、更换空鼓墙砖并修补墙面裂纹。2026年6月5日周敏复验后认为卫生间墙角仍有轻微潮湿且未收到完整闭水试验记录，整改未完成，拒绝签署验收合格文件并继续拒付4万元尾款。双方对整改效果、闭水试验记录是否交付以及工程是否达到整体验收合格条件未形成一致意见。\",\"actorIds\":[\"actor-002-zhoumin\",\"actor-002-yaju\"]},{\"id\":\"conflict-002-final-payment\",\"title\":\"4万元尾款应否支付争议\",\"description\":\"合同约定整体竣工验收合格后周敏应支付5%尾款4万元。雅居装饰主张工程已整改完成并具备验收条件，要求周敏办理验收并支付尾款；周敏主张防水及质量整改未完成，工程未达到验收合格条件，拒绝支付尾款。双方对尾款支付条件是否已成就存在直接对立。\",\"actorIds\":[\"actor-002-zhoumin\",\"actor-002-yaju\"]},{\"id\":\"conflict-002-delay-responsibility\",\"title\":\"2026年5月10日之后工期延误责任归属争议\",\"description\":\"雅居装饰于2026年5月25日才发送竣工验收通知，较补充协议约定的2026年5月10日完工日期晚15日。周敏主张补充协议已涵盖全部工期变更，此后无双方签字确认的再次顺延文件，延误责任应由雅居装饰承担；雅居装饰主张周敏后续多次调整材料颜色、延迟确认柜门样式实际影响施工进度，但现有材料中未见双方签字确认的再次顺延文件，延误责任归属不明。\",\"actorIds\":[\"actor-002-zhoumin\",\"actor-002-yaju\"]}]",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784623464,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 3581,
+            "total_characters": 0,
+            "prompt_tokens": 3066,
+            "completion_tokens": 515,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 3581,
+          "total_characters": 0,
+          "prompt_tokens": 3066,
+          "completion_tokens": 515,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 5185,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-v1",
+          "fallback_used": false
+        }
+      }
+    },
+    {
+      "stage": "factor",
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae646c4173288fc8c2ad0d21955fcf",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "[{\"id\":\"factor-002-moisture-cause\",\"label\":\"卫生间墙角潮湿水印成因归属\",\"description\":\"周敏主张主卫生间墙角潮湿水印属于装修防水施工不合格，应由雅居装饰承担整改责任；雅居装饰主张潮湿水印可能与楼体公共管道有关，不属于其装修责任范围。双方对成因归属存在直接对立，目前材料中未见第三方专业鉴定或闭水试验完整记录以确认成因。\",\"impact\":\"uncertain\"},{\"id\":\"factor-002-closed-water-test-record\",\"label\":\"闭水试验记录是否已交付并通过\",\"description\":\"合同约定卫生间防水应完成闭水试验。2026年6月5日周敏复验后明确表示未收到完整闭水试验记录，并以此主张整改未完成；雅居装饰2026年6月2日整改完成通知中未附完整闭水试验记录。该记录的交付与试验结果将直接影响防水验收条件是否成就。\",\"impact\":\"adverse\"},{\"id\":\"factor-002-rectification-effectiveness\",\"label\":\"整改是否实际完成及达到验收标准\",\"description\":\"雅居装饰2026年6月2日通知称已重新处理卫生间防水节点、更换空鼓墙砖并修补墙面裂纹；周敏2026年6月5日复验仍认为卫生间墙角有轻微潮湿，且墙砖空鼓、墙面裂纹处理效果未获其确认。双方对整改是否已实质完成、工程是否达到整体验收合格条件未形成一致意见。\",\"impact\":\"uncertain\"},{\"id\":\"factor-002-acceptance-condition\",\"label\":\"工程整体验收合格条件是否已成就\",\"description\":\"合同约定整体工程应经双方验收且验收合格后才支付5%尾款4万元。目前周敏拒绝签署验收合格文件，雅居装饰主张已具备验收条件；双方对验收合格条件是否已成就存在直接对立，该因素直接决定尾款支付条件是否满足。\",\"impact\":\"uncertain\"},{\"id\":\"factor-002-final-payment-condition\",\"label\":\"4万元尾款支付条件是否已成就\",\"description\":\"尾款4万元的支付以整体竣工验收合格为前提。因工程验收合格条件是否成就存在争议，尾款支付条件是否已满足相应成为争议焦点：雅居装饰主张条件已成就并要求支付，周敏主张条件未成就并拒付。\",\"impact\":\"adverse\"},{\"id\":\"factor-002-supplement-delivery-date\",\"label\":\"补充协议约定完工日期的法律效力\",\"description\":\"2026年3月15日补充协议将完工日期由2026年4月30日顺延至2026年5月10日，并载明后续新增变更应通过书面记录确认。该日期系双方书面一致意思表示，对工期认定及延误责任分配具有基准效力。\",\"impact\":\"neutral\"},{\"id\":\"factor-002-delay-subsequent-changes\",\"label\":\"补充协议后是否存在需书面确认的新增变更\",\"description\":\"雅居装饰主张周敏在补充协议后又多次调整材料颜色、延迟确认柜门样式，实际影响施工进度；周敏主张补充协议已涵盖变更所需时间。现有材料中未见双方签字确认的再次顺延文件或新增变更书面记录，相关事实的证明状态直接影响2026年5月10日之后延误责任的归属认定。\",\"impact\":\"uncertain\"},{\"id\":\"factor-002-acceptance-record-signing\",\"label\":\"验收记录中双方签字及备注内容的证据效力\",\"description\":\"2026年5月27日验收记录载明主卫生间墙角潮湿水印、淋浴区两块墙砖空鼓、客厅局部墙面细小裂纹，周敏在记录中注明防水和施工质量不合格并拒绝签署验收合格文件，雅居装饰人员签字确认现场现象但备注认为潮湿可能与公共管道有关、空鼓和裂纹属可修复项目。该记录系双方共同形成的现场确认文件，对质量缺陷事实及责任主张具有证据意义。\",\"impact\":\"neutral\"},{\"id\":\"factor-002-payment-progress\",\"label\":\"周敏已按节点支付装修款76万元的事实\",\"description\":\"周敏已按合同及补充协议约定的付款节点分别支付24万元、40万元、12万元，累计76万元，仅余4万元尾款未付。该付款履行情况对合同主要义务履行状态的认定及尾款抗辩的合理性评价具有支持作用。\",\"impact\":\"supportive\"},{\"id\":\"factor-002-contract-price-unchanged\",\"label\":\"合同总价80万元未因补充协议变更\",\"description\":\"补充协议确认合同总价80万元不变，仅调整施工内容并将完工日期顺延。该事实对总价款及尾款金额的认定具有确定性，避免价款争议干扰尾款支付争议。\",\"impact\":\"neutral\"}]",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784623469,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 4538,
+            "total_characters": 0,
+            "prompt_tokens": 3591,
+            "completion_tokens": 947,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 4538,
+          "total_characters": 0,
+          "prompt_tokens": 3591,
+          "completion_tokens": 947,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 16869,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-v1",
+          "fallback_used": false
+        }
+      }
+    },
+    {
+      "stage": "risk",
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae647d1f35f9a1c789f1ff41dc079b",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "[{\"id\":\"risk-002-payment-condition-default\",\"description\":\"若工程整体验收合格条件长期未能成就且4万元尾款持续拒付，可能引发雅居装饰以业主违约为由主张逾期付款违约金或合同解除，并叠加要求周敏承担相应违约损失，反向影响业主拒付尾款抗辩的合理性。\",\"severity\":\"medium\",\"mitigation\":\"尽快以书面方式委托具备资质的第三方对卫生间防水及潮湿成因进行专业鉴定并形成完整闭水试验记录，同时固定整改前后对比的影像、检测报告及双方往来函件，以验收条件是否成就的客观证据支撑尾款抗辩或反诉主张。\"},{\"id\":\"risk-002-moisture-cause-undetermined\",\"description\":\"主卫生间墙角潮湿水印成因尚未经第三方鉴定确认，周敏主张装修防水不合格、雅居装饰主张可能与楼体公共管道有关，潮湿成因归属未定直接影响整改责任分配及尾款支付条件认定，并存在被认定为业主原因或共有部分原因而需业主自行承担修复费用的不利可能。\",\"severity\":\"high\",\"mitigation\":\"及时申请具有防水检测资质的第三方机构对主卫生间闭水试验及潮湿成因进行独立鉴定，必要时申请对公共管道接驳部位进行联合查验并形成书面报告，作为成因归属及责任划分的核心证据。\"},{\"id\":\"risk-002-delay-liability-disputed\",\"description\":\"雅居装饰于2026年5月25日才发送竣工验收通知，较补充协议约定的2026年5月10日完工日期晚15日，雅居装饰主张系周敏后续多次调整材料颜色、延迟确认柜门样式所致但缺乏双方签字确认的再次顺延文件，工期延误责任归属不明，存在周敏被反诉承担延误违约金的风险。\",\"severity\":\"medium\",\"mitigation\":\"梳理并固定补充协议签订后全部新增变更的往来记录（含微信、邮件、现场签证单等），区分书面确认与口头提出部分，对未经双方书面签字确认的所谓新增变更及时以书面方式提出异议并保留回函证据，必要时通过公证保全方式固定证据链。\"},{\"id\":\"risk-002-acceptance-record-evidence\",\"description\":\"2026年5月27日验收记录载明主卫生间墙角潮湿水印、淋浴区两块墙砖空鼓、客厅局部墙面细小裂纹且周敏注明防水和施工质量不合格并拒绝签署验收合格文件，该记录系双方共同形成的现场确认文件，对质量缺陷事实具有较强证据效力，若业主后续怠于固定整改效果对比证据，可能在诉讼中被认定整改已合格或业主已默认验收。\",\"severity\":\"medium\",\"mitigation\":\"在整改完成后复验过程中同步形成图文、视频、第三方检测报告等整改效果对比证据，并由双方或第三方在场签字确认；若对方拒绝签字，采用公证见证方式记录现场状况，避免单纯依赖单方陈述。\"},{\"id\":\"risk-002-closed-water-test-record-missing\",\"description\":\"合同明确约定卫生间防水应完成闭水试验，雅居装饰2026年6月2日整改完成通知中未附完整闭水试验记录，周敏2026年6月5日复验时仍主张未收到完整闭水试验记录并以此认定整改未完成，闭水试验记录的缺失可能成为业主拒付尾款的合理依据，但同时也可能因举证不充分被认定业主原因扩大损失。\",\"severity\":\"medium\",\"mitigation\":\"书面要求雅居装饰在指定期限内提交经双方签字或第三方见证的完整闭水试验记录（含试验水位、持续时长、检测结果及影像资料），逾期未提交则保留追究其未按合同约定完成防水试验违约责任的权利，并以公证函方式固定催告事实。\"}]",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784623486,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 5301,
+            "total_characters": 0,
+            "prompt_tokens": 4539,
+            "completion_tokens": 762,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 5301,
+          "total_characters": 0,
+          "prompt_tokens": 4539,
+          "completion_tokens": 762,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 17814,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-v1",
+          "fallback_used": false
+        }
+      }
+    },
+    {
+      "stage": "review",
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae648fa940c71cedd6d6facce7031e",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "{\"unknowns\":[{\"id\":\"unknown-002-moisture-cause\",\"question\":\"主卫生间墙角潮湿水印的具体成因（装修防水不合格 vs 楼体公共管道渗漏）是否已经具备资质的第三方鉴定机构进行独立鉴定并出具书面报告？\",\"importance\":\"high\"},{\"id\":\"unknown-002-closed-water-test-record\",\"question\":\"雅居装饰是否曾向周敏完整交付经双方签字或第三方见证的闭水试验记录（含试验水位、持续时长、检测结果及影像资料）？\",\"importance\":\"high\"},{\"id\":\"unknown-002-rectification-completion\",\"question\":\"2026年6月2日整改完成通知后，卫生间墙角潮湿、淋浴区墙砖空鼓及客厅墙面裂纹的整改效果是否经双方复验签字确认或第三方检测验证？\",\"importance\":\"high\"},{\"id\":\"unknown-002-acceptance-condition-fulfilled\",\"question\":\"在周敏拒绝签署验收合格文件且未取得其书面认可的情况下，工程整体验收合格条件是否已客观成就？\",\"importance\":\"high\"},{\"id\":\"unknown-002-final-payment-condition\",\"question\":\"4万元尾款支付条件（整体竣工验收合格）是否已满足，验收合格与否的客观标准如何认定？\",\"importance\":\"high\"},{\"id\":\"unknown-002-supplement-post-changes\",\"question\":\"2026年3月15日补充协议签订后，周敏是否又以书面方式提出过材料颜色调整、柜门样式延迟确认等新增变更，雅居装饰是否取得相应书面签证或顺延文件？\",\"importance\":\"medium\"},{\"id\":\"unknown-002-delay-quantification\",\"question\":\"雅居装饰主张的周敏后续多次调整材料和延迟确认具体涉及哪些项目、发生在何时、对施工进度造成的实际延误天数能否量化证明？\",\"importance\":\"medium\"},{\"id\":\"unknown-002-delay-damages-claim\",\"question\":\"雅居装饰是否会以工期延误为由向周敏主张违约金或损失赔偿，金额及计算依据如何？\",\"importance\":\"medium\"},{\"id\":\"unknown-002-moisture-public-pipe\",\"question\":\"主卫生间潮湿部位与楼体公共管道的空间位置关系及公共管道是否存在渗漏，是否经物业或公共管道管理方查验确认？\",\"importance\":\"medium\"},{\"id\":\"unknown-002-rectification-cost\",\"question\":\"若防水整改责任归属雅居装饰，再次整改所需费用及是否足以抵扣4万元尾款？\",\"importance\":\"low\"},{\"id\":\"unknown-002-third-party-inspection\",\"question\":\"双方是否曾共同委托或一方申请由具备防水检测资质的第三方机构进行现场查验？\",\"importance\":\"medium\"},{\"id\":\"unknown-002-subsequent-changes-evidence\",\"question\":\"雅居装饰所称周敏后续调整材料颜色及延迟确认柜门样式的具体沟通记录（微信、邮件、现场签证单等）是否存在并可固定？\",\"importance\":\"medium\"}],\"selfReview\":{\"confidence\":0.72,\"limitations\":[\"当前材料中未见任何第三方专业鉴定报告或闭水试验完整记录，卫生间潮湿成因及整改效果均依赖双方单方陈述\",\"现有材料中未见补充协议签订后双方签字确认的再次顺延文件或新增变更书面签证，工期延误责任归属的事实基础不完整\",\"周敏对整改效果的否定意见系单方陈述，缺乏独立第三方检测或公证证据支撑\",\"雅居装饰主张周敏后续多次调整材料和延迟确认柜门样式的事实仅有施工方单方陈述，缺少双方往来记录佐证\",\"案涉工程整体验收合格与否目前无客观检测或双方签字确认的最终结论，尾款支付条件是否成就处于不确定状态\"],\"assumptions\":[\"假设现有材料中的付款记录、补充协议、验收记录及整改沟通记录真实反映双方意思表示及履约过程\",\"假设合同总价80万元及分期付款金额在补充协议后未再发生其他变更\",\"假设雅居装饰2026年6月2日整改完成通知所述整改措施（防水节点重做、更换空鼓墙砖、修补墙面裂纹）实际已实施\",\"假设周敏2026年6月5日复验时所见\"轻微潮湿\"系其真实感知，但潮湿程度及是否影响使用功能未经专业量化检测\"],\"requiresLawyerReview\":true}}",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784623504,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 6201,
+            "total_characters": 0,
+            "prompt_tokens": 5326,
+            "completion_tokens": 875,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 6201,
+          "total_characters": 0,
+          "prompt_tokens": 5326,
+          "completion_tokens": 875,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 14232,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-v1",
+          "fallback_used": false
+        }
+      }
+    },
+    {
+      "stage": "review",
+      "attempt": 2,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae649d12aa3ca638a52fb6c4fd1f4d",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "{\"unknowns\":[{\"id\":\"unknown-002-moisture-cause\",\"question\":\"主卫生间墙角潮湿水印的成因究竟属于装修防水施工缺陷还是楼体公共管道渗漏，目前有无第三方专业鉴定意见或闭水试验完整记录？\",\"importance\":\"high\"},{\"id\":\"unknown-002-closed-water-test\",\"question\":\"雅居装饰是否曾对主卫生间防水节点完成合同约定的闭水试验，相关试验记录（含水位、时长、检测结果及影像）是否已交付周敏并经双方签字确认？\",\"importance\":\"high\"},{\"id\":\"unknown-002-rectification-result\",\"question\":\"2026年6月2日整改后主卫生间墙角潮湿、淋浴区墙砖空鼓及客厅墙面裂纹是否已实际消除并达到合同约定的验收合格标准？\",\"importance\":\"high\"},{\"id\":\"unknown-002-acceptance-condition\",\"question\":\"案涉装修工程整体是否已达到合同约定的双方验收合格条件，4万元尾款支付前提是否已经成就？\",\"importance\":\"high\"},{\"id\":\"unknown-002-subsequent-changes\",\"question\":\"2026年3月15日补充协议签订后，周敏是否曾提出过调整材料颜色、延迟确认柜门样式等新增变更，相关变更是否经双方书面记录确认并对工期产生影响？\",\"importance\":\"medium\"},{\"id\":\"unknown-002-delay-duration\",\"question\":\"2026年5月10日之后至5月25日发送竣工验收通知之间的15日延误，如属周敏原因所致，其影响天数应如何认定且是否足以完全覆盖该15日？\",\"importance\":\"medium\"},{\"id\":\"unknown-002-third-party-pipeline\",\"question\":\"主卫生间相邻公共管道是否存在渗漏可能，相关楼体公共部位是否已由物业或开发商进行排查并出具书面结论？\",\"importance\":\"medium\"},{\"id\":\"unknown-002-moisture-persistence\",\"question\":\"2026年6月5日周敏复验时所称卫生间墙角仍存在的轻微潮湿，是整改后新出现的潮湿还是原有水印未干，潮湿范围及程度如何？\",\"importance\":\"medium\"},{\"id\":\"unknown-002-acceptance-record-effect\",\"question\":\"2026年5月27日验收记录中雅居装饰人员所附备注内容是否构成对质量缺陷事实的认可，是否会影响整改责任及验收合格条件的认定？\",\"importance\":\"medium\"},{\"id\":\"unknown-002-wet-area-photos\",\"question\":\"周敏是否持有2026年5月27日验收及2026年6月5日复验时的现场影像或对比资料以佐证其防水不合格及整改未完成的主张？\",\"importance\":\"low\"},{\"id\":\"unknown-002-delay-claim-amount\",\"question\":\"若认定雅居装饰存在15日工期延误，雅居装饰是否已就此向周敏主张违约金或损失赔偿，金额及依据如何？\",\"importance\":\"low\"},{\"id\":\"unknown-002-jurisdiction\",\"question\":\"本案装修合同纠纷约定的争议解决方式（管辖法院或仲裁机构）及适用法律是否已有明确约定？\",\"importance\":\"low\"}],\"selfReview\":{\"confidence\":0.78,\"limitations\":[\"主卫生间墙角潮湿水印的成因未经第三方鉴定，闭水试验记录是否完整交付及试验结果如何均无法从现有材料确认\",\"2026年6月2日整改完成后实际质量状况仅有双方各自陈述，缺乏第三方检测或公证见证等客观证据\",\"2026年3月15日补充协议签订后是否还存在需书面确认的新增变更及对应工期影响，现有材料中未见双方签字确认文件\",\"2026年5月27日验收记录中雅居装饰人员备注内容的证据效力及对责任认定的影响，需结合后续质证判断\",\"管辖法院及适用法律等程序性事项尚未确定\",\"雅居装饰是否已就工期延误向周敏提出违约金或损失反诉尚不明确\"],\"assumptions\":[\"假设2026年5月27日验收记录所载主卫生间墙角潮湿水印、淋浴区墙砖空鼓、客厅墙面裂纹等质量缺陷事实成立\",\"假设周敏已支付合同项下前三期款项合计76万元的事实成立且不存在违约\",\"假设补充协议约定的2026年5月10日完工日期对双方具有约束力\",\"假设双方对整改效果、验收合格条件及尾款支付条件的争议系本案核心争点\"],\"requiresLawyerReview\":true}}",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784623518,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 6246,
+            "total_characters": 0,
+            "prompt_tokens": 5345,
+            "completion_tokens": 901,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 6246,
+          "total_characters": 0,
+          "prompt_tokens": 5345,
+          "completion_tokens": 901,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 19114,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-v1",
+          "fallback_used": false
+        }
+      }
+    }
+  ]
+}

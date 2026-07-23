@@ -1,0 +1,67 @@
+[
+  {
+    "decisionFactorId": "factor-008",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-002-supplement",
+      "material-002-schedule",
+      "event-005"
+    ],
+    "notes": "补充协议载明后续新增变更应通过书面记录确认；施工进度记录显示雅居装饰主张后续变更影响进度，但现有材料未见双方签字的再次顺延文件。"
+  },
+  {
+    "decisionFactorId": "factor-009",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-002-acceptance",
+      "event-009"
+    ],
+    "notes": "验收记录载明主卫生间墙角潮湿水印、淋浴区两块墙砖空鼓、客厅局部墙面细小裂纹，雅居装饰人员签字确认现场现象。"
+  },
+  {
+    "decisionFactorId": "factor-010",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-002-acceptance",
+      "event-009"
+    ],
+    "notes": "雅居装饰在验收记录中备注认为墙砖空鼓和墙面裂纹属于可修复项目，不影响整体使用。该备注内容由施工方签字确认材料明确记载。"
+  },
+  {
+    "decisionFactorId": "factor-011",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-002-contract",
+      "material-002-rectification",
+      "event-011"
+    ],
+    "notes": "合同约定卫生间防水应完成闭水试验；周敏2026年6月5日回复明确指出未收到完整闭水试验记录。现有材料中未见已交付的闭水试验记录文本。"
+  },
+  {
+    "decisionFactorId": "factor-012",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-002-rectification",
+      "event-011"
+    ],
+    "notes": "周敏2026年6月5日回复载明复查时卫生间墙角仍有轻微潮湿，与整改前发现的潮湿水印属同类现象。"
+  },
+  {
+    "decisionFactorId": "factor-013",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-002-contract",
+      "material-002-payment"
+    ],
+    "notes": "合同约定整体竣工验收合格后支付5%尾款即4万元；双方对验收合格未达成一致，尾款支付条件是否成就取决于验收争议的认定，现有材料仅记载双方分歧本身，不对条件是否成就作实体判断。"
+  },
+  {
+    "decisionFactorId": "factor-014",
+    "supportStatus": "supported",
+    "sourceRefs": [
+      "material-002-acceptance",
+      "material-002-rectification"
+    ],
+    "notes": "雅居装饰在验收记录及整改沟通中主张潮湿水印可能与楼体公共管道有关，但现有材料中未见相关证据、管道资料或第三方鉴定意见支撑该主张。"
+  }
+]

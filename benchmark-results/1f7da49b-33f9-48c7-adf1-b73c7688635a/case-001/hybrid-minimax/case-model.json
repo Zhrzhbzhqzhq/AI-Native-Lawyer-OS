@@ -1,0 +1,300 @@
+{
+  "identity": {
+    "caseId": "case-001",
+    "title": "海川食品与华东智造设备买卖合同纠纷",
+    "caseType": "设备买卖合同纠纷",
+    "stage": "待确认",
+    "jurisdiction": "待确认"
+  },
+  "narrative": {
+    "summary": "海川食品有限公司（买方）与华东智能装备有限公司（卖方）于2026年1月5日签订灌装生产线设备买卖合同，总价120万元。买方已按约支付预付款36万元及发货前货款72万元，合计108万元，尾款12万元未付。卖方于2026年3月18日交付设备（较约定晚3日），3月19日完成安装调试。首次测试平均产能5200瓶/小时，低于合同约定的6000瓶/小时，且出现卡瓶问题；卖方整改后3月25日复测平均产能为5700瓶/小时，仍未达标。买方拒绝验收并拒付尾款；卖方主张产能未达标系买方瓶体规格、原料黏度及供电条件所致。双方就未达产原因存在争议。",
+    "background": "material-001-contract 灌装生产线设备买卖合同 2026年1月5日，买方海川食品有限公司与卖方华东智能装备有限公司签订灌装生产线设备买卖合同。合同总价为120万元，约定签约后支付30%预付款36万元，发货前支付60%货款72万元，设备验收合格后支付10%尾款12万元。卖方应于2026年3月15日前将设备交付至买方工厂并完成安装调试。合同约定设备稳定产能应达到6000瓶/小时，买方应在调试完成后7日内组织验收。 material-001-payment 付款凭证汇总 银行付款凭证显示，海川食品有限公司于2026年1月10日支付预付款36万元，于2026年3月8日支付发货前货款72万元，合计已支付108万元。验收后应付尾款12万元尚未支付。 material-001-delivery 设备送货及安装记录 物流签收单显示，灌装生产线于2026年3月18日送达海川食品有限公司工厂，较合同约定日期晚3日。双方工程人员在送货单上签字。安装记录显示，华东智能装备有限公司于2026年3月19日完成设备安装并开始调试。 material-001-acceptance 首次验收及质量争议测试记录 2026年3月20日，双方共同进行首次产能测试。测试记录载明设备连续运行2小时，平均产能为5200瓶/小时，并出现多次卡瓶。海川食品有限公司在记录中注明产能未达到合同约定的6000瓶/小时，不同意验收，并要求华东智能装备有限公司继续整改。华东智能装备有限公司工程师签字确认测试数据，但备注认为卡瓶与买方提供的瓶体规格不稳定及现场电压波动有关。 material-001-rectification 整改及复测沟通记录 华东智能装备有限公司于2026年3月22日调整设备参数并更换部分导轨。2026年3月25日复测记录显示，设备平均产能为5700瓶/小时，仍未达到6000瓶/小时。海川食品有限公司认为设备本身存在质量和性能问题，继续拒绝验收并暂缓支付12万元尾款。华东智能装备有限公司认为设备已经完成交付和调试，复测差异主要由买方瓶体、原料黏度和供电条件造成，要求买方配合改善现场条件并支付尾款。双方未就未达产原因形成一致意见。",
+    "currentPosture": "设备未达约定产能6000瓶/小时的责任归属：买方认为是设备本身质量问题，卖方认为是买方瓶体、原料及供电条件所致"
+  },
+  "actors": [
+    {
+      "id": "hybrid-actor-1",
+      "name": "买方海川食品有限公司",
+      "role": "目标公司",
+      "position": "待律师确认"
+    },
+    {
+      "id": "hybrid-actor-2",
+      "name": "与卖方华东智能装备有限公司",
+      "role": "目标公司",
+      "position": "待律师确认"
+    },
+    {
+      "id": "hybrid-actor-3",
+      "name": "海川食品有限公司",
+      "role": "目标公司",
+      "position": "待律师确认"
+    },
+    {
+      "id": "hybrid-actor-4",
+      "name": "日送达海川食品有限公司",
+      "role": "目标公司",
+      "position": "待律师确认"
+    },
+    {
+      "id": "hybrid-actor-5",
+      "name": "华东智能装备有限公司",
+      "role": "目标公司",
+      "position": "待律师确认"
+    },
+    {
+      "id": "hybrid-actor-6",
+      "name": "并要求华东智能装备有限公司",
+      "role": "目标公司",
+      "position": "待律师确认"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "hybrid-timeline-1",
+      "date": "待确认",
+      "event": "合同总价120万元，付款方式为30%预付款、60%发货款、10%尾款",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ],
+      "certainty": "unknown"
+    },
+    {
+      "id": "hybrid-timeline-2",
+      "date": "待确认",
+      "event": "合同约定设备稳定产能6000瓶/小时，交付截止日2026年3月15日",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ],
+      "certainty": "unknown"
+    },
+    {
+      "id": "hybrid-timeline-3",
+      "date": "待确认",
+      "event": "买方已支付108万元，尾款12万元未付",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ],
+      "certainty": "unknown"
+    },
+    {
+      "id": "hybrid-timeline-4",
+      "date": "待确认",
+      "event": "设备实际交付日为2026年3月18日，较约定晚3日",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ],
+      "certainty": "unknown"
+    },
+    {
+      "id": "hybrid-timeline-5",
+      "date": "待确认",
+      "event": "首次测试（3月20日）平均产能5200瓶/小时，出现卡瓶",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ],
+      "certainty": "unknown"
+    },
+    {
+      "id": "hybrid-timeline-6",
+      "date": "待确认",
+      "event": "整改后复测（3月25日）平均产能5700瓶/小时，仍未达6000瓶/小时",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ],
+      "certainty": "unknown"
+    },
+    {
+      "id": "hybrid-timeline-7",
+      "date": "待确认",
+      "event": "卖方主张未达产原因包括瓶体规格不稳定、原料黏度及电压波动",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ],
+      "certainty": "unknown"
+    },
+    {
+      "id": "hybrid-timeline-8",
+      "date": "待确认",
+      "event": "买方主张系设备质量和性能问题",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ],
+      "certainty": "unknown"
+    },
+    {
+      "id": "hybrid-timeline-9",
+      "date": "待确认",
+      "event": "双方未就未达产原因形成一致意见",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ],
+      "certainty": "confirmed"
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "hybrid-conflict-1",
+      "title": "设备未达约定产能6000瓶/小时的责任归属：买方认为是设备本身质量问题，卖方认为是买方瓶体、原料及供电条件所致",
+      "description": "设备未达约定产能6000瓶/小时的责任归属：买方认为是设备本身质量问题，卖方认为是买方瓶体、原料及供电条件所致",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ]
+    },
+    {
+      "id": "hybrid-conflict-2",
+      "title": "卖方交付设备时间晚3日是否构成违约及违约责任承担",
+      "description": "卖方交付设备时间晚3日是否构成违约及违约责任承担",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ]
+    },
+    {
+      "id": "hybrid-conflict-3",
+      "title": "尾款12万元支付条件是否已成就：买方以未通过验收为由拒付，卖方主张已完成交付调试",
+      "description": "尾款12万元支付条件是否已成就：买方以未通过验收为由拒付，卖方主张已完成交付调试",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ]
+    },
+    {
+      "id": "hybrid-conflict-4",
+      "title": "设备质量问题与现场条件因素之间的原因力划分",
+      "description": "设备质量问题与现场条件因素之间的原因力划分",
+      "actorIds": [
+        "hybrid-actor-1",
+        "hybrid-actor-2",
+        "hybrid-actor-3",
+        "hybrid-actor-4",
+        "hybrid-actor-5",
+        "hybrid-actor-6"
+      ]
+    }
+  ],
+  "decisionFactors": [
+    {
+      "id": "hybrid-factor-1",
+      "label": "设备未达约定产能6000瓶/小时的责任归属：买方认为是设备本身质量问题，卖方认为是买方瓶体、原料及供电条件所致",
+      "description": "需律师核对原始材料：设备未达约定产能6000瓶/小时的责任归属：买方认为是设备本身质量问题，卖方认为是买方瓶体、原料及供电条件所致",
+      "impact": "uncertain"
+    },
+    {
+      "id": "hybrid-factor-2",
+      "label": "卖方交付设备时间晚3日是否构成违约及违约责任承担",
+      "description": "需律师核对原始材料：卖方交付设备时间晚3日是否构成违约及违约责任承担",
+      "impact": "uncertain"
+    },
+    {
+      "id": "hybrid-factor-3",
+      "label": "尾款12万元支付条件是否已成就：买方以未通过验收为由拒付，卖方主张已完成交付调试",
+      "description": "需律师核对原始材料：尾款12万元支付条件是否已成就：买方以未通过验收为由拒付，卖方主张已完成交付调试",
+      "impact": "uncertain"
+    },
+    {
+      "id": "hybrid-factor-4",
+      "label": "设备质量问题与现场条件因素之间的原因力划分",
+      "description": "需律师核对原始材料：设备质量问题与现场条件因素之间的原因力划分",
+      "impact": "uncertain"
+    }
+  ],
+  "risks": [],
+  "unknowns": [
+    {
+      "id": "hybrid-unknown-1",
+      "question": "卡瓶现象的具体原因及程度未通过第三方鉴定确认",
+      "importance": "high"
+    },
+    {
+      "id": "hybrid-unknown-2",
+      "question": "瓶体规格不稳定、原料黏度及电压波动等买方因素对产能测试结果的影响程度不明",
+      "importance": "high"
+    },
+    {
+      "id": "hybrid-unknown-3",
+      "question": "设备经进一步整改后是否能够达到6000瓶/小时产能尚未验证",
+      "importance": "high"
+    },
+    {
+      "id": "hybrid-unknown-4",
+      "question": "3日迟延交付是否给买方造成实际损失及损失金额未知",
+      "importance": "high"
+    },
+    {
+      "id": "hybrid-unknown-5",
+      "question": "合同是否就迟延交付的违约金或验收标准作出具体约定",
+      "importance": "high"
+    }
+  ],
+  "selfReview": {
+    "confidence": 0.6,
+    "limitations": [
+      "卡瓶现象的具体原因及程度未通过第三方鉴定确认",
+      "瓶体规格不稳定、原料黏度及电压波动等买方因素对产能测试结果的影响程度不明",
+      "设备经进一步整改后是否能够达到6000瓶/小时产能尚未验证",
+      "3日迟延交付是否给买方造成实际损失及损失金额未知",
+      "合同是否就迟延交付的违约金或验收标准作出具体约定"
+    ],
+    "assumptions": [],
+    "requiresLawyerReview": true
+  }
+}

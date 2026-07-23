@@ -345,19 +345,33 @@ export function validateComplaintSections(result: any, scope: any): ValidationRe
     const argumentById = new Map(sections.map((item: any) => [String(item.argument_id), item]))
     const factById = new Map(sections.flatMap((item: any) => item.usable_facts.map((fact: any) => [String(fact.fact_id), fact])))
     const lawById = new Map(sections.flatMap((item: any) => item.usable_laws.map((law: any) => [String(law.law_id), law])))
-    const evidenceById = new Map(sections.flatMap((item: any) => item.evidences.map((evidence: any) => [String(evidence.evidence_id), evidence])))
+    const scopedEvidences = sections.flatMap((item: any) => item.evidences)
+    const evidenceById = new Map(scopedEvidences.map((evidence: any) => [String(evidence.evidence_id), evidence]))
+    const factEvidenceRelations = new Set(scopedEvidences.map((evidence: any) => JSON.stringify([
+        String(evidence.fact_id),
+        String(evidence.evidence_id),
+    ])))
     const allowedCitations = new Set(Array.from(lawById.values(), (law: any) => String(law.citation)))
     const allowedEvidenceTitles = new Set(Array.from(evidenceById.values(), (evidence: any) => String(evidence.title)))
 
     result.claims.forEach((claim: any, index: number) => {
-        if (!exactKeys(claim, ['text', 'source_argument_ids', 'source_fact_ids', 'requires_lawyer_confirmation'])) errors.push(`claim[${index}] schema invalid`)
+        if (!exactKeys(claim, ['text', 'source_issue_ids', 'source_fact_ids', 'source_law_ids', 'source_argument_ids', 'requires_lawyer_confirmation'])) errors.push(`claim[${index}] schema invalid`)
         if (!isNonEmptyString(claim?.text)) errors.push(`claim[${index}].text missing`)
         if (claim?.requires_lawyer_confirmation !== true) errors.push(`claim[${index}] must require lawyer confirmation`)
-        if (!stringArray(claim?.source_argument_ids) && claim?.source_argument_ids?.length !== 0) errors.push(`claim[${index}].source_argument_ids invalid`)
-        if (!stringArray(claim?.source_fact_ids) && claim?.source_fact_ids?.length !== 0) errors.push(`claim[${index}].source_fact_ids invalid`)
-        for (const id of claim?.source_argument_ids || []) if (!argumentById.has(String(id))) errors.push(`claim[${index}] argument outside scope`)
-        for (const id of claim?.source_fact_ids || []) if (!factById.has(String(id))) errors.push(`claim[${index}] fact outside scope`)
+        if (!stringArray(claim?.source_issue_ids)) errors.push(`claim[${index}].source_issue_ids invalid or empty`)
+        if (!stringArray(claim?.source_argument_ids)) errors.push(`claim[${index}].source_argument_ids invalid or empty`)
+        if (!stringArray(claim?.source_fact_ids)) errors.push(`claim[${index}].source_fact_ids invalid or empty`)
+        if (!stringArray(claim?.source_law_ids)) errors.push(`claim[${index}].source_law_ids invalid or empty`)
+        const claimArguments = (claim?.source_argument_ids || []).map((id: string) => argumentById.get(String(id))).filter(Boolean) as any[]
+        if (claimArguments.length !== (claim?.source_argument_ids || []).length) errors.push(`claim[${index}] argument outside scope`)
+        const allowedIssueIds = new Set(claimArguments.map((item) => String(item.issue?.issue_id)))
+        const allowedFactIds = new Set(claimArguments.flatMap((item) => item.usable_facts.map((fact: any) => String(fact.fact_id))))
+        const allowedLawIds = new Set(claimArguments.flatMap((item) => item.usable_laws.map((law: any) => String(law.law_id))))
+        for (const id of claim?.source_issue_ids || []) if (!allowedIssueIds.has(String(id))) errors.push(`claim[${index}] issue outside argument scope`)
+        for (const id of claim?.source_fact_ids || []) if (!allowedFactIds.has(String(id))) errors.push(`claim[${index}] fact outside argument scope`)
+        for (const id of claim?.source_law_ids || []) if (!allowedLawIds.has(String(id))) errors.push(`claim[${index}] law outside argument scope`)
     })
+    if (JSON.stringify(result.claims) !== JSON.stringify(scope?.claims || [])) errors.push('claims must match runtime Claim Builder output')
     result.facts.forEach((fact: any, index: number) => {
         if (!exactKeys(fact, ['text', 'source_fact_ids', 'source_evidence_ids'])) errors.push(`fact[${index}] schema invalid`)
         if (!isNonEmptyString(fact?.text) || !stringArray(fact?.source_fact_ids) || !stringArray(fact?.source_evidence_ids)) errors.push(`fact[${index}] fields invalid`)
@@ -365,7 +379,10 @@ export function validateComplaintSections(result: any, scope: any): ValidationRe
         for (const evidenceId of fact?.source_evidence_ids || []) {
             const evidence: any = evidenceById.get(String(evidenceId))
             if (!evidence) errors.push(`fact[${index}] evidence outside scope`)
-            else if (!(fact?.source_fact_ids || []).includes(String(evidence.fact_id))) errors.push(`fact[${index}] evidence does not support referenced fact`)
+            else if (!(fact?.source_fact_ids || []).some((factId: string) => factEvidenceRelations.has(JSON.stringify([
+                String(factId),
+                String(evidenceId),
+            ])))) errors.push(`fact[${index}] evidence does not support referenced fact`)
         }
     })
     result.reasoning.forEach((item: any, index: number) => {

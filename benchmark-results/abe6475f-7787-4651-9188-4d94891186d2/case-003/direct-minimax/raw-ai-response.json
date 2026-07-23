@@ -1,0 +1,72 @@
+{
+  "provider": "direct-minimax",
+  "model": "MiniMax-M3",
+  "responses": [
+    {
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06aeaa4bb78f3245777b5ded94e3e453",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "{\"identity\":{\"caseId\":\"case-003\",\"title\":\"林悦与赵海峰房屋租赁合同纠纷\",\"caseType\":\"房屋租赁合同纠纷\",\"stage\":\"待确认\",\"jurisdiction\":\"杭州市滨江区\"},\"narrative\":{\"summary\":\"承租人林悦以出租人赵海峰未妥善维修房屋渗水与排水问题为由，于2026年3月3日发出解除合同通知并于3月10日搬离，要求退还押金12000元；赵海峰认为已履行维修协调义务，不同意提前退租。双方对维修是否完成、合同是否合法解除、押金应否返还及未付租金如何处理存在分歧。\",\"background\":\"2025年9月1日，赵海峰与林悦签订杭州市滨江区住宅租赁合同，租期自2025年9月5日至2026年9月4日，月租金6000元，押金12000元。林悦按约支付押金及两期共六个月租金共30000元，2026年3月5日之后的租金未支付。\",\"currentPosture\":\"赵海峰已签收林悦2026年3月3日发出的解除通知，但明确表示不接受解除理由；林悦已于3月10日搬离并通知赵海峰验房交还钥匙。双方尚未共同签署交房验收、钥匙交接或费用结算文件。\"},\"actors\":[{\"id\":\"actor-zhao\",\"name\":\"赵海峰\",\"role\":\"出租人\",\"position\":\"主张已履行维修协调义务，不同意提前退租，对押金是否返还及未付租金处理存在分歧\"},{\"id\":\"actor-lin\",\"name\":\"林悦\",\"role\":\"承租人\",\"role\":\"承租人\",\"position\":\"已发出解除通知并搬离，要求退还押金12000元\",\"role\":\"承租人\",\"position\":\"已发出解除通知并搬离，要求退还押金12000元\"},{\"id\":\"actor-property\",\"name\":\"物业\",\"role\":\"第三方维修协调方\",\"position\":\"登记报修并进行了临时封堵与排水疏通\"}],\"timeline\":[{\"id\":\"evt-1\",\"date\":\"2025-09-01\",\"event\":\"赵海峰与林悦签订房屋租赁合同\",\"actorIds\":[\"actor-zhao\",\"actor-lin\"],\"certainty\":\"confirmed\"},{\"id\":\"evt-2\",\"date\":\"2025-09-01\",\"event\":\"林悦支付押金12000元及首期三个月租金18000元\",\"actorIds\":[\"actor-lin\",\"actor-zhao\"],\"certainty\":\"confirmed\"},{\"id\":\"evt-3\",\"date\":\"2025-12-01\",\"event\":\"林悦支付第二期三个月租金18000元\",\"actorIds\":[\"actor-lin\",\"actor-zhao\"],\"certainty\":\"confirmed\"},{\"id\":\"evt-4\",\"date\":\"2026-01-18\",\"event\":\"物业登记卧室外墙渗水报修\",\"actorIds\":[\"actor-property\",\"actor-lin\"],\"certainty\":\"confirmed\"},{\"id\":\"evt-5\",\"date\":\"2026-01-22\",\"event\":\"物业对外墙渗水进行临时封堵\",\"actorIds\":[\"actor-property\"],\"certainty\":\"confirmed\"},{\"id\":\"evt-6\",\"date\":\"2026-02-08\",\"event\":\"降雨后林悦拍摄照片显示卧室墙角再次潮湿\",\"actorIds\":[\"actor-lin\"],\"certainty\":\"confirmed\"},{\"id\":\"evt-7\",\"date\":\"2026-02-12\",\"event\":\"赵海峰安排人员疏通卫生间排水\",\"actorIds\":[\"actor-zhao\"],\"certainty\":\"confirmed\"},{\"id\":\"evt-8\",\"date\":\"2026-02-20\",\"event\":\"林悦表示渗水问题未解决将解除合同\",\"actorIds\":[\"actor-lin\",\"actor-zhao\"],\"certainty\":\"confirmed\"},{\"id\":\"evt-9\",\"date\":\"2026-03-03\",\"event\":\"林悦通过微信和快递发出解除合同通知\",\"actorIds\":[\"actor-lin\",\"actor-zhao\"],\"certainty\":\"confirmed\"},{\"id\":\"evt-10\",\"date\":\"2026-03-05\",\"event\":\"赵海峰签收解除通知；当日之后租金未支付\",\"actorIds\":[\"actor-zhao\",\"actor-lin\"],\"certainty\":\"confirmed\"},{\"id\":\"evt-11\",\"date\":\"2026-03-10\",\"event\":\"林悦搬离并通知赵海峰验房取钥匙\",\"actorIds\":[\"actor-lin\",\"actor-zhao\"],\"certainty\":\"confirmed\"}],\"conflicts\":[{\"id\":\"conf-1\",\"title\":\"维修是否完成\",\"description\":\"林悦主张2026年1月起渗水、霉斑及排水问题持续存在，未得到根本修复，影响正常居住；赵海峰主张已联系物业处理外墙并安排疏通排水，已履行维修协调义务。\",\"actorIds\":[\"actor-lin\",\"actor-zhao\"]},{\"id\":\"conf-2\",\"title\":\"合同是否合法解除\",\"description\":\"林悦以维修问题影响居住为由通知于2026年3月10日解除合同并要求退还押金；赵海峰明确表示不接受解除理由，认为属于承租人无约定理由提前退租。\",\"actorIds\":[\"actor-lin\",\"actor-zhao\"]},{\"id\":\"conf-3\",\"title\":\"押金是否应返还及未付租金处理\",\"description\":\"林悦要求返还押金12000元；赵海峰对押金是否应返还及2026年3月5日之后未付租金如何处理与林悦存在分歧。\",\"actorIds\":[\"actor-lin\",\"actor-zhao\"]}],\"decisionFactors\":[{\"id\":\"df-1\",\"label\":\"合同关于出租人维修义务的约定\",\"description\":\"合同约定出租人负责房屋主体及既有设施的必要维修，承租人需配合维修。该约定支持林悦对出租人维修义务的主张。\",\"impact\":\"supportive\"},{\"id\":\"df-2\",\"label\":\"维修实际完成情况\",\"description\":\"双方未共同签署维修完成或房屋恢复正常使用的确认文件，渗水问题在2月8日降雨后再次出现，对维修是否已完成构成不利事实。\",\"impact\":\"adverse\"},{\"id\":\"df-3\",\"label\":\"林悦已支付押金及六个月租金\",\"description\":\"林悦按约支付押金12000元及两期共六个月租金共30000元，付款事实清楚。\",\"impact\":\"neutral\"},{\"id\":\"df-4\",\"label\":\"2026年3月5日后租金未支付\",\"description\":\"2026年3月5日之后租金未支付，对林悦是否需承担后续租金或违约责任存在不利影响。\",\"impact\":\"adverse\"},{\"id\":\"df-5\",\"label\":\"解除通知及签收事实\",\"description\":\"林悦于3月3日发出解除通知，赵海峰于3月5日签收，通知程序事实清楚。\",\"impact\":\"neutral\"},{\"id\":\"df-6\",\"label\":\"交房验收及费用结算缺失\",\"description\":\"现有材料未包含双方共同签署的交房验收单、钥匙交接记录或最终费用结算单，影响押金与费用结算的事实认定。\",\"impact\":\"uncertain\"}],\"risks\":[{\"id\":\"risk-1\",\"description\":\"若维修事实及影响居住程度认定不利，林悦可能承担提前退租的违约责任，包括押金扣减及租金损失。\",\"severity\":\"medium\",\"mitigation\":\"保留渗水、霉斑及排水照片、报修记录、物业登记信息等证据，并申请第三方鉴定或现场查验以固定维修未完成的事实。\"},{\"id\":\"risk-2\",\"description\":\"缺乏双方共同签署的交房验收、钥匙交接及费用结算文件，可能导致押金与未付租金争议难以直接认定。\",\"severity\":\"medium\",\"mitigation\":\"及时组织双方共同验收并签署交房确认书，逐项核对设施状态与水电等费用结算。\"},{\"id\":\"risk-3\",\"description\":\"林悦单方搬离并通知验房，但若赵海峰不配合验收，可能出现房屋状态与物品损坏的争议。\",\"severity\":\"medium\",\"mitigation\":\"通过微信、快递等方式留存通知及验房邀约记录，必要时留存现场视频或邀请第三方见证交接。\"}],\"unknowns\":[{\"id\":\"unk-1\",\"question\":\"卧室外墙渗水问题在2026年3月10日搬离前是否已彻底修复\",\"importance\":\"high\"},{\"id\":\"unk-2\",\"question\":\"卫生间排水堵塞问题在搬离前是否已彻底解决\",\"importance\":\"medium\"},{\"id\":\"unk-3\",\"question\":\"是否存在双方共同签署的交房验收单、钥匙交接记录或最终费用结算单\",\"importance\":\"high\"},{\"id\":\"unk-4\",\"question\":\"2026年3月5日至3月10日期间是否产生租金及其他费用\",\"importance\":\"medium\"},{\"id\":\"unk-5\",\"question\":\"渗水与排水问题是否达到足以支持合法解除合同的严重影响程度\",\"importance\":\"high\"}],\"selfReview\":{\"confidence\":0.42,\"limitations\":[\"现有材料未提供双方共同签署的维修完成确认文件\",\"缺少交房验收、钥匙交接及费用结算单据\",\"未提供2026年1月16日之前双方关于房屋状况的沟通记录\",\"未提供物业维修工单详情及最终修复情况记录\",\"未提供房屋现状第三方鉴定或现场查验报告\"],\"assumptions\":[\"林悦2026年3月3日发出的解除通知可视为行使合同解除权或解除合同意思表示\",\"赵海峰3月5日签收即为通知到达\",\"2026年3月10日为林悦实际搬离日期\"],\"requiresLawyerReview\":true}}",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784641355,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 3768,
+            "total_characters": 0,
+            "prompt_tokens": 1836,
+            "completion_tokens": 1932,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 3768,
+          "total_characters": 0,
+          "prompt_tokens": 1836,
+          "completion_tokens": 1932,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 14287,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-direct-benchmark-v2",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-direct-benchmark-v2",
+          "fallback_used": false
+        }
+      }
+    }
+  ]
+}

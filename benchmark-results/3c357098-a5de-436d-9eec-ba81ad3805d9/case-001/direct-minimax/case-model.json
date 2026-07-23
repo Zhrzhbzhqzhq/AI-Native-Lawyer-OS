@@ -1,0 +1,214 @@
+{
+  "identity": {
+    "caseId": "case-001",
+    "title": "海川食品与华东智造设备买卖合同纠纷",
+    "caseType": "待确认",
+    "stage": "待确认",
+    "jurisdiction": "待确认"
+  },
+  "narrative": {
+    "summary": "海川食品有限公司与华东智能装备有限公司因灌装生产线设备产能未达合同标准产生争议。",
+    "background": "2026年1月双方签订120万元设备买卖合同，约定产能6000瓶/小时。海川食品已支付108万元，华东智造于3月18日交付设备。首次测试产能5200瓶/小时，整改后复测5700瓶/小时，均未达标。双方就未达标原因存在分歧，尾款12万元未付。",
+    "currentPosture": "设备处于已交付未验收状态，尾款未付，双方对未达产原因各执一词，尚未通过正式程序解决争议。"
+  },
+  "actors": [
+    {
+      "id": "actor-buyer",
+      "name": "海川食品有限公司",
+      "role": "买方",
+      "position": "认为设备未达合同产能标准，要求继续整改并暂缓支付尾款"
+    },
+    {
+      "id": "actor-seller",
+      "name": "华东智能装备有限公司",
+      "role": "卖方",
+      "position": "认为已完成交付和调试，未达产系买方瓶体规格、原料黏度及供电条件等现场因素造成，要求支付尾款"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "event-contract-signed",
+      "date": "2026-01-05",
+      "event": "签订灌装生产线设备买卖合同，总价120万元",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-prepayment",
+      "date": "2026-01-10",
+      "event": "海川食品支付预付款36万元",
+      "actorIds": [
+        "actor-buyer"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-pre-shipment-payment",
+      "date": "2026-03-08",
+      "event": "海川食品支付发货前货款72万元",
+      "actorIds": [
+        "actor-buyer"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-delivery",
+      "date": "2026-03-18",
+      "event": "设备送达海川食品工厂，较合同约定晚3日",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-installation",
+      "date": "2026-03-19",
+      "event": "华东智造完成设备安装并开始调试",
+      "actorIds": [
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-first-test",
+      "date": "2026-03-20",
+      "event": "首次产能测试，平均产能5200瓶/小时，出现多次卡瓶，海川食品拒绝验收",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-rectification",
+      "date": "2026-03-22",
+      "event": "华东智造调整设备参数并更换部分导轨",
+      "actorIds": [
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-retest",
+      "date": "2026-03-25",
+      "event": "复测平均产能5700瓶/小时，仍未达6000瓶/小时，海川食品继续拒绝验收",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ],
+      "certainty": "confirmed"
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "conflict-capacity",
+      "title": "设备产能是否达到合同标准",
+      "description": "海川食品主张设备复测产能仍低于合同约定的6000瓶/小时，属于质量问题；华东智造主张未达产系买方瓶体规格、原料黏度及现场电压波动等外部因素造成。",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ]
+    },
+    {
+      "id": "conflict-tail-payment",
+      "title": "尾款12万元是否应支付",
+      "description": "海川食品以未达验收标准为由暂缓支付12万元尾款；华东智造要求买方支付尾款。",
+      "actorIds": [
+        "actor-buyer",
+        "actor-seller"
+      ]
+    }
+  ],
+  "decisionFactors": [
+    {
+      "id": "factor-test-records",
+      "label": "两次测试均未达到合同产能",
+      "description": "首次测试5200瓶/小时、复测5700瓶/小时，均未达到合同约定的6000瓶/小时，并有双方签字确认。",
+      "impact": "adverse"
+    },
+    {
+      "id": "factor-delivery-delay",
+      "label": "交付晚于合同约定3日",
+      "description": "设备于2026年3月18日交付，较合同约定的2026年3月15日晚3日。",
+      "impact": "adverse"
+    },
+    {
+      "id": "factor-causation-dispute",
+      "label": "未达产原因归属存在分歧",
+      "description": "卖方主张系买方瓶体规格、原料黏度、供电条件等外部因素造成，买方主张系设备本身质量问题；原因归属尚未确定。",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-payment-ratio",
+      "label": "买方已支付合同价款90%",
+      "description": "买方已支付108万元，占总价120万元的90%，仅剩12万元尾款未付。",
+      "impact": "neutral"
+    }
+  ],
+  "risks": [
+    {
+      "id": "risk-evidence-instability",
+      "description": "现场瓶体、原料、供电等外部条件可能影响后续鉴定或测试结果，导致责任难以界定",
+      "severity": "high",
+      "mitigation": "尽快委托有资质的第三方在受控条件下进行独立性能测试并出具书面报告"
+    },
+    {
+      "id": "risk-statute-of-limitations",
+      "description": "若进入诉讼或仲裁，需关注设备质量异议及合同违约主张的时效问题",
+      "severity": "medium",
+      "mitigation": "待确认"
+    },
+    {
+      "id": "risk-loss-amplification",
+      "description": "生产线长期未验收导致产能损失扩大，损失金额存在不确定性",
+      "severity": "medium",
+      "mitigation": "固定产能损失证据，必要时申请公证或第三方见证"
+    }
+  ],
+  "unknowns": [
+    {
+      "id": "unknown-jurisdiction",
+      "question": "本案管辖法院或仲裁机构如何确定",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-case-type",
+      "question": "案件应通过诉讼还是仲裁解决（合同是否约定争议解决方式）",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-causation",
+      "question": "设备未达产的根本原因（设备本身质量缺陷 vs 买方现场条件）",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-loss-amount",
+      "question": "因设备未达产给海川食品造成的实际损失金额",
+      "importance": "medium"
+    },
+    {
+      "id": "unknown-rectification-scope",
+      "question": "华东智造是否仍负有进一步整改义务以及整改合理期限",
+      "importance": "medium"
+    }
+  ],
+  "selfReview": {
+    "confidence": 0.55,
+    "limitations": [
+      "输入材料未提供合同争议解决条款、管辖约定及适用法律信息",
+      "未提供第三方独立鉴定意见，无法判定未达产的根本原因",
+      "未提供因延迟交付和未达产给买方造成的实际损失金额",
+      "未提供双方进一步协商或正式法律程序的记录"
+    ],
+    "assumptions": [
+      "合同签订、付款、交付及测试事实以双方签字文件记载为准",
+      "未达产原因在现有材料下无法归责于任何一方",
+      "尾款12万元截至当前仍未支付"
+    ],
+    "requiresLawyerReview": true
+  }
+}

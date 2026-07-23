@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "1.0",
+  "runId": "05df4f44-c9e5-4282-9d42-cfdd3db33e5c",
+  "generatedAt": "2026-07-21T06:46:26.580Z",
+  "cases": [
+    {
+      "caseId": "case-006",
+      "providers": [
+        {
+          "provider": "minimax",
+          "dimensions": {
+            "identity": 56,
+            "narrative": 74,
+            "actors": 63,
+            "conflicts": 86,
+            "decisionFactors": 70,
+            "risks": 68,
+            "unknowns": 67,
+            "topicDrift": 88
+          },
+          "averageScore": 71.5,
+          "rank": 1
+        },
+        {
+          "provider": "direct-minimax",
+          "dimensions": {
+            "identity": 57,
+            "narrative": 74,
+            "actors": 57,
+            "conflicts": 91,
+            "decisionFactors": 71,
+            "risks": 68,
+            "unknowns": 21,
+            "topicDrift": 94
+          },
+          "averageScore": 66.63,
+          "rank": 2
+        },
+        {
+          "provider": "hybrid-minimax",
+          "dimensions": {
+            "identity": 37,
+            "narrative": 55,
+            "actors": 74,
+            "conflicts": 0,
+            "decisionFactors": 0,
+            "risks": 0,
+            "unknowns": 0,
+            "topicDrift": 84
+          },
+          "averageScore": 31.25,
+          "rank": 3
+        },
+        {
+          "provider": "mock",
+          "dimensions": {
+            "identity": 37,
+            "narrative": 33,
+            "actors": 0,
+            "conflicts": 0,
+            "decisionFactors": 0,
+            "risks": 0,
+            "unknowns": 0,
+            "topicDrift": 84
+          },
+          "averageScore": 19.25,
+          "rank": 4
+        }
+      ]
+    }
+  ],
+  "providers": [
+    {
+      "provider": "minimax",
+      "dimensions": {
+        "identity": 56,
+        "narrative": 74,
+        "actors": 63,
+        "conflicts": 86,
+        "decisionFactors": 70,
+        "risks": 68,
+        "unknowns": 67,
+        "topicDrift": 88
+      },
+      "averageScore": 71.5,
+      "rank": 1
+    },
+    {
+      "provider": "direct-minimax",
+      "dimensions": {
+        "identity": 57,
+        "narrative": 74,
+        "actors": 57,
+        "conflicts": 91,
+        "decisionFactors": 71,
+        "risks": 68,
+        "unknowns": 21,
+        "topicDrift": 94
+      },
+      "averageScore": 66.63,
+      "rank": 2
+    },
+    {
+      "provider": "hybrid-minimax",
+      "dimensions": {
+        "identity": 37,
+        "narrative": 55,
+        "actors": 74,
+        "conflicts": 0,
+        "decisionFactors": 0,
+        "risks": 0,
+        "unknowns": 0,
+        "topicDrift": 84
+      },
+      "averageScore": 31.25,
+      "rank": 3
+    },
+    {
+      "provider": "mock",
+      "dimensions": {
+        "identity": 37,
+        "narrative": 33,
+        "actors": 0,
+        "conflicts": 0,
+        "decisionFactors": 0,
+        "risks": 0,
+        "unknowns": 0,
+        "topicDrift": 84
+      },
+      "averageScore": 19.25,
+      "rank": 4
+    }
+  ]
+}

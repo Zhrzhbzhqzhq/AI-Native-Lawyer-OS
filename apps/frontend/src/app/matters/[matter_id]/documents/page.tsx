@@ -209,7 +209,8 @@ export default function DocumentsWorkspace() {
       })
       if (!res.ok) throw new Error(`status:${res.status}`)
       const updated = await res.json().catch(() => { throw new Error('invalid_response') })
-      if (!isDocumentDraft(updated) || updated.id !== activeDraft.id || updated.matter_id !== matterId || updated.review_status !== 'generated') throw new Error('invalid_response')
+      const allowedRegenerateStatuses = new Set(['generated', 'editing'])
+      if (!isDocumentDraft(updated) || updated.id !== activeDraft.id || updated.matter_id !== matterId || !allowedRegenerateStatuses.has(updated.review_status)) throw new Error('invalid_response')
       setMessage('已根据律师意见重新生成')
       await loadAll()
     } catch (e: any) {

@@ -308,10 +308,20 @@ ${JSON.stringify(scope)}
 6. 诉讼请求来源不足时必须使用待律师补充文本；即使生成候选，requires_lawyer_confirmation 必须为 true。
 7. 不得输出必然胜诉、法院一定支持、绝对责任结论，不得输出 confidence、AI reasoning、Scope、内部诊断或 LAWDESK 编码。
 8. 当前 document_type 只能是 complaint。不得输出 Markdown、代码块、解释或额外文本，只输出一个合法 JSON 对象。
+9. 使用法院起诉状式自然叙述：facts 统一组织案件经过，reasoning 不重复 facts 全文，position 与 reasoning 应共同形成自然法律论证。
+10. 不得使用“争议焦点”“本方主张”“论证”“回应”“阶段性结论”“现有来源”“正式来源”“已确认来源”等分析报告式标题。
+11. response 仅在确有必要时自然吸收；counter_argument、risk 和 law limitations 只作为内部约束，不得直接进入对外文字。
+12. conclusion 必须位于事实与理由结束处；court、signature、date 之后不得出现正文或结论。
+13. Evidence 说明应简洁，不得输出运行期核验说明；不得重新生成任何案件分析或直接输出最终纯文本。
+14. material_sources 仅用于核验 Formal Fact 的表达，不得作为新增文书事实或 source_fact_ids 的来源。
+15. Formal Fact（argument_sections[].usable_facts）是文书事实的唯一来源；Material 中未进入 Formal Fact 的内容不得写入文书。
+16. Material 与 Formal Fact 存在冲突、歧义或无法相互印证时，必须采用保守表达，不得用 Material 覆盖、扩张或修改 Formal Fact。
+17. claims 已由运行期 Claim Builder 根据 Formal Issue、Fact、Law、Argument 生成，必须逐项原样返回，不得新增、删除、改写请求或来源关系。
+18. 不得自行生成利息、违约金、律师费或其他未由 claims 明确提供的费用请求，也不得自行计算或补充金额。
 
 JSON 顶级字段必须且只能为：document_type,title,parties,claims,facts,reasoning,legal_basis,evidence_reference,conclusion,court,signature,date。
 字段结构：
-{"document_type":"complaint","title":"民事起诉状","parties":{"plaintiff":"【待律师补充】","defendant":"【待律师补充】"},"claims":[{"text":"【待律师根据已确认 Argument 和案件目标补充】","source_argument_ids":[],"source_fact_ids":[],"requires_lawyer_confirmation":true}],"facts":[{"text":"","source_fact_ids":[],"source_evidence_ids":[]}],"reasoning":[{"issue_id":"","argument_id":"","position":"","analysis":"","source_fact_ids":[],"source_law_ids":[]}],"legal_basis":[{"citation":"","text":"","source_law_id":""}],"evidence_reference":[{"evidence_id":"","title":"","purpose":""}],"conclusion":"","court":"【待律师补充：受理法院】","signature":"【待律师补充】","date":"【待律师补充】"}${compact}`
+{"document_type":"complaint","title":"民事起诉状","parties":{"plaintiff":"【待律师补充】","defendant":"【待律师补充】"},"claims":[{"text":"","source_issue_ids":[""],"source_fact_ids":[""],"source_law_ids":[""],"source_argument_ids":[""],"requires_lawyer_confirmation":true}],"facts":[{"text":"","source_fact_ids":[],"source_evidence_ids":[]}],"reasoning":[{"issue_id":"","argument_id":"","position":"","analysis":"","source_fact_ids":[],"source_law_ids":[]}],"legal_basis":[{"citation":"","text":"","source_law_id":""}],"evidence_reference":[{"evidence_id":"","title":"","purpose":""}],"conclusion":"","court":"【待律师补充：受理法院】","signature":"【待律师补充】","date":"【待律师补充】"}${compact}`
 }
 
 export default {

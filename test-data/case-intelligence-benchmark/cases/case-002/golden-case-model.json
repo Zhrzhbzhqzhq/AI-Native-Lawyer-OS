@@ -1,0 +1,267 @@
+{
+  "identity": {
+    "caseId": "case-002",
+    "title": "周敏与雅居装饰工程有限公司装修合同纠纷",
+    "caseType": "住宅装修合同纠纷",
+    "stage": "竣工验收争议处理",
+    "jurisdiction": "中国大陆"
+  },
+  "narrative": {
+    "summary": "周敏与雅居装饰工程有限公司签订总价80万元的住宅装修合同，后通过补充协议调整施工内容并将完工日期顺延至2026年5月10日。雅居装饰于2026年5月25日通知竣工，验收时发现卫生间潮湿、墙砖空鼓和墙面裂纹。双方对延期原因、质量问题来源、整改效果、验收状态及4万元尾款支付存在分歧。",
+    "background": "周敏已按前三个付款节点累计支付76万元，剩余4万元在竣工验收合格后支付。补充协议保持总价不变并延长工期10日。雅居装饰晚于补充协议日期15日发出竣工通知，之后实施整改，但双方未共同确认整改后的验收结果。",
+    "currentPosture": "周敏认为工程延期且防水和施工质量仍不合格，拒绝验收并拒付尾款；雅居装饰认为工期受业主后续变更影响、整改已经完成，要求复验和支付4万元尾款。"
+  },
+  "actors": [
+    {
+      "id": "actor-owner",
+      "name": "周敏",
+      "role": "业主",
+      "position": "认为工程存在延期和质量问题，整改未完成，拒绝签署验收合格文件并拒付尾款。"
+    },
+    {
+      "id": "actor-contractor",
+      "name": "雅居装饰工程有限公司",
+      "role": "装修公司",
+      "position": "认为业主变更影响工期，质量问题已经整改，要求办理验收并支付4万元尾款。"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "timeline-contract",
+      "date": "2026-01-12",
+      "event": "双方签订总价80万元的住宅装修合同，业主支付首期款24万元。",
+      "actorIds": [
+        "actor-owner",
+        "actor-contractor"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-start",
+      "date": "2026-01-20",
+      "event": "装修公司进场施工。",
+      "actorIds": [
+        "actor-contractor"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-second-payment",
+      "date": "2026-02-28",
+      "event": "业主支付第二期装修款40万元。",
+      "actorIds": [
+        "actor-owner",
+        "actor-contractor"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-supplement",
+      "date": "2026-03-15",
+      "event": "双方签订补充协议，调整部分装修内容并将完工日期顺延至2026年5月10日，合同总价80万元不变。",
+      "actorIds": [
+        "actor-owner",
+        "actor-contractor"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-third-payment",
+      "date": "2026-04-05",
+      "event": "业主支付第三期装修款12万元，累计支付76万元。",
+      "actorIds": [
+        "actor-owner",
+        "actor-contractor"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-completion-notice",
+      "date": "2026-05-25",
+      "event": "装修公司发送竣工验收通知，晚于补充协议约定日期15日。",
+      "actorIds": [
+        "actor-owner",
+        "actor-contractor"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-acceptance",
+      "date": "2026-05-27",
+      "event": "双方验收时记录卫生间潮湿水印、两块墙砖空鼓和客厅局部墙面裂纹，业主拒绝签署验收合格文件。",
+      "actorIds": [
+        "actor-owner",
+        "actor-contractor"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-rectification",
+      "date": "2026-06-02",
+      "event": "装修公司通知业主防水节点、空鼓墙砖和墙面裂纹已经整改完成。",
+      "actorIds": [
+        "actor-owner",
+        "actor-contractor"
+      ],
+      "certainty": "disputed"
+    },
+    {
+      "id": "timeline-owner-review",
+      "date": "2026-06-05",
+      "event": "业主回复称卫生间墙角仍有轻微潮湿且缺少完整闭水试验记录，继续拒付4万元尾款。",
+      "actorIds": [
+        "actor-owner",
+        "actor-contractor"
+      ],
+      "certainty": "confirmed"
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "conflict-delay",
+      "title": "工期延期原因",
+      "description": "业主认为补充协议已经包含变更工期且未同意再次顺延；装修公司认为业主后续材料和样式变更继续影响施工进度。",
+      "actorIds": [
+        "actor-owner",
+        "actor-contractor"
+      ]
+    },
+    {
+      "id": "conflict-waterproofing",
+      "title": "卫生间潮湿是否属于防水质量问题",
+      "description": "业主认为潮湿反映防水不合格；装修公司认为潮湿可能来自楼体公共管道。",
+      "actorIds": [
+        "actor-owner",
+        "actor-contractor"
+      ]
+    },
+    {
+      "id": "conflict-rectification",
+      "title": "质量问题是否整改完成",
+      "description": "装修公司称防水节点、空鼓墙砖和墙面裂纹均已处理；业主认为仍有潮湿且缺少闭水试验记录。",
+      "actorIds": [
+        "actor-owner",
+        "actor-contractor"
+      ]
+    },
+    {
+      "id": "conflict-acceptance",
+      "title": "工程是否达到验收条件",
+      "description": "业主拒绝签署验收合格文件，装修公司要求业主复验并办理验收。",
+      "actorIds": [
+        "actor-owner",
+        "actor-contractor"
+      ]
+    },
+    {
+      "id": "conflict-final-payment",
+      "title": "4万元尾款是否应支付",
+      "description": "业主以延期、质量和整改争议为由拒付尾款，装修公司以整改完成为由要求付款。",
+      "actorIds": [
+        "actor-owner",
+        "actor-contractor"
+      ]
+    }
+  ],
+  "decisionFactors": [
+    {
+      "id": "factor-supplement-scope",
+      "label": "补充协议的变更及顺延范围",
+      "description": "补充协议明确的施工变更、2026年5月10日完工日期及后续变更书面确认要求，是梳理工期状态的重要材料。",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-later-changes",
+      "label": "补充协议后的变更记录",
+      "description": "装修公司所称材料颜色和柜门样式变更的时间、内容及实际工期影响尚需完整沟通记录支持。",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-acceptance-record",
+      "label": "2026年5月27日验收记录",
+      "description": "双方签字记录的潮湿水印、墙砖空鼓和墙面裂纹，是识别验收时工程状态的重要材料。",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-waterproof-cause",
+      "label": "卫生间潮湿原因",
+      "description": "潮湿来自装修防水还是公共管道尚未通过完整闭水试验、管道检查或其他技术材料确认。",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-rectification-evidence",
+      "label": "整改过程及复验结果",
+      "description": "整改施工记录、闭水试验数据、复验记录及双方是否共同确认整改效果仍需核实。",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-payment-condition",
+      "label": "尾款付款节点",
+      "description": "原合同将4万元尾款与整体竣工验收合格相联系，当前双方对验收状态存在分歧。",
+      "impact": "uncertain"
+    }
+  ],
+  "risks": [
+    {
+      "id": "risk-delay-records",
+      "description": "补充协议后的业主变更、材料确认时间及其对工期的具体影响缺少双方共同确认的完整记录。",
+      "severity": "high",
+      "mitigation": "整理设计变更、选材确认、施工日志和双方通信，形成补充协议后事项的时间表。"
+    },
+    {
+      "id": "risk-waterproof-cause",
+      "description": "卫生间潮湿原因尚未通过完整闭水试验或管道检查区分。",
+      "severity": "high",
+      "mitigation": "保全潮湿现场状态，补充闭水试验、公共管道检查及影像记录。"
+    },
+    {
+      "id": "risk-rectification-proof",
+      "description": "装修公司已发出整改完成通知，但缺少双方共同签署的整改复验结论。",
+      "severity": "medium",
+      "mitigation": "收集整改施工记录、材料更换记录，并安排双方参与的书面复验。"
+    },
+    {
+      "id": "risk-current-condition",
+      "description": "继续维修或入住使用可能改变争议发生时的装修状态。",
+      "severity": "medium",
+      "mitigation": "在后续处理前记录现状、缺陷位置和测量结果，保留连续影像资料。"
+    }
+  ],
+  "unknowns": [
+    {
+      "id": "unknown-later-changes",
+      "question": "补充协议后业主是否提出新的施工变更，各项变更实际影响工期多久？",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-waterproof-test",
+      "question": "卫生间是否按合同要求完成闭水试验，试验条件、持续时间和结果是什么？",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-moisture-source",
+      "question": "卫生间潮湿来自装修防水、公共管道还是其他原因？",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-rectification-result",
+      "question": "墙砖空鼓、墙面裂纹和防水节点整改后的客观状态及复验结果是什么？",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-acceptance-process",
+      "question": "双方在2026年6月5日后是否再次组织验收或发送正式验收通知？",
+      "importance": "medium"
+    }
+  ],
+  "selfReview": {
+    "confidence": 0.84,
+    "limitations": [
+      "未取得补充协议后全部设计变更和材料确认记录。",
+      "未取得完整闭水试验记录及公共管道检查资料。",
+      "未取得整改施工日志和双方共同签署的复验结论。"
+    ],
+    "assumptions": [],
+    "requiresLawyerReview": true
+  }
+}

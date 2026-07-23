@@ -1,0 +1,182 @@
+{
+  "identity": {
+    "caseId": "case-006",
+    "title": "陈伟诉李强股权转让合同纠纷",
+    "caseType": "contract_dispute",
+    "stage": "pre_filing",
+    "jurisdiction": "待确认"
+  },
+  "narrative": {
+    "summary": "陈伟与李强签订股权转让合同，约定李强向陈伟转让某科技公司20%股权，转让价款为80万元；陈伟已支付60万元，剩余20万元尚未支付，双方对剩余款项支付与股权交割的先后顺序存在争议，李强尚未完成股权交割。",
+    "background": "陈伟作为受让方与李强作为转让方签订股权转让合同，标的为某科技公司20%股权，转让价款合计80万元。",
+    "currentPosture": "陈伟已支付60万元，李强尚未完成股权交割；双方就剩余20万元付款与股权交割的履行先后顺序存在争议，案件尚未进入诉讼阶段。"
+  },
+  "actors": [
+    {
+      "id": "actor-1",
+      "name": "陈伟",
+      "role": "plaintiff_intended",
+      "position": "受让方，已支付60万元，主张李强应先完成股权交割"
+    },
+    {
+      "id": "actor-2",
+      "name": "李强",
+      "role": "defendant_intended",
+      "position": "转让方，已收取60万元，未完成股权交割，主张陈伟应先付清余款"
+    },
+    {
+      "id": "actor-3",
+      "name": "某科技公司",
+      "role": "target_company",
+      "position": "股权转让标的所在公司，待确认其是否已办理股东变更登记"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "event-1",
+      "date": "待确认",
+      "event": "陈伟与李强签订股权转让合同，约定转让某科技公司20%股权，转让价款80万元",
+      "actorIds": [
+        "actor-1",
+        "actor-2"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-2",
+      "date": "待确认",
+      "event": "陈伟向李强支付股权转让价款60万元，剩余20万元未支付",
+      "actorIds": [
+        "actor-1",
+        "actor-2"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-3",
+      "date": "待确认",
+      "event": "双方就股权交割进行沟通，李强尚未完成股权交割",
+      "actorIds": [
+        "actor-1",
+        "actor-2"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "event-4",
+      "date": "待确认",
+      "event": "双方对剩余20万元付款与股权交割的先后顺序产生争议",
+      "actorIds": [
+        "actor-1",
+        "actor-2"
+      ],
+      "certainty": "confirmed"
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "conflict-1",
+      "title": "剩余20万元付款与股权交割的履行顺序争议",
+      "description": "陈伟主张李强应先完成股权交割后再支付剩余20万元；李强主张陈伟应先付清余款再办理股权交割。双方对合同约定的履行先后顺序存在分歧。",
+      "actorIds": [
+        "actor-1",
+        "actor-2"
+      ]
+    }
+  ],
+  "decisionFactors": [
+    {
+      "id": "factor-1",
+      "label": "股权转让合同的履行顺序约定",
+      "description": "待确认合同中是否明确约定付款与股权交割的先后顺序，以及是否存在同时履行抗辩或先履行抗辩条款",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-2",
+      "label": "已付款比例",
+      "description": "陈伟已支付60万元，占总价款的75%，显示其有积极履行意愿",
+      "impact": "supportive"
+    },
+    {
+      "id": "factor-3",
+      "label": "李强未完成股权交割",
+      "description": "李强未完成股权交割，构成其自身合同义务未履行，可能影响其要求陈伟先付余款的主张",
+      "impact": "supportive"
+    },
+    {
+      "id": "factor-4",
+      "label": "剩余20万元未付",
+      "description": "陈伟尚有20万元未付，构成其自身合同义务未完全履行，可能影响其要求李强先交割的主张",
+      "impact": "adverse"
+    },
+    {
+      "id": "factor-5",
+      "label": "沟通记录内容",
+      "description": "待确认双方沟通记录中是否对履行顺序作出新的约定或承诺",
+      "impact": "uncertain"
+    }
+  ],
+  "risks": [
+    {
+      "id": "risk-1",
+      "description": "若合同未明确约定履行顺序，举证责任分配将影响案件走向，败诉风险上升",
+      "severity": "high",
+      "mitigation": "梳理并固定合同全部条款及履行沟通记录，必要时申请司法鉴定"
+    },
+    {
+      "id": "risk-2",
+      "description": "股权未交割可能导致公司经营、表决权、收益分配等持续受损",
+      "severity": "medium",
+      "mitigation": "考虑申请行为保全或先行起诉以推动交割"
+    },
+    {
+      "id": "risk-3",
+      "description": "继续履行或解除合同的选择将直接影响经济利益，需谨慎评估",
+      "severity": "medium",
+      "mitigation": "在律师协助下综合评估继续履行成本与解除合同的替代收益"
+    }
+  ],
+  "unknowns": [
+    {
+      "id": "unknown-1",
+      "question": "股权转让合同中是否明确约定付款与股权交割的先后顺序",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-2",
+      "question": "某科技公司是否已就本次股权转让办理或正在办理股东变更登记",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-3",
+      "question": "双方沟通记录中是否就履行顺序或违约责任作出明确表述",
+      "importance": "medium"
+    },
+    {
+      "id": "unknown-4",
+      "question": "合同是否约定违约金、定金或解除条件",
+      "importance": "medium"
+    },
+    {
+      "id": "unknown-5",
+      "question": "案件管辖法院的具体所在地及级别",
+      "importance": "low"
+    }
+  ],
+  "selfReview": {
+    "confidence": 0.42,
+    "limitations": [
+      "未提供合同全文，无法核实履行顺序、违约责任及管辖条款的具体约定",
+      "未提供沟通记录的具体内容与时间戳",
+      "未提供目标公司股东名册、章程及变更登记信息",
+      "未说明双方是否约定定金、违约金或解除条件",
+      "未提供案件目前所处的诉讼阶段及已采取的争议解决措施"
+    ],
+    "assumptions": [
+      "假设CASE_INPUT所述事实为各方陈述一致的部分",
+      "假设陈伟与李强为平等民事主体，合同有效且未因其他事由被撤销或解除",
+      "假设某科技公司为合法存续的有限责任公司"
+    ],
+    "requiresLawyerReview": true
+  }
+}

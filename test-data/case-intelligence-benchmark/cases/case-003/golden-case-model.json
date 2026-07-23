@@ -1,0 +1,285 @@
+{
+  "identity": {
+    "caseId": "case-003",
+    "title": "林悦与赵海峰房屋租赁合同纠纷",
+    "caseType": "房屋租赁合同纠纷",
+    "stage": "解除及退租争议处理",
+    "jurisdiction": "中国大陆"
+  },
+  "narrative": {
+    "summary": "林悦承租赵海峰的住宅并支付押金及两期租金。租赁期间，双方围绕卧室外墙渗水、墙面霉斑和卫生间排水问题进行了维修及微信沟通。林悦认为维修问题持续影响居住，发出解除通知后搬离；赵海峰认为已经安排维修，林悦提前退租构成违约。双方对解除原因、房屋使用状态、未付租金、押金及交房结算存在分歧。",
+    "background": "双方约定一年租期、月租金6000元、押金12000元，租金每三个月支付一次。林悦已支付押金和前两期租金，2026年3月5日之后的租金未支付。物业和出租人曾安排临时封堵及排水疏通，但没有双方共同确认维修完成的文件。",
+    "currentPosture": "林悦已发送解除通知并于2026年3月10日搬离，主张房屋维修问题导致无法继续使用并要求退还押金；赵海峰不认可解除理由，认为林悦提前退租并应承担责任。"
+  },
+  "actors": [
+    {
+      "id": "actor-tenant",
+      "name": "林悦",
+      "role": "承租人",
+      "position": "认为渗水、霉斑和排水问题持续影响正常居住，解除合同具有事实原因，并要求处理押金返还。"
+    },
+    {
+      "id": "actor-landlord",
+      "name": "赵海峰",
+      "role": "出租人",
+      "position": "认为已协调和安排维修，房屋仍可居住，承租人提前退租并应承担相应责任。"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "timeline-contract",
+      "date": "2025-09-01",
+      "event": "双方签订房屋租赁合同，承租人支付押金12000元及首期租金18000元。",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-tenancy-start",
+      "date": "2025-09-05",
+      "event": "约定租期开始。",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-second-rent",
+      "date": "2025-12-01",
+      "event": "承租人支付第二期三个月租金18000元。",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-repair-report",
+      "date": "2026-01-18",
+      "event": "物业登记卧室外墙渗水报修。",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-temporary-repair",
+      "date": "2026-01-22",
+      "event": "物业对外墙渗水进行临时封堵。",
+      "actorIds": [
+        "actor-landlord"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-water-recurrence",
+      "date": "2026-02-08",
+      "event": "降雨后卧室墙角再次出现潮湿，承租人留存照片。",
+      "actorIds": [
+        "actor-tenant"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-drain-repair",
+      "date": "2026-02-12",
+      "event": "出租人安排人员疏通卫生间排水。",
+      "actorIds": [
+        "actor-landlord"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-termination-warning",
+      "date": "2026-02-20",
+      "event": "承租人在微信中表示渗水问题如未解决将解除合同，出租人表示不同意提前退租。",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-termination-notice",
+      "date": "2026-03-03",
+      "event": "承租人通过微信和快递发送解除通知，提出于2026年3月10日解除合同并要求退还押金。",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-notice-received",
+      "date": "2026-03-05",
+      "event": "快递记录显示出租人签收解除通知；出租人不认可解除理由。",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ],
+      "certainty": "confirmed"
+    },
+    {
+      "id": "timeline-move-out",
+      "date": "2026-03-10",
+      "event": "承租人搬离并通知出租人验房取钥匙，但缺少双方共同签署的交房记录。",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ],
+      "certainty": "confirmed"
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "conflict-repair-completion",
+      "title": "维修是否完成",
+      "description": "承租人认为渗水、霉斑及排水问题持续存在；出租人认为已协调物业并安排维修处理。",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ]
+    },
+    {
+      "id": "conflict-usability",
+      "title": "房屋是否能够继续正常使用",
+      "description": "承租人认为潮湿、霉斑和异味影响正常居住；出租人认为相关问题不妨碍继续使用。",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ]
+    },
+    {
+      "id": "conflict-termination",
+      "title": "解除通知所依据的事实是否充分",
+      "description": "承租人以持续维修问题为由通知解除；出租人不认可该理由并将搬离视为提前退租。",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ]
+    },
+    {
+      "id": "conflict-rent",
+      "title": "2026年3月5日后的租金如何处理",
+      "description": "承租人在通知解除后未继续支付租金；出租人认为租期尚未届满，双方对后续租金处理存在分歧。",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ]
+    },
+    {
+      "id": "conflict-deposit",
+      "title": "押金12000元如何处理",
+      "description": "承租人要求退还押金；出租人认为应结合提前退租责任、未付费用及房屋交还情况处理。",
+      "actorIds": [
+        "actor-tenant",
+        "actor-landlord"
+      ]
+    }
+  ],
+  "decisionFactors": [
+    {
+      "id": "factor-contract-repair-duty",
+      "label": "合同约定的维修职责",
+      "description": "合同关于出租人负责主体及既有设施必要维修、承租人配合维修的约定，是理解双方维修责任观点的基础。",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-repair-history",
+      "label": "维修问题及处理过程",
+      "description": "报修登记、临时封堵、再次潮湿、排水疏通及后续沟通共同反映维修问题的发展过程。",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-use-impact",
+      "label": "维修问题对居住使用的实际影响",
+      "description": "潮湿、霉斑、异味和排水问题的范围、持续时间及实际使用影响仍需结合现场和连续记录确认。",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-wechat-communications",
+      "label": "微信沟通中的通知与回应",
+      "description": "双方微信记录呈现了承租人的反复报修、解除预告以及出租人的维修回应和反对提前退租观点。",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-termination-notice",
+      "label": "解除通知的内容及送达",
+      "description": "解除通知列明的问题、拟解除日期和押金请求，快递记录显示出租人已于2026年3月5日签收。",
+      "impact": "uncertain"
+    },
+    {
+      "id": "factor-handover-status",
+      "label": "搬离及房屋交还状态",
+      "description": "承租人已通知搬离和取钥匙，但缺少共同验房、钥匙交接及费用结算记录。",
+      "impact": "uncertain"
+    }
+  ],
+  "risks": [
+    {
+      "id": "risk-condition-proof",
+      "description": "现有照片和沟通记录可能不足以完整反映渗水、霉斑及排水问题的持续时间和影响范围。",
+      "severity": "high",
+      "mitigation": "按日期整理原始照片、视频、报修记录、天气信息及物业维修记录。"
+    },
+    {
+      "id": "risk-repair-records",
+      "description": "维修措施、完成时间和实际效果缺少双方共同确认。",
+      "severity": "high",
+      "mitigation": "收集物业工单、维修人员记录、费用凭证及维修前后影像。"
+    },
+    {
+      "id": "risk-handover-proof",
+      "description": "搬离后的房屋状态、钥匙交接和费用读数没有共同签署的记录。",
+      "severity": "medium",
+      "mitigation": "补充确认验房通知送达、钥匙保管情况及水电等费用读数。"
+    },
+    {
+      "id": "risk-message-completeness",
+      "description": "节选的微信记录可能缺少上下文或附件原始信息。",
+      "severity": "medium",
+      "mitigation": "保全完整微信聊天记录、图片原件、发送时间和对方账号信息。"
+    }
+  ],
+  "unknowns": [
+    {
+      "id": "unknown-repair-effect",
+      "question": "外墙封堵和排水疏通后，各项问题是否再次发生，具体持续到何时？",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-use-impact",
+      "question": "渗水、霉斑、异味和排水问题对卧室及整套房屋使用造成了何种实际影响？",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-property-records",
+      "question": "物业是否形成完整报修、检查、施工和复查记录？",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-handover",
+      "question": "出租人是否实际接收钥匙并查验房屋，双方何时完成或拒绝完成交接？",
+      "importance": "high"
+    },
+    {
+      "id": "unknown-final-account",
+      "question": "搬离时水电、物业等费用是否结清，是否存在房屋或物品损坏记录？",
+      "importance": "medium"
+    }
+  ],
+  "selfReview": {
+    "confidence": 0.85,
+    "limitations": [
+      "未取得完整物业维修工单及维修人员记录。",
+      "未取得全部微信聊天原始记录和照片原件。",
+      "未取得双方共同签署的交房验收及费用结算文件。"
+    ],
+    "assumptions": [],
+    "requiresLawyerReview": true
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "case_id": "case-003",
+  "provider": "direct-minimax",
+  "status": "failed",
+  "error": {
+    "code": "direct_minimax_schema_validation_failed",
+    "message": "direct_minimax_schema_validation_failed"
+  },
+  "failing_stage": "direct_case_model",
+  "diagnostic": {
+    "failing_stage": "direct_case_model",
+    "schema_validation_error": {
+      "ok": false,
+      "issues": [
+        {
+          "path": "$",
+          "code": "amount_unsupported",
+          "message": "Amount 36000元 has no explicit or derivable source support."
+        },
+        {
+          "path": "$",
+          "code": "amount_derivation_mismatch",
+          "message": "Amount 200元 does not match the derived amount 1200元."
+        }
+      ]
+    },
+    "raw_ai_response_path": "/Users/qingzhang/Desktop/AI-Native-Lawyer-OS/benchmark-results/21e32679-6b37-4680-849b-203ec26d371a/case-003/direct-minimax/raw-ai-response.json",
+    "provider": "direct-minimax",
+    "model": "MiniMax-M3"
+  }
+}

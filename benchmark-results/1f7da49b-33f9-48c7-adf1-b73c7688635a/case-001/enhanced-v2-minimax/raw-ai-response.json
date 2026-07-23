@@ -1,0 +1,205 @@
+{
+  "provider": "enhanced-v2-minimax",
+  "model": "MiniMax-M3",
+  "responses": [
+    {
+      "stage": "direct",
+      "attempt": 1,
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae9d4f42b982feb6777ef2a0009f55",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "{\"identity\":{\"caseId\":\"case-001\",\"title\":\"海川食品与华东智造设备买卖合同纠纷\",\"caseType\":\"买卖合同纠纷\",\"stage\":\"待确认\",\"jurisdiction\":\"待确认\"},\"narrative\":{\"summary\":\"海川食品有限公司与华东智能装备有限公司因灌装生产线设备未达合同约定产能产生质量争议，买方拒付尾款12万元。\",\"background\":\"2026年1月双方签订设备买卖合同，总价120万元，分三期付款。卖方应于2026年3月15日前交付并完成安装调试，合同约定稳定产能6000瓶/小时。\",\"currentPosture\":\"设备已交付并经两次测试，产能分别为5200瓶/小时和5700瓶/小时，均未达标。双方就未达标原因存在分歧，买方暂缓支付尾款12万元。\"},\"actors\":[{\"id\":\"buyer\",\"name\":\"海川食品有限公司\",\"role\":\"买方\",\"position\":\"主张设备未达约定产能，拒绝验收并暂缓支付尾款\"},{\"id\":\"seller\",\"name\":\"华东智能装备有限公司\",\"role\":\"卖方\",\"position\":\"主张已完成交付与调试，差异由买方现场条件造成，要求支付尾款\"}],\"timeline\":[{\"id\":\"t1\",\"date\":\"2026-01-05\",\"event\":\"双方签订灌装生产线设备买卖合同，总价120万元\",\"actorIds\":[\"buyer\",\"seller\"],\"certainty\":\"confirmed\"},{\"id\":\"t2\",\"date\":\"2026-01-10\",\"event\":\"海川食品支付预付款36万元\",\"actorIds\":[\"buyer\"],\"certainty\":\"confirmed\"},{\"id\":\"t3\",\"date\":\"2026-03-08\",\"event\":\"海川食品支付发货前货款72万元\",\"actorIds\":[\"buyer\"],\"certainty\":\"confirmed\"},{\"id\":\"t4\",\"date\":\"2026-03-15\",\"event\":\"合同约定的交付截止日期\",\"actorIds\":[\"buyer\",\"seller\"],\"certainty\":\"confirmed\"},{\"id\":\"t5\",\"date\":\"2026-03-18\",\"event\":\"设备送达海川食品工厂，较合同约定晚3日\",\"actorIds\":[\"buyer\",\"seller\"],\"certainty\":\"confirmed\"},{\"id\":\"t6\",\"date\":\"2026-03-19\",\"event\":\"卖方完成设备安装并开始调试\",\"actorIds\":[\"seller\"],\"certainty\":\"confirmed\"},{\"id\":\"t7\",\"date\":\"2026-03-20\",\"event\":\"首次产能测试，平均5200瓶/小时，出现卡瓶\",\"actorIds\":[\"buyer\",\"seller\"],\"certainty\":\"confirmed\"},{\"id\":\"t8\",\"date\":\"2026-03-22\",\"event\":\"卖方调整参数并更换部分导轨\",\"actorIds\":[\"seller\"],\"certainty\":\"confirmed\"},{\"id\":\"t9\",\"date\":\"2026-03-25\",\"event\":\"复测平均产能5700瓶/小时，仍未达标\",\"actorIds\":[\"buyer\",\"seller\"],\"certainty\":\"confirmed\"}],\"conflicts\":[{\"id\":\"c1\",\"title\":\"设备产能是否达到合同约定\",\"description\":\"首次测试5200瓶/小时、复测5700瓶/小时，均低于合同约定的6000瓶/小时，是否构成根本违约或性能不符存在争议。\",\"actorIds\":[\"buyer\",\"seller\"]},{\"id\":\"c2\",\"title\":\"未达标原因归属\",\"description\":\"卖方主张由买方瓶体规格、原料黏度及电压波动等现场条件造成；买方主张系设备自身质量与性能问题。\",\"actorIds\":[\"buyer\",\"seller\"]},{\"id\":\"c3\",\"title\":\"尾款支付条件是否成就\",\"description\":\"买方以验收未通过为由暂缓支付尾款12万元；卖方主张已完成交付调试，付款条件已成就。\",\"actorIds\":[\"buyer\",\"seller\"]},{\"id\":\"c4\",\"title\":\"交付迟延3日的责任承担\",\"description\":\"设备于2026年3月18日交付，较合同约定2026年3月15日晚3日，迟延原因与后果未明确。\",\"actorIds\":[\"buyer\",\"seller\"]}],\"decisionFactors\":[{\"id\":\"df1\",\"label\":\"合同约定产能标准\",\"description\":\"合同明确约定稳定产能6000瓶/小时，两次测试均未达标。\",\"impact\":\"supportive\"},{\"id\":\"df2\",\"label\":\"现场条件对测试结果的影响\",\"description\":\"卖方主张瓶体规格、原料黏度及电压波动影响测试结果，但未形成双方书面一致认定。\",\"impact\":\"uncertain\"},{\"id\":\"df3\",\"label\":\"整改效果有限\",\"description\":\"卖方整改后产能仅由5200提升至5700瓶/小时，仍未达到合同标准。\",\"impact\":\"supportive\"},{\"id\":\"df4\",\"label\":\"付款节点约定\",\"description\":\"合同约定验收合格后支付10%尾款12万元，验收是否通过存在争议。\",\"impact\":\"uncertain\"},{\"id\":\"df5\",\"label\":\"交付迟延事实\",\"description\":\"实际交付日晚于合同约定3日。\",\"impact\":\"adverse\"}],\"risks\":[{\"id\":\"r1\",\"description\":\"若认定设备不符合约定，买方可能面临进一步整改、换货或退货的法律责任。\",\"severity\":\"high\",\"mitigation\":\"申请第三方检测或专家鉴定固定证据，明确未达标原因归属。\"},{\"id\":\"r2\",\"description\":\"尾款暂缓支付可能被卖方主张违约或提起诉讼并要求支付违约金。\",\"severity\":\"medium\",\"mitigation\":\"以书面方式通知暂缓付款理由并保留往来记录。\"},{\"id\":\"r3\",\"description\":\"现场条件争议缺乏客观证据，存在举证不足风险。\",\"severity\":\"medium\",\"mitigation\":\"及时委托公证或第三方机构对现场瓶体、原料、供电条件进行记录。\"},{\"id\":\"r4\",\"description\":\"设备已投入运行，产品质量与生产计划受影响。\",\"severity\":\"medium\",\"mitigation\":\"协商临时生产方案并评估减损措施。\"}],\"unknowns\":[{\"id\":\"u1\",\"question\":\"设备未能达标的具体技术原因及责任比例。\",\"importance\":\"high\"},{\"id\":\"u2\",\"question\":\"现场瓶体规格、原料黏度及电压是否符合设备运行前提条件。\",\"importance\":\"high\"},{\"id\":\"u3\",\"question\":\"合同约定的验收程序、违约责任及解除权条款具体内容。\",\"importance\":\"high\"},{\"id\":\"u4\",\"question\":\"交付迟延3日的具体原因及买方是否曾主张异议。\",\"importance\":\"medium\"},{\"id\":\"u5\",\"question\":\"管辖法院或仲裁机构是否已由合同约定。\",\"importance\":\"medium\"}],\"selfReview\":{\"confidence\":0.42,\"limitations\":[\"未提供合同违约责任、验收程序、争议解决条款等完整条款\",\"未提供第三方检测或鉴定报告\",\"现场条件对测试结果的影响缺乏客观证据\",\"交付迟延原因及买方是否曾提异议未在材料中反映\"],\"assumptions\":[\"默认合同中关于验收及违约金条款按一般买卖合同实践理解\",\"默认双方均为中国大陆法人主体\",\"默认两次测试数据真实反映当时设备状态\"],\"requiresLawyerReview\":true}}",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784638031,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 3146,
+            "total_characters": 0,
+            "prompt_tokens": 1724,
+            "completion_tokens": 1422,
+            "prompt_tokens_details": {
+              "cached_tokens": 1664
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 3146,
+          "total_characters": 0,
+          "prompt_tokens": 1724,
+          "completion_tokens": 1422,
+          "prompt_tokens_details": {
+            "cached_tokens": 1664
+          }
+        },
+        "cost": null,
+        "duration_ms": 13843,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-direct-benchmark-v2",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-direct-benchmark-v2",
+          "fallback_used": false
+        }
+      }
+    },
+    {
+      "stage": "conflict_enhancement",
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae9d5dbfeb8c3fcfb084b37182443f",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "```json\n[\n  {\n    \"id\": \"c1\",\n    \"title\": \"设备产能是否达到合同约定\",\n    \"description\": \"首次测试平均产能5200瓶/小时、复测平均产能5700瓶/小时，两次均低于合同约定的6000瓶/小时。买方主张构成性能不符并拒绝验收；卖方主张测试数据虽未达标但差距已显著缩小，未达成根本违约的认定。\",\n    \"actorIds\": [\"buyer\", \"seller\"]\n  },\n  {\n    \"id\": \"c2\",\n    \"title\": \"未达标原因归属\",\n    \"description\": \"卖方主张未达标由买方提供的瓶体规格不稳定、原料黏度及现场电压波动等现场条件造成；买方主张系设备自身质量与性能问题。双方在首次测试记录中即各自作出相反备注，未形成一致认定。\",\n    \"actorIds\": [\"buyer\", \"seller\"]\n  },\n  {\n    \"id\": \"c3\",\n    \"title\": \"尾款支付条件是否成就\",\n    \"description\": \"买方以验收未通过为由暂缓支付尾款12万元；卖方主张已完成交付与调试，付款条件已成就，要求买方支付尾款。双方就\"验收合格\"这一付款节点是否已实质达成存在分歧。\",\n    \"actorIds\": [\"buyer\", \"seller\"]\n  },\n  {\n    \"id\": \"c4\",\n    \"title\": \"交付迟延3日的责任承担\",\n    \"description\": \"设备于2026年3月18日送达，较合同约定的2026年3月15日晚3日。迟延系由卖方还是买方原因造成、是否已造成实际损失及买方是否曾就此提出异议，双方未作明确表态。\",\n    \"actorIds\": [\"buyer\", \"seller\"]\n  },\n  {\n    \"id\": \"c5\",\n    \"title\": \"现场条件是否属于设备运行前提\",\n    \"description\": \"卖方主张瓶体规格、原料黏度及电压条件属买方应予配合的运行前提；买方未明确回应该主张。分歧在于合同是否对买方现场条件义务作出约定，以及买方是否已按通常标准提供条件。\",\n    \"actorIds\": [\"buyer\", \"seller\"]\n  },\n  {\n    \"id\": \"c6\",\n    \"title\": \"整改措施是否足以补救性能不符\",\n    \"description\": \"卖方于2026年3月22日通过调整设备参数及更换部分导轨进行整改；买方认为整改后产能仍为5700瓶/小时，未实质消除性能差距。双方对整改是否构成充分补救存在分歧。\",\n    \"actorIds\": [\"buyer\", \"seller\"]\n  }\n]\n```",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784638045,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 2811,
+            "total_characters": 0,
+            "prompt_tokens": 2249,
+            "completion_tokens": 562,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 2811,
+          "total_characters": 0,
+          "prompt_tokens": 2249,
+          "completion_tokens": 562,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 7621,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-conflict-enhancement-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-conflict-enhancement-v1",
+          "fallback_used": false
+        }
+      }
+    },
+    {
+      "stage": "decision_factor_enhancement",
+      "provider": "minimax",
+      "model": "MiniMax-M3",
+      "response": {
+        "provider": "minimax",
+        "model": "MiniMax-M3",
+        "response": {
+          "id": "06ae9d64e6086941e9547b4a1ab0a831",
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "content": "```json\n[\n  {\n    \"id\": \"df1\",\n    \"label\": \"合同约定产能标准\",\n    \"description\": \"material-001-contract 明确约定稳定产能应达到6000瓶/小时，material-001-acceptance 与 material-001-rectification 记录的两次测试结果分别为5200瓶/小时与5700瓶/小时，均未达到该标准。\",\n    \"impact\": \"supportive\"\n  },\n  {\n    \"id\": \"df2\",\n    \"label\": \"现场条件对测试结果的影响\",\n    \"description\": \"material-001-acceptance 中卖方备注认为卡瓶与买方提供的瓶体规格不稳定及现场电压波动有关；material-001-rectification 中卖方再次主张差异由买方瓶体、原料黏度和供电条件造成。但双方未就此形成书面一致认定，缺乏客观证据。\",\n    \"impact\": \"uncertain\"\n  },\n  {\n    \"id\": \"df3\",\n    \"label\": \"整改效果有限\",\n    \"description\": \"material-001-rectification 显示卖方于2026年3月22日调整设备参数并更换部分导轨后，2026年3月25日复测平均产能仅由5200瓶/小时提升至5700瓶/小时，与6000瓶/小时合同标准仍有明显差距。\",\n    \"impact\": \"supportive\"\n  },\n  {\n    \"id\": \"df4\",\n    \"label\": \"付款节点与验收挂钩\",\n    \"description\": \"material-001-contract 约定尾款12万元于设备验收合格后支付，material-001-payment 确认该12万元尚未支付。当前因两次测试未达标，买方拒绝验收并暂缓支付。\",\n    \"impact\": \"uncertain\"\n  },\n  {\n    \"id\": \"df5\",\n    \"label\": \"交付迟延事实\",\n    \"description\": \"material-001-contract 约定交付截止日为2026年3月15日，material-001-delivery 显示设备实际送达时间为2026年3月18日，迟延3日。\",\n    \"impact\": \"adverse\"\n  },\n  {\n    \"id\": \"df6\",\n    \"label\": \"已付价款比例\",\n    \"description\": \"material-001-payment 显示买方已按合同节点支付预付款36万元与发货前货款72万元，合计108万元，占总价120万元的90%，仅余10%尾款未付。\",\n    \"impact\": \"neutral\"\n  },\n  {\n    \"id\": \"df7\",\n    \"label\": \"卡瓶现象伴随产能不足\",\n    \"description\": \"material-001-acceptance 载明首次测试连续运行2小时内出现多次卡瓶，平均产能5200瓶/小时；material-001-rectification 复测虽减少卡瓶但产能仍仅5700瓶/小时。卡瓶事实双方工程人员均在场签字。\",\n    \"impact\": \"supportive\"\n  },\n  {\n    \"id\": \"df8\",\n    \"label\": \"卖方主张完成交付与调试\",\n    \"description\": \"material-001-delivery 与 material-001-rectification 显示卖方主张其已完成交付、安装与调试义务，差异应归因于买方现场条件，并据此要求支付尾款。该立场与买方主张存在直接冲突。\",\n    \"impact\": \"adverse\"\n  },\n  {\n    \"id\": \"df9\",\n    \"label\": \"买方持续拒绝验收\",\n    \"description\": \"material-001-acceptance 与 material-001-rectification 显示买方在两次测试后均明确不同意验收，并持续暂缓支付尾款12万元，立场一致。\",\n    \"impact\": \"supportive\"\n  },\n  {\n    \"id\": \"df10\",\n    \"label\": \"测试数据经双方签字确认\",\n    \"description\": \"material-001-acceptance 载明测试数据经双方工程人员签字确认；material-001-rectification 复测记录亦经双方参与。两次测试数据本身的事实真实性具有较高可信度，仅在归因层面存在分歧。\",\n    \"impact\": \"neutral\"\n  }\n]\n```",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 1784638053,
+          "model": "MiniMax-M3",
+          "object": "chat.completion",
+          "usage": {
+            "total_tokens": 2923,
+            "total_characters": 0,
+            "prompt_tokens": 2061,
+            "completion_tokens": 862,
+            "prompt_tokens_details": {
+              "cached_tokens": 128
+            }
+          },
+          "input_sensitive": false,
+          "output_sensitive": false,
+          "input_sensitive_type": 0,
+          "output_sensitive_type": 0,
+          "output_sensitive_int": 0,
+          "service_tier": "standard",
+          "base_resp": {
+            "status_code": 0,
+            "status_msg": ""
+          }
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "total_tokens": 2923,
+          "total_characters": 0,
+          "prompt_tokens": 2061,
+          "completion_tokens": 862,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          }
+        },
+        "cost": null,
+        "duration_ms": 8288,
+        "attempts": 1,
+        "fallback": false,
+        "fallback_used": false,
+        "prompt_version": "case-intelligence-decision-factor-enhancement-v1",
+        "ai_audit": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "prompt_version": "case-intelligence-decision-factor-enhancement-v1",
+          "fallback_used": false
+        }
+      }
+    }
+  ]
+}
