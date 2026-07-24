@@ -100,6 +100,7 @@ describe('DocumentClaimBuilder', () => {
       '请求判令被告向原告支付260000元尾款。',
       '请求判令本案诉讼费用由被告承担。',
     ])
+    expect(claims.map((claim) => claim.claim_role)).toEqual(['primary', 'ancillary'])
     expect(JSON.stringify(claims)).not.toContain('支付600000元')
     for (const claim of claims) {
       expect(claim.source_issue_ids).toEqual(['issue-1'])
@@ -161,6 +162,7 @@ describe('DocumentClaimBuilder', () => {
 
     expect(claims[0]).toMatchObject({
       text: '请求判令被告继续履行合同约定的房屋交付义务。',
+      claim_role: 'primary',
       source_issue_ids: ['issue-continue'],
       source_fact_ids: ['fact-not-delivered'],
       source_law_ids: ['law-continue'],
@@ -170,10 +172,11 @@ describe('DocumentClaimBuilder', () => {
   })
 
   it('generates a terminate-contract claim from a matching Formal Scope', () => {
-    const claims = buildRuntimeDocumentClaims(objectiveScopes(), '诉讼目标：terminate_contract')
+    const claims = buildRuntimeDocumentClaims(objectiveScopes(), '备选诉讼目标：terminate_contract')
 
     expect(claims[0]).toMatchObject({
       text: '请求判令解除原告与被告签订的合同。',
+      claim_role: 'alternative',
       source_issue_ids: ['issue-terminate'],
       source_fact_ids: ['fact-demand'],
       source_law_ids: ['law-terminate'],
@@ -193,6 +196,9 @@ describe('DocumentClaimBuilder', () => {
       '请求判令解除原告与被告签订的合同。',
       '请求判令本案诉讼费用由被告承担。',
     ])
+    expect(claims.map((claim) => claim.claim_role)).toEqual(['primary', 'alternative', 'ancillary'])
+    expect(claims.every((claim) => !Object.keys(claim).includes('claim_role'))).toBe(true)
+    expect(JSON.stringify(claims)).not.toContain('claim_role')
   })
 
   it('does not generate an objective claim without a matching Formal Scope', () => {
@@ -223,6 +229,7 @@ describe('DocumentClaimBuilder', () => {
       '请求判令被告向原告支付260000元尾款。',
       '请求判令本案诉讼费用由被告承担。',
     ])
+    expect(claims.map((claim) => claim.claim_role)).toEqual(['primary', 'ancillary'])
     expect(JSON.stringify(claims)).not.toContain('支付600000元')
   })
 })

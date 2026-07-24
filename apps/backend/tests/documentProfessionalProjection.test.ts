@@ -77,6 +77,31 @@ describe('M160.4.2 Professional Complaint Projection', () => {
     expect(() => assertComplaintContentSafe(content)).not.toThrow()
   })
 
+  it('groups primary alternative and ancillary runtime Claims', () => {
+    const input = sections()
+    input.claims = [
+      { text: '请求判令被告继续履行合同约定的房屋交付义务。', claim_role: 'primary', source_issue_ids: ['issue-1'], source_fact_ids: ['fact-1'], source_law_ids: ['law-1'], source_argument_ids: ['argument-1'], requires_lawyer_confirmation: true },
+      { text: '请求判令解除原告与被告签订的商品房买卖合同。', claim_role: 'alternative', source_issue_ids: ['issue-2'], source_fact_ids: ['fact-2'], source_law_ids: ['law-2'], source_argument_ids: ['argument-2'], requires_lawyer_confirmation: true },
+      { text: '请求判令本案诉讼费用由被告承担。', claim_role: 'ancillary', source_issue_ids: ['issue-1'], source_fact_ids: ['fact-1'], source_law_ids: ['law-1'], source_argument_ids: ['argument-1'], requires_lawyer_confirmation: true },
+    ]
+
+    const content = projectComplaintSections(input)
+
+    expect(content).toContain('一、主位请求\n1. 请求判令被告继续履行合同约定的房屋交付义务。')
+    expect(content).toContain('二、备位请求\n1. 请求判令解除原告与被告签订的商品房买卖合同。')
+    expect(content).toContain('三、附随请求\n1. 请求判令本案诉讼费用由被告承担。')
+    expect(content).not.toContain('claim_role')
+    expect(() => assertComplaintContentSafe(content)).not.toThrow()
+  })
+
+  it('treats a legacy Claim without claim_role as primary and preserves the old list layout', () => {
+    const content = projectComplaintSections(sections())
+
+    expect(content).toContain('诉讼请求：\n1. 请求判令本案诉讼费用由被告承担。')
+    expect(content).not.toContain('主位请求')
+    expect(content).not.toContain('备位请求')
+  })
+
   it('rejects fixed analysis headings and conclusions after the closing block', () => {
     expect(() => assertComplaintContentSafe('民事起诉状\n争议焦点：付款范围')).toThrowError('unsafe_document_content')
     expect(() => assertComplaintContentSafe('民事起诉状\nPosition: 应付款')).toThrowError('unsafe_document_content')

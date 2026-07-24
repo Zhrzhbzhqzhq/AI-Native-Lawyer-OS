@@ -1,6 +1,6 @@
 import type { ComplaintSections } from './ai/DocumentGenerationService'
 import type { DocumentContext } from './documentDraftService'
-import { buildRuntimeDocumentClaims } from './document_claim_builder'
+import { buildRuntimeDocumentClaims, type RuntimeDocumentClaim, type RuntimeClaimRole } from './document_claim_builder'
 import { projectDocumentParties } from './document_party_projection'
 
 export const PROFESSIONAL_CLAIMS_PLACEHOLDER = '【待律师确认：根据已确认的案件目标和法律论证填写具体诉讼请求】'
@@ -9,7 +9,7 @@ type ProjectionModel = {
   title: string
   plaintiff: string
   defendant: string
-  claims: string[]
+  claims: Array<string | RuntimeDocumentClaim>
   facts: Array<{ id: string; text: string }>
   arguments: Array<{ id: string; position: string; reasoning: string; response: string; conclusion: string }>
   laws: Array<{ id: string; citation: string; rule: string }>
@@ -58,12 +58,48 @@ function uniqueText(values: string[]) {
   })
 }
 
-function renderProfessionalComplaint(model: ProjectionModel) {
-  const claims = uniqueText(model.claims).map((claim, index) => {
-    if (claim === PROFESSIONAL_CLAIMS_PLACEHOLDER || /待律师根据已确认\s*Argument/.test(claim)) return PROFESSIONAL_CLAIMS_PLACEHOLDER
-    return `${index + 1}. ${claim.replace(/^【待律师(?:确认|补充)[^】]*】\s*/, '')}`
+function projectionClaims(values: Array<string | RuntimeDocumentClaim>) {
+  const seen = new Set<string>()
+  return values.flatMap((value) => {
+    const text = cleanText(typeof value === 'string' ? value : value.text)
+    const normalized = text.replace(/[，。；：、\s]/g, '')
+    if (!normalized || seen.has(normalized)) return []
+    seen.add(normalized)
+    const claim_role: RuntimeClaimRole = typeof value === 'string' ? 'primary' : value.claim_role || 'primary'
+    return [{ text, claim_role }]
   })
-  if (claims.length === 0) claims.push(PROFESSIONAL_CLAIMS_PLACEHOLDER)
+}
+
+function renderClaims(values: Array<string | RuntimeDocumentClaim>) {
+  const claims = projectionClaims(values)
+  const renderText = (text: string) => {
+    if (text === PROFESSIONAL_CLAIMS_PLACEHOLDER || /待律师根据已确认\s*Argument/.test(text)) return PROFESSIONAL_CLAIMS_PLACEHOLDER
+    return text.replace(/^【待律师(?:确认|补充)[^】]*】\s*/, '')
+  }
+  if (!claims.some((claim) => claim.claim_role === 'alternative')) {
+    const lines = claims.map((claim, index) => `${index + 1}. ${renderText(claim.text)}`)
+    return lines.length > 0 ? lines : [PROFESSIONAL_CLAIMS_PLACEHOLDER]
+  }
+
+  const labels: Array<{ role: RuntimeClaimRole; label: string }> = [
+    { role: 'primary', label: '主位请求' },
+    { role: 'alternative', label: '备位请求' },
+    { role: 'ancillary', label: '附随请求' },
+  ]
+  const lines: string[] = []
+  let section = 0
+  for (const { role, label } of labels) {
+    const grouped = claims.filter((claim) => claim.claim_role === role)
+    if (grouped.length === 0) continue
+    section += 1
+    lines.push(`${['一', '二', '三'][section - 1]}、${label}`)
+    grouped.forEach((claim, index) => lines.push(`${index + 1}. ${renderText(claim.text)}`))
+  }
+  return lines.length > 0 ? lines : [PROFESSIONAL_CLAIMS_PLACEHOLDER]
+}
+
+function renderProfessionalComplaint(model: ProjectionModel) {
+  const claims = renderClaims(model.claims)
 
   const factParagraphs = uniqueText(uniqueById(model.facts).map((fact) => fact.text))
   const knownFacts = new Set(factParagraphs.map((fact) => fact.replace(/[，。；：、\s]/g, '')))
@@ -107,7 +143,7 @@ export function projectComplaintSections(sections: ComplaintSections) {
     title: sections.title,
     plaintiff: sections.parties.plaintiff,
     defendant: sections.parties.defendant,
-    claims: sections.claims.map((claim) => claim.text),
+    claims: sections.claims,
     facts: sections.facts.flatMap((fact) => fact.source_fact_ids.map((id) => ({ id, text: fact.text }))),
     arguments: sections.reasoning.map((item) => ({
       id: item.argument_id,
@@ -131,7 +167,7 @@ export function projectComplaintContext(context: DocumentContext) {
     title: `${context.matter.title || '案件'}民事起诉状`,
     plaintiff: parties.plaintiff,
     defendant: parties.defendant,
-    claims: buildRuntimeDocumentClaims(context.argument_scopes, context.lawyer_instruction).map((claim) => claim.text),
+    claims: buildRuntimeDocumentClaims(context.argument_scopes, context.lawyer_instruction),
     facts: context.facts.map((fact) => ({ id: fact.fact_id, text: [fact.title, fact.description].filter(Boolean).join('：') })),
     arguments: context.argument_scopes.map((scope) => ({
       id: scope.argument.argument_id,
