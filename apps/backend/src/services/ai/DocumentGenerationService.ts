@@ -67,7 +67,7 @@ function unique(values: string[]) {
 }
 
 export function buildDocumentReasoningScope(context: DocumentContext): DocumentReasoningScope {
-  const claims = buildRuntimeDocumentClaims(context.argument_scopes)
+  const claims = buildRuntimeDocumentClaims(context.argument_scopes, context.lawyer_instruction)
   const parties = projectDocumentParties(context.case_understanding)
   return {
     goal: {

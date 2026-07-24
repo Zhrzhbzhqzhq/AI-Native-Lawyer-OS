@@ -230,7 +230,7 @@ export class DocumentDraftService {
     return presentDraftRow(draft)
   }
 
-  async generateDraft(matter_id: string, document_type = 'complaint'): Promise<{ status: 'document_draft_ready'; idempotent: boolean; document_draft: DocumentDraftRow }> {
+  async generateDraft(matter_id: string, document_type = 'complaint', lawyer_note = ''): Promise<{ status: 'document_draft_ready'; idempotent: boolean; document_draft: DocumentDraftRow }> {
     const type = String(document_type || '').trim() || 'complaint'
     if (!SUPPORTED_DOCUMENT_TYPES.includes(type)) {
       const error = new Error('unsupported_document_type')
@@ -244,7 +244,8 @@ export class DocumentDraftService {
     })
     if (existing) return { status: 'document_draft_ready', idempotent: true, document_draft: presentDraftRow(existing) }
 
-    const context = await this.readFormalSources(matter_id, type, '')
+    const lawyerInstruction = typeof lawyer_note === 'string' ? lawyer_note : ''
+    const context = await this.readFormalSources(matter_id, type, lawyerInstruction)
     const draft = await this.composeDraft(context)
 
     const created = await (this.prisma as any).documentDraft.create({
@@ -259,6 +260,7 @@ export class DocumentDraftService {
         source_law_ids: serializeSourceIds(draft.source_law_ids),
         confidence: draft.confidence,
         ai_reasoning: draft.ai_reasoning,
+        lawyer_note: lawyerInstruction || null,
         review_status: 'generated',
       },
     })

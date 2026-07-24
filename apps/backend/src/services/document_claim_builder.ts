@@ -1,5 +1,7 @@
 import type { DocumentArgumentScope } from './document_context_builder'
 
+type RuntimeClaimObjective = 'continue_performance' | 'terminate_contract' | 'pay_confirmed_amount'
+
 export type RuntimeDocumentClaim = {
   text: string
   source_issue_ids: string[]
@@ -13,6 +15,27 @@ const AMOUNT_PATTERN = /(?:人民币|￥)?\s*\d[\d,]*(?:\.\d+)?\s*(?:元|万元|
 const PAYABLE_MARKERS = /尚欠|欠付|拖欠|未付|未支付|应付|应支付|尾款|剩余(?:货款|价款|款项)/
 const UNCERTAIN_MARKERS = /待确认|待核实|无法确认|金额不明|金额存在争议|付款性质存在争议/
 const FORBIDDEN_CLAIM_MARKERS = /利息|违约金|律师费|保全费|担保费|鉴定费/
+const OBJECTIVE_LINE_PATTERN = /^\s*(?:诉讼目标|备选诉讼目标)：\s*(.*?)\s*$/
+
+function parseRuntimeClaimObjectives(lawyerInstruction?: string) {
+  const objectives: RuntimeClaimObjective[] = []
+  let controlled = false
+  const add = (objective: RuntimeClaimObjective) => {
+    if (!objectives.includes(objective)) objectives.push(objective)
+  }
+
+  for (const line of String(lawyerInstruction || '').split(/\r?\n/)) {
+    const match = line.match(OBJECTIVE_LINE_PATTERN)
+    if (!match) continue
+    controlled = true
+    const value = match[1]
+    if (/continue_performance|继续履行|交付房屋/.test(value)) add('continue_performance')
+    if (/terminate_contract|解除合同/.test(value)) add('terminate_contract')
+    if (/pay_confirmed_amount|支付明确欠款|支付已确认欠款/.test(value)) add('pay_confirmed_amount')
+  }
+
+  return { controlled, objectives }
+}
 
 function normalizeAmount(value: string) {
   return value.replace(/人民币|￥|\s|,/g, '')
@@ -35,19 +58,56 @@ function isPaidAmount(text: string, rawAmount: string) {
   return /已(?:经)?支付|已付|累计(?:已)?支付|实付/.test(localPrefix)
 }
 
-export function buildRuntimeDocumentClaims(scopes: DocumentArgumentScope[]): RuntimeDocumentClaim[] {
-  const claims: RuntimeDocumentClaim[] = []
-  const seen = new Set<string>()
+function sourceForScope(scope: DocumentArgumentScope) {
+  return {
+    source_issue_ids: [scope.issue.issue_id],
+    source_fact_ids: scope.facts.map((fact) => fact.fact_id),
+    source_law_ids: scope.laws.map((law) => law.law_id),
+    source_argument_ids: [scope.argument.argument_id],
+    requires_lawyer_confirmation: true as const,
+  }
+}
 
+function scopeSupportsObjective(scope: DocumentArgumentScope, objective: Exclude<RuntimeClaimObjective, 'pay_confirmed_amount'>) {
+  if (!scope.issue.issue_id || !scope.argument.argument_id || scope.facts.length === 0 || scope.laws.length === 0) return false
+  const issueAndArgument = [
+    scope.issue.title,
+    scope.issue.description,
+    scope.argument.title,
+    scope.argument.position,
+    scope.argument.reasoning,
+    scope.argument.conclusion,
+  ].join('\n')
+  const legalSupport = scope.laws.map((law) => [
+    law.title,
+    law.citation,
+    law.description,
+    law.rule_content,
+    law.application,
+  ].join('\n')).join('\n')
+  const marker = objective === 'continue_performance'
+    ? /继续履行|交付房屋|房屋交付/
+    : /解除合同|合同解除|解除权/
+  return marker.test(issueAndArgument) && marker.test(legalSupport)
+}
+
+function continuePerformanceClaimText(scope: DocumentArgumentScope) {
+  const scopeText = [
+    scope.issue.title,
+    scope.issue.description,
+    scope.argument.title,
+    scope.argument.position,
+    ...scope.facts.flatMap((fact) => [fact.title, fact.description]),
+  ].join('\n')
+  return /房屋交付|交付房屋/.test(scopeText)
+    ? '请求判令被告继续履行合同约定的房屋交付义务。'
+    : '请求判令被告继续履行合同义务。'
+}
+
+function appendMonetaryClaims(claims: RuntimeDocumentClaim[], seen: Set<string>, scopes: DocumentArgumentScope[]) {
   for (const scope of scopes) {
     if (!scope.issue.issue_id || !scope.argument.argument_id || scope.facts.length === 0 || scope.laws.length === 0) continue
-    const source = {
-      source_issue_ids: [scope.issue.issue_id],
-      source_fact_ids: scope.facts.map((fact) => fact.fact_id),
-      source_law_ids: scope.laws.map((law) => law.law_id),
-      source_argument_ids: [scope.argument.argument_id],
-      requires_lawyer_confirmation: true as const,
-    }
+    const source = sourceForScope(scope)
 
     for (const fact of scope.facts) {
       const factText = `${fact.title}\n${fact.description}`
@@ -61,6 +121,32 @@ export function buildRuntimeDocumentClaims(scopes: DocumentArgumentScope[]): Run
         if (seen.has(text)) continue
         seen.add(text)
         claims.push({ ...source, source_fact_ids: [fact.fact_id], text })
+      }
+    }
+  }
+}
+
+export function buildRuntimeDocumentClaims(scopes: DocumentArgumentScope[], lawyerInstruction?: string): RuntimeDocumentClaim[] {
+  const claims: RuntimeDocumentClaim[] = []
+  const seen = new Set<string>()
+  const parsed = parseRuntimeClaimObjectives(lawyerInstruction)
+
+  if (!parsed.controlled) {
+    appendMonetaryClaims(claims, seen, scopes)
+  } else {
+    for (const objective of parsed.objectives) {
+      if (objective === 'pay_confirmed_amount') {
+        appendMonetaryClaims(claims, seen, scopes)
+        continue
+      }
+      const scope = scopes.find((candidate) => scopeSupportsObjective(candidate, objective))
+      if (!scope) continue
+      const text = objective === 'continue_performance'
+        ? continuePerformanceClaimText(scope)
+        : '请求判令解除原告与被告签订的合同。'
+      if (!seen.has(text)) {
+        seen.add(text)
+        claims.push({ ...sourceForScope(scope), text })
       }
     }
   }
@@ -86,8 +172,8 @@ export function buildRuntimeDocumentClaims(scopes: DocumentArgumentScope[]): Run
 }
 
 export class DocumentClaimBuilder {
-  build(scopes: DocumentArgumentScope[]) {
-    return buildRuntimeDocumentClaims(scopes)
+  build(scopes: DocumentArgumentScope[], lawyerInstruction?: string) {
+    return buildRuntimeDocumentClaims(scopes, lawyerInstruction)
   }
 }
 

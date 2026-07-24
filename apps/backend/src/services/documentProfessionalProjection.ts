@@ -131,7 +131,7 @@ export function projectComplaintContext(context: DocumentContext) {
     title: `${context.matter.title || '案件'}民事起诉状`,
     plaintiff: parties.plaintiff,
     defendant: parties.defendant,
-    claims: buildRuntimeDocumentClaims(context.argument_scopes).map((claim) => claim.text),
+    claims: buildRuntimeDocumentClaims(context.argument_scopes, context.lawyer_instruction).map((claim) => claim.text),
     facts: context.facts.map((fact) => ({ id: fact.fact_id, text: [fact.title, fact.description].filter(Boolean).join('：') })),
     arguments: context.argument_scopes.map((scope) => ({
       id: scope.argument.argument_id,

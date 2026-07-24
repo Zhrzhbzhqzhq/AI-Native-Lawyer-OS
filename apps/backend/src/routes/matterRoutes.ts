@@ -1372,7 +1372,11 @@ export async function matterRoutes(app: FastifyInstance) {
     const { matter_id } = request.params as any
     const body = (request.body || {}) as any
     try {
-      const result = await documentDraftService.generateDraft(matter_id, String(body.document_type || 'complaint'))
+      const result = await documentDraftService.generateDraft(
+        matter_id,
+        String(body.document_type || 'complaint'),
+        typeof body.lawyer_note === 'string' ? body.lawyer_note : '',
+      )
       return reply.code(200).send(result)
     } catch (err: any) {
       const code = String(err?.code || err?.message || '')
@@ -1486,7 +1490,11 @@ export async function matterRoutes(app: FastifyInstance) {
     const { matter_id } = request.params as any
     const body = (request.body || {}) as any
     try {
-      const result = await documentDraftService.generateDraft(matter_id, String(body.document_type || 'complaint'))
+      const result = await documentDraftService.generateDraft(
+        matter_id,
+        String(body.document_type || 'complaint'),
+        typeof body.lawyer_note === 'string' ? body.lawyer_note : '',
+      )
       return reply.code(200).send({
         success: true,
         result_type: 'document_draft',
