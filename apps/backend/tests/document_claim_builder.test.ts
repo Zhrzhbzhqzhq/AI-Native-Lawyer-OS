@@ -185,6 +185,40 @@ describe('DocumentClaimBuilder', () => {
     })
   })
 
+  it('maps a strict primary-claim label to primary', () => {
+    const claims = buildRuntimeDocumentClaims(objectiveScopes(), '主位请求：继续履行商品房买卖合同并交付房屋')
+
+    expect(claims[0]).toMatchObject({
+      text: '请求判令被告继续履行合同约定的房屋交付义务。',
+      claim_role: 'primary',
+      source_issue_ids: ['issue-continue'],
+    })
+  })
+
+  it('maps a strict alternative-claim label to alternative', () => {
+    const claims = buildRuntimeDocumentClaims(objectiveScopes(), '备位请求：如无法继续履行，则解除合同')
+
+    expect(claims[0]).toMatchObject({
+      text: '请求判令解除原告与被告签订的合同。',
+      claim_role: 'alternative',
+      source_issue_ids: ['issue-terminate'],
+    })
+  })
+
+  it('builds the Case03 primary alternative and ancillary claims from primary-claim labels', () => {
+    const claims = buildRuntimeDocumentClaims(
+      objectiveScopes(),
+      '主位请求：继续履行商品房买卖合同并交付房屋\n备位请求：如无法继续履行，则解除合同',
+    )
+
+    expect(claims.map((claim) => claim.text)).toEqual([
+      '请求判令被告继续履行合同约定的房屋交付义务。',
+      '请求判令解除原告与被告签订的合同。',
+      '请求判令本案诉讼费用由被告承担。',
+    ])
+    expect(claims.map((claim) => claim.claim_role)).toEqual(['primary', 'alternative', 'ancillary'])
+  })
+
   it('preserves the primary and alternative objective order', () => {
     const claims = buildRuntimeDocumentClaims(
       objectiveScopes(),
@@ -212,6 +246,18 @@ describe('DocumentClaimBuilder', () => {
     context.argument_scopes[0].facts[0].description = '浩达精密制造有限公司尚欠260000元设备款。'
 
     const claims = buildRuntimeDocumentClaims(context.argument_scopes, '请缩短事实与理由，语言更正式。')
+
+    expect(claims.map((claim) => claim.text)).toEqual([
+      '请求判令被告向原告支付260000元设备款。',
+      '请求判令本案诉讼费用由被告承担。',
+    ])
+  })
+
+  it('does not parse a primary-claim phrase embedded in an ordinary lawyer instruction', () => {
+    const context = reasoningContext()
+    context.argument_scopes[0].facts[0].description = '浩达精密制造有限公司尚欠260000元设备款。'
+
+    const claims = buildRuntimeDocumentClaims(context.argument_scopes, '请围绕主位请求：继续履行合同进行简要论述。')
 
     expect(claims.map((claim) => claim.text)).toEqual([
       '请求判令被告向原告支付260000元设备款。',

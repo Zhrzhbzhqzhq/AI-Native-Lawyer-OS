@@ -17,7 +17,7 @@ const AMOUNT_PATTERN = /(?:人民币|￥)?\s*\d[\d,]*(?:\.\d+)?\s*(?:元|万元|
 const PAYABLE_MARKERS = /尚欠|欠付|拖欠|未付|未支付|应付|应支付|尾款|剩余(?:货款|价款|款项)/
 const UNCERTAIN_MARKERS = /待确认|待核实|无法确认|金额不明|金额存在争议|付款性质存在争议/
 const FORBIDDEN_CLAIM_MARKERS = /利息|违约金|律师费|保全费|担保费|鉴定费/
-const OBJECTIVE_LINE_PATTERN = /^\s*(诉讼目标|备选诉讼目标)：\s*(.*?)\s*$/
+const OBJECTIVE_LINE_PATTERN = /^\s*(诉讼目标|备选诉讼目标|主位请求|备位请求)：\s*(.*?)\s*$/
 
 function parseRuntimeClaimObjectives(lawyerInstruction?: string) {
   const objectives: Array<{ objective: RuntimeClaimObjective; claim_role: RuntimeClaimRole }> = []
@@ -32,10 +32,15 @@ function parseRuntimeClaimObjectives(lawyerInstruction?: string) {
     const match = line.match(OBJECTIVE_LINE_PATTERN)
     if (!match) continue
     controlled = true
-    const claimRole: RuntimeClaimRole = match[1] === '备选诉讼目标' ? 'alternative' : 'primary'
+    const claimRole: RuntimeClaimRole = match[1] === '备选诉讼目标' || match[1] === '备位请求'
+      ? 'alternative'
+      : 'primary'
     const value = match[2]
-    if (/continue_performance|继续履行|交付房屋/.test(value)) add('continue_performance', claimRole)
-    if (/terminate_contract|解除合同/.test(value)) add('terminate_contract', claimRole)
+    const terminatesContract = /terminate_contract|解除合同/.test(value)
+    if (/continue_performance|继续履行|交付房屋/.test(value) && !/无法(?:继续履行|交付房屋)/.test(value)) {
+      add('continue_performance', claimRole)
+    }
+    if (terminatesContract) add('terminate_contract', claimRole)
     if (/pay_confirmed_amount|支付明确欠款|支付已确认欠款/.test(value)) add('pay_confirmed_amount', claimRole)
   }
 
