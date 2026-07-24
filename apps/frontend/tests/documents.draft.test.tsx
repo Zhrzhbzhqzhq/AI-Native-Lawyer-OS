@@ -141,6 +141,7 @@ describe('Documents Draft Workflow', () => {
   it('accepts editing as a successful regenerate status and refreshes the draft', async () => {
     regenerateStatus = 'editing'
     drafts = [{ ...generatedDraft }]
+    const regeneratedContent = `${generatedDraft.content}\n律师意见已纳入。`
     render(<DocumentsPage />)
 
     await waitFor(() => expect(screen.getByDisplayValue(generatedDraft.title)).toBeTruthy())
@@ -149,6 +150,7 @@ describe('Documents Draft Workflow', () => {
     await waitFor(() => expect(screen.getByText('已根据律师意见重新生成')).toBeTruthy())
     expect(drafts[0].content).toContain('律师意见已纳入')
     expect(drafts[0].review_status).toBe('editing')
+    await waitFor(() => expect((screen.getAllByRole('textbox')[1] as HTMLTextAreaElement).value).toBe(regeneratedContent))
     expect(screen.queryByText('文书草稿返回数据暂不可用')).toBeNull()
   })
 })

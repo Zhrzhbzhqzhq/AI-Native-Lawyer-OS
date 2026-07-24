@@ -211,6 +211,9 @@ export default function DocumentsWorkspace() {
       const updated = await res.json().catch(() => { throw new Error('invalid_response') })
       const allowedRegenerateStatuses = new Set(['generated', 'editing'])
       if (!isDocumentDraft(updated) || updated.id !== activeDraft.id || updated.matter_id !== matterId || !allowedRegenerateStatuses.has(updated.review_status)) throw new Error('invalid_response')
+      setDraftTitle(updated.title || '')
+      setDraftContent(updated.content || '')
+      setLawyerNote(updated.lawyer_note || '')
       setMessage('已根据律师意见重新生成')
       await loadAll()
     } catch (e: any) {
