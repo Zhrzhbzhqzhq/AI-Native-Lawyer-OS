@@ -1,0 +1,62 @@
+[
+    {
+        "title": "开发公司逾期未交付是否构成违约以及违约责任的具体形态",
+        "status": "active",
+        "issue_id": "iss-mryrwxyh-yje0wx",
+        "priority": "medium",
+        "description": "现有材料显示开发公司未在2026年1月30日前完成交付，且在微信沟通中自认项目存在问题、预计延期，在《被告答复意见》中亦主张延期属于客观因素。该问题涉及是否已构成违约、违约责任的具体形态（如违约金计算、损害赔偿范围等）以及合同中相关条款的适用，需要律师结合合同全文进一步审查。",
+        "source_fact_ids": [
+            "fct-mryrq5l7-3a40k7",
+            "fct-mryrq5md-az30xp",
+            "fct-mryrq5m4-rt5pl0",
+            "fct-mryrq5mi-o518y7"
+        ]
+    },
+    {
+        "title": "解除合同的法律依据与合同条款基础是否充分",
+        "status": "active",
+        "issue_id": "iss-mryrwxzh-1thkny",
+        "priority": "medium",
+        "description": "王某在《客户诉求》中并列提出'如无法交付则解除合同'的备选诉求。解除权是否成立，依赖于合同中是否约定了解除条件、法定解除权的适用、催告程序的履行情况等。现有材料仅显示王某已发出《房屋交付催告函》及开发公司已作出《被告答复意见》，但未载明合同解除条款的具体内容，需要律师审查解除权的行使基础。",
+        "source_fact_ids": [
+            "fct-mryrq5mm-aoafgo",
+            "fct-mryrq5m9-o74j9r",
+            "fct-mryrq5m4-rt5pl0",
+            "fct-mryrq5l7-3a40k7"
+        ]
+    },
+    {
+        "title": "王某主张继续履行交付义务的请求是否具备事实基础及可行性",
+        "status": "active",
+        "issue_id": "iss-mryrwxzx-0rvzrh",
+        "priority": "medium",
+        "description": "王某在《客户诉求》及《房屋交付催告函》中要求开发公司按合同约定交付房屋，但现有材料未载明房屋的工程进度、是否符合法定或约定交付条件、是否存在权利负担等。该问题涉及继续履行请求的事实基础及现实可行性，需要律师结合合同条款及房屋现状进一步审查。",
+        "source_fact_ids": [
+            "fct-mryrq5mm-aoafgo",
+            "fct-mryrq5mi-o518y7",
+            "fct-mryrq5l7-3a40k7"
+        ]
+    },
+    {
+        "title": "开发公司主张的'客观因素'能否构成免责或减责事由及其证据边界",
+        "status": "active",
+        "issue_id": "iss-mryrwy07-n33ze5",
+        "priority": "medium",
+        "description": "《被告答复意见》仅概括表述'延期原因属于客观因素'，未载明具体内容及证据。微信沟通整理也仅记载'项目存在问题'，未展开。该问题涉及'客观因素'的具体范围、举证可能性以及在法律上能否构成免责或减责事由，需要律师结合证据规则进一步审查。",
+        "source_fact_ids": [
+            "fct-mryrq5m4-rt5pl0",
+            "fct-mryrq5md-az30xp"
+        ]
+    },
+    {
+        "title": "王某已支付200万元购房款及剩余100万元房款支付安排的事实状态",
+        "status": "active",
+        "issue_id": "iss-mryrwy0d-almypm",
+        "priority": "medium",
+        "description": "现有付款记录显示王某累计支付2000000元，合同总价为3000000元，剩余1000000元房款的支付期限及是否已到期对后续主张（如是否同时存在买方付款义务、是否构成抗辩等）具有重要影响，但现有材料未载明该信息，需要律师就付款义务履行状态进行补充审查。",
+        "source_fact_ids": [
+            "fct-mryrq5ln-z30ciw",
+            "fct-mryrq5l7-3a40k7"
+        ]
+    }
+]

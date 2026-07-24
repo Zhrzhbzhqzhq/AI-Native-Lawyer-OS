@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, rm, symlink, writeFile } from 'node:fs/promises'
+import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -85,6 +85,49 @@ describe('SafeMaterialReader', () => {
 
     await expect(new SafeMaterialReader({ repositoryRoot: root, maxFileBytes: validChineseDocx.length - 1 }).read(storageUri))
       .rejects.toThrow('material_file_too_large')
+  })
+
+  it('extracts text from a PDF Buffer', async () => {
+    const root = await temporaryRepository()
+    const storageUri = 'storage/intake-uploads/contract.pdf'
+    const fixturePath = path.join(path.dirname(require.resolve('pdf-parse/package.json')), 'test/data/01-valid.pdf')
+    await writeFile(path.join(root, storageUri), await readFile(fixturePath))
+
+    const result = await new SafeMaterialReader({ repositoryRoot: root }).read(storageUri)
+
+    expect(result.content).toContain('Because traces are in SSA form')
+    expect(result.contentLength).toBe(result.content.length)
+  })
+
+  it('extracts Chinese正文 from PDF', async () => {
+    const root = await temporaryRepository()
+    const storageUri = 'storage/intake-uploads/chinese-contract.pdf'
+    const binaryPdf = Buffer.from('%PDF-1.4 Chinese fixture', 'utf8')
+    const pdfTextExtractor = vi.fn(async () => '瑞峰自动化设备采购合同')
+    await writeFile(path.join(root, storageUri), binaryPdf)
+
+    const result = await new SafeMaterialReader({ repositoryRoot: root, pdfTextExtractor }).read(storageUri)
+
+    expect(result.content).toContain('瑞峰自动化设备采购合同')
+    expect(pdfTextExtractor).toHaveBeenCalledWith(binaryPdf)
+  })
+
+  it('rejects a PDF with no extractable正文', async () => {
+    const root = await temporaryRepository()
+    const storageUri = 'storage/intake-uploads/empty.pdf'
+    await writeFile(path.join(root, storageUri), Buffer.from('%PDF-1.4 empty fixture', 'utf8'))
+
+    await expect(new SafeMaterialReader({ repositoryRoot: root, pdfTextExtractor: async () => ' \n ' }).read(storageUri))
+      .rejects.toThrow('material_file_empty')
+  })
+
+  it('rejects a damaged PDF', async () => {
+    const root = await temporaryRepository()
+    const storageUri = 'storage/intake-uploads/damaged.pdf'
+    await writeFile(path.join(root, storageUri), 'not a valid PDF file', 'utf8')
+
+    await expect(new SafeMaterialReader({ repositoryRoot: root }).read(storageUri))
+      .rejects.toThrow('material_file_extraction_failed')
   })
 
   it('rejects traversal and symlink paths outside the upload root', async () => {

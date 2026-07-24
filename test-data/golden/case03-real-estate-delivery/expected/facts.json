@@ -1,0 +1,74 @@
+[
+    {
+        "title": "王某与某房地产开发有限公司签订商品房买卖合同，约定房屋总价300万元、交付时间2026年1月30日前",
+        "status": "active",
+        "fact_id": "fct-mryrq5l7-3a40k7",
+        "description": "甲方为某房地产开发有限公司，乙方为王某，合同约定房屋总价为人民币3000000元，交付时间为2026年1月30日前。",
+        "source_evidence_ids": [
+            "ev-mryrmkww-fnhei0"
+        ]
+    },
+    {
+        "title": "王某分别于2025年5月20日和2025年8月15日各支付购房款100万元，累计支付200万元",
+        "status": "active",
+        "fact_id": "fct-mryrq5ln-z30ciw",
+        "description": "付款记录记载王某于2025年5月20日支付1000000元，于2025年8月15日支付1000000元，累计支付金额2000000元。",
+        "source_evidence_ids": [
+            "ev-mryrmm2w-m1tc4t"
+        ]
+    },
+    {
+        "title": "某房地产开发有限公司在《被告答复意见》中承认与王某存在合同关系并确认王某付款事实属实",
+        "status": "active",
+        "fact_id": "fct-mryrq5lx-y2zaqf",
+        "description": "《被告答复意见》载明双方存在合同关系、王某付款事实属实两项内容。",
+        "source_evidence_ids": [
+            "ev-mryrmpti-8m0cft"
+        ]
+    },
+    {
+        "title": "某房地产开发有限公司在《被告答复意见》中主张延期原因属于客观因素，并表示希望继续履行合同",
+        "status": "active",
+        "fact_id": "fct-mryrq5m4-rt5pl0",
+        "description": "《被告答复意见》载明延期原因属于客观因素、公司希望继续履行合同两项内容。",
+        "source_evidence_ids": [
+            "ev-mryrmpti-8m0cft"
+        ]
+    },
+    {
+        "title": "王某向某房地产开发有限公司发出《房屋交付催告函》，要求按合同约定完成交付并预告将依法维权",
+        "status": "active",
+        "fact_id": "fct-mryrq5m9-o74j9r",
+        "description": "《房屋交付催告函》载明王某要求某房地产开发有限公司按照合同约定完成房屋交付，并表示如继续延期将依法维护自身权益。",
+        "source_evidence_ids": [
+            "ev-mryrmnje-vsg6vz"
+        ]
+    },
+    {
+        "title": "微信沟通记录（王某单方整理）载明王某询问交房时间，开发公司回复项目存在问题、预计延期",
+        "status": "active",
+        "fact_id": "fct-mryrq5md-az30xp",
+        "description": "微信沟通记录整理材料载明王某询问交房时间，开发公司回复项目存在问题，预计延期。",
+        "source_evidence_ids": [
+            "ev-mryrmp24-og1hjn"
+        ]
+    },
+    {
+        "title": "截至客户咨询时，开发公司尚未按照合同约定完成房屋交付",
+        "status": "active",
+        "fact_id": "fct-mryrq5mi-o518y7",
+        "description": "客户咨询记录载明截至目前，开发公司尚未按照合同约定完成房屋交付。",
+        "source_evidence_ids": [
+            "ev-mryrmqjm-aw1efe"
+        ]
+    },
+    {
+        "title": "王某的核心诉求为要求交付房屋、如无法交付则解除合同并希望评估胜诉风险",
+        "status": "active",
+        "fact_id": "fct-mryrq5mm-aoafgo",
+        "description": "《客户诉求》载明三项诉求：要求交付房屋；如无法交付，希望解除合同；评估胜诉风险。",
+        "source_evidence_ids": [
+            "ev-mryrmrdv-zakzyf"
+        ]
+    }
+]

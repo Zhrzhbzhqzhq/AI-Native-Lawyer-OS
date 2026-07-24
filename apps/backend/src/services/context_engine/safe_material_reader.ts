@@ -2,13 +2,16 @@ import { readFile, realpath, stat } from 'node:fs/promises'
 import path from 'node:path'
 import mammoth from 'mammoth'
 
+const pdf: typeof import('pdf-parse') = require('pdf-parse/lib/pdf-parse.js')
+
 const STORAGE_PREFIX = 'storage/intake-uploads/'
-const SUPPORTED_EXTENSIONS = new Set(['.docx', '.json', '.md', '.txt'])
+const SUPPORTED_EXTENSIONS = new Set(['.docx', '.json', '.md', '.pdf', '.txt'])
 const DEFAULT_MAX_FILE_BYTES = 5 * 1024 * 1024
 
 export type SafeMaterialReaderOptions = {
   repositoryRoot?: string
   maxFileBytes?: number
+  pdfTextExtractor?: (buffer: Buffer) => Promise<string>
 }
 
 export type SafeMaterialReadResult = {
@@ -36,11 +39,13 @@ export class SafeMaterialReader {
   private readonly repositoryRoot: string
   private readonly storageRoot: string
   private readonly maxFileBytes: number
+  private readonly pdfTextExtractor: (buffer: Buffer) => Promise<string>
 
   constructor(options: SafeMaterialReaderOptions = {}) {
     this.repositoryRoot = path.resolve(options.repositoryRoot || defaultRepositoryRoot())
     this.storageRoot = path.join(this.repositoryRoot, 'storage/intake-uploads')
     this.maxFileBytes = options.maxFileBytes || DEFAULT_MAX_FILE_BYTES
+    this.pdfTextExtractor = options.pdfTextExtractor || ((buffer) => pdf(buffer).then((result) => result.text))
   }
 
   async read(storageUri: string): Promise<SafeMaterialReadResult> {
@@ -79,12 +84,13 @@ export class SafeMaterialReader {
     if (fileStat.size > this.maxFileBytes) throw readerError('material_file_too_large')
 
     let content: string
-    if (extension === '.docx') {
+    if (extension === '.docx' || extension === '.pdf') {
       const buffer = await readFile(realCandidate).catch(() => {
         throw readerError('material_file_unavailable')
       })
-      content = await mammoth.extractRawText({ buffer })
-        .then((result) => result.value)
+      content = await (extension === '.docx'
+        ? mammoth.extractRawText({ buffer }).then((result) => result.value)
+        : this.pdfTextExtractor(buffer))
         .catch(() => {
           throw readerError('material_file_extraction_failed')
         })
